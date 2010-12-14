@@ -43,14 +43,14 @@ protected:
   TGTextButton *fTB_Prev;
   TGTextButton *fTB_Next;
   TGTextButton *fTB_Print;
-  TGTextButton *fTB_Subm;
+  TGTextButton *fTB_Goto;
   TGTextButton *fTB_DoAll;
   TGTextButton *fTB_Quit;
 
   TGComboBox* fCBox_Module;
   TGListBox *fLB_RunSet;
 
-  TGNumberEntry *fNE_Veto;
+  TGNumberEntry *fNE_Elem;
   TGNumberEntry *fNE_Delay;
 
   Int_t fMax;
@@ -59,7 +59,7 @@ public:
   ButtonWindow();
 
   void CheckModules();
-  void Submit();
+  void Goto();
   void DoNext();
   void DoPrev();
   void DoAll();
@@ -129,19 +129,19 @@ ButtonWindow::ButtonWindow()
   fTB_Prev->SetToolTipText("Switch to previous crystal", 200);
   fTB_Prev->Connect("Pressed()", "ButtonWindow", this, "DoPrev()");
 
-  fNE_Veto = new TGNumberEntry(horizontal_2, (Int_t) 1, 3, -1,(TGNumberFormat::EStyle) 0,
+  fNE_Elem = new TGNumberEntry(horizontal_2, (Int_t) 1, 3, -1,(TGNumberFormat::EStyle) 0,
 			       (TGNumberFormat::EAttribute) 0,(TGNumberFormat::ELimit) 1, 1, 720);
-  fNE_Veto->SetIntNumber(1);
-  fNE_Veto->Resize(160, 50);
-  horizontal_2->AddFrame(fNE_Veto, new TGLayoutHints(kLHintsLeft | kLHintsExpandY));
+  fNE_Elem->SetIntNumber(1);
+  fNE_Elem->Resize(160, 50);
+  horizontal_2->AddFrame(fNE_Elem, new TGLayoutHints(kLHintsLeft | kLHintsExpandY));
 
-  fTB_Subm = new TGTextButton(horizontal_2, "Submit");
-  fTB_Subm->SetTextJustify(36);
-  fTB_Subm->Resize(80,50);
+  fTB_Goto = new TGTextButton(horizontal_2, "Go to");
+  fTB_Goto->SetTextJustify(36);
+  fTB_Goto->Resize(80,50);
 
-  fTB_Subm->ChangeOptions(fTB_Subm->GetOptions() | kFixedSize);
-  fTB_Subm->SetToolTipText("Switch to previous crystal", 200);
-  fTB_Subm->Connect("Released()", "ButtonWindow", this, "Submit()");
+  fTB_Goto->ChangeOptions(fTB_Goto->GetOptions() | kFixedSize);
+  fTB_Goto->SetToolTipText("Go to crystal", 200);
+  fTB_Goto->Connect("Released()", "ButtonWindow", this, "Goto()");
 
   fTB_Next = new TGTextButton(horizontal_2,"Next");
   fTB_Next->SetTextJustify(36);
@@ -159,8 +159,8 @@ ButtonWindow::ButtonWindow()
   horizontal_3->SetTitlePos(TGGroupFrame::kLeft);
 
   fNE_Delay = new TGNumberEntry(horizontal_3, (Int_t) 1, 3, -1,(TGNumberFormat::EStyle) 1,
-				(TGNumberFormat::EAttribute) 1,(TGNumberFormat::ELimit) 0,0,10);
-  fNE_Delay->SetIntNumber(1.);
+				(TGNumberFormat::EAttribute) 1,(TGNumberFormat::ELimit) 1,1,10);
+  fNE_Delay->SetIntNumber(1);
   fNE_Delay->Resize(160, 50);
   horizontal_3->AddFrame(fNE_Delay, new TGLayoutHints(kLHintsLeft | kLHintsExpandY));
 
@@ -263,14 +263,13 @@ void ButtonWindow::CheckModules()
 }
 
 //------------------------------------------------------------
-void ButtonWindow::Submit()
+void ButtonWindow::Goto()
 {
-  int n = fNE_Veto->GetNumber();
-  Int_t runset = (Int_t) fNE_RunSet->GetNumber();
+  int n = fNE_Elem->GetNumber();
+  Int_t runset = (Int_t) fNE_Elem->GetNumber();
   
   Char_t szCommand[64];
-  sprintf( szCommand, "%s->DoFor(%i)", szModule, n);
-  //sprintf( szCommand, "%s->DoFor(%i)", szModule, runset );
+  sprintf( szCommand, "%s->ProcessElement(%i)", szModule, n);
   gROOT->ProcessLine( szCommand );
 }
 
@@ -279,7 +278,7 @@ void ButtonWindow::DoPrev()
 {
   // 
   Char_t szCommand[64];
-  sprintf( szCommand, "%s->Prev()", szModule );
+  sprintf( szCommand, "%s->Previous()", szModule );
   gROOT->ProcessLine( szCommand );
 }
 
@@ -289,8 +288,8 @@ void ButtonWindow::DoNext()
   // 
   Char_t szCommand[64];
   sprintf( szCommand,
-	   "%s->Next(%i)", 
-	   szModule, fMax );
+	   "%s->Next()", 
+	   szModule);
   gROOT->ProcessLine( szCommand );
 }
 
@@ -314,16 +313,10 @@ void ButtonWindow::Print()
 //------------------------------------------------------------
 void ButtonWindow::DoAll()
 {
-  // 
   Float_t n = fNE_Delay->GetNumber();
   
   Char_t szCommand[64];
-  sprintf(szCommand, 
-	  "%s->DoAll(%f,\"%s\", %i)",
-	  szModule, n*1.E+3, szModule, fMax); // ms
-  //   cout << szCommand << endl;
-
-  //  
+  sprintf(szCommand, "%s->ProcessAll(%d)", szModule, (Int_t)n*1000);
   gROOT->ProcessLine( szCommand );
 }
 

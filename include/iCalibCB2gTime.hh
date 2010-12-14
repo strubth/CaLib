@@ -17,47 +17,31 @@
 #include "TCanvas.h"
 #include "TH2.h"
 #include "TLine.h"
-#include "TError.h"
 
 #include "iCalib.hh"
 #include "iReadConfig.hh"
-#include "iCrystalNavigator.hh"
-#include "iFileManager.hh"
 #include "iMySQLManager.hh"
+#include "iFileManager.hh"
 
 
-class iCalibCB2gTime
-    : public iCalib,
-      public iCrystalNavigator
+class iCalibCB2gTime : public iCalib
 {
 
 private:
-    Double_t fTimeGain;
-    Double_t* fGaussMean;
-    Double_t* fGaussError;
-    TLine** fLineOffset;
-    
+    Double_t fTimeGain;                 // CB TDC gain
+    TLine* fLine;                       // indicator line
+    TH1* fOverviewHisto;                // overview result histogram
+    TF1* fOverviewFunc;                 // overview histogram fitting function
 
-    TH1F* hhOffset;
-    TF1* fPol0;
-
-    Double_t peackval;
-    
-    virtual void PrintInfo();
     virtual void CustomizeGUI();
-    virtual void PrepareFit(Int_t elem);
-    virtual void Fit(Int_t elem);
-    virtual void Draw(Int_t elem);
+    virtual void Process(Int_t elem);
 
 public:
-    iCalibCB2gTime(Int_t);
+    iCalibCB2gTime(Int_t set);
     virtual ~iCalibCB2gTime();
 
-    void Calculate(Int_t);
     virtual void Write();
 
-    
-    
     ClassDef(iCalibCB2gTime, 0)   // CB vs CB time calibration
 };
 
