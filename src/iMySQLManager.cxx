@@ -249,7 +249,7 @@ Long64_t iMySQLManager::GetUnixTimeOfRun(Int_t run)
 
     // create the query
     sprintf(query,
-            "SELECT UNIX_TIMESTAMP(date) FROM run_main WHERE run = %d", run);
+            "SELECT UNIX_TIMESTAMP(date) FROM %s WHERE run = %d", fgCalibMainTableName, run);
 
     // read from database
     TSQLResult* res = SendQuery(query);
@@ -399,11 +399,12 @@ Int_t* iMySQLManager::GetRunsOfSet(CalibData_t data, Int_t set, Int_t* outNruns 
 
     // create the query
     sprintf(query,
-            "SELECT run FROM run_main "
-            "WHERE date >= ( SELECT date FROM run_main WHERE run = %d) "
-            "AND date <= ( SELECT date FROM run_main WHERE run = %d) "
+            "SELECT run FROM %s "
+            "WHERE date >= ( SELECT date FROM %s WHERE run = %d) "
+            "AND date <= ( SELECT date FROM %s WHERE run = %d) "
             "ORDER by run,date",
-            first_run, last_run);
+            fgCalibMainTableName, fgCalibMainTableName, first_run, 
+            fgCalibMainTableName, last_run);
 
     // read from database
     res = SendQuery(query);
@@ -482,6 +483,9 @@ void iMySQLManager::ReadParameters(Int_t set, CalibData_t data, Double_t* par, I
     // clean-up
     delete row;
     delete res;
+    
+    // user information
+    Info("ReadParameters", "%d parameters read from table '%s'", length, table);
 }
 
 //______________________________________________________________________________
@@ -525,8 +529,8 @@ void iMySQLManager::WriteParameters(Int_t set, CalibData_t data, Double_t* par, 
 
     // get data
     TSQLRow* row = res->Next();
-    Char_t desc[256];
-    strcpy(desc, row->GetField(0));
+    Char_t desc[256] = "";
+    if (row->GetField(0)) strcpy(desc, row->GetField(0));
     Int_t last_run = atoi(row->GetField(1));
 
     // clean-up
@@ -534,10 +538,10 @@ void iMySQLManager::WriteParameters(Int_t set, CalibData_t data, Double_t* par, 
     delete res;
 
     // prepare the insert query
-
-    // read all parameters and write them to new query
     TString ins_query = TString::Format("INSERT INTO %s SET calibration = '%s', description = '%s', first_run = %d, last_run = %d,",
                                         table, fCalibration.Data(), desc, first_run, last_run);
+    
+    // read all parameters and write them to new query
     for (Int_t j = 0; j < length; j++)
     {
         // append parameter to query
@@ -548,6 +552,9 @@ void iMySQLManager::WriteParameters(Int_t set, CalibData_t data, Double_t* par, 
     // write data to database
     res = SendQuery(ins_query.Data());
     delete res;
+
+    // user information
+    Info("WriteParameters", "%d parameters written to table '%s'", length, table);
 }
 
 //______________________________________________________________________________
@@ -621,11 +628,13 @@ void iMySQLManager::CreateMainTable()
     printf("Creating main CaLib table\n");
 
     // delete the old table if it exists
-    SendQuery(TString::Format("DROP TABLE IF EXISTS %s", fgCalibMainTableName).Data());
-    
+    TSQLResult* res = SendQuery(TString::Format("DROP TABLE IF EXISTS %s", fgCalibMainTableName).Data());
+    delete res;
+
     // create the table
-    SendQuery(TString::Format("CREATE TABLE %s ( %s )", 
-                              fgCalibMainTableName, fgCalibMainTableFormat).Data());
+    res = SendQuery(TString::Format("CREATE TABLE %s ( %s )", 
+                                     fgCalibMainTableName, fgCalibMainTableFormat).Data());
+    delete res;
 }
 
 //______________________________________________________________________________
@@ -641,8 +650,9 @@ void iMySQLManager::CreateDataTable(CalibData_t data, Int_t nElem)
     printf("Adding data table %s\n", table);
         
     // delete the old table if it exists
-    SendQuery(TString::Format("DROP TABLE IF EXISTS %s", table));
-    
+    TSQLResult* res = SendQuery(TString::Format("DROP TABLE IF EXISTS %s", table));
+    delete res;
+
     // prepare CREATE TABLE query
     TString query;
     query.Append(TString::Format("CREATE TABLE %s ( %s ", table, fgCalibDataTableHeader));
@@ -658,6 +668,54 @@ void iMySQLManager::CreateDataTable(CalibData_t data, Int_t nElem)
     query.Append(" )");
     
     // submit the query
-    SendQuery(query.Data());
+    res = SendQuery(query.Data());
+    delete res;
+}
+
+//______________________________________________________________________________
+TList* iMySQLManager::GetAllTargets()
+{
+    // Return a list of TStrings containing all targets in the database.
+    // If no targets were found 0 is returned.
+    // NOTE: The list must be destroyed by the caller.
+
+    Char_t query[256];
+
+    // get all targets
+    sprintf(query, "SELECT DISTINCT target from %s", fgCalibMainTableName);
+    TSQLResult* res = SendQuery(query);
+
+    // count rows
+    if (!res->GetRowCount())
+    {
+        delete res;
+        return 0;
+    }
+
+    // get number of targets
+    Int_t ntarget = res->GetRowCount();
+
+    // create list
+    TList* list = new TList();
+    list->SetOwner(kTRUE);
+
+    // read all targets and add them to the list
+    for (Int_t i = 0; i < ntarget; i++)
+    {
+        // get next run
+        TSQLRow* row = res->Next();
+
+        // save run number
+        list->Add(new TObjString(row->GetField(0)));
+
+        // clean-up
+        delete row;
+    }
+
+    // clean-up
+    delete res;
+
+    // return the list
+    return list;
 }
 

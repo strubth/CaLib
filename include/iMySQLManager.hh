@@ -14,9 +14,12 @@
 #ifndef IMYSQLMANAGER_HH
 #define IMYSQLMANAGER_HH
 
-#include <TSQLServer.h>
-#include <TSQLResult.h>
-#include <TSQLRow.h>
+#include "TSQLServer.h"
+#include "TSQLResult.h"
+#include "TSQLRow.h"
+#include "TList.h"
+#include "TError.h"
+#include "TObjString.h"
 
 #include "iReadConfig.hh"
 
@@ -90,6 +93,7 @@ public:
     Bool_t IsConnected();
     void SearchTable(CalibData_t data, Char_t* outTableName);
 
+    TList* GetAllTargets();
     Int_t GetNsets(CalibData_t data);
     Int_t GetFirstRunOfSet(CalibData_t data, Int_t set);
     Int_t GetLastRunOfSet(CalibData_t data, Int_t set);
