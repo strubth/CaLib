@@ -97,46 +97,41 @@ void iCalibCB2gTime::Process(Int_t elem)
 {
     // Perform the fit of the element 'elem'.
     
-    // create projection
-    Char_t tmp[32];
+    Char_t tmp[256];
+    
+    // create histogram projection for this element
     sprintf(tmp, "ProjHisto_%i", elem);
     TH2* h2 = (TH2*) fMainHisto;
     if (fFitHisto) delete fFitHisto;
     fFitHisto = (TH1D*) h2->ProjectionX(tmp, elem, elem);
     
-    Char_t szName[64];
-
-    int maxbin;
-    double sigma;
-    double rms;
-    double factor = 3.0;
+    // init variables
+    Double_t factor = 3.0;
     Double_t peakval = 0;
     Double_t mean = 0;
-
+    
+    // check for sufficient statistics
     if (fFitHisto->GetEntries() > 20)
     {
         // delete old function
         if (fFitFunc) delete fFitFunc;
-        sprintf(szName, "fTime_%i", (elem-1));
-        fFitFunc = new TF1(szName, "gaus");
+        sprintf(tmp, "fTime_%i", (elem-1));
+        fFitFunc = new TF1(tmp, "gaus");
         fFitFunc->SetLineColor(2);
 
-
-        maxbin = fFitHisto->GetMaximumBin();
-        peakval = fFitHisto->GetBinCenter(maxbin);
+        peakval = fFitHisto->GetBinCenter(fFitHisto->GetMaximumBin());
 
         // temporary
         mean = peakval;
-        rms = fFitHisto->GetRMS();
 
         // first iteration
-        fFitFunc->SetRange(peakval -3.8, peakval +3.8);
+        fFitFunc->SetRange(peakval - 3.8, peakval + 3.8);
         fFitFunc->SetParameters(fFitHisto->GetMaximum(), peakval, 0.5);
         fFitHisto->Fit(fFitFunc, "+R0Q");
 
         // second iteration
         peakval = fFitFunc->GetParameter(1);
-        sigma = fFitFunc->GetParameter(2);
+        Double_t sigma = fFitFunc->GetParameter(2);
         fFitFunc->SetRange(peakval -factor*sigma, peakval +factor*sigma);
         fFitHisto->Fit(fFitFunc, "+R0Q");
 
@@ -153,52 +148,56 @@ void iCalibCB2gTime::Process(Int_t elem)
         fLine->SetX2(mean);
     }
 
+    // draw histogram
     fFitHisto->SetFillColor(35);
     fFitHisto->GetXaxis()->SetRangeUser(peakval -50., peakval +50.);
     fCanvasFit->cd(2);
     fFitHisto->Draw();
-
-    if (fFitFunc)
-    {
-        fFitFunc->Draw("same");
-    }
+    
+    // draw fitting function
+    if (fFitFunc) fFitFunc->Draw("same");
+    
+    // draw indicator line
     fLine->Draw();
-
+    
+    // update canvas
     fCanvasFit->Update();
     
-   
-    // calculate new gain
-    //
+    // update overview
+    if (elem % 20 == 0)
+    {
+        fCanvasResult->cd();
+        fOverviewHisto->GetYaxis()->SetRangeUser(-1, 1);
+        fOverviewHisto->Draw("E1");
+
+        fOverviewFunc->Draw("same");
+        fOverviewHisto->Fit(fOverviewFunc, "+R0Q", "");
+        fCanvasResult->Update();
+    }   
+
+    // check if fit was performed
     if (fFitHisto->GetEntries())
     {
-        if (fLine->GetX1() != mean)
-            mean = fLine->GetX1();
-
+        // calculate the new offset
         fNewVal[(elem-1)] = fOldVal[(elem-1)] + mean / fTimeGain;
-
+    
+        // user information
         printf("Element: %03i peak = %10.6f \t newoffset = %10.6f \t "
-               "oldoffset = %10.6f \n",
+               "oldoffset = %10.6f\n",
                elem, mean, fNewVal[(elem-1)], fOldVal[(elem-1)]);
-
+    
+        // update overview histogram
         fOverviewHisto->SetBinContent(elem, mean);
         fOverviewHisto->SetBinError(elem, 0.1);
     }
     else
-    {
+    {   
+        // user information
         printf("Element: %03i peak = %10.6f \t newoffset = %10.6f \t "
-               "oldoffset = %10.6f \n",
-               elem, mean, 0.0, fOldVal[(elem-1)]);
+               "oldoffset = %10.6f    no change\n",
+               elem, mean, fOldVal[(elem-1)], fOldVal[(elem-1)]);
     }
-    
-    // update overview
-    fCanvasResult->cd();
-    fOverviewHisto->GetYaxis()->SetRangeUser(-1, 1);
-    fOverviewHisto->Draw("E1");
-
-    fOverviewFunc->Draw("same");
-    fOverviewHisto->Fit(fOverviewFunc, "+R0Q", "");
-    fCanvasResult->Update();
-}
+}   
 
 //______________________________________________________________________________
 void iCalibCB2gTime::Write()
@@ -208,22 +207,23 @@ void iCalibCB2gTime::Write()
     // write the new time offsets to the database
     iMySQLManager m;
     m.WriteParameters(fSet, ECALIB_CB_T0, fNewVal, fNelem);
-
+        
+    // get path for image saving
     iReadConfig r;
+    TString path = r.GetConfigName("HTML.PATH").Data();
+    
+    // save overview picture
+    if (!(path == ""))
+    {
+        Char_t tmp[256];
 
-    // write histogram
-    Char_t szName[100];
-    sprintf(szName,
-            "/%s/cb/Tcalib/hGr_set%02i.gif",
-            r.GetConfigName("HTML.PATH").Data(),
-            fSet);
-    //check if Directory for pictures exist, otherwise create
-    Char_t szMakeDir[100];
-    sprintf(szMakeDir,
-            "mkdir -p %s/cb/Tcalib/",
-            r.GetConfigName("HTML.PATH").Data());
-    gSystem->Exec(szMakeDir);
-
-    fCanvasResult->SaveAs(szName);
+        // create directory
+        sprintf(tmp, "%s/cb/Tcalib", path.Data());
+        gSystem->mkdir(tmp, kTRUE);
+    
+        // save canvas
+        sprintf(tmp, "%s/cb/Tcalib/overview_set_%d.png", path.Data(), fSet);
+        fCanvasResult->SaveAs(tmp);
+    }
 }
 

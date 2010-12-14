@@ -56,12 +56,15 @@ public:
     iCalib(Int_t set, Int_t nElem);
     virtual ~iCalib();
     
+    virtual void Write() = 0;
+    
     void Start();
     void ProcessAll(Int_t msecDelay = 0);
     void ProcessElement(Int_t elem);
     void Previous();
     void Next();
-    virtual void Write() = 0;
+    void StopProcessing();
+    void PrintValues();
 
     ClassDef(iCalib, 0)         // Base calibration module class
 };

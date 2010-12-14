@@ -120,9 +120,6 @@ void iCalib::ProcessAll(Int_t msecDelay)
 {
     // Process all elements using 'msecDelay' milliseconds delay.
     
-    // start with the first element
-    fCurrentElem = 0;
-
     // check for delay
     if (msecDelay > 0)
     {
@@ -154,5 +151,32 @@ void iCalib::Next()
     // Process the next element.
     
     ProcessElement(fCurrentElem + 1);
+}
+
+//______________________________________________________________________________
+void iCalib::StopProcessing()
+{
+    // Stop processing when in automatic mode.
+    
+    // stop timer when it was active
+    if (fTimer) 
+    {
+        fTimer->Stop();
+        delete fTimer;
+        fTimer = 0;
+    }
+}
+
+//______________________________________________________________________________
+void iCalib::PrintValues()
+{
+    // Print out the old and new values for all elements.
+
+    // loop over elements
+    for (Int_t i = 0; i < fNelem; i++)
+    {
+        printf("Element: %03d    old value: %12.8f    new value: %12.8f\n",
+               i+1, fOldVal[i], fNewVal[i]);
+    }
 }
 

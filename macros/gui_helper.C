@@ -160,23 +160,23 @@ ButtonWindow::ButtonWindow()
 
   fNE_Delay = new TGNumberEntry(horizontal_3, (Int_t) 1, 3, -1,(TGNumberFormat::EStyle) 1,
 				(TGNumberFormat::EAttribute) 1,(TGNumberFormat::ELimit) 1,1,10);
-  fNE_Delay->SetIntNumber(1);
+  fNE_Delay->SetIntNumber(1.);
   fNE_Delay->Resize(160, 50);
   horizontal_3->AddFrame(fNE_Delay, new TGLayoutHints(kLHintsLeft | kLHintsExpandY));
 
-  fTB_DoAll = new TGTextButton(horizontal_3,"Start / Stop");
+  fTB_DoAll = new TGTextButton(horizontal_3,"Start");
   fTB_DoAll->SetTextJustify(36);
   fTB_DoAll->Resize(80, 50);
   fTB_DoAll->ChangeOptions(fTB_DoAll->GetOptions() | kFixedSize);
   fTB_DoAll->SetToolTipText("Continue automatically", 200);
   fTB_DoAll->Connect("Pressed()", "ButtonWindow", this, "DoAll()");
 
-  fTB_DoFit = new TGTextButton(horizontal_3, "Fit");
-  fTB_DoFit->SetTextJustify(36);
-  fTB_DoFit->Resize(80, 50);
-  fTB_DoFit->ChangeOptions(fTB_DoFit->GetOptions() | kFixedSize);
-  fTB_DoFit->SetToolTipText("Continue automatically", 200);
-  fTB_DoFit->Connect("Pressed()", "ButtonWindow", this, "DoFit()");
+  fTB_Stop = new TGTextButton(horizontal_3, "Stop");
+  fTB_Stop->SetTextJustify(36);
+  fTB_Stop->Resize(80, 50);
+  fTB_Stop->ChangeOptions(fTB_Stop->GetOptions() | kFixedSize);
+  fTB_Stop->SetToolTipText("Stop processing", 200);
+  fTB_Stop->Connect("Pressed()", "ButtonWindow", this, "Stop()");
 
   TGCheckButton *disable = new TGCheckButton(horizontal_3, "Switch state\nEnable/Disable");
   disable->SetOn();
@@ -306,9 +306,10 @@ void ButtonWindow::DoWrite()
 //------------------------------------------------------------
 void ButtonWindow::Print()
 {
-  // 
-  gROOT->ProcessLine("PrintAll()");
-}
+  Char_t szCommand[64];
+  sprintf( szCommand, "%s->PrintValues()", szModule );
+  gROOT->ProcessLine( szCommand );
+ }
 
 //------------------------------------------------------------
 void ButtonWindow::DoAll()
@@ -321,13 +322,10 @@ void ButtonWindow::DoAll()
 }
 
 //------------------------------------------------------------
-void ButtonWindow::DoFit()
+void ButtonWindow::Stop()
 {
   Char_t szCommand[64];
-  sprintf(szCommand, "%s->DoFit()", szModule); // 
-  cout << szCommand << endl;
-
-  //  
+  sprintf(szCommand, "%s->StopProcessing()", szModule); // 
   gROOT->ProcessLine( szCommand );
 }
 
