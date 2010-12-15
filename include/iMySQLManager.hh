@@ -28,8 +28,11 @@
 // NOTE: This enum has to be synchronized with fgCalibDataTableNames!
 enum ECalibData
 {
+    // empty element
+    ECALIB_NODATA = 0,
+
     // tagger data
-    ECALIB_TAGG_T0 = 0,
+    ECALIB_TAGG_T0,
 
     // CB data
     ECALIB_CB_T0,

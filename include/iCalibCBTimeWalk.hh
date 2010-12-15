@@ -44,7 +44,6 @@ using namespace std;
 
 class iCalibCBTimeWalk
     : public virtual iReadConfig,
-      public iFileManager,
       public iReadFile,
       public iFitHisto,
       public iCrystalNavigator
@@ -53,7 +52,8 @@ class iCalibCBTimeWalk
 private:
     TString strHName;
     TString strCBCalibFile;
-    
+    iFileManager* fFileManager;
+
     Int_t fRun;
     Int_t fSet;
     TCanvas* c1;

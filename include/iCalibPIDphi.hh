@@ -43,7 +43,6 @@ using namespace std;
 
 class iCalibPIDphi
     : public virtual iReadConfig,
-      public iFileManager,
       public iReadFile,
       public iFitHisto,
       public iCrystalNavigator

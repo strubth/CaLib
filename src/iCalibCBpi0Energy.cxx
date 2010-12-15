@@ -78,7 +78,7 @@ iCalibCBpi0Energy::iCalibCBpi0Energy(Int_t set)
     this->Init();
 
     // sum up all files conteined in this runset
-    this->DoForSet(set, ECALIB_CB_E1, strCBHistoName);
+    iFileManager f(set, ECALIB_CB_E1);
 
     // delete empty histo
     if (hCB2gIM)
@@ -86,10 +86,10 @@ iCalibCBpi0Energy::iCalibCBpi0Energy(Int_t set)
         hCB2gIM->Delete();
         hCB2gIM=0;
     }
-    if (this->GetMainHisto())
+    if (f.GetHistogram(strCBHistoName))
     {
         // point to sum histo
-        hCB2gIM = (TH2F*) this->GetMainHisto();
+        hCB2gIM = (TH2F*) f.GetHistogram(strCBHistoName);
     }
     else
     {

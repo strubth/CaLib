@@ -47,8 +47,7 @@ class iCalibTaggerTime
     : public virtual iReadConfig,
       public iReadFile,
       public iFitHisto,
-      public iCrystalNavigator,
-      public iFileManager
+      public iCrystalNavigator
 {
 
 private:

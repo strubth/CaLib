@@ -42,11 +42,10 @@ iCalibCB2gTime::iCalibCB2gTime(Int_t set)
     m.ReadParameters(fSet, ECALIB_CB_T0, fOldVal, fNelem);
 
     // sum up all files contained in this runset
-    iFileManager f;
-    f.DoForSet(fSet, ECALIB_CB_T0, fHistoName);
+    iFileManager f(fSet, ECALIB_CB_T0);
     
     // get the main calibration histogram
-    fMainHisto = (TH2F*) f.GetMainHisto();
+    fMainHisto = f.GetHistogram(fHistoName.Data());
     if (!fMainHisto)
     {
         Error("iCalibCB2gTime", "Main histogram does not exist!\n");

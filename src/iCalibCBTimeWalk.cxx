@@ -47,30 +47,7 @@ iCalibCBTimeWalk::iCalibCBTimeWalk(Int_t set)
     this->Init();
 
     // sum up all files conteined in this runset
-    this->BuildFileArray(set, ECALIB_CB_WALK0);
-
-    //
-    //
-    //   TString strTmp;
-    //   char nnn[4];
-    //   //  for(int id=0; id<iConfig::kMaxCB; id++)
-    //   for(int id=0; id<50; id++)
-    //     {
-    //       strTmp = strHName.Copy();
-    //       sprintf( nnn, "%03i", id );
-    //       strTmp.ReplaceAll("NNN", nnn );
-
-    //       this->BuildHistArray( strTmp );
-
-    //       hhTWalk[(id-1)] = (TH2F*) this->GetMainHisto();
-    //       hhTWalk[(id-1)]->RebinX( 8 );
-
-    //       cout << strTmp << endl;
-    //     }
-
-    //   this->CloseAllFiles();
-
-    cout << "HISTO : " << strHName << endl;
+    fFileManager = new iFileManager(set, ECALIB_CB_WALK0);
 
     this->InitGUI();
     this->DoFor(1);
@@ -85,8 +62,6 @@ iCalibCBTimeWalk::iCalibCBTimeWalk(Int_t set, TH2F* h1)
 //------------------------------------------------------------------------------
 iCalibCBTimeWalk::~iCalibCBTimeWalk()
 {
-    this->CloseAllFiles();
-
     delete c1;
     delete c2;
 }
@@ -297,8 +272,8 @@ void iCalibCBTimeWalk::DoFor(Int_t id)
         //
         if (fSet)
         {
-            this->BuildHistArray(strTmp);
-            hhTWalk[(id-1)] = (TH2F*) this->GetMainHisto();
+            //if (fMainHisto) delete fMainHisto;
+            //fMainHisto = (TH2*) this->GetHistogram("no be added");
         }
         else
         {

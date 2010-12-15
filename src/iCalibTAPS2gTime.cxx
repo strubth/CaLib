@@ -61,7 +61,7 @@ iCalibTAPS2gTime::iCalibTAPS2gTime(Int_t set)
     this->Init();
 
     // sum up all files conteined in this runset
-    this->DoForSet(set, ECALIB_TAPS_T0, strTAPSHistoName);
+    iFileManager f(set, ECALIB_TAPS_T0);
 
     if (hTAPSVsTAPS)
     {
@@ -69,9 +69,9 @@ iCalibTAPS2gTime::iCalibTAPS2gTime(Int_t set)
         hTAPSVsTAPS=0;
     }
 
-    if (this->GetMainHisto())
+    if (f.GetHistogram(strTAPSHistoName.Data()))
     {
-        hTAPSVsTAPS = (TH2F*) this->GetMainHisto();
+        hTAPSVsTAPS = (TH2F*) f.GetHistogram(strTAPSHistoName.Data());
     }
     else
     {

@@ -66,10 +66,7 @@ iCalibPIDphi::iCalibPIDphi(Int_t set)
     this->Init();
 
     // sum up all files contained in this runset
-    cout << "HISTO : " << strPIDHistoName << endl;
-    this->DoForSet(set, ECALIB_PID_E1, strPIDHistoName);
-
-    cout << "HISTO : " << strPIDHistoName << endl;
+    iFileManager f(set, ECALIB_PID_E1);
 
     //hCBPhiVsPID = (TH2F*) h1;
     if (hCBPhiVsPID)
@@ -78,9 +75,9 @@ iCalibPIDphi::iCalibPIDphi(Int_t set)
         hCBPhiVsPID=0;
     }
 
-    if (this->GetMainHisto())
+    if (f.GetHistogram(strPIDHistoName.Data()))
     {
-        hCBPhiVsPID = (TH2F*) this->GetMainHisto();
+        hCBPhiVsPID = (TH2F*) f.GetHistogram(strPIDHistoName.Data());
     }
     else
     {

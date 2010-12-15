@@ -46,7 +46,6 @@ using namespace std;
 
 class iCalibTAPS2gTime
     : public virtual iReadConfig,
-      public iFileManager,
       public iReadFile,
       public iFitHisto,
       public iCrystalNavigator

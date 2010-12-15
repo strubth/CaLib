@@ -83,10 +83,7 @@ iCalibPIDenergy::iCalibPIDenergy(Int_t set)
     this->Init();
 
     // sum up all files contained in this runset
-    cout << "HISTO : " << strPIDHistoName << endl;
-    this->DoForSet(set, ECALIB_PID_E1, strPIDHistoName);
-
-    cout << "HISTO : " << strPIDHistoName << endl;
+    iFileManager f(set, ECALIB_PID_E1);
 
     //hCBPhiVsPID = (TH2F*) h1;
     if (hdat_dE_E)
@@ -95,9 +92,9 @@ iCalibPIDenergy::iCalibPIDenergy(Int_t set)
         hdat_dE_E=0;
     }
 
-    if (this->GetMainHisto())
+    if (f.GetHistogram(strPIDHistoName.Data()))
     {
-        hdat_dE_E = (TH2F*) this->GetMainHisto();
+        hdat_dE_E = (TH2F*) f.GetHistogram(strPIDHistoName.Data());
     }
     else
     {

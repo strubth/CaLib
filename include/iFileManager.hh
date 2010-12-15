@@ -1,12 +1,12 @@
 /*************************************************************************
- * Author: Irakli Keshelashvili
+ * Author: Dominik Werthmueller, Irakli Keshelashvili
  *************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // iFileManager                                                         //
 //                                                                      //
-// ...                                                                  //
+// Histogram building class.                                            //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
@@ -14,60 +14,33 @@
 #ifndef IFILEMANAGER_HH 
 #define IFILEMANAGER_HH
 
-#include <iostream>
-#include <fstream>
-
-#include <TObject.h>
-#include <TROOT.h>
-#include <TSystem.h>
-#include <TFile.h>
-#include <TString.h>
-#include <TError.h>
-#include <TH2F.h>
-#include <TH2D.h>
+#include "TFile.h"
+#include "TH1.h"
 
 #include "iReadConfig.hh"
 #include "iMySQLManager.hh"
 
 
-using namespace std;
-
-
 class iFileManager
 {
-private:
-    Int_t  fRun;
-    Int_t  fSet;
-    Int_t  fNRun;
-    Int_t* fRunArray;
-    
-    TString strRunTimeWindow;
-    TString strRunEventNumMin;
-    TString strRunFileNumber;
-    TString strRUNFilesChain; 
 
-    TString strCalibModulName;
-    TFile* fFile[800];
-    TH2F* hMain;
+private:
+    TString fInputFilePatt;                 // input file pattern
+    TList* fFiles;                          // list of files
+    Int_t fSet;                             // number of set
+    CalibData_t fCalibData;                 // calibration data
+    
+    void BuildFileList();
 
 public:
-    iFileManager();
+    iFileManager() : fInputFilePatt(0), fFiles(0), 
+                     fSet(0), fCalibData(ECALIB_NODATA) { }
+    iFileManager(Int_t set, CalibData_t data);
     virtual ~iFileManager();
 
-    void BuildFileArray();
-    void BuildFileArray(Int_t, CalibData_t data);
-    void BuildHistArray(TString);
-    void DoForSet(Int_t, CalibData_t, TString);
-    
-    void CloseAllFiles();
+    TH1* GetHistogram(const Char_t* name);
 
-    TH2F* GetMainHisto() { return hMain; };
-    TString GetModulName() { return strCalibModulName; };
-    TFile* GetFile(Int_t n) { return fFile[n]; };
-    Int_t GetRun() { return fRun; };
-    Int_t GetSet() { return fSet; };
-
-    ClassDef(iFileManager, 0)  // Sum up .root files
+    ClassDef(iFileManager, 0)  // Histogram building class
 };
 
 #endif

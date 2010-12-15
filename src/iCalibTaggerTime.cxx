@@ -72,12 +72,12 @@ iCalibTaggerTime::iCalibTaggerTime(Int_t set)
     this->Init();
 
     // sum up all files conteined in this runset
-    this->DoForSet(set, ECALIB_TAGG_T0, strTaggerHistoName);
+    iFileManager f(set, ECALIB_TAGG_T0);
 
-    if (this->GetMainHisto())
+    if (f.GetHistogram(strTaggerHistoName.Data()))
     {
         // point to sum histo
-        hTagger= (TH2F*) this->GetMainHisto();
+        hTagger= (TH2F*) f.GetHistogram(strTaggerHistoName.Data());
     }
     else
     {

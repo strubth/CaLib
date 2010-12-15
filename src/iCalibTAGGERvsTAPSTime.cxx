@@ -63,7 +63,7 @@ iCalibTAGGERvsTAPSTime::iCalibTAGGERvsTAPSTime(Int_t set)
     this->Init();
 
     // sum up all files contained in this runset
-    this->DoForSet(set, ECALIB_TAGG_T0, strTaggerTAPSHistoName);
+    iFileManager f(set, ECALIB_TAGG_T0);
 
     if (hTaggerVsTAPS)
     {
@@ -71,9 +71,9 @@ iCalibTAGGERvsTAPSTime::iCalibTAGGERvsTAPSTime(Int_t set)
         hTaggerVsTAPS=0;
     }
 
-    if (this->GetMainHisto())
+    if (f.GetHistogram(strTaggerTAPSHistoName.Data()))
     {
-        hTaggerVsTAPS = (TH2F*) this->GetMainHisto();
+        hTaggerVsTAPS = (TH2F*) f.GetHistogram(strTaggerTAPSHistoName.Data());
     }
     else
     {

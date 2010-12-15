@@ -77,7 +77,7 @@ iCalibTAPS1gEnergy::iCalibTAPS1gEnergy(Int_t set)
     this->Init();
 
     // sum up all files conteined in this runset
-    this->DoForSet(set, ECALIB_TAPS_LG_E1, strTAPSHistoName);
+    iFileManager f(set, ECALIB_TAPS_LG_E1);
 
     if (hTAPS1gIM)
     {
@@ -85,7 +85,7 @@ iCalibTAPS1gEnergy::iCalibTAPS1gEnergy(Int_t set)
         hTAPS1gIM=0;
     }
 
-    hTAPS1gIM = (TH2F*) this->GetMainHisto();
+    hTAPS1gIM = (TH2F*) f.GetHistogram(strTAPSHistoName.Data());
 
     this->InitGUI();
     this->DoFor(1);

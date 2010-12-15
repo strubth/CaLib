@@ -1,183 +1,166 @@
+/*************************************************************************
+ * Author: Dominik Werthmueller, Irakli Keshelashvili
+ *************************************************************************/
 
-/*******************************************************************
- *                                                                 *
- * Date: 9.12.2008     Author: Irakli                              *
- *                                                                 *
- *                                                                 *
- ******************************************************************/
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
+// iFileManager                                                         //
+//                                                                      //
+// Histogram building class.                                            //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
 
-
-////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
-// Class to create file chain for given runset. The                           //
-//                                                                            //
-//                                                                            //
-//                                                                            //
-//                                                                            //
-////////////////////////////////////////////////////////////////////////////////
 
 #include "iFileManager.hh"
 
 ClassImp(iFileManager)
 
-//------------------------------------------------------------------------------
-iFileManager::iFileManager()
+
+//______________________________________________________________________________
+iFileManager::iFileManager(Int_t set, CalibData_t data)
 {
-    strRUNFilesChain = *iConfig::GetRC()->GetConfig("RUN.ChainHFiles");
-    printf(" -- file names -- : %s\n", strRUNFilesChain.Data());
-    fNRun = 0;
-    fRunArray = 0;
-}
+    // Constructor.
+    
+    // init members
+    fSet = set;
+    fCalibData = data;
+    fFiles = new TList();
+    fFiles->SetOwner(kTRUE);
 
-//------------------------------------------------------------------------------
-iFileManager::~iFileManager()
-{
-    this->CloseAllFiles();
-}
-
-//------------------------------------------------------------------------------
-void iFileManager::DoForSet(Int_t set,
-                            CalibData_t data,
-                            TString strHistoName)
-{
-    //
-    //
-    //
-    fSet  = set;
-
-    this->BuildFileArray(fSet, data);
-    this->BuildHistArray(strHistoName);
-    //  this->CloseAllFiles();
-
-    return;
-}
-
-//------------------------------------------------------------------------------
-void iFileManager::BuildFileArray()
-{
-    // check if file is attached
-    Int_t NFiles = gROOT->GetListOfFiles()->GetSize();
-    TFile* fin = (TFile*) gROOT->GetListOfFiles()->First();
-
-    for (int i=0; i < NFiles; i++)
+    // read input file pattern
+    if (TString* f = iConfig::GetRC()->GetConfig("File.Input.Rootfiles"))
     {
-        cout << fin->GetName() << endl;
+        fInputFilePatt = *f;
+        
+        // check file pattern
+        if (!fInputFilePatt.Contains("RUN"))
+        {
+            Error("iFileManager", "Error in file pattern configuration!");
+            return;
+        }
+    }
+    else
+    {
+        Error("iFileManager", "Could not load input file pattern from configuration!");
+        return;
     }
 
-    return;
+    // build the list of files
+    BuildFileList();
 }
 
-//------------------------------------------------------------------------------
-void iFileManager::BuildFileArray(Int_t set, CalibData_t data)
+//______________________________________________________________________________
+iFileManager::~iFileManager()
 {
-    //
-    //
-    //
+    // Destructor.
+
+    if (fFiles) delete fFiles;
+}
+
+//______________________________________________________________________________
+void iFileManager::BuildFileList()
+{
+    // Build the list of files belonging to the runset.
+    
+    // get the list of runs for this set
     iMySQLManager m;
-    fRunArray = m.GetRunsOfSet(data, set, &fNRun);
+    Int_t nRun;
+    Int_t* runs = m.GetRunsOfSet(fCalibData, fSet, &nRun);
 
-    TString strOrg;
-    TString strFile;
-    Char_t  szRun[5] = {0};
-
-    //printf("\n\ntable: %s   set: %d    runs: %d\n", szTableName, set, fNRun);
-
-    for (int i=0; i < fNRun; i++)
+    // loop over runs
+    for (Int_t i = 0; i < nRun; i++)
     {
-        sprintf(szRun, "%05i", fRunArray[i]);
-
-        strFile = "";
-        strOrg = strRUNFilesChain.Copy();
-        if (strOrg.Contains("NNNNN")) strFile = strOrg.ReplaceAll("NNNNN", szRun);
-        else
-        {
-            sprintf(szRun, "%i", fRunArray[i]);
-            strFile = strOrg.ReplaceAll("NNNN", szRun);
-        }
-        printf(" -- N: %3i   run: %5i   filename: %s\n",
-               i, fRunArray[i], strFile.Data());
-
-        fFile[i] = TFile::Open(strFile.Data());
-
-        if (!fFile[i])
-            continue;
-
-        if (fFile[i]->IsZombie())
-        {
-            Error("BuildFileArray", "zombie file %s", fFile[i]->GetName());
-            fFile[i] = 0;
+        // construct file name
+        TString filename(fInputFilePatt);
+        filename.ReplaceAll("RUN", TString::Format("%d", runs[i]));
+        
+        // open the file
+        TFile* f = new TFile(filename.Data());
+        
+        // check nonexisting file
+        if (!f) 
+        {   
+            Warning("BuildFileList", "Could not open file '%s'", filename.Data());
             continue;
         }
+
+        // check bad file
+        if (f->IsZombie())
+        {
+            Warning("BuildFileList", "Could not open file '%s'", filename.Data());
+            continue;
+        }
+
+        // add good file to list
+        fFiles->Add(f);
+
+        // user information
+        Info("BuildFileList", "%03d : added file '%s'", i, f->GetName());
     }
 
     // clean-up
-    delete fRunArray;
-
-    return;
+    delete runs;
 }
 
-//------------------------------------------------------------------------------
-void iFileManager::BuildHistArray(TString szName)
+//______________________________________________________________________________
+TH1* iFileManager::GetHistogram(const Char_t* name)
 {
-    //
-    //
-    //
+    // Get the summed-up histogram with name 'name'.
+    // NOTE: the histogram has to be destroyed by the caller.
 
-    //
-    TH2F* htmp;
+    TH1* hOut = 0;
 
-    gROOT->cd(); // very important!!!
-
-    Bool_t first=kTRUE;
-    for (int i=0; i < fNRun; i++)
+    // check if there are some runs
+    if (!fFiles->GetSize())
     {
-        if (!this->GetFile(i))
-            continue;
-        if (!(this->GetFile(i)->Get(szName)))
+        Error("GetHistogram", "ROOT file list is empty!");
+        return 0;
+    }
+    
+    // do not keep histograms in memory
+    TH1::AddDirectory(kFALSE);
+
+    // user information
+    Info("GetHistogram", "Adding histogram - please wait");
+
+    // loop over files
+    TIter next(fFiles);
+    TFile* f;
+    Bool_t first = kTRUE;
+    while ((f = (TFile*)next()))
+    {
+        // get histogram
+        TH1* h = (TH1*) f->Get(name);
+
+        // check if histogram is there
+        if (h)
         {
-            cerr << " ERROR: no histogram with name: " << szName << endl;
-            gSystem->Exit(0);
-            return;
-        }
-        if (first)
-        {
-            htmp = (TH2F*) this->GetFile(i)->Get(szName);
-            hMain = (TH2F*) htmp->Clone();
-            first = kFALSE;
+            // correct destroying
+            h->ResetBit(kMustCleanup);  
+
+            // check if object is really a histogram
+            if (h->InheritsFrom("TH1"))
+            {
+                // check if it is the first one
+                if (first) hOut = (TH1*) h->Clone();      
+                else hOut->Add(h);
+            }
+            else
+            {
+                Error("GetHistogram", "Object '%s' found in file '%s' is not a histogram!",
+                                      name, f->GetName());
+            }
+
+            // clean-up
+            delete h;
         }
         else
         {
-            htmp = (TH2F*) this->GetFile(i)->Get(szName);
-            hMain->Add(htmp);
+            Warning("GetHistogram", "Histogram '%s' was not found in file '%s'",
+                                    name, f->GetName());
         }
-    }
+    } // loop over files
 
-    return;
+    return hOut;
 }
 
-//------------------------------------------------------------------------------
-void iFileManager::CloseAllFiles()
-{
-    //
-    // Close all open .root files
-
-    gROOT->cd(); // very important
-    for (int i=0; i<fNRun; i++)
-    {
-        //      if( !this->GetFile(i) )
-        if (fFile[i])
-        {
-            fFile[i]->Close();
-
-            if (i==0)
-                printf(" -- File: %s is closed!\n", fFile[i]->GetName());
-            else
-                printf(" .");
-        }
-        //      cout << fFile[i] << endl;
-    }
-    printf("\n -- File: %s is closed!\n", fFile[(fNRun-1)]->GetName());
-    printf(" -- All files are closed!;\n");
-
-    return;
-}

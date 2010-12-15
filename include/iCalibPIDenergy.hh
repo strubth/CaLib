@@ -42,7 +42,6 @@ using namespace std;
 
 class iCalibPIDenergy
     : public virtual iReadConfig,
-      public iFileManager,
       public iReadFile,
       public iFitHisto,
       public iCrystalNavigator

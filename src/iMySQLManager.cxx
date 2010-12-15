@@ -19,7 +19,10 @@ ClassImp(iMySQLManager)
 // data table names
 // NOTE: This has to be synchronized with the enum ECalibData
 const Char_t* iMySQLManager::fgCalibDataTableNames[] =
-{
+{   
+    // empty element
+    "empty",
+
     // tagger data
     "tagg_t0",
 
