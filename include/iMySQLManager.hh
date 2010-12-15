@@ -21,10 +21,7 @@
 #include "TError.h"
 #include "TObjString.h"
 
-#include "iReadConfig.hh"
-
-
-using namespace std;
+#include "iConfig.hh"
 
 
 // calibrationd data enumeration
@@ -70,7 +67,7 @@ enum ECalibData
 typedef ECalibData CalibData_t;
 
 
-class iMySQLManager : public virtual iReadConfig
+class iMySQLManager
 {
 
 private:
@@ -105,7 +102,7 @@ public:
 
     void InitDatabase();
     
-    ClassDef(iMySQLManager, 0)   // Connection to MySQL Server
+    ClassDef(iMySQLManager, 0)   // Communication with MySQL Server
 };
 
 #endif

@@ -110,13 +110,13 @@ void iCalibPIDphi::Init()
     //this->ReadFile( strPIDCalibFile );
 
     // get histo name
-    strPIDHistoName = this->GetConfigName("PID.HName");
+    strPIDHistoName = *this->GetConfig("PID.HName");
 
 
     // get time gain for CB chatch TDC's
-    strPIDTgain = atof(this->GetConfigName("PID.Tgain").Data());
+    strPIDTgain = atof(this->GetConfig("PID.Tgain")->Data());
 
-    for (Int_t i = 0; i < MAX_PID; i++)
+    for (Int_t i = 0; i < iConfig::kMaxPID; i++)
     {
         fNewPhi[i] = fOldPhi[i] = 0; //
         mean_gaus[i] = 0;
@@ -129,7 +129,7 @@ void iCalibPIDphi::Init()
     // iMySQLReader
     //Char_t szTableName[64];
     //sprintf( szTableName, "%s_pid_phi", strTarget.Data() );
-    //this->ReadDBtable( fSet, fOldPhi, MAX_PID, szTableName );
+    //this->ReadDBtable( fSet, fOldPhi, iConfig::kMaxPID, szTableName );
 
     return;
 }
@@ -162,7 +162,7 @@ void iCalibPIDphi::InitGUI()
     grOldPhi->SetLineColor(2);
 
     Char_t szName[32];
-    for (Int_t i = 0; i < MAX_PID; i++)
+    for (Int_t i = 0; i < iConfig::kMaxPID; i++)
     {
         sprintf(szName, "fFitPeak_%i", i);
         fFitPeak[(i)] = new TF1(szName, "pol1 + gaus(2)");
@@ -350,9 +350,9 @@ void iCalibPIDphi::Write()
     //Write in DB
     //Char_t szTableName[64];
     //sprintf( szTableName, "%s_pid_phi", strTarget.Data() );
-    //this->WriteInDB( fSet, fNewPhi, MAX_PID, szTableName );
+    //this->WriteInDB( fSet, fNewPhi, iConfig::kMaxPID, szTableName );
 
-    for (Int_t i = 0; i < MAX_PID; i++)
+    for (Int_t i = 0; i < iConfig::kMaxPID; i++)
     {
         printf("element: %d       phi: %f\n", i, fNewPhi[i]);
     }
@@ -361,19 +361,19 @@ void iCalibPIDphi::Write()
     Char_t szName[100];
     sprintf(szName,
             "%s/pid/phi/hGr_set%02i.gif",
-            this->GetConfigName("HTML.PATH").Data(),
+            this->GetConfig("HTML.PATH")->Data(),
             fSet);
     Char_t szName1[100];
     sprintf(szName1,
             "%s/pid/phi/hPID_set%02i.gif",
-            this->GetConfigName("HTML.PATH").Data(),
+            this->GetConfig("HTML.PATH")->Data(),
             fSet);
 
     //check if Directory for pictures exist, otherwise create
     Char_t szMakeDir[100];
     sprintf(szMakeDir,
             "mkdir -p %s/pid/phi/",
-            this->GetConfigName("HTML.PATH").Data());
+            this->GetConfig("HTML.PATH")->Data());
     gSystem->Exec(szMakeDir);
 
     c1->SaveAs(szName1);

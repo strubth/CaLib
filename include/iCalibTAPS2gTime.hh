@@ -65,15 +65,15 @@ private:
     TString strTAPSHistoYbin;
     TString str2gTAPS_DB;
 
-    Double_t oldTgain[MAX_CRYSTAL];
-    Double_t oldToffs[MAX_CRYSTAL];
+    Double_t oldTgain[iConfig::kMaxCrystal];
+    Double_t oldToffs[iConfig::kMaxCrystal];
 
-    Double_t newToffs[MAX_CRYSTAL];
-    Double_t newTgain[MAX_CRYSTAL];
+    Double_t newToffs[iConfig::kMaxCrystal];
+    Double_t newTgain[iConfig::kMaxCrystal];
     
     TCanvas* c1;
     TH2F* hTAPSVsTAPS;
-    TH1D* hTimeProj[MAX_CRYSTAL];
+    TH1D* hTimeProj[iConfig::kMaxCrystal];
     TCanvas* c2;
     TF1* fPol0;
     TH1F* hhOffset; 

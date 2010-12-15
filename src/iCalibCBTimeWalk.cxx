@@ -53,7 +53,7 @@ iCalibCBTimeWalk::iCalibCBTimeWalk(Int_t set)
     //
     //   TString strTmp;
     //   char nnn[4];
-    //   //  for(int id=0; id<MAX_CB; id++)
+    //   //  for(int id=0; id<iConfig::kMaxCB; id++)
     //   for(int id=0; id<50; id++)
     //     {
     //       strTmp = strHName.Copy();
@@ -95,10 +95,10 @@ iCalibCBTimeWalk::~iCalibCBTimeWalk()
 void iCalibCBTimeWalk::Init()
 {
     // get histogram name
-    strHName = this->GetConfigName("CB.HTWName:");
+    strHName = *this->GetConfig("CB.HTWName:");
 
     //
-    for (int i=0; i<MAX_CB; i++)
+    for (int i=0; i<iConfig::kMaxCB; i++)
     {
         TWalk0[i] = 0;
         TWalk1[i] = 0;
@@ -114,10 +114,10 @@ void iCalibCBTimeWalk::Init()
 
     // read from database
     iMySQLManager m;
-    m.ReadParameters(fSet, ECALIB_CB_WALK0, TWalk0, MAX_CB);
-    m.ReadParameters(fSet, ECALIB_CB_WALK1, TWalk1, MAX_CB);
-    m.ReadParameters(fSet, ECALIB_CB_WALK2, TWalk2, MAX_CB);
-    m.ReadParameters(fSet, ECALIB_CB_WALK3, TWalk3, MAX_CB);
+    m.ReadParameters(fSet, ECALIB_CB_WALK0, TWalk0, iConfig::kMaxCB);
+    m.ReadParameters(fSet, ECALIB_CB_WALK1, TWalk1, iConfig::kMaxCB);
+    m.ReadParameters(fSet, ECALIB_CB_WALK2, TWalk2, iConfig::kMaxCB);
+    m.ReadParameters(fSet, ECALIB_CB_WALK3, TWalk3, iConfig::kMaxCB);
 
 
     for (int i=0; i<3 ; i++)
@@ -174,7 +174,7 @@ void iCalibCBTimeWalk::Calculate(Int_t id)
 //------------------------------------------------------------------------------
 Bool_t iCalibCBTimeWalk::CheckCrystalNumber(Int_t id)
 {
-    if (id < 1 || id > MAX_CB)
+    if (id < 1 || id > iConfig::kMaxCB)
     {
         cerr << "ERROR: wrong number of Crystal" << endl;
         return kTRUE;
@@ -509,10 +509,10 @@ void iCalibCBTimeWalk::Write()
 
     // write to database
     iMySQLManager m;
-    m.WriteParameters(fSet, ECALIB_CB_WALK0, TWalk0, MAX_CB);
-    m.WriteParameters(fSet, ECALIB_CB_WALK1, TWalk1, MAX_CB);
-    m.WriteParameters(fSet, ECALIB_CB_WALK2, TWalk2, MAX_CB);
-    m.WriteParameters(fSet, ECALIB_CB_WALK3, TWalk3, MAX_CB);
+    m.WriteParameters(fSet, ECALIB_CB_WALK0, TWalk0, iConfig::kMaxCB);
+    m.WriteParameters(fSet, ECALIB_CB_WALK1, TWalk1, iConfig::kMaxCB);
+    m.WriteParameters(fSet, ECALIB_CB_WALK2, TWalk2, iConfig::kMaxCB);
+    m.WriteParameters(fSet, ECALIB_CB_WALK3, TWalk3, iConfig::kMaxCB);
 
     //   // write histogram
     //   Char_t szName[56];

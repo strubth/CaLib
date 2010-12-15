@@ -33,7 +33,7 @@
 using namespace std;
 
 
-class iFileManager : public virtual iReadConfig
+class iFileManager
 {
 private:
     Int_t  fRun;

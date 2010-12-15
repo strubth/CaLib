@@ -1,174 +1,174 @@
+/*************************************************************************
+ * Author: Irakli Keshelashvili, Dominik Werthmueller
+ *************************************************************************/
 
-/*******************************************************************
- *                                                                 *
- * Date: 26.12.2008     Author: Irakli                             *
- *                                                                 *
- ******************************************************************/
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
+// iReadConfig                                                          //
+//                                                                      //
+// Read CaLib configuration files.                                      //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
 
-////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
-// This class is used to read config files for different settings like:       //
-//                                                                            //
-// Crystal energy or time cuts, histogram name,                               //
-//                                                                            //
-//                                                                            //
-////////////////////////////////////////////////////////////////////////////////
 
 #include "iReadConfig.hh"
 
 ClassImp(iReadConfig)
 
-//------------------------------------------------------------------------------
+
+//______________________________________________________________________________
 iReadConfig::iReadConfig()
 {
-    nLine=0;
-
-    // Check if env. variable $CALIB exist
-    //
-    if (gSystem->Getenv("CALIB"))
-        strCaLibPath = gSystem->Getenv("CALIB");
-    else
-        strCaLibPath = gSystem->pwd();
-
-    this->ReadConfigFile("config/config.cfg");
+    // Constructor. 
+    
+    // init members
+    fConfigTable = new THashTable();
+    fConfigTable->SetOwner(kTRUE);
+    
+    // try to get the CaLib source path from the shell variable CALIB
+    // otherwise use the current directory
+    if (gSystem->Getenv("CALIB")) fCaLibPath = gSystem->Getenv("CALIB");
+    else fCaLibPath = gSystem->pwd();
+    
+    // read the main configuration file
+    ReadConfigFile("config/config.cfg");
 }
 
-//------------------------------------------------------------------------------
-iReadConfig::iReadConfig(Char_t* szFin)
-{
-    nLine=0;
-
-    this->ReadConfigFile(szFin);
+//______________________________________________________________________________
+iReadConfig::iReadConfig(Char_t* cfgFile)
+{   
+    // Constructor using the configuration file 'cfgFile'.
+    
+    // read the configuration file
+    ReadConfigFile(cfgFile);
 }
 
-//------------------------------------------------------------------------------
+//______________________________________________________________________________
 iReadConfig::~iReadConfig()
 {
+    // Destructor.
+
+    if (fConfigTable) delete fConfigTable;
 }
 
-//------------------------------------------------------------------------------
-void iReadConfig::ReadConfigFile(const Char_t* szFin)
+//______________________________________________________________________________
+void iReadConfig::ReadConfigFile(const Char_t* cfgFile)
 {
-    // Build File name
-    char szCalibFile[128];
-    sprintf(szCalibFile,
-            "%s/%s",
-            strCaLibPath.Data(),
-            szFin);
+    // Read the configuration file 'cfgFile'.
 
-    //
-    ifstream infile;
-    infile.open(szCalibFile);
+    // build file name
+    Char_t filename[128];
+    sprintf(filename, "%s/%s", fCaLibPath.Data(), cfgFile); 
 
+    // open the file
+    std::ifstream infile;
+    infile.open(filename);
+        
+    // check if file is open
     if (!infile.is_open())
     {
-        printf("\n ERROR: opening \"%s\" file ! ! !\n\n", szFin);
+        Error("ReadConfigFile", "Could not open configuration file '%s'", filename);
     }
     else
     {
-        printf("\n ---------------------------------------- \n");
-        printf(" Read File : \"%s\"\n", szFin);
-
+        Info("ReadConfigFile", "Reading configuration file '%s'", filename);
+        
+        // read the file
         while (infile.good())
         {
-            strLine[nLine]="";
-            strLine[nLine].ReadLine(infile);
+            TString line;
+            line.ReadLine(infile);
+            
+            // skip comments
+            if (line.BeginsWith("#")) continue;
+            else
+            {   
+                // extract and save configuration element
+                iConfigElement* elem = CreateConfigElement(line);
+                
+                // check element
+                if (!elem) continue;
 
-            if (strLine[nLine].BeginsWith("#"))
-            {
-                //          printf("Comment : %s \n", strLine[nLine].Data());
-            }
-            //
-            else if (strLine[nLine].Contains("FILE"))
-            {
-                TString strFile = this->ExtractName(strLine[nLine]);
-
-                this->ReadConfigFile(strFile.Data());
-            }
-            nLine++;
-            if (nLine >= MAX_LINE)
-            {
-                printf("\n ERROR: Number of lines is more than MAX_LINE ! ! !\n\n");
-                gSystem->Exit(0);
+                // check for FILE key
+                if (*elem->GetKey() == "FILE") ReadConfigFile(*elem->GetValue());
+            
+                // add element to hash table
+                fConfigTable->Add(elem);
             }
         }
     }
-
+    
+    // close the file
     infile.close();
-    return;
 }
 
-//------------------------------------------------------------------------------
-TString iReadConfig::ExtractName(TString strIn)
+//______________________________________________________________________________
+iConfigElement* iReadConfig::CreateConfigElement(TString line)
+{       
+    // Create and return a configuration element (key: value) using the string
+    // 'line'.
+    // Return 0 if there was something wrong.
+
+    // get bounds
+    Ssiz_t aa = line.First(":")+1;
+    Ssiz_t bb = line.Length()-aa;
+    
+    // extract the key
+    TString key = line(0, aa-1);
+    key.ReplaceAll(" ", "");
+
+    // extract the value
+    TString value = line(aa, bb);
+    value.ReplaceAll(" ","");
+
+    // check for empty key
+    if (key == "") return 0;
+
+    // create the configuration element
+    return new iConfigElement(key.Data(), value.Data());
+}
+
+//______________________________________________________________________________
+TString* iReadConfig::GetConfig(TString configKey)
+{   
+    // Get the configuration value of the configuration key 'configKey'.
+    // Return 0 if no such element exists.
+    
+    // search the configuration element
+    iConfigElement* elem = (iConfigElement*) fConfigTable->FindObject(configKey);
+    
+    // return configuration value
+    if (elem) return elem->GetValue();
+    else return 0;
+}
+
+//______________________________________________________________________________
+Int_t iReadConfig::GetConfigInt(TString configKey)
 {
-    Ssiz_t aa = strIn.First(":")+1;
-    Ssiz_t bb = strIn.Length()-aa;
+    // Get the configuration value of the configuration key 'configKey' 
+    // converted to Int_t.
+    // Return 0 if no such element exists.
 
-    TString cc = strIn(aa, bb);
-    cc.ReplaceAll(" ","");
-    return cc;
+    // get value as string
+    TString* v = GetConfig(configKey);
+
+    // return value
+    if (v) return atoi(v->Data());
+    else return 0;
 }
 
-//------------------------------------------------------------------------------
-TString iReadConfig::GetConfigCuts(TString name)
+//______________________________________________________________________________
+Double_t iReadConfig::GetConfigDouble(TString configKey)
 {
-    TString strOut;
-    Char_t szCuts[2][16];
+    // Get the configuration value of the configuration key 'configKey' 
+    // converted to Double_t.
+    // Return 0 if no such element exists.
 
-    for (int i=0; i<nLine; i++)
-    {
-        if (!(strLine[i].BeginsWith("#")) &&
-                strLine[i].Contains(name))
-        {
-            sscanf(strLine[i].Data(),
-                   "%*s %s %s",
-                   szCuts[0],
-                   szCuts[1]);
+    // get value as string
+    TString* v = GetConfig(configKey);
 
-            strOut = szCuts[0];
-            strOut += "  ";
-            strOut += szCuts[1];
-        }
-    }
-    return strOut;
+    // return value
+    if (v) return atof(v->Data());
+    else return 0;
 }
-
-//------------------------------------------------------------------------------
-TString iReadConfig::GetConfigName(TString name)
-{
-    TString strOut;
-
-    for (int i=0; i<nLine; i++)
-    {
-        if (!(strLine[i].BeginsWith("#")) &&
-                strLine[i].Contains(name))
-        {
-            strOut = this->ExtractName(strLine[i]);
-        }
-    }
-    return strOut;
-}
-//------------------------------------------------------------------------------
-TString iReadConfig::GetConfigNamePart(TString name, Int_t& run)
-{
-    TString strOut;
-    Char_t szCfgFile[256];
-
-    for (int i=0; i<nLine; i++)
-    {
-        if (!(strLine[i].BeginsWith("#")) &&
-                strLine[i].Contains(name))
-        {
-            sscanf(strLine[i].Data(),
-                   "%*s %s %i",
-                   szCfgFile,
-                   &run);
-
-            strOut = szCfgFile;
-        }
-    }
-
-    return strOut;
-}
-//------------------------------------------------------------------------------
 

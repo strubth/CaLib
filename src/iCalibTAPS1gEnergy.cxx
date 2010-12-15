@@ -117,16 +117,16 @@ iCalibTAPS1gEnergy::~iCalibTAPS1gEnergy()
 void iCalibTAPS1gEnergy::Init()
 {
     //
-    strTAPSHistoName = this->GetConfigName("TAPS.HEName");
+    strTAPSHistoName = *this->GetConfig("TAPS.HEName");
 
     // read from database
     iMySQLManager m;
-    m.ReadParameters(fSet, ECALIB_TAPS_LG_E1, oldGain, MAX_TAPS);
-    m.ReadParameters(fSet, ECALIB_TAPS_PI0IM, newPi0IM, MAX_TAPS);
+    m.ReadParameters(fSet, ECALIB_TAPS_LG_E1, oldGain, iConfig::kMaxTAPS);
+    m.ReadParameters(fSet, ECALIB_TAPS_PI0IM, newPi0IM, iConfig::kMaxTAPS);
 
     // Initialize all variables in this class
     // needed in ReadFile
-    for (Int_t i = 0; i < MAX_TAPS; i++)
+    for (Int_t i = 0; i < iConfig::kMaxTAPS; i++)
     {
         newGain[i] = oldGain[i]; //
 
@@ -153,14 +153,14 @@ void iCalibTAPS1gEnergy::InitGUI()
             "Set of runs N %02i;NaI Number;#pi^{0} IM [MeV]",
             fSet);
     hhIM = new TH1F("hhIM", szTitle,
-                    MAX_TAPS, 0.5, MAX_TAPS+0.5);
+                    iConfig::kMaxTAPS, 0.5, iConfig::kMaxTAPS+0.5);
     hhIM->SetMarkerStyle(28);
     hhIM->SetMarkerColor(4);
     //  hhIM->SetStats(kFALSE);
     hhIM->GetYaxis()->SetRangeUser(120, 150);
     hhIM->Draw("P");
 
-    fPol0 = new TF1("Pol0", "pol0", 0, MAX_TAPS);
+    fPol0 = new TF1("Pol0", "pol0", 0, iConfig::kMaxTAPS);
     fPol0->SetParameter(0, 135.);
     fPol0->SetLineColor(2);
 
@@ -253,13 +253,13 @@ void iCalibTAPS1gEnergy::Calculate(Int_t id)
         newPi0IM[(id-1)] = mean_gaus[(id-1)];
 
         // oldGain * PI0_MASS / pos[currElement];
-        newGain[(id-1)] = oldGain[(id-1)] * (PI0_MASS / mean_gaus[(id-1)]);
+        newGain[(id-1)] = oldGain[(id-1)] * (iConfig::kPi0Mass / mean_gaus[(id-1)]);
 
         // if new value is negative take old
         if (newGain[(id-1)] < 0)
             newGain[(id-1)] = oldGain[(id-1)];
 
-        //      if( id == 1 || !(id % 100) || id == MAX_TAPS )
+        //      if( id == 1 || !(id % 100) || id == iConfig::kMaxTAPS )
         printf("Element: %03i \t new = %f \t old = %f \t %f \n",
                id, newGain[(id-1)], oldGain[(id-1)], mean_gaus[(id-1)]);
 
@@ -287,12 +287,12 @@ void iCalibTAPS1gEnergy::DoFor(Int_t id)
 
     this->DrawThis(id);
 
-    if (!(id % 20) || id == MAX_TAPS)
+    if (!(id % 20) || id == iConfig::kMaxTAPS)
     {
         this->DrawGraph();
     }
 
-    if (id == MAX_TAPS)
+    if (id == iConfig::kMaxTAPS)
         hhIM->Fit(fPol0, "+R0", "");
 
     return;
@@ -401,21 +401,21 @@ void iCalibTAPS1gEnergy::Write()
 
     // write to database
     iMySQLManager m;
-    m.WriteParameters(fSet, ECALIB_TAPS_LG_E1, newGain, MAX_TAPS);
-    m.WriteParameters(fSet, ECALIB_TAPS_PI0IM, newPi0IM, MAX_TAPS);
+    m.WriteParameters(fSet, ECALIB_TAPS_LG_E1, newGain, iConfig::kMaxTAPS);
+    m.WriteParameters(fSet, ECALIB_TAPS_PI0IM, newPi0IM, iConfig::kMaxTAPS);
 
     //
     //
     Char_t szName[100];
     sprintf(szName,
             "%s/taps/Ecalib/hGr_set%02i.gif",
-            this->GetConfigName("HTML.PATH").Data(),
+            this->GetConfig("HTML.PATH")->Data(),
             fSet);
     //check if Directory for pictures exist, otherwise create
     Char_t szMakeDir[100];
     sprintf(szMakeDir,
             "mkdir -p %s/taps/Ecalib/",
-            this->GetConfigName("HTML.PATH").Data());
+            this->GetConfig("HTML.PATH")->Data());
     gSystem->Exec(szMakeDir);
 
     c2->SaveAs(szName);

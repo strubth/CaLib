@@ -23,7 +23,7 @@ ClassImp(iFileManager)
 //------------------------------------------------------------------------------
 iFileManager::iFileManager()
 {
-    strRUNFilesChain = this->GetConfigName("RUN.ChainHFiles");
+    strRUNFilesChain = *iConfig::GetRC()->GetConfig("RUN.ChainHFiles");
     printf(" -- file names -- : %s\n", strRUNFilesChain.Data());
     fNRun = 0;
     fRunArray = 0;

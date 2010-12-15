@@ -33,7 +33,6 @@
 #include "iConfig.hh"
 #include "iFileManager.hh"
 #include "iReadConfig.hh"
-#include "iHistoManager.hh"
 #include "iReadFile.hh"
 #include "iFitHisto.hh"
 #include "iCrystalNavigator.hh"
@@ -46,7 +45,6 @@ using namespace std;
 class iCalibCBpi0Energy
     : public virtual iReadConfig,
       public iFileManager,
-      public iHistoManager,
       public iReadFile,
       public iFitHisto,
       public iCrystalNavigator
@@ -63,17 +61,17 @@ private:
     TCanvas* c1; 
     TFile* histofile;
     TH2F*  hCB2gIM;
-    TH1D*  hIMProj[MAX_CB];
+    TH1D*  hIMProj[iConfig::kMaxCB];
     Double_t peakval;
     TCanvas* c2;
 
     TH1F* hhIM; 
     TF1* fPol0;
-    Double_t oldGain[MAX_CB];
-    Double_t newGain[MAX_CB];
+    Double_t oldGain[iConfig::kMaxCB];
+    Double_t newGain[iConfig::kMaxCB];
 
-    Double_t oldPi0IM[MAX_CB];
-    Double_t newPi0IM[MAX_CB];
+    Double_t oldPi0IM[iConfig::kMaxCB];
+    Double_t newPi0IM[iConfig::kMaxCB];
     
 public:
     iCalibCBpi0Energy(); 

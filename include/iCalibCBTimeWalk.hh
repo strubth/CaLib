@@ -34,7 +34,6 @@
 #include "iFileManager.hh"
 #include "iReadConfig.hh"
 #include "iReadFile.hh"
-#include "iHistoManager.hh"
 #include "iFitHisto.hh"
 #include "iCrystalNavigator.hh"
 #include "iMySQLManager.hh"
@@ -46,7 +45,6 @@ using namespace std;
 class iCalibCBTimeWalk
     : public virtual iReadConfig,
       public iFileManager,
-      public iHistoManager,
       public iReadFile,
       public iFitHisto,
       public iCrystalNavigator
@@ -61,16 +59,16 @@ private:
     TCanvas* c1;
     TCanvas* c2; 
 
-    TH2F* hhTWalk[MAX_CB]; 
-    TH1D* hhEWpro[MAX_CB]; 
-    TH1D* hhTWpro[MAX_CB]; 
-    TF1* fTWalk[MAX_CB]; 
-    Double_t fChi2NDF[MAX_CB];
+    TH2F* hhTWalk[iConfig::kMaxCB]; 
+    TH1D* hhEWpro[iConfig::kMaxCB]; 
+    TH1D* hhTWpro[iConfig::kMaxCB]; 
+    TF1* fTWalk[iConfig::kMaxCB]; 
+    Double_t fChi2NDF[iConfig::kMaxCB];
     TFile* histofile;
-    Double_t TWalk0[MAX_CRYSTAL];
-    Double_t TWalk1[MAX_CRYSTAL];
-    Double_t TWalk2[MAX_CRYSTAL];
-    Double_t TWalk3[MAX_CRYSTAL];
+    Double_t TWalk0[iConfig::kMaxCrystal];
+    Double_t TWalk1[iConfig::kMaxCrystal];
+    Double_t TWalk2[iConfig::kMaxCrystal];
+    Double_t TWalk3[iConfig::kMaxCrystal];
 
 public:
     iCalibCBTimeWalk();

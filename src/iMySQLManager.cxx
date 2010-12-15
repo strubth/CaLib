@@ -96,65 +96,71 @@ iMySQLManager::iMySQLManager()
     fDB = 0;
 
     // get database configuration
-    TString strDBHost = this->GetConfigName("DB.Host");
-    TString strDBName = this->GetConfigName("DB.Name");
-    TString strDBUser = this->GetConfigName("DB.User");
-    TString strDBPass = this->GetConfigName("DB.Pass");
-    fCalibration = this->GetConfigName("DB.Calibration");
+    TString* strDBHost;
+    TString* strDBName;
+    TString* strDBUser;
+    TString* strDBPass;
 
-    // check database configuration
-    if (!strDBHost.Length())
+    // get database hostname
+    if (!(strDBHost = iConfig::GetRC()->GetConfig("DB.Host")))
     {
-        printf("ERROR: Include database host in configuration file!\n");
-        return;
-    }
-    if (!strDBName.Length())
-    {
-        printf("ERROR: Include database name in configuration file!\n");
-        return;
-    }
-    if (!strDBUser.Length())
-    {
-        printf("ERROR: Include database user in configuration file!\n");
+        Error("iMySQLManager", "Database host not included in configuration file!");
         return;
     }
 
-    if (!strDBPass.Length())
+    // get database name
+    if (!(strDBName = iConfig::GetRC()->GetConfig("DB.Name")))
     {
-        printf("ERROR: Include database password in configuration file!\n");
+        Error("iMySQLManager", "Database name not included in configuration file!");
         return;
     }
 
-    if (!fCalibration.Length())
+    // get database user
+    if (!(strDBUser = iConfig::GetRC()->GetConfig("DB.User")))
     {
-        printf("ERROR: Include calibration name in configuration file!\n");
+        Error("iMySQLManager", "Database user not included in configuration file!");
+        return;
+    }
+    
+    // get database password
+    if (!(strDBPass = iConfig::GetRC()->GetConfig("DB.Pass")))
+    {
+        Error("iMySQLManager", "Database password not included in configuration file!");
         return;
     }
 
-    //
-    Char_t szMySQL[200];
-    sprintf(szMySQL, "mysql://%s/%s", strDBHost.Data(), strDBName.Data());
-
+    // get calibration
+    if (TString* calib = iConfig::GetRC()->GetConfig("DB.Calibration"))
+    {
+        fCalibration = *calib;
+    }
+    else
+    {
+        Error("iMySQLManager", "Calibration name not included in configuration file!");
+        return;
+    }
+    
     // open connection to MySQL server on localhost
-    fDB = TSQLServer::Connect(szMySQL, strDBUser.Data(), strDBPass.Data());
+    Char_t szMySQL[200];
+    sprintf(szMySQL, "mysql://%s/%s", strDBHost->Data(), strDBName->Data());
+    fDB = TSQLServer::Connect(szMySQL, strDBUser->Data(), strDBPass->Data());
     if (!fDB)
     {
-        printf("Can't connect to database %s on %s@%s!\n",
-               strDBName.Data(), strDBUser.Data(), strDBHost.Data());
+        Error("iMySQLManager", "Cannot connect to database %s on %s@%s!\n",
+               strDBName->Data(), strDBUser->Data(), strDBHost->Data());
         return;
     }
     else if (fDB->IsZombie())
     {
-        printf("Can't connect to database %s on %s@%s!\n",
-               strDBName.Data(), strDBUser.Data(), strDBHost.Data());
+        Error("iMySQLManager", "Cannot connect to database %s on %s@%s!\n",
+               strDBName->Data(), strDBUser->Data(), strDBHost->Data());
         return;
     }
     else
     {
-        printf("Connected to database %s on %s@%s!\n",
-               strDBName.Data(), strDBUser.Data(), strDBHost.Data());
+        Info("iMySQLManager", "Connected to database %s on %s@%s!\n",
+               strDBName->Data(), strDBUser->Data(), strDBHost->Data());
     }
-    //  Init();
 }
 
 //______________________________________________________________________________
@@ -174,7 +180,7 @@ TSQLResult* iMySQLManager::SendQuery(const Char_t* query)
     // check server connection
     if (!IsConnected())
     {
-        cerr << "No connection to database!" << endl;
+        Error("SendQuery", "No connection to database!");
         return 0;
     }
 
@@ -189,7 +195,7 @@ Bool_t iMySQLManager::IsConnected()
 
     if (!fDB)
     {
-        printf("\n ERROR: can not access DB!\n");
+        Error("IsConnected", "Cannot access database!");
         return kFALSE;
     }
     else
@@ -229,7 +235,7 @@ Int_t iMySQLManager::GetNsets(CalibData_t data)
     // check result
     if (!res)
     {
-        printf("GetNsets : No runsets found in table %s!\n", table);
+        Error("GetNsets", "No runsets found in table %s!\n", table);
         return 0;
     }
 
@@ -257,7 +263,7 @@ Long64_t iMySQLManager::GetUnixTimeOfRun(Int_t run)
     // check result
     if (!res)
     {
-        printf("GetUnixTimeOfRun : Run %d was not found in main table!\n", run);
+        Error("GetUnixTimeOfRun", "Run %d was not found in main table!\n", run);
         return 0;
     }
 
@@ -296,7 +302,7 @@ Int_t iMySQLManager::GetFirstRunOfSet(CalibData_t data, Int_t set)
     // check result
     if (!res)
     {
-        printf("GetFirstRunOfSet : No runset %d found in table %s!\n", set, table);
+        Error("GetFirstRunOfSet", "No runset %d found in table %s!\n", set, table);
         return 0;
     }
 
@@ -335,7 +341,7 @@ Int_t iMySQLManager::GetLastRunOfSet(CalibData_t data, Int_t set)
     // check result
     if (!res)
     {
-        printf("GetLastRunOfSet : No runset %d found in table %s!\n", set, table);
+        Error("GetLastRunOfSet", "No runset %d found in table %s!\n", set, table);
         return 0;
     }
 
@@ -380,7 +386,7 @@ Int_t* iMySQLManager::GetRunsOfSet(CalibData_t data, Int_t set, Int_t* outNruns 
     // check result
     if (!res)
     {
-        printf("GetRunsOfSet : No runset %d found in table %s!\n", set, table);
+        Error("GetRunsOfSet", "No runset %d found in table %s!\n", set, table);
         return 0;
     }
 
@@ -466,12 +472,12 @@ void iMySQLManager::ReadParameters(Int_t set, CalibData_t data, Double_t* par, I
     // check result
     if (!res)
     {
-        printf("ReadParameters : No calibration found for set %d in table %s!\n", set, table);
+        Error("ReadParameters", "No calibration found for set %d in table %s!\n", set, table);
         return;
     }
     else if (!res->GetRowCount())
     {
-        printf("ReadParameters : No calibration found for set %d in table %s!\n", set, table);
+        Error("ReadParameters", "No calibration found for set %d in table %s!\n", set, table);
         delete res;
         return;
     }
@@ -517,12 +523,12 @@ void iMySQLManager::WriteParameters(Int_t set, CalibData_t data, Double_t* par, 
     // check result
     if (!res)
     {
-        printf("WriteParameters : No calibration found for set %d in table %s!\n", set, table);
+        Error("WriteParameters", "No calibration found for set %d in table %s!\n", set, table);
         return;
     }
     else if (!res->GetRowCount())
     {
-        printf("ReadParameters : No calibration found for set %d in table %s!\n", set, table);
+        Error("WriteParameters", "No calibration found for set %d in table %s!\n", set, table);
         delete res;
         return;
     }
@@ -563,8 +569,8 @@ void iMySQLManager::InitDatabase()
     // Init a new CaLib database on a MySQL server.
     
     // get database configuration
-    TString strDBHost = this->GetConfigName("DB.Host");
-    TString strDBName = this->GetConfigName("DB.Name");
+    TString strDBHost = *iConfig::GetRC()->GetConfig("DB.Host");
+    TString strDBName = *iConfig::GetRC()->GetConfig("DB.Name");
     
     // ask for user confirmation
     Char_t answer[256];
@@ -583,40 +589,40 @@ void iMySQLManager::InitDatabase()
     CreateMainTable();
 
     // create TAGG tables
-    CreateDataTable(ECALIB_TAGG_T0, MAX_TAGGER);
+    CreateDataTable(ECALIB_TAGG_T0, iConfig::kMaxTAGGER);
 
     // create CB tables
-    CreateDataTable(ECALIB_CB_T0, MAX_CB);
-    CreateDataTable(ECALIB_CB_WALK0, MAX_CB);
-    CreateDataTable(ECALIB_CB_WALK1, MAX_CB);
-    CreateDataTable(ECALIB_CB_WALK2, MAX_CB);
-    CreateDataTable(ECALIB_CB_WALK3, MAX_CB);
-    CreateDataTable(ECALIB_CB_E1, MAX_CB);
-    CreateDataTable(ECALIB_CB_EQUAD0, MAX_CB);
-    CreateDataTable(ECALIB_CB_EQUAD1, MAX_CB);
-    CreateDataTable(ECALIB_CB_PI0IM, MAX_CB);
+    CreateDataTable(ECALIB_CB_T0, iConfig::kMaxCB);
+    CreateDataTable(ECALIB_CB_WALK0, iConfig::kMaxCB);
+    CreateDataTable(ECALIB_CB_WALK1, iConfig::kMaxCB);
+    CreateDataTable(ECALIB_CB_WALK2, iConfig::kMaxCB);
+    CreateDataTable(ECALIB_CB_WALK3, iConfig::kMaxCB);
+    CreateDataTable(ECALIB_CB_E1, iConfig::kMaxCB);
+    CreateDataTable(ECALIB_CB_EQUAD0, iConfig::kMaxCB);
+    CreateDataTable(ECALIB_CB_EQUAD1, iConfig::kMaxCB);
+    CreateDataTable(ECALIB_CB_PI0IM, iConfig::kMaxCB);
 
     // create TAPS tables
-    CreateDataTable(ECALIB_TAPS_T0, MAX_TAPS);
-    CreateDataTable(ECALIB_TAPS_T1, MAX_TAPS);
-    CreateDataTable(ECALIB_TAPS_LG_E0, MAX_TAPS);
-    CreateDataTable(ECALIB_TAPS_LG_E1, MAX_TAPS);
-    CreateDataTable(ECALIB_TAPS_SG_E0, MAX_TAPS);
-    CreateDataTable(ECALIB_TAPS_SG_E1, MAX_TAPS);
-    CreateDataTable(ECALIB_TAPS_EQUAD0, MAX_TAPS);
-    CreateDataTable(ECALIB_TAPS_EQUAD1, MAX_TAPS);
-    CreateDataTable(ECALIB_TAPS_PI0IM, MAX_TAPS);
+    CreateDataTable(ECALIB_TAPS_T0, iConfig::kMaxTAPS);
+    CreateDataTable(ECALIB_TAPS_T1, iConfig::kMaxTAPS);
+    CreateDataTable(ECALIB_TAPS_LG_E0, iConfig::kMaxTAPS);
+    CreateDataTable(ECALIB_TAPS_LG_E1, iConfig::kMaxTAPS);
+    CreateDataTable(ECALIB_TAPS_SG_E0, iConfig::kMaxTAPS);
+    CreateDataTable(ECALIB_TAPS_SG_E1, iConfig::kMaxTAPS);
+    CreateDataTable(ECALIB_TAPS_EQUAD0, iConfig::kMaxTAPS);
+    CreateDataTable(ECALIB_TAPS_EQUAD1, iConfig::kMaxTAPS);
+    CreateDataTable(ECALIB_TAPS_PI0IM, iConfig::kMaxTAPS);
 
     // create PID tables
-    CreateDataTable(ECALIB_PID_T0, MAX_PID);
-    CreateDataTable(ECALIB_PID_E0, MAX_PID);
-    CreateDataTable(ECALIB_PID_E1, MAX_PID);
+    CreateDataTable(ECALIB_PID_T0, iConfig::kMaxPID);
+    CreateDataTable(ECALIB_PID_E0, iConfig::kMaxPID);
+    CreateDataTable(ECALIB_PID_E1, iConfig::kMaxPID);
 
     // create VETO tables
-    CreateDataTable(ECALIB_VETO_T0, MAX_VETO); 
-    CreateDataTable(ECALIB_VETO_T1, MAX_VETO);
-    CreateDataTable(ECALIB_VETO_E0, MAX_VETO);
-    CreateDataTable(ECALIB_VETO_E1, MAX_VETO);
+    CreateDataTable(ECALIB_VETO_T0, iConfig::kMaxVETO); 
+    CreateDataTable(ECALIB_VETO_T1, iConfig::kMaxVETO);
+    CreateDataTable(ECALIB_VETO_E0, iConfig::kMaxVETO);
+    CreateDataTable(ECALIB_VETO_E1, iConfig::kMaxVETO);
 }
 
 //______________________________________________________________________________
@@ -625,7 +631,7 @@ void iMySQLManager::CreateMainTable()
     // Create the main table for CaLib.
     
     // user information
-    printf("Creating main CaLib table\n");
+    Info("CreateMainTable", "Creating main CaLib table");
 
     // delete the old table if it exists
     TSQLResult* res = SendQuery(TString::Format("DROP TABLE IF EXISTS %s", fgCalibMainTableName).Data());
@@ -647,7 +653,7 @@ void iMySQLManager::CreateDataTable(CalibData_t data, Int_t nElem)
     // get the table name
     SearchTable(data, table);
 
-    printf("Adding data table %s\n", table);
+    Info("CreateDataTable", "Adding data table %s", table);
         
     // delete the old table if it exists
     TSQLResult* res = SendQuery(TString::Format("DROP TABLE IF EXISTS %s", table));

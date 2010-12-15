@@ -49,7 +49,7 @@ iFitHisto::~iFitHisto()
 void iFitHisto::Init()
 {
     //
-    for (Int_t i = 0; i < MAX_CRYSTAL; i++)
+    for (Int_t i = 0; i < iConfig::kMaxCrystal; i++)
     {
         fGaus[i]     =0;
         fPol0Gaus[i] =0;

@@ -2,7 +2,8 @@ void Test()
 {
     // load CaLib   
     gSystem->Load("libCaLib.so");
-
+    
+    /*
     // connect to database
     iMySQLManager m;
     
@@ -20,5 +21,9 @@ void Test()
         //for (Int_t j = 0; j < 24; j++) printf("%f, ", par[j]);
         //printf("\n\n");
     }
+    */
+    
+    iReadConfig r;
+    cout << r.GetConfig("DB.Host") << endl;
 }
 

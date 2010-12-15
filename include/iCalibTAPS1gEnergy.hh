@@ -33,7 +33,6 @@
 #include "iConfig.hh"
 #include "iFileManager.hh"
 #include "iReadConfig.hh"
-#include "iHistoManager.hh"
 #include "iReadFile.hh"
 #include "iFitHisto.hh"
 #include "iCrystalNavigator.hh"
@@ -46,7 +45,6 @@ using namespace std;
 class iCalibTAPS1gEnergy
     : public virtual iReadConfig,
       public iFileManager,
-      public iHistoManager,
       public iReadFile,
       public iFitHisto,
       public iCrystalNavigator
@@ -59,16 +57,16 @@ private:
     TString strTAPSHistoName;
     TString strTAPSHistoFile;
 
-    Double_t oldGain[MAX_TAPS];
-    Double_t newGain[MAX_TAPS];
+    Double_t oldGain[iConfig::kMaxTAPS];
+    Double_t newGain[iConfig::kMaxTAPS];
 
-    Double_t newPi0IM[MAX_TAPS];
+    Double_t newPi0IM[iConfig::kMaxTAPS];
     
     TCanvas* c1;
     TFile* histofile;
     TH2F*  hTAPS1gIM;
 
-    TH1D*  hIMProj[MAX_TAPS];
+    TH1D*  hIMProj[iConfig::kMaxTAPS];
 
     Double_t peakval;
     TCanvas* c2;

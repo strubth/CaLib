@@ -73,7 +73,7 @@ void iCalibTAPSTaggerTime::Init()
 
 
     // needed in ReadFile
-    for (Int_t i = 0; i < MAX_TAPS; i++)
+    for (Int_t i = 0; i < iConfig::kMaxTAPS; i++)
     {
         newOffset[i] = oldOffset[i] = 0;
         mean_gaus[i] =0;
@@ -94,12 +94,12 @@ void iCalibTAPSTaggerTime::Init()
     // create graph
     c2 = new TCanvas("c2", "cGraph", 630, 0, 900, 400);
     hhOffset = new TH1F("hhOffset", ";Tagger Number;Time [ns]",
-                        MAX_TAPS, 0.5, MAX_TAPS+0.5);
+                        iConfig::kMaxTAPS, 0.5, iConfig::kMaxTAPS+0.5);
     hhOffset->SetMarkerStyle(28);
     hhOffset->SetMarkerColor(4);
     hhOffset->Draw("P");
 
-    fPol0 = new TF1("Pol0", "pol0", 0, MAX_TAPS);
+    fPol0 = new TF1("Pol0", "pol0", 0, iConfig::kMaxTAPS);
     fPol0->SetParameter(0, 1.);
     fPol0->SetLineColor(2);
 
@@ -170,7 +170,7 @@ void iCalibTAPSTaggerTime::Calculate(Int_t id)
 //------------------------------------------------------------------------------
 Bool_t iCalibTAPSTaggerTime::CheckCrystalNumber(Int_t id)
 {
-    if (id < 1 || id > MAX_TAPS)
+    if (id < 1 || id > iConfig::kMaxTAPS)
     {
         cerr << "ERROR: bad number of Crystal" << endl;
         return kTRUE;
@@ -229,7 +229,7 @@ void iCalibTAPSTaggerTime::DoFor(Int_t id)
 
     this->DrawThis(id);
 
-    if (!(id % 10) || id == MAX_TAPS)
+    if (!(id % 10) || id == iConfig::kMaxTAPS)
     {
         //      hhOffset->Fit(fPol0, "+R0", "");
         this->DrawGraph();

@@ -34,7 +34,6 @@
 #include "iConfig.hh"
 #include "iFileManager.hh"
 #include "iReadConfig.hh"
-#include "iHistoManager.hh"
 #include "iReadFile.hh"
 #include "iFitHisto.hh"
 #include "iCrystalNavigator.hh"
@@ -49,8 +48,7 @@ class iCalibTaggerTime
       public iReadFile,
       public iFitHisto,
       public iCrystalNavigator,
-      public iFileManager,
-      public iHistoManager
+      public iFileManager
 {
 
 private:
@@ -63,7 +61,7 @@ private:
     
     TCanvas* c1;
     TH2F* hTagger; 
-    TH1D* hTimeProj[MAX_TAGGER]; 
+    TH1D* hTimeProj[iConfig::kMaxTAGGER]; 
     TCanvas* c2; 
 
     TH1F* hhOffset; 
@@ -77,8 +75,8 @@ private:
 
     TFile* histofile;
 
-    Double_t oldOffset[MAX_TAGGER];
-    Double_t newOffset[MAX_TAGGER];
+    Double_t oldOffset[iConfig::kMaxTAGGER];
+    Double_t newOffset[iConfig::kMaxTAGGER];
  
 public:
     iCalibTaggerTime();

@@ -111,14 +111,14 @@ iCalibTAPS2gTime::~iCalibTAPS2gTime()
 void iCalibTAPS2gTime::Init()
 {
     // get histo name and binning
-    strTAPSHistoName = this->GetConfigName("2TAPS.HName");
-    rebin = atoi(this->GetConfigName("2TAPS.Ybin"));
+    strTAPSHistoName = *this->GetConfig("2TAPS.HName");
+    rebin = atoi(this->GetConfig("2TAPS.Ybin")->Data());
 
     this->Help();
     //this->ReadFile( strTAPSCalibFile );
 
     // needed in ReadFile
-    for (Int_t i = 0; i < MAX_CRYSTAL; i++)
+    for (Int_t i = 0; i < iConfig::kMaxCrystal; i++)
     {
         newTgain[i] = oldTgain[i] = 0;
         newToffs[i] = oldToffs[i] = 0;
@@ -129,8 +129,8 @@ void iCalibTAPS2gTime::Init()
 
     // read from database
     iMySQLManager m;
-    m.ReadParameters(fSet, ECALIB_TAPS_T0, oldToffs, MAX_TAPS);
-    m.ReadParameters(fSet, ECALIB_TAPS_T1, oldTgain, MAX_TAPS);
+    m.ReadParameters(fSet, ECALIB_TAPS_T0, oldToffs, iConfig::kMaxTAPS);
+    m.ReadParameters(fSet, ECALIB_TAPS_T1, oldTgain, iConfig::kMaxTAPS);
 
     //   for ( Int_t i = 0; i < 5 ; i++ )
     //     {
@@ -153,7 +153,7 @@ void iCalibTAPS2gTime::InitGUI()
     // create graph
     c2 = new TCanvas("c2", "cGraph", 630, 0, 900, 400);
     hhOffset = new TH1F("hhOffset", ";Crystal Number;Time_{TAPS-TAPS} [ns]",
-                        MAX_TAPS+2, -0.5, MAX_TAPS+1.5);
+                        iConfig::kMaxTAPS+2, -0.5, iConfig::kMaxTAPS+1.5);
     hhOffset->SetMarkerStyle(28);
     hhOffset->SetMarkerColor(4);
     //  hhOffset->SetStats(kFALSE);
@@ -245,7 +245,7 @@ void iCalibTAPS2gTime::Calculate(Int_t id)
 Bool_t iCalibTAPS2gTime::CheckCrystalNumber(Int_t id)
 {
     //  if( id < 1 || id > 384 )
-    if (id < 1 || id > MAX_TAPS)
+    if (id < 1 || id > iConfig::kMaxTAPS)
     {
         cerr << "ERROR: bad number of Crystal" << endl;
         return kTRUE;
@@ -319,7 +319,7 @@ void iCalibTAPS2gTime::DoFor(Int_t id)
 
     this->DrawThis(id);
 
-    if (id == MAX_TAPS)
+    if (id == iConfig::kMaxTAPS)
         //  if( !(id % 10) || id == 384 )
     {
         hhOffset->Fit(fPol0, "+R0", "");
@@ -418,20 +418,20 @@ void iCalibTAPS2gTime::Write()
 
     // write to database
     iMySQLManager m;
-    m.WriteParameters(fSet, ECALIB_TAPS_T0, newToffs, MAX_TAPS);
+    m.WriteParameters(fSet, ECALIB_TAPS_T0, newToffs, iConfig::kMaxTAPS);
 
 
     //
     Char_t szName[100];
     sprintf(szName,
             "%s/taps/Tcalib/hGr_set%02i.gif",
-            this->GetConfigName("HTML.PATH").Data(),
+            this->GetConfig("HTML.PATH")->Data(),
             fSet);
     //check if Directory for pictures exist, otherwise create
     Char_t szMakeDir[100];
     sprintf(szMakeDir,
             "mkdir -p %s/taps/Tcalib/",
-            this->GetConfigName("HTML.PATH").Data());
+            this->GetConfig("HTML.PATH")->Data());
     gSystem->Exec(szMakeDir);
 
     c2->SaveAs(szName);

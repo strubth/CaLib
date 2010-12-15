@@ -39,13 +39,13 @@ private:
 
 protected:
     Double_t peackval;
-    Double_t mean_gaus[MAX_CRYSTAL];
-    Double_t erro_gaus[MAX_CRYSTAL];
-    TF1*   fFitPeak[MAX_CRYSTAL];  //
-    TF1*   fGaus[MAX_CRYSTAL];     // used for TAPSvsTAPS
-    TF1*   fPol0Gaus[MAX_CRYSTAL]; // used
-    TF1*   fTWalk[MAX_CRYSTAL]; // used for CB pi0 Ecalib
-    TLine* lOffset[MAX_CRYSTAL]; //
+    Double_t mean_gaus[iConfig::kMaxCrystal];
+    Double_t erro_gaus[iConfig::kMaxCrystal];
+    TF1*   fFitPeak[iConfig::kMaxCrystal];  //
+    TF1*   fGaus[iConfig::kMaxCrystal];     // used for TAPSvsTAPS
+    TF1*   fPol0Gaus[iConfig::kMaxCrystal]; // used
+    TF1*   fTWalk[iConfig::kMaxCrystal]; // used for CB pi0 Ecalib
+    TLine* lOffset[iConfig::kMaxCrystal]; //
 
     Double_t* FindBG(TH1D*, Double_t);
 

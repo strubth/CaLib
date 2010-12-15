@@ -19,7 +19,7 @@
 #include "TLine.h"
 
 #include "iCalib.hh"
-#include "iReadConfig.hh"
+#include "iConfig.hh"
 #include "iMySQLManager.hh"
 #include "iFileManager.hh"
 
@@ -42,7 +42,7 @@ public:
 
     virtual void Write();
 
-    ClassDef(iCalibCB2gTime, 0)   // CB vs CB time calibration
+    ClassDef(iCalibCB2gTime, 0)   // CB time calibration
 };
 
 #endif

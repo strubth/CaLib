@@ -33,7 +33,6 @@
 #include "iConfig.hh"
 #include "iReadConfig.hh"
 #include "iReadFile.hh"
-#include "iHistoManager.hh"
 #include "iFitHisto.hh"
 #include "iCrystalNavigator.hh"
 #include "iFileManager.hh"
@@ -45,7 +44,6 @@ using namespace std;
 class iCalibPIDphi
     : public virtual iReadConfig,
       public iFileManager,
-      public iHistoManager,
       public iReadFile,
       public iFitHisto,
       public iCrystalNavigator
@@ -62,8 +60,8 @@ private:
     TCanvas* c1;
     TFile* histofile;
     TH2F*  hCBPhiVsPID; 
-    TH1D*  hProj[MAX_CRYSTAL]; 
-    TLine* lOffset[MAX_CRYSTAL];
+    TH1D*  hProj[iConfig::kMaxCrystal]; 
+    TLine* lOffset[iConfig::kMaxCrystal];
     Double_t peakval; 
     TCanvas*      c2;
     TH2F*         h4gr;
@@ -72,9 +70,9 @@ private:
     ifstream infile;
     TString  strLine;
     ofstream outfile;
-    Double_t fOldPhi[MAX_PID];
-    Double_t fNewPhi[MAX_PID];
-    Double_t mean_gaus[MAX_PID];
+    Double_t fOldPhi[iConfig::kMaxPID];
+    Double_t fNewPhi[iConfig::kMaxPID];
+    Double_t mean_gaus[iConfig::kMaxPID];
 
 public:
     iCalibPIDphi();

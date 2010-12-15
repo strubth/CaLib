@@ -113,17 +113,17 @@ iCalibTAGGERvsTAPSTime::~iCalibTAGGERvsTAPSTime()
 void iCalibTAGGERvsTAPSTime::Init()
 {
     // get histo name and binning
-    strTaggerTAPSHistoName = this->GetConfigName("Tagger.HName");
-    rebin = atoi(this->GetConfigName("Tagger.Ybin"));
+    strTaggerTAPSHistoName = *this->GetConfig("Tagger.HName");
+    rebin = atoi(this->GetConfig("Tagger.Ybin")->Data());
 
     this->Help();
     //this->ReadFile( strTaggerCalibFile );
 
     // get time gain for Tagger chatch TDC's
-    TaggerTgain = atof(this->GetConfigName("Tagger.Tgain").Data());
+    TaggerTgain = atof(this->GetConfig("Tagger.Tgain")->Data());
 
     // needed in ReadFile
-    for (Int_t i = 0; i < MAX_TAGGER; i++)
+    for (Int_t i = 0; i < iConfig::kMaxTAGGER; i++)
     {
         newToffs[i] = oldToffs[i] = 0;
         mean_gaus[i] = 0;
@@ -133,7 +133,7 @@ void iCalibTAGGERvsTAPSTime::Init()
 
     // read from database
     iMySQLManager m;
-    m.ReadParameters(fSet, ECALIB_TAGG_T0, oldToffs, MAX_TAGGER);
+    m.ReadParameters(fSet, ECALIB_TAGG_T0, oldToffs, iConfig::kMaxTAGGER);
 
     //   for ( Int_t i = 0; i < 5 ; i++ )
     //     {
@@ -156,7 +156,7 @@ void iCalibTAGGERvsTAPSTime::InitGUI()
     // create graph
     c2 = new TCanvas("c2", "cGraph", 630, 0, 900, 400);
     hhOffset = new TH1F("hhOffset", ";Crystal Number;Time_{Tagger-TAPS} [ns]",
-                        MAX_TAPS+2, -0.5, MAX_TAPS+1.5);
+                        iConfig::kMaxTAPS+2, -0.5, iConfig::kMaxTAPS+1.5);
     hhOffset->SetMarkerStyle(28);
     hhOffset->SetMarkerColor(4);
     //  hhOffset->SetStats(kFALSE);
@@ -238,7 +238,7 @@ void iCalibTAGGERvsTAPSTime::Calculate(Int_t id)
 //------------------------------------------------------------------------------
 Bool_t iCalibTAGGERvsTAPSTime::CheckCrystalNumber(Int_t id)
 {
-    if (id < 1 || id > MAX_TAGGER)
+    if (id < 1 || id > iConfig::kMaxTAGGER)
     {
         cerr << "ERROR: bad number of Crystal" << endl;
         return kTRUE;
@@ -312,8 +312,8 @@ void iCalibTAGGERvsTAPSTime::DoFor(Int_t id)
 
     this->DrawThis(id);
 
-    //  if( id == MAX_TAGGER )
-    if (!(id % 10) || id == MAX_TAGGER)
+    //  if( id == iConfig::kMaxTAGGER )
+    if (!(id % 10) || id == iConfig::kMaxTAGGER)
     {
         hhOffset->Fit(fPol0, "+R0", "");
         this->DrawGraph();
@@ -415,7 +415,7 @@ void iCalibTAGGERvsTAPSTime::Write()
 {
     // write to database
     iMySQLManager m;
-    m.WriteParameters(fSet, ECALIB_TAGG_T0, newToffs, MAX_TAGGER);
+    m.WriteParameters(fSet, ECALIB_TAGG_T0, newToffs, iConfig::kMaxTAGGER);
 
     //
     // Save 2D histo and Graph
@@ -426,21 +426,21 @@ void iCalibTAGGERvsTAPSTime::Write()
     Char_t szMakeDir[100];
     sprintf(szMakeDir,
             "mkdir -p %s/tagger/Tcalib/",
-            this->GetConfigName("HTML.PATH").Data());
+            this->GetConfig("HTML.PATH")->Data());
     gSystem->Exec(szMakeDir);
 
     // Save for 2D histo
     this->DrawThis(1);
     sprintf(szName,
             "%s/tagger/Tcalib/h2D_set%02i.gif",
-            this->GetConfigName("HTML.PATH").Data(),
+            this->GetConfig("HTML.PATH")->Data(),
             fSet);
     c1->SaveAs(szName);
 
     // Save distribution graph
     sprintf(szName,
             "%s/tagger/Tcalib/hGr_set%02i.gif",
-            this->GetConfigName("HTML.PATH").Data(),
+            this->GetConfig("HTML.PATH")->Data(),
             fSet);
     c2->SaveAs(szName);
 

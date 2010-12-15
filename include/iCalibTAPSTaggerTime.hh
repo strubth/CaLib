@@ -57,15 +57,15 @@ private:
     TCanvas* c1;
     TCanvas* c2;
     TH2F* hTAPSvsTagger;
-    TH1D* hTimeProj[MAX_TAPS];
+    TH1D* hTimeProj[iConfig::kMaxTAPS];
     TH1F* hhOffset;
     TF1* fPol0;
     ifstream infile;
     TString  strLine;
     ofstream outfile;
     TFile* histofile;
-    Double_t oldOffset[MAX_TAPS];
-    Double_t newOffset[MAX_TAPS];
+    Double_t oldOffset[iConfig::kMaxTAPS];
+    Double_t newOffset[iConfig::kMaxTAPS];
  
 public:
     iCalibTAPSTaggerTime();

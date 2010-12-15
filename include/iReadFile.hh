@@ -47,52 +47,52 @@ protected:
     TString  strFileLine[ MAX_LINE ];
 
     // common for all
-    Char_t*   p[ MAX_CB ][ MAX_PAR ];
+    Char_t*   p[ iConfig::kMaxCB ][ MAX_PAR ];
 
     // only for CB time walk
-    Char_t*   szTw[ MAX_CB ][ TWALK_NPAR ];
+    Char_t*   szTw[ iConfig::kMaxCB ][ iConfig::kWalkNpar];
 
     // only for TAPS short gate
-    Char_t* szSg[ MAX_TAPS ][ MAX_PAR ];
+    Char_t* szSg[ iConfig::kMaxTAPS ][ MAX_PAR ];
 
     // - - - CB - - -
-    //  Char_t   szCBadc[ 8 ][ MAX_CB ];
-    Double_t CBgain[ MAX_CB ];
+    //  Char_t   szCBadc[ 8 ][ iConfig::kMaxCB ];
+    Double_t CBgain[ iConfig::kMaxCB ];
 
-    //  Char_t   szCBtdc[ 8 ][ MAX_CB ];
-    Double_t CBoffs[ MAX_CB ];
-    Double_t CBtime[ MAX_CB ];
-    Double_t CBposx[ MAX_CB ];
-    Double_t CBposy[ MAX_CB ];
-    Double_t CBposz[ MAX_CB ];
-    Double_t CBtwalk[ MAX_CB* TWALK_NPAR ];
+    //  Char_t   szCBtdc[ 8 ][ iConfig::kMaxCB ];
+    Double_t CBoffs[ iConfig::kMaxCB ];
+    Double_t CBtime[ iConfig::kMaxCB ];
+    Double_t CBposx[ iConfig::kMaxCB ];
+    Double_t CBposy[ iConfig::kMaxCB ];
+    Double_t CBposz[ iConfig::kMaxCB ];
+    Double_t CBtwalk[ iConfig::kMaxCB* iConfig::kWalkNpar ];
 
     // - - - PID - - -
-    Char_t   szPIDadc[ MAX_PID ][ 8 ];
-    Char_t   szPIDtdc[ MAX_PID ][ 8 ];
+    Char_t   szPIDadc[ iConfig::kMaxPID ][ 8 ];
+    Char_t   szPIDtdc[ iConfig::kMaxPID ][ 8 ];
 
-    Double_t PIDphi[ MAX_PID ];
+    Double_t PIDphi[ iConfig::kMaxPID ];
 
 
     // - - - TAPS - - -
     //
-    Char_t   szTAPSadc[ MAX_TAPS ][ 8 ];
-    Char_t   szTAPStdc[ MAX_TAPS ][ 8 ];
+    Char_t   szTAPSadc[ iConfig::kMaxTAPS ][ 8 ];
+    Char_t   szTAPStdc[ iConfig::kMaxTAPS ][ 8 ];
 
-    Double_t TAPSoffset[ MAX_TAPS ];
-    Double_t TAPSgain[   MAX_TAPS ];
+    Double_t TAPSoffset[ iConfig::kMaxTAPS ];
+    Double_t TAPSgain[   iConfig::kMaxTAPS ];
 
-    Double_t TAPSposx[ MAX_TAPS ];
-    Double_t TAPSposy[ MAX_TAPS ];
-    Double_t TAPSposz[ MAX_TAPS ];
+    Double_t TAPSposx[ iConfig::kMaxTAPS ];
+    Double_t TAPSposy[ iConfig::kMaxTAPS ];
+    Double_t TAPSposz[ iConfig::kMaxTAPS ];
 
     // - - - TAGGER - - -
     //
-    Char_t   szTAGGERadc[ MAX_TAGGER ][ 8 ];
-    Char_t   szTAGGERtdc[ MAX_TAGGER ][ 8 ];
+    Char_t   szTAGGERadc[ iConfig::kMaxTAGGER ][ 8 ];
+    Char_t   szTAGGERtdc[ iConfig::kMaxTAGGER ][ 8 ];
 
-    Double_t TaggerOffset[ MAX_TAGGER ];
-    Double_t TaggerGain[   MAX_TAGGER ];
+    Double_t TaggerOffset[ iConfig::kMaxTAGGER ];
+    Double_t TaggerGain[   iConfig::kMaxTAGGER ];
 
 public:
     iReadFile();

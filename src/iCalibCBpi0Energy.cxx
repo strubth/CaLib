@@ -127,13 +127,13 @@ iCalibCBpi0Energy::~iCalibCBpi0Energy()
 void iCalibCBpi0Energy::Init()
 {
     //
-    strCBHistoName = this->GetConfigName("CB.HEName");
+    strCBHistoName = *this->GetConfig("CB.HEName");
 
-    strCBCalibFile = this->GetConfigName("CB.Calib");
+    strCBCalibFile = *this->GetConfig("CB.Calib");
 
     // Initialize all variables in this class
     // needed in ReadFile
-    for (Int_t i = 0; i < MAX_TAPS; i++)
+    for (Int_t i = 0; i < iConfig::kMaxCB; i++)
     {
         newGain[i] = oldGain[i] = 0; //
 
@@ -142,9 +142,9 @@ void iCalibCBpi0Energy::Init()
 
     // read from database
     iMySQLManager m;
-    m.ReadParameters(fSet, ECALIB_CB_E1, oldGain, MAX_CB);
-    m.ReadParameters(fSet, ECALIB_CB_E1, newGain, MAX_CB);
-    m.ReadParameters(fSet, ECALIB_CB_PI0IM, oldPi0IM, MAX_CB);
+    m.ReadParameters(fSet, ECALIB_CB_E1, oldGain, iConfig::kMaxCB);
+    m.ReadParameters(fSet, ECALIB_CB_E1, newGain, iConfig::kMaxCB);
+    m.ReadParameters(fSet, ECALIB_CB_PI0IM, oldPi0IM, iConfig::kMaxCB);
 
 
     //   for ( Int_t i = 0; i < 5 ; i++ )
@@ -203,19 +203,19 @@ void iCalibCBpi0Energy::InitGUI()
             "Set of runs N %02i;NaI Number;#pi^{0} IM [MeV]",
             fSet);
     hhIM = new TH1F("hhIM", szTitle,
-                    MAX_CB, 0.5, MAX_CB+0.5);
+                    iConfig::kMaxCB, 0.5, iConfig::kMaxCB+0.5);
     hhIM->SetMarkerStyle(28);
     hhIM->SetMarkerColor(4);
     //  hhIM->SetStats(kFALSE);
 
-    Double_t low =  atof(this->GetConfigName("CBenergyGraph.low"));
-    Double_t upp =  atof(this->GetConfigName("CBenergyGraph.upp"));
+    Double_t low =  atof(this->GetConfig("CBenergyGraph.low")->Data());
+    Double_t upp =  atof(this->GetConfig("CBenergyGraph.upp")->Data());
 
     if (low || upp)
         hhIM->GetYaxis()->SetRangeUser(low, upp);
     hhIM->Draw("P");
 
-    fPol0 = new TF1("Pol0", "pol0", 0, MAX_CB);
+    fPol0 = new TF1("Pol0", "pol0", 0, iConfig::kMaxCB);
     fPol0->SetParameter(0, 135.);
     fPol0->SetLineColor(2);
 
@@ -306,7 +306,7 @@ void iCalibCBpi0Energy::Calculate(Int_t id)
         newPi0IM[(id-1)] = mean_gaus[(id-1)];
 
         // oldGain * PI0_MASS / pos[currElement];
-        newGain[(id-1)] = oldGain[(id-1)] * (PI0_MASS / mean_gaus[(id-1)]);
+        newGain[(id-1)] = oldGain[(id-1)] * (iConfig::kPi0Mass / mean_gaus[(id-1)]);
 
         // if new value is negative take old
         if (newGain[(id-1)] < 0)
@@ -340,12 +340,12 @@ void iCalibCBpi0Energy::DoFor(Int_t id)
 
     this->DrawThis(id);
 
-    if (!(id % 20) || id == MAX_CB)
+    if (!(id % 20) || id == iConfig::kMaxCB)
     {
         this->DrawGraph();
     }
 
-    if (id == MAX_CB)
+    if (id == iConfig::kMaxCB)
         hhIM->Fit(fPol0, "+R0", "");
 
     return;
@@ -430,8 +430,8 @@ void iCalibCBpi0Energy::Write()
 
     // write to database
     iMySQLManager m;
-    m.WriteParameters(fSet, ECALIB_CB_E1, newGain, MAX_CB);
-    m.WriteParameters(fSet, ECALIB_CB_PI0IM, newPi0IM, MAX_CB);
+    m.WriteParameters(fSet, ECALIB_CB_E1, newGain, iConfig::kMaxCB);
+    m.WriteParameters(fSet, ECALIB_CB_PI0IM, newPi0IM, iConfig::kMaxCB);
 
 
     //
@@ -439,13 +439,13 @@ void iCalibCBpi0Energy::Write()
     Char_t szName[100];
     sprintf(szName,
             "%s/cb/Ecalib/hGr_set%02i.gif",
-            this->GetConfigName("HTML.PATH").Data(),
+            this->GetConfig("HTML.PATH")->Data(),
             fSet);
     //check if Directory for pictures exist, otherwise create
     Char_t szMakeDir[100];
     sprintf(szMakeDir,
             "mkdir -p %s/cb/Ecalib/",
-            this->GetConfigName("HTML.PATH").Data());
+            this->GetConfig("HTML.PATH")->Data());
     gSystem->Exec(szMakeDir);
 
     c2->SaveAs(szName);

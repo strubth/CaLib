@@ -109,12 +109,12 @@ Bool_t iReadFile::ReadLines()
             CBposy[nCrystal] = atof(p[nCrystal][11]);
             CBposz[nCrystal] = atof(p[nCrystal][12]);
 
-            if (nCrystal < MAX_PID)
+            if (nCrystal < iConfig::kMaxPID)
             {
                 PIDphi[nCrystal] = atof(p[nCrystal][12]);
             }
 
-            if (nCrystal < MAX_TAPS)
+            if (nCrystal < iConfig::kMaxTAPS)
             {
                 TAPSoffset[nCrystal] = atof(p[nCrystal][8]);
                 TAPSgain[nCrystal]   = atof(p[nCrystal][9]);
@@ -124,7 +124,7 @@ Bool_t iReadFile::ReadLines()
                 TAPSposz[nCrystal] = atof(p[nCrystal][12]);
             }
 
-            if (nCrystal < MAX_TAGGER)
+            if (nCrystal < iConfig::kMaxTAGGER)
             {
                 TaggerOffset[nCrystal] = atof(p[nCrystal][8]);
                 TaggerGain[nCrystal]   = atof(p[nCrystal][9]);
@@ -155,8 +155,8 @@ Bool_t iReadFile::ReadLines()
                    szTw[ nTWalk][3]
                   );
 
-            for (int i = 0; i < TWALK_NPAR; i++)
-                CBtwalk[ nTWalk + i*MAX_CB ] = atof(szTw[nTWalk][i]);
+            for (int i = 0; i < iConfig::kWalkNpar; i++)
+                CBtwalk[ nTWalk + i*iConfig::kMaxCB ] = atof(szTw[nTWalk][i]);
 
             // print all parameters
             //
@@ -200,26 +200,26 @@ Bool_t iReadFile::ReadLines()
 void iReadFile::Init()
 {
     // needed in ReadFile
-    for (Int_t i = 0; i < MAX_CB; i++)
+    for (Int_t i = 0; i < iConfig::kMaxCB; i++)
     {
         for (Int_t j = 0; j < MAX_PAR; j++)
             p[i][j] = new Char_t[MAX_PAR];
 
         CBgain[i]     = 0;
 
-        for (Int_t j = 0; j < TWALK_NPAR; j++)
+        for (Int_t j = 0; j < iConfig::kWalkNpar; j++)
         {
             CBtwalk[i+j] = 0;
             szTw[i][j] = new Char_t[MAX_PAR];
         }
     }
 
-    for (Int_t i = 0; i < MAX_PID; i++)
+    for (Int_t i = 0; i < iConfig::kMaxPID; i++)
     {
         PIDphi[i] = 0;
     }
 
-    for (Int_t i = 0; i < MAX_TAPS; i++)
+    for (Int_t i = 0; i < iConfig::kMaxTAPS; i++)
     {
         TAPSoffset[i] = 0;
         TAPSgain[i]   = 0;
@@ -228,7 +228,7 @@ void iReadFile::Init()
             szSg[i][j] = new Char_t[MAX_PAR];
     }
 
-    for (Int_t i = 0; i < MAX_TAGGER; i++)
+    for (Int_t i = 0; i < iConfig::kMaxTAGGER; i++)
     {
         TaggerOffset[i] = 0;
         TaggerGain[i]   = 0;

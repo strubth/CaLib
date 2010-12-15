@@ -101,14 +101,14 @@ void iCalibTaggerTime::Init()
     this->Help();
 
     //
-    strTaggerHistoName = this->GetConfigName("Tagger.HName");
+    strTaggerHistoName = *this->GetConfig("Tagger.HName");
 
-    strTaggerCalibFile = this->GetConfigName("Tagger.Calib");
+    strTaggerCalibFile = *this->GetConfig("Tagger.Calib");
 
     //this->ReadFile( strTaggerCalibFile );
 
     // needed in ReadFile
-    for (Int_t i = 0; i < MAX_TAGGER; i++)
+    for (Int_t i = 0; i < iConfig::kMaxTAGGER; i++)
     {
         newOffset[i] = oldOffset[i] = 0;
         mean_gaus[i] =0;
@@ -121,7 +121,7 @@ void iCalibTaggerTime::Init()
 
     // read from database
     iMySQLManager m;
-    m.ReadParameters(fSet, ECALIB_TAGG_T0, oldOffset, MAX_TAGGER);
+    m.ReadParameters(fSet, ECALIB_TAGG_T0, oldOffset, iConfig::kMaxTAGGER);
 
 
     return;
@@ -139,7 +139,7 @@ void iCalibTaggerTime::InitGUI()
     // create graph
     c2 = new TCanvas("c2", "cGraph", 630, 0, 900, 400);
     hhOffset = new TH1F("hhOffset", ";Tagger Number;Time [ns]",
-                        MAX_TAGGER, 0.5, MAX_TAGGER+0.5);
+                        iConfig::kMaxTAGGER, 0.5, iConfig::kMaxTAGGER+0.5);
     hhOffset->SetMarkerStyle(28);
     hhOffset->SetMarkerColor(4);
     //  hhOffset->SetStats(kFALSE);
@@ -214,7 +214,7 @@ void iCalibTaggerTime::Calculate(Int_t id)
 //------------------------------------------------------------------------------
 Bool_t iCalibTaggerTime::CheckCrystalNumber(Int_t id)
 {
-    if (id < 1 || id > MAX_TAGGER)
+    if (id < 1 || id > iConfig::kMaxTAGGER)
     {
         cerr << "ERROR: bad number of Crystal" << endl;
         return kTRUE;
@@ -270,7 +270,7 @@ void iCalibTaggerTime::DoFor(Int_t id)
 
     this->DrawThis(id);
 
-    if (!(id % 10) || id == MAX_TAGGER)
+    if (!(id % 10) || id == iConfig::kMaxTAGGER)
     {
         hhOffset->Fit(fPol0, "+R0", "");
         this->DrawGraph();

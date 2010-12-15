@@ -18,21 +18,24 @@ ClassImp(iCalibCB2gTime)
 
 //______________________________________________________________________________
 iCalibCB2gTime::iCalibCB2gTime(Int_t set)
-    : iCalib(set, MAX_CB)
+    : iCalib(set, iConfig::kMaxCB)
 {
     // Constructor.
     
     // init members
     fLine = new TLine();
 
-    // read configuration
-    iReadConfig r;
-
     // get histogram name
-    fHistoName = r.GetConfigName("CB.Time.Histo.Name");
+    if (!iConfig::GetRC()->GetConfig("CB.Time.Histo.Name"))
+    {
+        Error("iCalibCB2gTime", "Histogram name was not found in configuration!");
+        return;
+    }
+    else fHistoName = *iConfig::GetRC()->GetConfig("CB.Time.Histo.Name");
     
     // get time gain for CB TDCs
-    fTimeGain = atof(r.GetConfigName("CB.Time.TDC.Gain").Data());
+    if (!iConfig::GetRC()->GetConfig("CB.Time.TDC.Gain")) fTimeGain = 0.11771;
+    else fTimeGain = iConfig::GetRC()->GetConfigDouble("CB.Time.TDC.Gain");
 
     // read old parameters
     iMySQLManager m;
@@ -56,8 +59,8 @@ iCalibCB2gTime::iCalibCB2gTime(Int_t set)
     fOverviewHisto->SetMarkerColor(4);
     
     // get parameters from configuration file
-    Double_t low = atof(r.GetConfigName("CBtimeGraph.low"));
-    Double_t upp = atof(r.GetConfigName("CBtimeGraph.upp"));
+    Double_t low = iConfig::GetRC()->GetConfigDouble("CB.Time.Overview.Y.Min");
+    Double_t upp = iConfig::GetRC()->GetConfigDouble("CB.Time.Overview.Y.Max");
     
     // ajust overview histogram
     if (low || upp) fOverviewHisto->GetYaxis()->SetRangeUser(low, upp);
@@ -208,21 +211,17 @@ void iCalibCB2gTime::Write()
     iMySQLManager m;
     m.WriteParameters(fSet, ECALIB_CB_T0, fNewVal, fNelem);
         
-    // get path for image saving
-    iReadConfig r;
-    TString path = r.GetConfigName("HTML.PATH").Data();
-    
     // save overview picture
-    if (!(path == ""))
+    if (TString* path = iConfig::GetRC()->GetConfig("Log.Images"))
     {
         Char_t tmp[256];
 
         // create directory
-        sprintf(tmp, "%s/cb/Tcalib", path.Data());
+        sprintf(tmp, "%s/cb/Tcalib", path->Data());
         gSystem->mkdir(tmp, kTRUE);
     
         // save canvas
-        sprintf(tmp, "%s/cb/Tcalib/overview_set_%d.png", path.Data(), fSet);
+        sprintf(tmp, "%s/cb/Tcalib/overview_set_%d.png", path->Data(), fSet);
         fCanvasResult->SaveAs(tmp);
     }
 }

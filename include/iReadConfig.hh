@@ -1,12 +1,12 @@
 /*************************************************************************
- * Author: Irakli Keshelashvili
+ * Author: Irakli Keshelashvili, Dominik Werthmueller
  *************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // iReadConfig                                                          //
 //                                                                      //
-// ...                                                                  //
+// Read CaLib configuration files.                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
@@ -14,43 +14,51 @@
 #ifndef IREADCONFIG_HH
 #define IREADCONFIG_HH
 
-#include "stdio.h"
-
-#include <iostream>
 #include <fstream>
 
-#include <TSystem.h>
-#include <TObject.h>
-#include <TString.h>
+#include "TSystem.h"
+#include "TString.h"
+#include "THashTable.h"
+#include "TError.h"
 
-#include "iConfig.hh"
 
-using namespace std;
+class iConfigElement : public TObject
+{
 
-const int MAX_LINE = 1000;
+private:
+    TString key;                // config key
+    TString value;              // config value
+
+public:
+    iConfigElement(const Char_t* k, const Char_t* v) : key(k), value(v) {  } 
+    virtual ~iConfigElement() { }
+    TString* GetKey() { return &key; }
+    TString* GetValue() { return &value; }
+    virtual const Char_t* GetName() const { return key.Data(); }
+    virtual ULong_t Hash() const { return key.Hash(); }
+};
+
 
 class iReadConfig
 {
 
 private:
-    Int_t   nLine;
-    TString strLine[MAX_LINE];
-    TString strCaLibPath;
+    THashTable* fConfigTable;       // hash table containing config elements
+    TString fCaLibPath;             // path of the calib source
 
-    void ReadConfigFile(const Char_t*);
+    void ReadConfigFile(const Char_t* cfgFile);
+    iConfigElement* CreateConfigElement(TString line);
 
 public:
     iReadConfig();
-    iReadConfig(Char_t*);
+    iReadConfig(Char_t* cfgFile);
     virtual ~iReadConfig();
 
-    TString ExtractName(TString);
+    TString* GetConfig(TString configKey);
+    Int_t GetConfigInt(TString configKey);
+    Double_t GetConfigDouble(TString configKey);
 
-    TString GetConfigName(TString);
-    TString GetConfigCuts(TString);
-    TString GetConfigNamePart(TString, Int_t&);
-
-    ClassDef(iReadConfig, 0)   // Read config/config.cfg file for CaLib
+    ClassDef(iReadConfig, 0)   // Configuration file reader
 };
 
 #endif

@@ -123,16 +123,16 @@ void iCalibPIDenergy::Init()
     this->Help();
 
     // get proton and charged pion MC .root file
-    strPIDPathMC = this->GetConfigName("PID.MCPath");
+    strPIDPathMC = *this->GetConfig("PID.MCPath");
 
     // get histo name
-    strPIDHistoName = this->GetConfigName("PID.HEName");
+    strPIDHistoName = *this->GetConfig("PID.HEName");
 
     // iMySQLReader
     //  Char_t szTableName[64];
 
     //  sprintf( szTableName, "%s_pid_Ecalib", strTarget.Data() );
-    //  this->ReadDBtable( fSet, fOldPhi, MAX_PID, szTableName );
+    //  this->ReadDBtable( fSet, fOldPhi, iConfig::kMaxPID, szTableName );
 
     return;
 }
@@ -169,7 +169,7 @@ void iCalibPIDenergy::InitGUI()
     grMC->SetLineColor(2);
 
     Char_t szName[32];
-    for (Int_t i = 0; i < MAX_PID; i++)
+    for (Int_t i = 0; i < iConfig::kMaxPID; i++)
     {
         sprintf(szName, "fFitData_%i", i);
         fFitData[i] = new TF1(szName, "expo(0)+landau(2)+gaus(5)");
@@ -385,25 +385,25 @@ void iCalibPIDenergy::Write()
     //Write in DB
     //Char_t szTableName[64];
     //sprintf( szTableName, "%s_pid_phi", strTarget.Data() );
-    //this->WriteInDB( fSet, fNewPhi, MAX_PID, szTableName );
+    //this->WriteInDB( fSet, fNewPhi, iConfig::kMaxPID, szTableName );
 
     //save pictures
     Char_t szName[100];
     sprintf(szName,
             "%s/pid/phi/hGr_set%02i.gif",
-            this->GetConfigName("HTML.PATH").Data(),
+            this->GetConfig("HTML.PATH")->Data(),
             fSet);
     Char_t szName1[100];
     sprintf(szName1,
             "%s/pid/phi/hPID_set%02i.gif",
-            this->GetConfigName("HTML.PATH").Data(),
+            this->GetConfig("HTML.PATH")->Data(),
             fSet);
 
     //check if Directory for pictures exist, otherwise create
     Char_t szMakeDir[100];
     sprintf(szMakeDir,
             "mkdir -p %s/pid/phi/",
-            this->GetConfigName("HTML.PATH").Data());
+            this->GetConfig("HTML.PATH")->Data());
     gSystem->Exec(szMakeDir);
 
     c1->SaveAs(szName1);

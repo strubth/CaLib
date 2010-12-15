@@ -26,13 +26,13 @@
 #pragma link C++ typedef CalibData_t;
 
 // common classes
+#pragma link C++ namespace iConfig;
 #pragma link C++ class iFileManager+;
 #pragma link C++ class iCrystalNavigator+;
 #pragma link C++ class iFitHisto+;
 #pragma link C++ class iMySQLManager+;
 #pragma link C++ class iReadConfig+;
 #pragma link C++ class iReadFile+;
-#pragma link C++ class iHistoManager+;
 #pragma link C++ class iCalib+;
 
 // calibration classes

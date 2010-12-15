@@ -59,12 +59,12 @@ private:
     TString strTaggerTAPSHistoName;
     TString strTaggerTAPSHistoFile;
     Double_t TaggerTgain;
-    Double_t oldToffs[MAX_TAGGER];
-    Double_t newToffs[MAX_TAGGER];
+    Double_t oldToffs[iConfig::kMaxTAGGER];
+    Double_t newToffs[iConfig::kMaxTAGGER];
     TCanvas* c1;
     TCanvas* c2; 
     TH2F* hTaggerVsTAPS;
-    TH1D* hTimeProj[MAX_CRYSTAL];
+    TH1D* hTimeProj[iConfig::kMaxCrystal];
     TH1F* hhOffset; 
     TF1* fPol0;
     TFile* histofile;
