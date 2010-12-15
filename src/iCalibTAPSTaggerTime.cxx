@@ -69,7 +69,7 @@ iCalibTAPSTaggerTime::~iCalibTAPSTaggerTime()
 void iCalibTAPSTaggerTime::Init()
 {
     this->Help();
-    this->ReadFile(strTAPSvsTaggerCalibFile);
+    //this->ReadFile(strTAPSvsTaggerCalibFile);
 
 
     // needed in ReadFile
@@ -80,8 +80,8 @@ void iCalibTAPSTaggerTime::Init()
 
         hTimeProj[i] = 0;
 
-        for (Int_t j = 0; j < 13; j++)
-            p[i][j] = new Char_t[16];
+     //   for (Int_t j = 0; j < 13; j++)
+      //      p[i][j] = new Char_t[16];
     }
 
     //
@@ -150,11 +150,11 @@ void iCalibTAPSTaggerTime::Calculate(Int_t id)
     {
         if (lOffset[(id-1)]->GetX1() != mean_gaus[(id-1)])
             mean_gaus[(id-1)] = lOffset[(id-1)]->GetX1();
-
-        newOffset[(id-1)] = TAPSoffset[(id-1)] - mean_gaus[(id-1)]; // not good cas 0
-
-        printf("Element: %03i peak = %10.6f \t newOffset = %10.6f \t oldOffset = %10.6f \n",
-               id, mean_gaus[(id-1)], newOffset[(id-1)], TAPSoffset[(id-1)]);
+        
+        // domi
+        //newOffset[(id-1)] = TAPSoffset[(id-1)] - mean_gaus[(id-1)]; // not good cas 0
+       // printf("Element: %03i peak = %10.6f \t newOffset = %10.6f \t oldOffset = %10.6f \n",
+       //        id, mean_gaus[(id-1)], newOffset[(id-1)], TAPSoffset[(id-1)]);
 
         hhOffset->SetBinContent(id, mean_gaus[(id-1)]);
         hhOffset->SetBinError(id, 1.);

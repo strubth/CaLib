@@ -27,20 +27,21 @@
 
 // common classes
 #pragma link C++ namespace iConfig;
+#pragma link C++ namespace iUtils;
 #pragma link C++ class iFileManager+;
-#pragma link C++ class iCrystalNavigator+;
-#pragma link C++ class iFitHisto+;
-#pragma link C++ class iMySQLManager+;
 #pragma link C++ class iReadConfig+;
-#pragma link C++ class iReadFile+;
+#pragma link C++ class iMySQLManager+;
 #pragma link C++ class iCalib+;
+#pragma link C++ class iCrystalNavigator+;      // delete this
+#pragma link C++ class iFitHisto+;              // delete this
 
 // calibration classes
+#pragma link C++ class iCalibCBEnergy+;
+#pragma link C++ class iCalibCBTime+;
+
 #pragma link C++ class iCalibPIDphi+;
 #pragma link C++ class iCalibPIDenergy+;
 #pragma link C++ class iCalibTaggerTime+;
-#pragma link C++ class iCalibCBpi0Energy+;
-#pragma link C++ class iCalibCB2gTime+;
 #pragma link C++ class iCalibCBTimeWalk+;
 #pragma link C++ class iCalibTAPS1gEnergy+;
 #pragma link C++ class iCalibTAPS2gTime+;

@@ -21,11 +21,14 @@
 #include "TCanvas.h"
 #include "TTimer.h"
 
+#include "iMySQLManager.hh"
 
-class iCalib 
+
+class iCalib : public TNamed
 {
 
 protected:
+    CalibData_t fData;          // used calibration data
     Int_t fSet;                 // set to be calibrated
     TString fHistoName;         // name of the calibration histogram
     Int_t fNelem;               // number of calibration values
@@ -36,6 +39,9 @@ protected:
     TH1* fMainHisto;            // main histogram 
     TH1* fFitHisto;             // fitting histogram
     TF1* fFitFunc;              // fitting function
+    
+    TH1* fOverviewHisto;        // overview result histogram
+
     TCanvas* fCanvasFit;        // canvas containing the fits
     TCanvas* fCanvasResult;     // canvas containing the results
     
@@ -43,21 +49,25 @@ protected:
 
     void InitGUI();
     virtual void CustomizeGUI() = 0;
-    virtual void Process(Int_t elem) = 0;
+    virtual void Fit(Int_t elem) = 0;
+    virtual void Calculate(Int_t elem) = 0;
 
 public:
-    iCalib() : fSet(0), fHistoName(), 
+    iCalib() : TNamed(),
+               fData(ECALIB_NODATA), 
+               fSet(0), fHistoName(), 
                fNelem(0), fCurrentElem(0),
                fOldVal(0), fNewVal(0),
-               fMainHisto(0), fFitHisto(0),
-               fFitFunc(0),
+               fMainHisto(0), fFitHisto(0), fFitFunc(0),
+               fOverviewHisto(0),
                fCanvasFit(0), fCanvasResult(0), 
                fTimer(0) { }
-    iCalib(Int_t set, Int_t nElem);
+    iCalib(const Char_t* name, const Char_t* title,
+           CalibData_t data, Int_t set, Int_t nElem);
     virtual ~iCalib();
     
-    virtual void Write() = 0;
-    
+    virtual void Write();
+
     void Start();
     void ProcessAll(Int_t msecDelay = 0);
     void ProcessElement(Int_t elem);

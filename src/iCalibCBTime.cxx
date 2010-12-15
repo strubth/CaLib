@@ -4,31 +4,33 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// iCalibCB2gTime                                                       //
+// iCalibCBTime                                                         //
 //                                                                      //
 // Calibration module for the CB time.                                  //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#include "iCalibCB2gTime.hh"
+#include "iCalibCBTime.hh"
 
-ClassImp(iCalibCB2gTime)
+ClassImp(iCalibCBTime)
 
 
 //______________________________________________________________________________
-iCalibCB2gTime::iCalibCB2gTime(Int_t set)
-    : iCalib(set, iConfig::kMaxCB)
+iCalibCBTime::iCalibCBTime(Int_t set)
+    : iCalib("CB.Time", "CB time calibration", 
+             ECALIB_CB_T0, set, iConfig::kMaxCB)
 {
     // Constructor.
     
     // init members
+    fMean = 0;
     fLine = new TLine();
 
     // get histogram name
     if (!iConfig::GetRC()->GetConfig("CB.Time.Histo.Name"))
     {
-        Error("iCalibCB2gTime", "Histogram name was not found in configuration!");
+        Error("iCalibCBTime", "Histogram name was not found in configuration!");
         return;
     }
     else fHistoName = *iConfig::GetRC()->GetConfig("CB.Time.Histo.Name");
@@ -39,21 +41,21 @@ iCalibCB2gTime::iCalibCB2gTime(Int_t set)
 
     // read old parameters
     iMySQLManager m;
-    m.ReadParameters(fSet, ECALIB_CB_T0, fOldVal, fNelem);
+    m.ReadParameters(fSet, fData, fOldVal, fNelem);
 
     // sum up all files contained in this runset
-    iFileManager f(fSet, ECALIB_CB_T0);
+    iFileManager f(fSet, fData);
     
     // get the main calibration histogram
     fMainHisto = f.GetHistogram(fHistoName.Data());
     if (!fMainHisto)
     {
-        Error("iCalibCB2gTime", "Main histogram does not exist!\n");
+        Error("iCalibCBTime", "Main histogram does not exist!\n");
         gSystem->Exit(0);
     }
     
     // create the overview histogram
-    fOverviewHisto = new TH1F("Overview", ";Crystal Number;Time_{CB-CB} [ns]", 722, -0.5, 721.5);
+    fOverviewHisto = new TH1F("Overview", ";Element;Time_{CB-CB} [ns]", 720, 0, 720);
     fOverviewHisto->SetMarkerStyle(28);
     fOverviewHisto->SetMarkerColor(4);
     
@@ -63,25 +65,18 @@ iCalibCB2gTime::iCalibCB2gTime(Int_t set)
     
     // ajust overview histogram
     if (low || upp) fOverviewHisto->GetYaxis()->SetRangeUser(low, upp);
-    
-    // create the overview fitting function
-    fOverviewFunc = new TF1("OverviewFunc", "pol0", 0, 720);
-    fOverviewFunc->SetParameter(0, 1.);
-    fOverviewFunc->SetLineColor(2);
 }
 
 //______________________________________________________________________________
-iCalibCB2gTime::~iCalibCB2gTime()
+iCalibCBTime::~iCalibCBTime()
 {
     // Destructor. 
     
     if (fLine) delete fLine;
-    if (fOverviewHisto) delete fOverviewHisto;
-    if (fOverviewFunc) delete fOverviewFunc;
 }
 
 //______________________________________________________________________________
-void iCalibCB2gTime::CustomizeGUI()
+void iCalibCBTime::CustomizeGUI()
 {
     // Customize the GUI of this calibration module.
 
@@ -95,7 +90,7 @@ void iCalibCB2gTime::CustomizeGUI()
 }
 
 //______________________________________________________________________________
-void iCalibCB2gTime::Process(Int_t elem)
+void iCalibCBTime::Fit(Int_t elem)
 {
     // Perform the fit of the element 'elem'.
     
@@ -105,26 +100,26 @@ void iCalibCB2gTime::Process(Int_t elem)
     sprintf(tmp, "ProjHisto_%i", elem);
     TH2* h2 = (TH2*) fMainHisto;
     if (fFitHisto) delete fFitHisto;
-    fFitHisto = (TH1D*) h2->ProjectionX(tmp, elem, elem);
+    fFitHisto = (TH1D*) h2->ProjectionX(tmp, elem+1, elem+1);
     
     // init variables
     Double_t factor = 3.0;
     Double_t peakval = 0;
-    Double_t mean = 0;
     
     // check for sufficient statistics
-    if (fFitHisto->GetEntries() > 20)
+    if (fFitHisto->GetEntries())
     {
         // delete old function
         if (fFitFunc) delete fFitFunc;
-        sprintf(tmp, "fTime_%i", (elem-1));
+        sprintf(tmp, "fTime_%i", elem);
         fFitFunc = new TF1(tmp, "gaus");
         fFitFunc->SetLineColor(2);
-
+    
+        // estimate peak position
         peakval = fFitHisto->GetBinCenter(fFitHisto->GetMaximumBin());
 
         // temporary
-        mean = peakval;
+        fMean = peakval;
 
         // first iteration
         fFitFunc->SetRange(peakval - 3.8, peakval + 3.8);
@@ -138,7 +133,7 @@ void iCalibCB2gTime::Process(Int_t elem)
         fFitHisto->Fit(fFitFunc, "+R0Q");
 
         // final results
-        mean = fFitFunc->GetParameter(1); // store peak value
+        fMean = fFitFunc->GetParameter(1); // store peak value
 
         // draw mean indicator line
         fLine->SetVertical();
@@ -146,8 +141,8 @@ void iCalibCB2gTime::Process(Int_t elem)
         fLine->SetLineWidth(3);
         fLine->SetY1(0);
         fLine->SetY2(fFitHisto->GetMaximum() + 20);
-        fLine->SetX1(mean);
-        fLine->SetX2(mean);
+        fLine->SetX1(fMean);
+        fLine->SetX2(fMean);
     }
 
     // draw histogram
@@ -169,59 +164,43 @@ void iCalibCB2gTime::Process(Int_t elem)
     if (elem % 20 == 0)
     {
         fCanvasResult->cd();
-        fOverviewHisto->GetYaxis()->SetRangeUser(-1, 1);
         fOverviewHisto->Draw("E1");
-
-        fOverviewFunc->Draw("same");
-        fOverviewHisto->Fit(fOverviewFunc, "+R0Q", "");
         fCanvasResult->Update();
     }   
+}
+
+//______________________________________________________________________________
+void iCalibCBTime::Calculate(Int_t elem)
+{
+    // Calculate the new value of the element 'elem'.
+    
+    Bool_t unchanged = kFALSE;
 
     // check if fit was performed
     if (fFitHisto->GetEntries())
     {
+        // check if line position was modified by hand
+        if (fLine->GetX1() != fMean) fMean = fLine->GetX1();
+
         // calculate the new offset
-        fNewVal[(elem-1)] = fOldVal[(elem-1)] + mean / fTimeGain;
-    
-        // user information
-        printf("Element: %03i peak = %10.6f \t newoffset = %10.6f \t "
-               "oldoffset = %10.6f\n",
-               elem, mean, fNewVal[(elem-1)], fOldVal[(elem-1)]);
+        fNewVal[elem] = fOldVal[elem] + fMean / fTimeGain;
     
         // update overview histogram
-        fOverviewHisto->SetBinContent(elem, mean);
-        fOverviewHisto->SetBinError(elem, 0.1);
+        fOverviewHisto->SetBinContent(elem + 1, fMean);
+        fOverviewHisto->SetBinError(elem + 1, 0.1);
     }
     else
     {   
-        // user information
-        printf("Element: %03i peak = %10.6f \t newoffset = %10.6f \t "
-               "oldoffset = %10.6f    no change\n",
-               elem, mean, fOldVal[(elem-1)], fOldVal[(elem-1)]);
+        // do not change old value
+        fNewVal[elem] = fOldVal[elem];
+        unchanged = kTRUE;
     }
+
+    // user information
+    printf("Element: %03d    Peak: %12.8f    "
+           "old offset: %12.8f    new offset: %12.8f",
+           elem, fMean, fOldVal[elem], fNewVal[elem]);
+    if (unchanged) printf("    -> unchanged");
+    printf("\n");
 }   
-
-//______________________________________________________________________________
-void iCalibCB2gTime::Write()
-{
-    // Write the obtained calibration values to the database.
-    
-    // write the new time offsets to the database
-    iMySQLManager m;
-    m.WriteParameters(fSet, ECALIB_CB_T0, fNewVal, fNelem);
-        
-    // save overview picture
-    if (TString* path = iConfig::GetRC()->GetConfig("Log.Images"))
-    {
-        Char_t tmp[256];
-
-        // create directory
-        sprintf(tmp, "%s/cb/Tcalib", path->Data());
-        gSystem->mkdir(tmp, kTRUE);
-    
-        // save canvas
-        sprintf(tmp, "%s/cb/Tcalib/overview_set_%d.png", path->Data(), fSet);
-        fCanvasResult->SaveAs(tmp);
-    }
-}
 

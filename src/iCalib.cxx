@@ -17,19 +17,28 @@ ClassImp(iCalib)
 
 
 //______________________________________________________________________________
-iCalib::iCalib(Int_t set, Int_t nElem)
+iCalib::iCalib(const Char_t* name, const Char_t* title, 
+               CalibData_t data, Int_t set, Int_t nElem)
+    : TNamed(name, title)
 {
     // Constructor.
 
     // init members
+    fData = data;
     fSet = set;
+    fHistoName = "";
     fNelem = nElem;
     fCurrentElem = 0;
+
     fMainHisto = 0;
     fFitHisto = 0;
     fFitFunc = 0;
+    
+    fOverviewHisto = 0;
+
     fCanvasFit = 0;
     fCanvasResult = 0;
+    
     fTimer = 0;
     
     // create arrays
@@ -54,6 +63,7 @@ iCalib::~iCalib()
     if (fMainHisto) delete fMainHisto;
     if (fFitHisto) delete fFitHisto;
     if (fFitFunc) delete fFitFunc;
+    if (fOverviewHisto) delete fOverviewHisto;
     if (fCanvasFit) delete fCanvasFit;
     if (fCanvasResult) delete fCanvasResult;
     if (fTimer) delete fTimer;
@@ -79,12 +89,16 @@ void iCalib::InitGUI()
 void iCalib::Start()
 {
     // Start the calibration module.
+    
+    // user information
+    Info("Start", "Starting calibration module %s", GetName());
+    Info("Start", "Module description: %s", GetTitle());
 
     // init the GUI
     InitGUI();
 
     // start with the first element
-    ProcessElement(1);
+    ProcessElement(0);
 }
 
 //______________________________________________________________________________
@@ -93,7 +107,7 @@ void iCalib::ProcessElement(Int_t elem)
     // Process the element 'elem'.
 
     // check if element is in range
-    if (elem <= 0 || elem > fNelem)
+    if (elem < 0 || elem >= fNelem)
     {
         // stop timer when it was active
         if (fTimer) 
@@ -103,16 +117,22 @@ void iCalib::ProcessElement(Int_t elem)
             fTimer = 0;
             return;
         }
-
-        Error("ProcessElement", "Element %d out of bound! (elements: %d)", elem, fNelem);
+        
+        // calculate last element
+        if (elem == fNelem) Calculate(fCurrentElem);
+        
+        // exit
         return;
     }
     
+    // calculate previous element
+    if (elem != fCurrentElem) Calculate(fCurrentElem);
+
     // set current element
     fCurrentElem = elem;
 
     // process element
-    Process(elem);
+    Fit(elem);
 }
 
 //______________________________________________________________________________
@@ -176,7 +196,30 @@ void iCalib::PrintValues()
     for (Int_t i = 0; i < fNelem; i++)
     {
         printf("Element: %03d    old value: %12.8f    new value: %12.8f\n",
-               i+1, fOldVal[i], fNewVal[i]);
+               i, fOldVal[i], fNewVal[i]);
+    }
+}
+
+//______________________________________________________________________________
+void iCalib::Write()
+{
+    // Write the obtained calibration values to the database.
+    
+    // write values to database
+    iMySQLManager m;
+    m.WriteParameters(fSet, fData, fNewVal, fNelem);
+        
+    // save overview picture
+    if (TString* path = iConfig::GetRC()->GetConfig("Log.Images"))
+    {
+        Char_t tmp[256];
+        // create directory
+        sprintf(tmp, "%s/%s", path->Data(), GetName());
+        gSystem->mkdir(tmp, kTRUE);
+    
+        // save canvas
+        sprintf(tmp, "%s/%s/overview_set_%d.png", path->Data(), GetName(), fSet);
+        fCanvasResult->SaveAs(tmp);
     }
 }
 

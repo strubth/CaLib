@@ -33,7 +33,6 @@
 
 #include "iFileManager.hh"
 #include "iReadConfig.hh"
-#include "iReadFile.hh"
 #include "iFitHisto.hh"
 #include "iCrystalNavigator.hh"
 #include "iMySQLManager.hh"
@@ -44,7 +43,6 @@ using namespace std;
 
 class iCalibCBTimeWalk
     : public virtual iReadConfig,
-      public iReadFile,
       public iFitHisto,
       public iCrystalNavigator
 {

@@ -32,7 +32,6 @@
 
 #include "iConfig.hh"
 #include "iReadConfig.hh"
-#include "iReadFile.hh"
 #include "iFitHisto.hh"
 #include "iCrystalNavigator.hh"
 #include "iFileManager.hh"
@@ -43,7 +42,6 @@ using namespace std;
 
 class iCalibPIDphi
     : public virtual iReadConfig,
-      public iReadFile,
       public iFitHisto,
       public iCrystalNavigator
 {

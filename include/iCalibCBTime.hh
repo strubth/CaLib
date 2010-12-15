@@ -1,18 +1,18 @@
 /*************************************************************************
- * Author: Irakli Keshelashvili, Dominik Werthmueller
+ * Author: Irakli Keshelashvili, Dominik Werthmueller, Lilian Witthauer
  *************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// iCalibCB2gTime                                                       //
+// iCalibCBTime                                                         //
 //                                                                      //
 // Calibration module for the CB time.                                  //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef ICALIBCB2GTIME_HH
-#define ICALIBCB2GTIME_HH
+#ifndef ICALIBCBTIME_HH
+#define ICALIBCBTIME_HH
 
 #include "TCanvas.h"
 #include "TH2.h"
@@ -24,25 +24,25 @@
 #include "iFileManager.hh"
 
 
-class iCalibCB2gTime : public iCalib
+class iCalibCBTime : public iCalib
 {
 
 private:
     Double_t fTimeGain;                 // CB TDC gain
+    Double_t fMean;                     // mean time position
     TLine* fLine;                       // indicator line
-    TH1* fOverviewHisto;                // overview result histogram
-    TF1* fOverviewFunc;                 // overview histogram fitting function
-
+    
     virtual void CustomizeGUI();
-    virtual void Process(Int_t elem);
+    virtual void Fit(Int_t elem);
+    virtual void Calculate(Int_t elem);
 
 public:
-    iCalibCB2gTime(Int_t set);
-    virtual ~iCalibCB2gTime();
+    iCalibCBTime() : iCalib(), 
+                     fTimeGain(0), fMean(0), fLine(0) { }
+    iCalibCBTime(Int_t set);
+    virtual ~iCalibCBTime();
 
-    virtual void Write();
-
-    ClassDef(iCalibCB2gTime, 0)   // CB time calibration
+    ClassDef(iCalibCBTime, 0)   // CB time calibration
 };
 
 #endif

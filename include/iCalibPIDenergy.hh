@@ -32,7 +32,6 @@
 
 #include "iConfig.hh"
 #include "iReadConfig.hh"
-#include "iReadFile.hh"
 #include "iFitHisto.hh"
 #include "iCrystalNavigator.hh"
 #include "iMySQLManager.hh"
@@ -42,7 +41,6 @@ using namespace std;
 
 class iCalibPIDenergy
     : public virtual iReadConfig,
-      public iReadFile,
       public iFitHisto,
       public iCrystalNavigator
 {

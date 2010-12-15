@@ -115,8 +115,8 @@ void iCalibTaggerTime::Init()
 
         hTimeProj[i] = 0;
 
-        for (Int_t j = 0; j < 13; j++)
-            p[i][j] = new Char_t[16];
+     //   for (Int_t j = 0; j < 13; j++)
+    //        p[i][j] = new Char_t[16];
     }
 
     // read from database

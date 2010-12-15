@@ -9,8 +9,8 @@
 
 // List of calibration modules
 //
-iCalibCBpi0Energy    *gCBECalib    = 0;
-iCalibCB2gTime       *gCBTCalib    = 0;
+iCalibCBEnergy       *gCBECalib    = 0;
+iCalibCBTime       *gCBTCalib    = 0;
 iCalibCBTimeWalk     *gCBTWalk     = 0;
 
 iCalibPIDphi         *gPIDPhiCalib = 0;
@@ -416,14 +416,14 @@ void ButtonWindow::StartModule()
       // - - - CB vs CB Energy - - -
     case 0:
       sprintf( szModule, "gCBECalib" );
-      sprintf( szCommand, "%s = new iCalibCBpi0Energy(%i)", szModule, runset );
+      sprintf( szCommand, "%s = new iCalibCBEnergy(%i)", szModule, runset );
       fMax = 720;
       gROOT->ProcessLine( szCommand );
       break;
       // - - - CB vs CB time - - -
     case 1:
       sprintf( szModule, "gCBTCalib" );
-      sprintf( szCommand, "%s = new iCalibCB2gTime(%i)", szModule, runset );
+      sprintf( szCommand, "%s = new iCalibCBTime(%i)", szModule, runset );
       fMax = 720;
       gROOT->ProcessLine( szCommand );
       break;
