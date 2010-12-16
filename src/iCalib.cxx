@@ -187,11 +187,10 @@ void iCalib::Write()
     // Write the obtained calibration values to the database.
     
     // write values to database
-    iMySQLManager r;
-    r.WriteParameters(fSet, fData, fNewVal, fNelem);
+    iMySQLManager::GetManager()->WriteParameters(fSet, fData, fNewVal, fNelem);
         
     // save overview picture
-    if (TString* path = iConfig::GetRC()->GetConfig("Log.Images"))
+    if (TString* path = iReadConfig::GetReader()->GetConfig("Log.Images"))
     {
         Char_t tmp[256];
         // create directory

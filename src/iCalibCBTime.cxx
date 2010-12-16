@@ -18,7 +18,7 @@ ClassImp(iCalibCBTime)
 
 //______________________________________________________________________________
 iCalibCBTime::iCalibCBTime()
-    : iCalib("CB.Time", "CB time calibration", ECALIB_CB_T0, iConfig::kMaxCB)
+    : iCalib("CB.Time", "CB time calibration", kCALIB_CB_T0, iConfig::kMaxCB)
 {
     // Empty constructor.
 
@@ -46,20 +46,19 @@ void iCalibCBTime::Init()
     fLine = new TLine();
 
     // get histogram name
-    if (!iConfig::GetRC()->GetConfig("CB.Time.Histo.Name"))
+    if (!iReadConfig::GetReader()->GetConfig("CB.Time.Histo.Name"))
     {
         Error("Init", "Histogram name was not found in configuration!");
         return;
     }
-    else fHistoName = *iConfig::GetRC()->GetConfig("CB.Time.Histo.Name");
+    else fHistoName = *iReadConfig::GetReader()->GetConfig("CB.Time.Histo.Name");
     
     // get time gain for CB TDCs
-    if (!iConfig::GetRC()->GetConfig("CB.Time.TDC.Gain")) fTimeGain = 0.11771;
-    else fTimeGain = iConfig::GetRC()->GetConfigDouble("CB.Time.TDC.Gain");
+    if (!iReadConfig::GetReader()->GetConfig("CB.Time.TDC.Gain")) fTimeGain = 0.11771;
+    else fTimeGain = iReadConfig::GetReader()->GetConfigDouble("CB.Time.TDC.Gain");
 
     // read old parameters
-    iMySQLManager r;
-    r.ReadParameters(fSet, fData, fOldVal, fNelem);
+    iMySQLManager::GetManager()->ReadParameters(fSet, fData, fOldVal, fNelem);
 
     // sum up all files contained in this runset
     iFileManager f(fSet, fData);
@@ -78,8 +77,8 @@ void iCalibCBTime::Init()
     fOverviewHisto->SetMarkerColor(4);
     
     // get parameters from configuration file
-    Double_t low = iConfig::GetRC()->GetConfigDouble("CB.Time.Overview.Y.Min");
-    Double_t upp = iConfig::GetRC()->GetConfigDouble("CB.Time.Overview.Y.Max");
+    Double_t low = iReadConfig::GetReader()->GetConfigDouble("CB.Time.Overview.Y.Min");
+    Double_t upp = iReadConfig::GetReader()->GetConfigDouble("CB.Time.Overview.Y.Max");
     
     // ajust overview histogram
     if (low || upp) fOverviewHisto->GetYaxis()->SetRangeUser(low, upp);

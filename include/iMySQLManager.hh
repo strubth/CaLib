@@ -22,52 +22,7 @@
 #include "TObjString.h"
 
 #include "iConfig.hh"
-
-
-// calibrationd data enumeration
-// NOTE: This enum has to be synchronized with fgCalibDataTableNames!
-enum ECalibData
-{
-    // empty element
-    ECALIB_NODATA = 0,
-
-    // tagger data
-    ECALIB_TAGG_T0,
-
-    // CB data
-    ECALIB_CB_T0,
-    ECALIB_CB_WALK0,
-    ECALIB_CB_WALK1,
-    ECALIB_CB_WALK2,
-    ECALIB_CB_WALK3,
-    ECALIB_CB_E1,
-    ECALIB_CB_EQUAD0,
-    ECALIB_CB_EQUAD1,
-    ECALIB_CB_PI0IM,
-
-    // TAPS data
-    ECALIB_TAPS_T0,
-    ECALIB_TAPS_T1,
-    ECALIB_TAPS_LG_E0,
-    ECALIB_TAPS_LG_E1,
-    ECALIB_TAPS_SG_E0,
-    ECALIB_TAPS_SG_E1,
-    ECALIB_TAPS_EQUAD0,
-    ECALIB_TAPS_EQUAD1,
-    ECALIB_TAPS_PI0IM,
-
-    // PID data
-    ECALIB_PID_T0,
-    ECALIB_PID_E0,
-    ECALIB_PID_E1,
-
-    // VETO data
-    ECALIB_VETO_T0,
-    ECALIB_VETO_T1,
-    ECALIB_VETO_E0,
-    ECALIB_VETO_E1,
-};
-typedef ECalibData CalibData_t;
+#include "iReadConfig.hh"
 
 
 class iMySQLManager
@@ -80,11 +35,8 @@ private:
     void CreateMainTable();
     void CreateDataTable(CalibData_t data, Int_t nElem);
     
-    static const Char_t* fgCalibDataTableNames[];
-    static const Char_t* fgCalibMainTableName;
-    static const Char_t* fgCalibMainTableFormat; 
-    static const Char_t* fgCalibDataTableHeader;
- 
+    static iMySQLManager* fgMySQLManager;
+
 public:
     iMySQLManager();
     virtual ~iMySQLManager();
@@ -104,6 +56,12 @@ public:
     void WriteParameters(Int_t set, CalibData_t data, Double_t* par, Int_t length);
 
     void InitDatabase();
+
+    static iMySQLManager* GetManager()
+    {
+        if (!fgMySQLManager) fgMySQLManager = new iMySQLManager();
+        return fgMySQLManager;
+    }
     
     ClassDef(iMySQLManager, 0)   // Communication with MySQL Server
 };

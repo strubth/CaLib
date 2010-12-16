@@ -16,6 +16,10 @@
 ClassImp(iReadConfig)
 
 
+// init static class members
+iReadConfig* iReadConfig::fgReadConfig = 0;
+
+
 //______________________________________________________________________________
 iReadConfig::iReadConfig()
 {

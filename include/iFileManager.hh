@@ -34,7 +34,7 @@ private:
 
 public:
     iFileManager() : fInputFilePatt(0), fFiles(0), 
-                     fSet(0), fCalibData(ECALIB_NODATA) { }
+                     fSet(0), fCalibData(kCALIB_NODATA) { }
     iFileManager(Int_t set, CalibData_t data);
     virtual ~iFileManager();
 

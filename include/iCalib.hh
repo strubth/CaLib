@@ -20,8 +20,10 @@
 #include "TF1.h"
 #include "TCanvas.h"
 #include "TTimer.h"
+#include "TSystem.h"
 
 #include "iMySQLManager.hh"
+#include "iReadConfig.hh"
 
 
 class iCalib : public TNamed
@@ -53,7 +55,7 @@ protected:
 
 public:
     iCalib() : TNamed(),
-               fData(ECALIB_NODATA), 
+               fData(kCALIB_NODATA), 
                fSet(0), fHistoName(), 
                fNelem(0), fCurrentElem(0),
                fOldVal(0), fNewVal(0),

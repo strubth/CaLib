@@ -48,6 +48,8 @@ private:
 
     void ReadConfigFile(const Char_t* cfgFile);
     iConfigElement* CreateConfigElement(TString line);
+    
+    static iReadConfig* fgReadConfig;
 
 public:
     iReadConfig();
@@ -57,6 +59,12 @@ public:
     TString* GetConfig(TString configKey);
     Int_t GetConfigInt(TString configKey);
     Double_t GetConfigDouble(TString configKey);
+    
+    static iReadConfig* GetReader() 
+    {
+        if (!fgReadConfig) fgReadConfig = new iReadConfig();
+        return fgReadConfig; 
+    }
 
     ClassDef(iReadConfig, 0)   // Configuration file reader
 };

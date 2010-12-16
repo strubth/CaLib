@@ -28,7 +28,7 @@ iFileManager::iFileManager(Int_t set, CalibData_t data)
     fFiles->SetOwner(kTRUE);
 
     // read input file pattern
-    if (TString* f = iConfig::GetRC()->GetConfig("File.Input.Rootfiles"))
+    if (TString* f = iReadConfig::GetReader()->GetConfig("File.Input.Rootfiles"))
     {
         fInputFilePatt = *f;
         
@@ -63,9 +63,8 @@ void iFileManager::BuildFileList()
     // Build the list of files belonging to the runset.
     
     // get the list of runs for this set
-    iMySQLManager r;
     Int_t nRun;
-    Int_t* runs = r.GetRunsOfSet(fCalibData, fSet, &nRun);
+    Int_t* runs = iMySQLManager::GetManager()->GetRunsOfSet(fCalibData, fSet, &nRun);
 
     // loop over runs
     for (Int_t i = 0; i < nRun; i++)

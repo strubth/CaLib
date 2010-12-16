@@ -16,80 +16,9 @@
 ClassImp(iMySQLManager)
 
 
-// data table names
-// NOTE: This has to be synchronized with the enum ECalibData
-const Char_t* iMySQLManager::fgCalibDataTableNames[] =
-{   
-    // empty element
-    "empty",
+// init static class members
+iMySQLManager* iMySQLManager::fgMySQLManager = 0;
 
-    // tagger data
-    "tagg_t0",
-
-    // CB data
-    "cb_t0",
-    "cb_walk0",
-    "cb_walk1",
-    "cb_walk2",
-    "cb_walk3",
-    "cb_e1",
-    "cb_equad0",
-    "cb_equad1",
-    "cb_pi0im",
-
-    // TAPS data
-    "taps_t0",
-    "taps_t1",
-    "taps_lg_e0",
-    "taps_lg_e1",
-    "taps_sg_e0",
-    "taps_sg_e1",
-    "taps_equad0",
-    "taps_equad1",
-    "taps_pi0im",
-
-    // PID data
-    "pid_t0",
-    "pid_e0",
-    "pid_e1",
-
-    // VETO data
-    "veto_t0",
-    "veto_t1",
-    "veto_e0",
-    "veto_e1"
-};
-
-// name of the main table
-const Char_t* iMySQLManager::fgCalibMainTableName = "run_main";
-
-// format of the main table
-const Char_t* iMySQLManager::fgCalibMainTableFormat = 
-                "run INT NOT NULL DEFAULT 0,"
-                "filename VARCHAR(256),"
-                "status VARCHAR(20),"
-                "target VARCHAR(20),"
-                "target_pol VARCHAR(20),"
-                "target_pol_deg DOUBLE,"
-                "beam_pol VARCHAR(20),"
-                "beam_pol_deg DOUBLE,"
-                "size INT,"
-                "event INT,"
-                "date DATETIME,"
-                "comment VARCHAR(256),"
-                "filled TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP"
-                "                 ON UPDATE CURRENT_TIMESTAMP,"
-                "PRIMARY KEY (`run`)";
-
-// header of the data tables
-const Char_t* iMySQLManager::fgCalibDataTableHeader =
-                "calibration VARCHAR(256),"
-                "description VARCHAR(1024),"
-                "filled TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP"
-                "                 ON UPDATE CURRENT_TIMESTAMP,"
-                "first_run INT,"
-                "last_run INT,";
- 
 
 //______________________________________________________________________________
 iMySQLManager::iMySQLManager()
@@ -105,35 +34,35 @@ iMySQLManager::iMySQLManager()
     TString* strDBPass;
 
     // get database hostname
-    if (!(strDBHost = iConfig::GetRC()->GetConfig("DB.Host")))
+    if (!(strDBHost = iReadConfig::GetReader()->GetConfig("DB.Host")))
     {
         Error("iMySQLManager", "Database host not included in configuration file!");
         return;
     }
 
     // get database name
-    if (!(strDBName = iConfig::GetRC()->GetConfig("DB.Name")))
+    if (!(strDBName = iReadConfig::GetReader()->GetConfig("DB.Name")))
     {
         Error("iMySQLManager", "Database name not included in configuration file!");
         return;
     }
 
     // get database user
-    if (!(strDBUser = iConfig::GetRC()->GetConfig("DB.User")))
+    if (!(strDBUser = iReadConfig::GetReader()->GetConfig("DB.User")))
     {
         Error("iMySQLManager", "Database user not included in configuration file!");
         return;
     }
     
     // get database password
-    if (!(strDBPass = iConfig::GetRC()->GetConfig("DB.Pass")))
+    if (!(strDBPass = iReadConfig::GetReader()->GetConfig("DB.Pass")))
     {
         Error("iMySQLManager", "Database password not included in configuration file!");
         return;
     }
 
     // get calibration
-    if (TString* calib = iConfig::GetRC()->GetConfig("DB.Calibration"))
+    if (TString* calib = iReadConfig::GetReader()->GetConfig("DB.Calibration"))
     {
         fCalibration = *calib;
     }
@@ -211,7 +140,7 @@ void iMySQLManager::SearchTable(CalibData_t data, Char_t* outTableName)
     // Search the table name of the calibration quantity 'data' and write it
     // to 'outTableName'.
 
-    strcpy(outTableName, fgCalibDataTableNames[(Int_t)data]);
+    strcpy(outTableName, iConfig::kCalibDataTableNames[(Int_t)data]);
 }
 
 //______________________________________________________________________________
@@ -258,7 +187,7 @@ Long64_t iMySQLManager::GetUnixTimeOfRun(Int_t run)
 
     // create the query
     sprintf(query,
-            "SELECT UNIX_TIMESTAMP(date) FROM %s WHERE run = %d", fgCalibMainTableName, run);
+            "SELECT UNIX_TIMESTAMP(date) FROM %s WHERE run = %d", iConfig::kCalibMainTableName, run);
 
     // read from database
     TSQLResult* res = SendQuery(query);
@@ -412,8 +341,8 @@ Int_t* iMySQLManager::GetRunsOfSet(CalibData_t data, Int_t set, Int_t* outNruns 
             "WHERE date >= ( SELECT date FROM %s WHERE run = %d) "
             "AND date <= ( SELECT date FROM %s WHERE run = %d) "
             "ORDER by run,date",
-            fgCalibMainTableName, fgCalibMainTableName, first_run, 
-            fgCalibMainTableName, last_run);
+            iConfig::kCalibMainTableName, iConfig::kCalibMainTableName, first_run, 
+            iConfig::kCalibMainTableName, last_run);
 
     // read from database
     res = SendQuery(query);
@@ -572,8 +501,8 @@ void iMySQLManager::InitDatabase()
     // Init a new CaLib database on a MySQL server.
     
     // get database configuration
-    TString strDBHost = *iConfig::GetRC()->GetConfig("DB.Host");
-    TString strDBName = *iConfig::GetRC()->GetConfig("DB.Name");
+    TString strDBHost = *iReadConfig::GetReader()->GetConfig("DB.Host");
+    TString strDBName = *iReadConfig::GetReader()->GetConfig("DB.Name");
     
     // ask for user confirmation
     Char_t answer[256];
@@ -592,40 +521,40 @@ void iMySQLManager::InitDatabase()
     CreateMainTable();
 
     // create TAGG tables
-    CreateDataTable(ECALIB_TAGG_T0, iConfig::kMaxTAGGER);
+    CreateDataTable(kCALIB_TAGG_T0, iConfig::kMaxTAGGER);
 
     // create CB tables
-    CreateDataTable(ECALIB_CB_T0, iConfig::kMaxCB);
-    CreateDataTable(ECALIB_CB_WALK0, iConfig::kMaxCB);
-    CreateDataTable(ECALIB_CB_WALK1, iConfig::kMaxCB);
-    CreateDataTable(ECALIB_CB_WALK2, iConfig::kMaxCB);
-    CreateDataTable(ECALIB_CB_WALK3, iConfig::kMaxCB);
-    CreateDataTable(ECALIB_CB_E1, iConfig::kMaxCB);
-    CreateDataTable(ECALIB_CB_EQUAD0, iConfig::kMaxCB);
-    CreateDataTable(ECALIB_CB_EQUAD1, iConfig::kMaxCB);
-    CreateDataTable(ECALIB_CB_PI0IM, iConfig::kMaxCB);
+    CreateDataTable(kCALIB_CB_T0, iConfig::kMaxCB);
+    CreateDataTable(kCALIB_CB_WALK0, iConfig::kMaxCB);
+    CreateDataTable(kCALIB_CB_WALK1, iConfig::kMaxCB);
+    CreateDataTable(kCALIB_CB_WALK2, iConfig::kMaxCB);
+    CreateDataTable(kCALIB_CB_WALK3, iConfig::kMaxCB);
+    CreateDataTable(kCALIB_CB_E1, iConfig::kMaxCB);
+    CreateDataTable(kCALIB_CB_EQUAD0, iConfig::kMaxCB);
+    CreateDataTable(kCALIB_CB_EQUAD1, iConfig::kMaxCB);
+    CreateDataTable(kCALIB_CB_PI0IM, iConfig::kMaxCB);
 
     // create TAPS tables
-    CreateDataTable(ECALIB_TAPS_T0, iConfig::kMaxTAPS);
-    CreateDataTable(ECALIB_TAPS_T1, iConfig::kMaxTAPS);
-    CreateDataTable(ECALIB_TAPS_LG_E0, iConfig::kMaxTAPS);
-    CreateDataTable(ECALIB_TAPS_LG_E1, iConfig::kMaxTAPS);
-    CreateDataTable(ECALIB_TAPS_SG_E0, iConfig::kMaxTAPS);
-    CreateDataTable(ECALIB_TAPS_SG_E1, iConfig::kMaxTAPS);
-    CreateDataTable(ECALIB_TAPS_EQUAD0, iConfig::kMaxTAPS);
-    CreateDataTable(ECALIB_TAPS_EQUAD1, iConfig::kMaxTAPS);
-    CreateDataTable(ECALIB_TAPS_PI0IM, iConfig::kMaxTAPS);
+    CreateDataTable(kCALIB_TAPS_T0, iConfig::kMaxTAPS);
+    CreateDataTable(kCALIB_TAPS_T1, iConfig::kMaxTAPS);
+    CreateDataTable(kCALIB_TAPS_LG_E0, iConfig::kMaxTAPS);
+    CreateDataTable(kCALIB_TAPS_LG_E1, iConfig::kMaxTAPS);
+    CreateDataTable(kCALIB_TAPS_SG_E0, iConfig::kMaxTAPS);
+    CreateDataTable(kCALIB_TAPS_SG_E1, iConfig::kMaxTAPS);
+    CreateDataTable(kCALIB_TAPS_EQUAD0, iConfig::kMaxTAPS);
+    CreateDataTable(kCALIB_TAPS_EQUAD1, iConfig::kMaxTAPS);
+    CreateDataTable(kCALIB_TAPS_PI0IM, iConfig::kMaxTAPS);
 
     // create PID tables
-    CreateDataTable(ECALIB_PID_T0, iConfig::kMaxPID);
-    CreateDataTable(ECALIB_PID_E0, iConfig::kMaxPID);
-    CreateDataTable(ECALIB_PID_E1, iConfig::kMaxPID);
+    CreateDataTable(kCALIB_PID_T0, iConfig::kMaxPID);
+    CreateDataTable(kCALIB_PID_E0, iConfig::kMaxPID);
+    CreateDataTable(kCALIB_PID_E1, iConfig::kMaxPID);
 
     // create VETO tables
-    CreateDataTable(ECALIB_VETO_T0, iConfig::kMaxVETO); 
-    CreateDataTable(ECALIB_VETO_T1, iConfig::kMaxVETO);
-    CreateDataTable(ECALIB_VETO_E0, iConfig::kMaxVETO);
-    CreateDataTable(ECALIB_VETO_E1, iConfig::kMaxVETO);
+    CreateDataTable(kCALIB_VETO_T0, iConfig::kMaxVETO); 
+    CreateDataTable(kCALIB_VETO_T1, iConfig::kMaxVETO);
+    CreateDataTable(kCALIB_VETO_E0, iConfig::kMaxVETO);
+    CreateDataTable(kCALIB_VETO_E1, iConfig::kMaxVETO);
 }
 
 //______________________________________________________________________________
@@ -637,12 +566,12 @@ void iMySQLManager::CreateMainTable()
     Info("CreateMainTable", "Creating main CaLib table");
 
     // delete the old table if it exists
-    TSQLResult* res = SendQuery(TString::Format("DROP TABLE IF EXISTS %s", fgCalibMainTableName).Data());
+    TSQLResult* res = SendQuery(TString::Format("DROP TABLE IF EXISTS %s", iConfig::kCalibMainTableName).Data());
     delete res;
 
     // create the table
     res = SendQuery(TString::Format("CREATE TABLE %s ( %s )", 
-                                     fgCalibMainTableName, fgCalibMainTableFormat).Data());
+                                     iConfig::kCalibMainTableName, iConfig::kCalibMainTableFormat).Data());
     delete res;
 }
 
@@ -664,7 +593,7 @@ void iMySQLManager::CreateDataTable(CalibData_t data, Int_t nElem)
 
     // prepare CREATE TABLE query
     TString query;
-    query.Append(TString::Format("CREATE TABLE %s ( %s ", table, fgCalibDataTableHeader));
+    query.Append(TString::Format("CREATE TABLE %s ( %s ", table, iConfig::kCalibDataTableHeader));
 
     // loop over elements
     for (Int_t j = 0; j < nElem; j++)
@@ -691,7 +620,7 @@ TList* iMySQLManager::GetAllTargets()
     Char_t query[256];
 
     // get all targets
-    sprintf(query, "SELECT DISTINCT target from %s", fgCalibMainTableName);
+    sprintf(query, "SELECT DISTINCT target from %s", iConfig::kCalibMainTableName);
     TSQLResult* res = SendQuery(query);
 
     // count rows

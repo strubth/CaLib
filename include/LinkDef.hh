@@ -32,21 +32,10 @@
 #pragma link C++ class iReadConfig+;
 #pragma link C++ class iMySQLManager+;
 #pragma link C++ class iCalib+;
-#pragma link C++ class iCrystalNavigator+;      // delete this
-#pragma link C++ class iFitHisto+;              // delete this
 
 // calibration classes
 #pragma link C++ class iCalibCBEnergy+;
 #pragma link C++ class iCalibCBTime+;
-
-#pragma link C++ class iCalibPIDphi+;
-#pragma link C++ class iCalibPIDenergy+;
-#pragma link C++ class iCalibTaggerTime+;
-#pragma link C++ class iCalibCBTimeWalk+;
-#pragma link C++ class iCalibTAPS1gEnergy+;
-#pragma link C++ class iCalibTAPS2gTime+;
-#pragma link C++ class iCalibTAPSTaggerTime+;
-#pragma link C++ class iCalibTAGGERvsTAPSTime+;
 
 #endif
 

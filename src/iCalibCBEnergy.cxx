@@ -18,7 +18,7 @@ ClassImp(iCalibCBEnergy)
 
 //______________________________________________________________________________
 iCalibCBEnergy::iCalibCBEnergy()
-    : iCalib("CB.Energy", "CB energy calibration", ECALIB_CB_E1, iConfig::kMaxCB)
+    : iCalib("CB.Energy", "CB energy calibration", kCALIB_CB_E1, iConfig::kMaxCB)
 {
     // Empty constructor.
     
@@ -50,17 +50,16 @@ void iCalibCBEnergy::Init()
     fLine = new TLine();
 
     // get histogram name
-    if (!iConfig::GetRC()->GetConfig("CB.Energy.Histo.Name"))
+    if (!iReadConfig::GetReader()->GetConfig("CB.Energy.Histo.Name"))
     {
         Error("Init", "Histogram name was not found in configuration!");
         return;
     }
-    else fHistoName = *iConfig::GetRC()->GetConfig("CB.Energy.Histo.Name");
+    else fHistoName = *iReadConfig::GetReader()->GetConfig("CB.Energy.Histo.Name");
     
     // read old parameters
-    iMySQLManager r;
-    r.ReadParameters(fSet, fData, fOldVal, fNelem);
-    //m.ReadParameters(fSet, ECALIB_CB_PI0IM, fPi0IMOld, fNelem);
+    iMySQLManager::GetManager()->ReadParameters(fSet, fData, fOldVal, fNelem);
+    //iMySQLManager::GetManager()->ReadParameters(fSet, ECALIB_CB_PI0IM, fPi0IMOld, fNelem);
 
     // sum up all files contained in this runset
     iFileManager f(fSet, fData);
@@ -79,8 +78,8 @@ void iCalibCBEnergy::Init()
     fOverviewHisto->SetMarkerColor(4);
     
     // get parameters from configuration file
-    Double_t low = iConfig::GetRC()->GetConfigDouble("CB.Energy.Overview.Y.Min");
-    Double_t upp = iConfig::GetRC()->GetConfigDouble("CB.Energy.Overview.Y.Max");
+    Double_t low = iReadConfig::GetReader()->GetConfigDouble("CB.Energy.Overview.Y.Min");
+    Double_t upp = iReadConfig::GetReader()->GetConfigDouble("CB.Energy.Overview.Y.Max");
     
     // ajust overview histogram
     if (low || upp) fOverviewHisto->GetYaxis()->SetRangeUser(low, upp);
@@ -127,8 +126,10 @@ void iCalibCBEnergy::Fit(Int_t elem)
         // configure fitting function
         fFitFunc->SetRange(fPi0IMNew[elem] - 70, fPi0IMNew[elem] + 50);
         fFitFunc->SetLineColor(2);
-        fFitFunc->SetParameters(bgPar0, bgPar1, fFitHisto->GetMaximum(), fPi0IMNew[elem], 9.);
-        fFitFunc->SetParLimits(4, 5., 150); // sigma
+        fFitFunc->SetParameters( 3.8e+2, -1.90, 150, fPi0IMNew[elem], 8.9);
+        fFitFunc->SetParLimits(4, 3, 20);  
+        //fFitFunc->SetParameters(bgPar0, bgPar1, fFitHisto->GetMaximum(), fPi0IMNew[elem], 9.);
+        fFitFunc->SetParLimits(4, 1., 200); //5,150 sigma
         fFitHisto->Fit(fFitFunc, "+R0Q");
 
         // final results

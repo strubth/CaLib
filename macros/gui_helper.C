@@ -49,7 +49,7 @@ ButtonWindow::ButtonWindow()
 {
   // Main test window.
   fMainFrame = new TGMainFrame(gClient->GetRoot(), 600, 500);
-  fMainFrame->SetWindowName("Control Panel");
+  fMainFrame->SetWindowName("CaLib Control Panel");
   // fMainFrame->SetLayoutBroken(kTRUE);
   
   TGButtonGroup *horizontal = new TGButtonGroup(fMainFrame, "Run Set Window", kHorizontalFrame);
@@ -238,7 +238,7 @@ void ButtonWindow::DoAll()
     Float_t delay = fNE_Delay->GetNumber();
     
     if (gCurrentModule)
-        gCurrentModule->ProcessAll(delay);
+        gCurrentModule->ProcessAll(1000*delay);
 }
 
 //______________________________________________________________________________
@@ -261,16 +261,15 @@ void ButtonWindow::ReadRunsets(Int_t i)
     CalibData_t data = c->GetCalibData();
     
     // get the number of runsets
-    iMySQLManager m;
-    Int_t nsets = m.GetNsets(data);
+    Int_t nsets = iMySQLManager::GetManager()->GetNsets(data);
     
     // fill the runsets into the list
     fLB_RunSet->RemoveAll();
     for (Int_t i = 0; i < nsets; i++)
     {
         // get the first and last runs
-        Int_t first_run = m.GetFirstRunOfSet(data, i);
-        Int_t last_run = m.GetLastRunOfSet(data, i);
+        Int_t first_run = iMySQLManager::GetManager()->GetFirstRunOfSet(data, i);
+        Int_t last_run = iMySQLManager::GetManager()->GetLastRunOfSet(data, i);
     
         // add list entry
         Char_t tmp[256];
