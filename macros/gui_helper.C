@@ -60,12 +60,10 @@ ButtonWindow::ButtonWindow()
   horizontal->AddFrame(fCBox_Module, new TGLayoutHints(kLHintsExpandX));
     
   // fill modules
-  TIter next(gCaLibModules);
-  iCalib* cmod;
-  Int_t pos = 0;
-  while((cmod = (iCalib*)next()))
+  for (Int_t i = 0; i < gCaLibModules->GetSize(); i++)
   {
-    fCBox_Module->AddEntry(cmod->GetTitle(), pos++);
+    iCalib* cmod = (iCalib*) gCaLibModules->At(i);
+    fCBox_Module->AddEntry(cmod->GetTitle(), i);
   }
 
   fCBox_Module->Connect("Selected(Int_t)", "ButtonWindow", this, "ReadRunsets(Int_t)");
@@ -322,18 +320,10 @@ void CreateModuleList()
         {
             // skip non-module classes
             if (c == "iCalib") continue;
-            if (c == "iCalibCBTimeWalk") continue;
-            if (c == "iCalibPIDenergy") continue;
-            if (c == "iCalibPIDphi") continue;
-            if (c == "iCalibTAGGERvsTAPSTime") continue;
-            if (c == "iCalibTAPS1gEnergy") continue;
-            if (c == "iCalibTAPS2gTime") continue;
-            if (c == "iCalibTAPSTaggerTime") continue;
-            if (c == "iCalibTaggerTime") continue;
 
-            // add module to list
+            // add module to list if it is really a module
             TClass tc(c.Data());
-            gCaLibModules->Add((iCalib*) tc.New());
+            if (tc.InheritsFrom("iCalib")) gCaLibModules->Add((iCalib*) tc.New());
         }
     }
 }
