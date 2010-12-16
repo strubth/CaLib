@@ -17,17 +17,29 @@ ClassImp(iCalib)
 
 
 //______________________________________________________________________________
-iCalib::iCalib(const Char_t* name, const Char_t* title, 
-               CalibData_t data, Int_t set, Int_t nElem)
-    : TNamed(name, title)
+iCalib::~iCalib()
 {
-    // Constructor.
+    // Destructor.
+    
+    if (fOldVal) delete [] fOldVal;
+    if (fNewVal) delete [] fNewVal;
+    if (fMainHisto) delete fMainHisto;
+    if (fFitHisto) delete fFitHisto;
+    if (fFitFunc) delete fFitFunc;
+    if (fOverviewHisto) delete fOverviewHisto;
+    if (fCanvasFit) delete fCanvasFit;
+    if (fCanvasResult) delete fCanvasResult;
+    if (fTimer) delete fTimer;
+}
 
+//______________________________________________________________________________
+void iCalib::Start(Int_t set)
+{
+    // Start the calibration module for the set 'set'.
+    
     // init members
-    fData = data;
     fSet = set;
     fHistoName = "";
-    fNelem = nElem;
     fCurrentElem = 0;
 
     fMainHisto = 0;
@@ -51,51 +63,20 @@ iCalib::iCalib(const Char_t* name, const Char_t* title,
         fOldVal[i] = 0;
         fNewVal[i] = 0;
     }
-}
-
-//______________________________________________________________________________
-iCalib::~iCalib()
-{
-    // Destructor.
     
-    if (fOldVal) delete [] fOldVal;
-    if (fNewVal) delete [] fNewVal;
-    if (fMainHisto) delete fMainHisto;
-    if (fFitHisto) delete fFitHisto;
-    if (fFitFunc) delete fFitFunc;
-    if (fOverviewHisto) delete fOverviewHisto;
-    if (fCanvasFit) delete fCanvasFit;
-    if (fCanvasResult) delete fCanvasResult;
-    if (fTimer) delete fTimer;
-}
+    // user information
+    Info("Start", "Starting calibration module %s", GetName());
+    Info("Start", "Module description: %s", GetTitle());
 
-//______________________________________________________________________________
-void iCalib::InitGUI()
-{
-    // Init the basic GUI of a calibration module.
-    
     // draw the fitting canvas
     fCanvasFit = new TCanvas("Fitting", "Fitting", 0, 0, 400, 800);
     fCanvasFit->Divide(1, 2, 0.001, 0.001);
 
     // draw the result canvas
     fCanvasResult = new TCanvas("Result", "Result", 630, 0, 900, 400);
-
-    // call the sub-class GUI customization method
-    CustomizeGUI();
-}
-
-//______________________________________________________________________________
-void iCalib::Start()
-{
-    // Start the calibration module.
     
-    // user information
-    Info("Start", "Starting calibration module %s", GetName());
-    Info("Start", "Module description: %s", GetTitle());
-
-    // init the GUI
-    InitGUI();
+    // init sub-class
+    Init();
 
     // start with the first element
     ProcessElement(0);
@@ -206,8 +187,8 @@ void iCalib::Write()
     // Write the obtained calibration values to the database.
     
     // write values to database
-    iMySQLManager m;
-    m.WriteParameters(fSet, fData, fNewVal, fNelem);
+    iMySQLManager r;
+    r.WriteParameters(fSet, fData, fNewVal, fNelem);
         
     // save overview picture
     if (TString* path = iConfig::GetRC()->GetConfig("Log.Images"))

@@ -17,11 +17,29 @@ ClassImp(iCalibCBTime)
 
 
 //______________________________________________________________________________
-iCalibCBTime::iCalibCBTime(Int_t set)
-    : iCalib("CB.Time", "CB time calibration", 
-             ECALIB_CB_T0, set, iConfig::kMaxCB)
+iCalibCBTime::iCalibCBTime()
+    : iCalib("CB.Time", "CB time calibration", ECALIB_CB_T0, iConfig::kMaxCB)
 {
-    // Constructor.
+    // Empty constructor.
+
+    // init members
+    fTimeGain = 0;
+    fMean = 0;
+    fLine = 0;
+}
+
+//______________________________________________________________________________
+iCalibCBTime::~iCalibCBTime()
+{
+    // Destructor. 
+    
+    if (fLine) delete fLine;
+}
+
+//______________________________________________________________________________
+void iCalibCBTime::Init()
+{
+    // Init the module.
     
     // init members
     fMean = 0;
@@ -30,7 +48,7 @@ iCalibCBTime::iCalibCBTime(Int_t set)
     // get histogram name
     if (!iConfig::GetRC()->GetConfig("CB.Time.Histo.Name"))
     {
-        Error("iCalibCBTime", "Histogram name was not found in configuration!");
+        Error("Init", "Histogram name was not found in configuration!");
         return;
     }
     else fHistoName = *iConfig::GetRC()->GetConfig("CB.Time.Histo.Name");
@@ -40,8 +58,8 @@ iCalibCBTime::iCalibCBTime(Int_t set)
     else fTimeGain = iConfig::GetRC()->GetConfigDouble("CB.Time.TDC.Gain");
 
     // read old parameters
-    iMySQLManager m;
-    m.ReadParameters(fSet, fData, fOldVal, fNelem);
+    iMySQLManager r;
+    r.ReadParameters(fSet, fData, fOldVal, fNelem);
 
     // sum up all files contained in this runset
     iFileManager f(fSet, fData);
@@ -50,8 +68,8 @@ iCalibCBTime::iCalibCBTime(Int_t set)
     fMainHisto = f.GetHistogram(fHistoName.Data());
     if (!fMainHisto)
     {
-        Error("iCalibCBTime", "Main histogram does not exist!\n");
-        gSystem->Exit(0);
+        Error("Init", "Main histogram does not exist!\n");
+        return;
     }
     
     // create the overview histogram
@@ -65,20 +83,6 @@ iCalibCBTime::iCalibCBTime(Int_t set)
     
     // ajust overview histogram
     if (low || upp) fOverviewHisto->GetYaxis()->SetRangeUser(low, upp);
-}
-
-//______________________________________________________________________________
-iCalibCBTime::~iCalibCBTime()
-{
-    // Destructor. 
-    
-    if (fLine) delete fLine;
-}
-
-//______________________________________________________________________________
-void iCalibCBTime::CustomizeGUI()
-{
-    // Customize the GUI of this calibration module.
 
     // draw main histogram
     fCanvasFit->cd(1)->SetLogz();

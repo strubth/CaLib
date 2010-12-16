@@ -19,8 +19,6 @@
 #include "TLine.h"
 
 #include "iCalib.hh"
-#include "iConfig.hh"
-#include "iMySQLManager.hh"
 #include "iFileManager.hh"
 
 
@@ -32,14 +30,12 @@ private:
     Double_t fMean;                     // mean time position
     TLine* fLine;                       // indicator line
     
-    virtual void CustomizeGUI();
+    virtual void Init();
     virtual void Fit(Int_t elem);
     virtual void Calculate(Int_t elem);
 
 public:
-    iCalibCBTime() : iCalib(), 
-                     fTimeGain(0), fMean(0), fLine(0) { }
-    iCalibCBTime(Int_t set);
+    iCalibCBTime();
     virtual ~iCalibCBTime();
 
     ClassDef(iCalibCBTime, 0)   // CB time calibration

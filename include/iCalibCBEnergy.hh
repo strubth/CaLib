@@ -20,8 +20,6 @@
 
 #include "iCalib.hh"
 #include "iUtils.hh"
-#include "iConfig.hh"
-#include "iMySQLManager.hh"
 #include "iFileManager.hh"
 
 
@@ -33,14 +31,12 @@ private:
     Double_t* fPi0IMNew;                // old pi0 invariant mass values
     TLine* fLine;                       // indicator line
     
-    virtual void CustomizeGUI();
+    virtual void Init();
     virtual void Fit(Int_t elem);
     virtual void Calculate(Int_t elem);
 
 public:
-    iCalibCBEnergy() : iCalib(), 
-                       fPi0IMOld(0), fPi0IMNew(0), fLine(0) { }
-    iCalibCBEnergy(Int_t set);
+    iCalibCBEnergy();
     virtual ~iCalibCBEnergy();
 
     ClassDef(iCalibCBEnergy, 0)   // CB energy calibration

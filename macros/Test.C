@@ -1,7 +1,7 @@
 void Test()
 {
     // load CaLib   
-    gSystem->Load("libCaLib.so");
+    //gSystem->Load("libCaLib.so");
     
     /*
     // connect to database
@@ -23,7 +23,14 @@ void Test()
     }
     */
     
-    iReadConfig r;
-    cout << r.GetConfig("DB.Host") << endl;
+    //iReadConfig r;
+    //cout << r.GetConfig("DB.Host") << endl;
+
+    gClassTable->Init();
+    Int_t nClasses = gClassTable->Classes();
+    for (Int_t i = 0; i < nClasses; i++)
+    {
+        printf("%s\n", gClassTable->At(i));
+    }
 }
 

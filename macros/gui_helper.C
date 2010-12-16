@@ -1,44 +1,26 @@
+/*************************************************************************
+ * Author: Irakli Keshelashvili, Dominik Werthmueller
+ *************************************************************************/
 
-/*******************************************************************
- *                                                                 *
- * Date: 20.01.2009    Author: Irakli                              *
- *                                                                 *
- *                                                                 *
- *                                                                 *
- ******************************************************************/
-
-// List of calibration modules
-//
-iCalibCBEnergy       *gCBECalib    = 0;
-iCalibCBTime       *gCBTCalib    = 0;
-iCalibCBTimeWalk     *gCBTWalk     = 0;
-
-iCalibPIDphi         *gPIDPhiCalib = 0;
-
-iCalibTAPS1gEnergy   *gTAPSECalib  = 0;
-iCalibTAPS2gTime     *g2TAPSCalib  = 0;
-
-iCalibTaggerTime     *gTaggerCalib = 0;
-
-iCalibTAPSTaggerTime *gTAPSTCalib  = 0;
-
-iCalibTAGGERvsTAPSTime *gTAGGCalib   = 0;
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
+// gui_helper                                                           //
+//                                                                      //
+// Simple GUI for performing calibrations using CaLib.                  //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
 
 
-#include <TGButton.h>
-#include <TGButtonGroup.h>
-#include <TGLabel.h>
-#include <TGNumberEntry.h>
-#include <TG3DLine.h>
-#include <TApplication.h>
+// global variables
+TList* gCaLibModules;
+iCalib* gCurrentModule;
 
-////////////////////////////////////////////////////////////////////////////////
-class ButtonWindow : public TGMainFrame {
+
+class ButtonWindow : public TGMainFrame 
+{
+
 private:
   TGMainFrame *fMainFrame; 
-
-protected:
-
   TGTextButton *fTB_Init;
   TGTextButton *fTB_Prev;
   TGTextButton *fTB_Next;
@@ -46,60 +28,45 @@ protected:
   TGTextButton *fTB_Goto;
   TGTextButton *fTB_DoAll;
   TGTextButton *fTB_Quit;
-
   TGComboBox* fCBox_Module;
   TGListBox *fLB_RunSet;
-
   TGNumberEntry *fNE_Elem;
   TGNumberEntry *fNE_Delay;
-
-  Int_t fMax;
 
 public:
   ButtonWindow();
 
-  void CheckModules();
   void Goto();
   void DoNext();
   void DoPrev();
   void DoAll();
   void DoModulSelection(Int_t);
-  void SetEnabled(Bool_t);
-   
-  Char_t szModule[64];
-  Char_t TextBox[2000];
-
-  ClassDef(ButtonWindow, 0)
-    };
+};
 
 
-//------------------------------------------------------------
+//______________________________________________________________________________
 ButtonWindow::ButtonWindow() 
 {
-  this->CheckModules();
-
   // Main test window.
   fMainFrame = new TGMainFrame(gClient->GetRoot(), 600, 500);
   fMainFrame->SetWindowName("Control Panel");
   // fMainFrame->SetLayoutBroken(kTRUE);
   
-  // ---------------------------------------------------------------------------------
   TGButtonGroup *horizontal = new TGButtonGroup(fMainFrame, "Run Set Window", kHorizontalFrame);
   horizontal->SetTitlePos(TGGroupFrame::kLeft);
 
   fCBox_Module = new TGComboBox(horizontal, "Choose calibration module");
   fCBox_Module->Resize(100, 30);
   horizontal->AddFrame(fCBox_Module, new TGLayoutHints(kLHintsExpandX));
-
-  fCBox_Module->AddEntry("CB Energy Calibration",            0);
-  fCBox_Module->AddEntry("CB Vs CB Time Calibration",        1);
-  fCBox_Module->AddEntry("CB Time Walk Calibration",         2);
-  fCBox_Module->AddEntry("PID Vs CB Phi Calibration",        3);
-  fCBox_Module->AddEntry("TAPS Vs Tagger Time Calibration",  4);
-  fCBox_Module->AddEntry("TAPS Vs TAPS Time Calibration",    5);
-  fCBox_Module->AddEntry("Tagger Time Calibration",          6);
-  fCBox_Module->AddEntry("TAPS Vs CB Energy Calibration",    7);
-  fCBox_Module->AddEntry("TAGGER Vs TAPS Time Calibration",  8);
+    
+  // fill modules
+  TIter next(gCaLibModules);
+  iCalib* cmod;
+  Int_t pos = 0;
+  while((cmod = (iCalib*)next()))
+  {
+    fCBox_Module->AddEntry(cmod->GetTitle(), pos++);
+  }
 
   fCBox_Module->Connect("Selected(Int_t)", "ButtonWindow", this, "ReadRunsets(Int_t)");
   
@@ -178,15 +145,10 @@ ButtonWindow::ButtonWindow()
   fTB_Stop->SetToolTipText("Stop processing", 200);
   fTB_Stop->Connect("Pressed()", "ButtonWindow", this, "Stop()");
 
-  TGCheckButton *disable = new TGCheckButton(horizontal_3, "Switch state\nEnable/Disable");
-  disable->SetOn();
-  disable->Connect("Toggled(Bool_t)", "ButtonWindow", this, "SetEnabled(Bool_t)");
-  horizontal_3->AddFrame(disable, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY));
-
   fMainFrame->AddFrame(horizontal_3, new TGLayoutHints(kLHintsExpandX, 5,5,5,5));
 
   // ---------------------------------------------------------------------------------
-  TGButtonGroup *horizontal_4 = new TGButtonGroup(fMainFrame, "Horizontal Position", kHorizontalFrame);
+  TGButtonGroup *horizontal_4 = new TGButtonGroup(fMainFrame, "Calibration control", kHorizontalFrame);
   horizontal_4->SetTitlePos(TGGroupFrame::kLeft);
   
   fTB_Write = new TGTextButton(horizontal_4, "Write");
@@ -199,7 +161,6 @@ ButtonWindow::ButtonWindow()
   fTB_Print->ChangeOptions(fTB_Print->GetOptions() | kFixedSize);
   fTB_Print->Connect("Pressed()", "ButtonWindow", this, "Print()");
 
-  // 
   fTB_Quit = new TGTextButton(horizontal_4, "Quit");
   fTB_Quit->Resize(80,50);
   fTB_Quit->ChangeOptions(fTB_Quit->GetOptions() | kFixedSize );
@@ -207,36 +168,6 @@ ButtonWindow::ButtonWindow()
 
   fMainFrame->AddFrame(horizontal_4, new TGLayoutHints(kLHintsExpandX, 5,5,5,5));
 
-  // ------------------------Text Edit for calibration file---------------------------------------------------------
-  TGButtonGroup *horizontal_5 = new TGButtonGroup(fMainFrame, "Set the file Name", kHorizontalFrame);
-  horizontal_5->SetTitlePos(TGGroupFrame::kLeft);
-
-  TGFont *ufont;         // will reflect user font changes
-  ufont = gClient->GetFont("-*-helvetica-medium-r-*-*-12-*-*-*-*-*-iso8859-1");
-
-  TGGC   *uGC;           // will reflect user GC changes
-  // graphics context changes
-  GCValues_t valEntry1270;
-  valEntry1270.fMask = kGCForeground | kGCBackground | kGCFillStyle | kGCFont | kGCGraphicsExposures;
-  gClient->GetColorByName("#000000",valEntry1270.fForeground);
-  gClient->GetColorByName("#c0c0c0",valEntry1270.fBackground);
-  valEntry1270.fFillStyle = kFillSolid;
-  valEntry1270.fFont = ufont->GetFontHandle();
-  valEntry1270.fGraphicsExposures = kFALSE;
-  uGC = gClient->GetGC(&valEntry1270, kTRUE);
-  TGTextEntry *fTextEntry1270 = new TGTextEntry( horizontal_5, new TGTextBuffer(15),-1,uGC->GetGC(),ufont->GetFontStruct(),
-						 kSunkenFrame | kDoubleBorder | kOwnBackground);
-  fTextEntry1270->SetMaxLength(255);
-  fTextEntry1270->SetAlignment(kTextLeft);
-  fTextEntry1270->SetText("FilePath of root file");
-  fTextEntry1270->Resize(288,fTextEntry1270->GetDefaultHeight());
-  horizontal_5->AddFrame(fTextEntry1270, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-  fTextEntry1270->MoveResize(80,48,288,22);   
-  sprintf(TextBox, fTextEntry1270->GetText() ); 
-
-  fMainFrame->AddFrame(horizontal_5, new TGLayoutHints(kLHintsExpandX, 5,5,5,5));
- 
-  //===============================
   fMainFrame->Connect("CloseWindow()", "TApplication", gApplication, "Terminate()");
   fMainFrame->DontCallClose();
 
@@ -246,138 +177,89 @@ ButtonWindow::ButtonWindow()
   // Initialize the layout algorithm
   fMainFrame->Resize(fMainFrame->GetDefaultSize());
 
-  fMainFrame->SetWMSizeHints( 600, 500, 800, 700, 0 ,0);
+  fMainFrame->SetWMSizeHints( 600, 400, 800, 700, 0 ,0);
   fMainFrame->MapRaised();
-  fMainFrame->Move(500, 500);
+  fMainFrame->Move(500, 300);
 }
 
-//------------------------------------------------------------
-void ButtonWindow::CheckModules()
-{
-  if( gCBECalib )
-    sprintf(szModule, "gCBECalib");
-  if( g2TAPSCalib )
-    sprintf(szModule, "g2TAPSCalib");
-  if( gTaggerCalib )
-    sprintf(szModule, "gTaggerCalib");
-}
-
-//------------------------------------------------------------
+//______________________________________________________________________________
 void ButtonWindow::Goto()
 {
-  int n = fNE_Elem->GetNumber();
-  Int_t runset = (Int_t) fNE_Elem->GetNumber();
+    // Go to a certain element in the current module.
+
+    // get the element number
+    Int_t n = fNE_Elem->GetNumber();
   
-  Char_t szCommand[64];
-  sprintf( szCommand, "%s->ProcessElement(%i)", szModule, n);
-  gROOT->ProcessLine( szCommand );
+    if (gCurrentModule)
+        gCurrentModule->ProcessElement(n);
 }
 
-//------------------------------------------------------------
+//______________________________________________________________________________
 void ButtonWindow::DoPrev()
 {
-  // 
-  Char_t szCommand[64];
-  sprintf( szCommand, "%s->Previous()", szModule );
-  gROOT->ProcessLine( szCommand );
+    // Go to the previous element in the current module.
+    
+    if (gCurrentModule)
+        gCurrentModule->Previous();
 }
 
-//------------------------------------------------------------
+//______________________________________________________________________________
 void ButtonWindow::DoNext()
 {
-  // 
-  Char_t szCommand[64];
-  sprintf( szCommand,
-	   "%s->Next()", 
-	   szModule);
-  gROOT->ProcessLine( szCommand );
+    // Go to the next element in the current module.
+    
+    if (gCurrentModule)
+        gCurrentModule->Next();
 }
 
-//------------------------------------------------------------
+//______________________________________________________________________________
 void ButtonWindow::DoWrite()
 {
-  // 
-  Char_t szCommand[64];
-  sprintf( szCommand, "%s->Write()", szModule );
-  gROOT->ProcessLine( szCommand );
-  // printf("\n COMMENTED!!!!! \n");
+    // Write the values of the current module to the database.
+
+    if (gCurrentModule)
+        gCurrentModule->Write();
 }
 
-//------------------------------------------------------------
+//______________________________________________________________________________
 void ButtonWindow::Print()
 {
-  Char_t szCommand[64];
-  sprintf( szCommand, "%s->PrintValues()", szModule );
-  gROOT->ProcessLine( szCommand );
- }
+    // Print the values obtained by the current module.
+    
+    if (gCurrentModule)
+        gCurrentModule->PrintValues();
+}
 
-//------------------------------------------------------------
+//______________________________________________________________________________
 void ButtonWindow::DoAll()
 {
-  Float_t n = fNE_Delay->GetNumber();
-  
-  Char_t szCommand[64];
-  sprintf(szCommand, "%s->ProcessAll(%d)", szModule, (Int_t)n*1000);
-  gROOT->ProcessLine( szCommand );
+    // Process all elements automatically.
+
+    Float_t delay = fNE_Delay->GetNumber();
+    
+    if (gCurrentModule)
+        gCurrentModule->ProcessAll(delay);
 }
 
-//------------------------------------------------------------
+//______________________________________________________________________________
 void ButtonWindow::Stop()
 {
-  Char_t szCommand[64];
-  sprintf(szCommand, "%s->StopProcessing()", szModule); // 
-  gROOT->ProcessLine( szCommand );
+    // Stop automatic processing of the current module.
+
+    if (gCurrentModule)
+        gCurrentModule->StopProcessing();
 }
 
-//------------------------------------------------------------
+//______________________________________________________________________________
 void ButtonWindow::ReadRunsets(Int_t i)
 {
-  CalibData_t data;
-
-  // get the table used in a calibration module
-  switch(i)
-    {
-      // - - - CB vs CB Energy - - -
-    case 0:
-      data = ECALIB_CB_E1;
-      break;
-      // - - - CB vs CB time - - -
-    case 1:
-      data = ECALIB_CB_T0;
-      break;
-      // - - - CB TWalk - - -
-    case 2:
-      data = ECALIB_CB_WALK0;
-      break;
-      // - - - PID - - -
-    case 3:
-      data = ECALIB_PID_E1;
-      break;
-      // - - - TAPS vs TAGGER time - - -
-    case 4:
-      data = ECALIB_TAPS_T0;
-      break;
-      // - - - TAPS vs TAPS time - - -
-    case 5:
-      data = ECALIB_TAPS_T0;
-      break;
-      // - - - TAGGER time - - -
-    case 6:
-      data = ECALIB_TAGG_T0;
-      break;
-      // - - - TAPS vs CB Energy - - -
-    case 7:
-      data = ECALIB_TAPS_LG_E1;
-      break;
-      // - - - TAGGER vs TAPS Time - - -
-    case 8:
-      data = ECALIB_TAPS_T0;
-      break;
-      // - - - D E F A U L T - - -
-    default:
-      printf("No module is selected!!!\n");
-    }
-
+    // Read the runsets for the calibration data of the 'i'-th module
+    // in the module selection combo box
+    
+    // get the calibration data of the module
+    iCalib* c = (iCalib*) gCaLibModules->At(i);
+    CalibData_t data = c->GetCalibData();
+    
     // get the number of runsets
     iMySQLManager m;
     Int_t nsets = m.GetNsets(data);
@@ -395,122 +277,81 @@ void ButtonWindow::ReadRunsets(Int_t i)
         sprintf(tmp, "Set %d (Run %d to %d)", i, first_run, last_run);
         fLB_RunSet->AddEntry(tmp, i);
     }
-
+    
+    // update list box
     fLB_RunSet->Layout();
 }
 
-//------------------------------------------------------------
+//______________________________________________________________________________
 void ButtonWindow::StartModule()
 {
-  Char_t szCommand[128];
+    // Start the selected module.
 
+    // get the selected module
+    Int_t module = fCBox_Module->GetSelected();
 
-  // get the selected module
-  Int_t module = fCBox_Module->GetSelected();
+    // get the selected runset
+    Int_t runset = fLB_RunSet->GetSelected();
 
-  // get the selected runset
-  Int_t runset = fLB_RunSet->GetSelected();
-
-  switch(module)
-    {
-      // - - - CB vs CB Energy - - -
-    case 0:
-      sprintf( szModule, "gCBECalib" );
-      sprintf( szCommand, "%s = new iCalibCBEnergy(%i)", szModule, runset );
-      fMax = 720;
-      gROOT->ProcessLine( szCommand );
-      break;
-      // - - - CB vs CB time - - -
-    case 1:
-      sprintf( szModule, "gCBTCalib" );
-      sprintf( szCommand, "%s = new iCalibCBTime(%i)", szModule, runset );
-      fMax = 720;
-      gROOT->ProcessLine( szCommand );
-      break;
-      // - - - CB TWalk - - -
-    case 2:
-      sprintf( szModule, "gCBTWalk" );
-      sprintf( szCommand, "%s = new iCalibCBTimeWalk(%i)", szModule, runset );
-      fMax = 720;
-      gROOT->ProcessLine( szCommand );
-      break;
-      // - - - PID - - -
-    case 3:
-      sprintf( szModule, "gPIDPhiCalib" );
-      sprintf( szCommand, "%s = new iCalibPIDphi(%i)", szModule, runset );
-      fMax = 24;
-      gROOT->ProcessLine( szCommand );
-      break;
-      // - - - TAPS vs TAGGER time - - -
-    case 4:
-      sprintf( szModule, "gTAPSTCalib" );
-      sprintf( szCommand, "%s = new iCalibTAPSTaggerTime()", szModule );
-      fMax = 438;
-      gROOT->ProcessLine( szCommand );
-      break;
-      // - - - TAPS vs TAPS time - - -
-    case 5:
-      sprintf( szModule, "g2TAPSCalib" );
-      sprintf( szCommand, "%s = new iCalibTAPS2gTime(%i)", szModule, runset );
-      fMax = 438;
-      gROOT->ProcessLine( szCommand );
-      break;
-      // - - - TAGGER time - - -
-    case 6:
-      sprintf( szModule, "gTaggerCalib" );
-      sprintf( szCommand, "%s = new iCalibTaggerTime(%i)", szModule , runset);
-      fMax = 352;
-      gROOT->ProcessLine( szCommand );
-      break;
-      // - - - TAPS vs CB Energy - - -
-    case 7:
-      sprintf( szModule, "gTAPSECalib" );
-      sprintf( szCommand, "%s = new iCalibTAPS1gEnergy(%i)", szModule, runset );
-      fMax = 438;
-      gROOT->ProcessLine( szCommand );
-      break;
-      // - - - TAGGER vs TAPS Time - - -
-    case 8:
-      sprintf( szModule, "gTAGGCalib" );
-      sprintf( szCommand, "%s = new iCalibTAGGERvsTAPSTime(%i)", szModule, runset );
-      fMax = 352;
-      gROOT->ProcessLine( szCommand );
-      break;
-      // - - - D E F A U L T - - -
-    default:
-      printf("No module is selected!!!\n");
-    }
-    
-    printf("Selected Object is %s\n", szModule);  
+    // get the calibration module
+    gCurrentModule = (iCalib*) gCaLibModules->At(module);
 
     // start the module
-    sprintf( szCommand, "%s->Start()", szModule );
-    gROOT->ProcessLine(szCommand);
-
+    gCurrentModule->Start(runset);
 }
 
-//------------------------------------------------------------
-void ButtonWindow::SetEnabled(Bool_t b)
+//______________________________________________________________________________
+void CreateModuleList()
 {
-  cout << "Enable : " << b << endl;
+    // Find all calibration modules and create a list.
+    
+    // create the module list
+    gCaLibModules = new TList();
+    
+    // init class list
+    gClassTable->Init();
+
+    // loop over all classes
+    Int_t nClasses = gClassTable->Classes();
+    for (Int_t i = 0; i < nClasses; i++)
+    {
+        // get class name
+        TString c(gClassTable->At(i));
+
+        // get iCalib* classes
+        if (c.BeginsWith("iCalib"))
+        {
+            // skip non-module classes
+            if (c == "iCalib") continue;
+            if (c == "iCalibCBTimeWalk") continue;
+            if (c == "iCalibPIDenergy") continue;
+            if (c == "iCalibPIDphi") continue;
+            if (c == "iCalibTAGGERvsTAPSTime") continue;
+            if (c == "iCalibTAPS1gEnergy") continue;
+            if (c == "iCalibTAPS2gTime") continue;
+            if (c == "iCalibTAPSTaggerTime") continue;
+            if (c == "iCalibTaggerTime") continue;
+
+            // add module to list
+            TClass tc(c.Data());
+            gCaLibModules->Add((iCalib*) tc.New());
+        }
+    }
 }
 
-void create_pointers()
-{
-  // Default Object
-  //                     
-
-  return;
-}
-
-//////////////////////////////////////////////////////////////
+//______________________________________________________________________________
 void gui_helper()
 {
-  create_pointers();
+    // load CaLib
+    gSystem->Load("libCaLib.so");
+    
+    // find CaLib modules
+    CreateModuleList();
+    
+    // no current module
+    gCurrentModule = 0;
 
-  // Main program.
+    // Main method.
+    ButtonWindow* w = new ButtonWindow();
+}
 
-  ButtonWindow *guiBW = new ButtonWindow();
-
-  return;
-}  

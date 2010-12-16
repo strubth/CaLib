@@ -47,8 +47,7 @@ protected:
     
     TTimer* fTimer;             // slow-motion timer
 
-    void InitGUI();
-    virtual void CustomizeGUI() = 0;
+    virtual void Init() = 0;
     virtual void Fit(Int_t elem) = 0;
     virtual void Calculate(Int_t elem) = 0;
 
@@ -62,19 +61,30 @@ public:
                fOverviewHisto(0),
                fCanvasFit(0), fCanvasResult(0), 
                fTimer(0) { }
-    iCalib(const Char_t* name, const Char_t* title,
-           CalibData_t data, Int_t set, Int_t nElem);
+    iCalib(const Char_t* name, const Char_t* title, CalibData_t data,
+           Int_t nElem) 
+        : TNamed(name, title),
+          fData(data), 
+          fSet(0), fHistoName(), 
+          fNelem(nElem), fCurrentElem(0),
+          fOldVal(0), fNewVal(0),
+          fMainHisto(0), fFitHisto(0), fFitFunc(0),
+          fOverviewHisto(0),
+          fCanvasFit(0), fCanvasResult(0), 
+          fTimer(0) { }
     virtual ~iCalib();
     
     virtual void Write();
 
-    void Start();
+    void Start(Int_t set);
     void ProcessAll(Int_t msecDelay = 0);
     void ProcessElement(Int_t elem);
     void Previous();
     void Next();
     void StopProcessing();
     void PrintValues();
+    
+    CalibData_t GetCalibData() const { return fData; }
 
     ClassDef(iCalib, 0)         // Base calibration module class
 };

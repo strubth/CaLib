@@ -63,9 +63,9 @@ void iFileManager::BuildFileList()
     // Build the list of files belonging to the runset.
     
     // get the list of runs for this set
-    iMySQLManager m;
+    iMySQLManager r;
     Int_t nRun;
-    Int_t* runs = m.GetRunsOfSet(fCalibData, fSet, &nRun);
+    Int_t* runs = r.GetRunsOfSet(fCalibData, fSet, &nRun);
 
     // loop over runs
     for (Int_t i = 0; i < nRun; i++)

@@ -17,52 +17,16 @@ ClassImp(iCalibCBEnergy)
 
 
 //______________________________________________________________________________
-iCalibCBEnergy::iCalibCBEnergy(Int_t set)
-    : iCalib("CB.Energy", "CB energy calibration",
-             ECALIB_CB_E1, set, iConfig::kMaxCB)
+iCalibCBEnergy::iCalibCBEnergy()
+    : iCalib("CB.Energy", "CB energy calibration", ECALIB_CB_E1, iConfig::kMaxCB)
 {
-    // Constructor.
+    // Empty constructor.
     
     // init members
-    fPi0IMOld = new Double_t[fNelem];
-    fPi0IMNew = new Double_t[fNelem];
-    fLine = new TLine();
+    fPi0IMOld = 0;
+    fPi0IMNew = 0;
+    fLine = 0;
 
-    // get histogram name
-    if (!iConfig::GetRC()->GetConfig("CB.Energy.Histo.Name"))
-    {
-        Error("iCalibCBEnergy", "Histogram name was not found in configuration!");
-        return;
-    }
-    else fHistoName = *iConfig::GetRC()->GetConfig("CB.Energy.Histo.Name");
-    
-    // read old parameters
-    iMySQLManager m;
-    m.ReadParameters(fSet, fData, fOldVal, fNelem);
-    //m.ReadParameters(fSet, ECALIB_CB_PI0IM, fPi0IMOld, fNelem);
-
-    // sum up all files contained in this runset
-    iFileManager f(fSet, fData);
-    
-    // get the main calibration histogram
-    fMainHisto = f.GetHistogram(fHistoName.Data());
-    if (!fMainHisto)
-    {
-        Error("iCalibCBEnergy", "Main histogram does not exist!\n");
-        gSystem->Exit(0);
-    }
-    
-    // create the overview histogram
-    fOverviewHisto = new TH1F("Overview", ";Element;2#gamma inv. mass [MeV]", 720, 0, 720);
-    fOverviewHisto->SetMarkerStyle(28);
-    fOverviewHisto->SetMarkerColor(4);
-    
-    // get parameters from configuration file
-    Double_t low = iConfig::GetRC()->GetConfigDouble("CB.Energy.Overview.Y.Min");
-    Double_t upp = iConfig::GetRC()->GetConfigDouble("CB.Energy.Overview.Y.Max");
-    
-    // ajust overview histogram
-    if (low || upp) fOverviewHisto->GetYaxis()->SetRangeUser(low, upp);
 }
 
 //______________________________________________________________________________
@@ -76,9 +40,50 @@ iCalibCBEnergy::~iCalibCBEnergy()
 }
 
 //______________________________________________________________________________
-void iCalibCBEnergy::CustomizeGUI()
+void iCalibCBEnergy::Init()
 {
-    // Customize the GUI of this calibration module.
+    // Init the module.
+    
+    // init members
+    fPi0IMOld = new Double_t[fNelem];
+    fPi0IMNew = new Double_t[fNelem];
+    fLine = new TLine();
+
+    // get histogram name
+    if (!iConfig::GetRC()->GetConfig("CB.Energy.Histo.Name"))
+    {
+        Error("Init", "Histogram name was not found in configuration!");
+        return;
+    }
+    else fHistoName = *iConfig::GetRC()->GetConfig("CB.Energy.Histo.Name");
+    
+    // read old parameters
+    iMySQLManager r;
+    r.ReadParameters(fSet, fData, fOldVal, fNelem);
+    //m.ReadParameters(fSet, ECALIB_CB_PI0IM, fPi0IMOld, fNelem);
+
+    // sum up all files contained in this runset
+    iFileManager f(fSet, fData);
+    
+    // get the main calibration histogram
+    fMainHisto = f.GetHistogram(fHistoName.Data());
+    if (!fMainHisto)
+    {
+        Error("Init", "Main histogram does not exist!\n");
+        return;
+    }
+    
+    // create the overview histogram
+    fOverviewHisto = new TH1F("Overview", ";Element;2#gamma inv. mass [MeV]", 720, 0, 720);
+    fOverviewHisto->SetMarkerStyle(28);
+    fOverviewHisto->SetMarkerColor(4);
+    
+    // get parameters from configuration file
+    Double_t low = iConfig::GetRC()->GetConfigDouble("CB.Energy.Overview.Y.Min");
+    Double_t upp = iConfig::GetRC()->GetConfigDouble("CB.Energy.Overview.Y.Max");
+    
+    // ajust overview histogram
+    if (low || upp) fOverviewHisto->GetYaxis()->SetRangeUser(low, upp);
 
     // draw main histogram
     fCanvasFit->cd(1)->SetLogz();

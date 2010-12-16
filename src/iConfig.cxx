@@ -23,7 +23,7 @@ iReadConfig* iConfig::GetRC()
 {
     // Return the global configuration reader.
 
-    // Create reader if necessary
+    // create reader if necessary
     if (!fReadConfig) fReadConfig = new iReadConfig();
 
     return fReadConfig;
