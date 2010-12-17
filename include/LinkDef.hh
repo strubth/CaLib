@@ -33,9 +33,17 @@
 #pragma link C++ class iMySQLManager+;
 #pragma link C++ class iCalib+;
 
-// calibration classes
+// CB calibration classes
 #pragma link C++ class iCalibCBEnergy+;
 #pragma link C++ class iCalibCBTime+;
+
+// TAPS calibration classes
+#pragma link C++ class iCalibTAPSEnergy+;
+#pragma link C++ class iCalibTAPSTime+;
+
+// Tagger calibration classes
+#pragma link C++ class iCalibTaggerTime+;
+
 
 #endif
 

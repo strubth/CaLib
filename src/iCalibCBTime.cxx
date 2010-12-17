@@ -23,7 +23,7 @@ iCalibCBTime::iCalibCBTime()
     // Empty constructor.
 
     // init members
-    fTimeGain = 0;
+    fTimeGain = 0.11771;
     fMean = 0;
     fLine = 0;
 }
@@ -46,16 +46,16 @@ void iCalibCBTime::Init()
     fLine = new TLine();
 
     // get histogram name
-    if (!iReadConfig::GetReader()->GetConfig("CB.Time.Histo.Name"))
+    if (!iReadConfig::GetReader()->GetConfig("CB.Time.Histo.Fit.Name"))
     {
         Error("Init", "Histogram name was not found in configuration!");
         return;
     }
-    else fHistoName = *iReadConfig::GetReader()->GetConfig("CB.Time.Histo.Name");
+    else fHistoName = *iReadConfig::GetReader()->GetConfig("CB.Time.Histo.Fit.Name");
     
     // get time gain for CB TDCs
-    if (!iReadConfig::GetReader()->GetConfig("CB.Time.TDC.Gain")) fTimeGain = 0.11771;
-    else fTimeGain = iReadConfig::GetReader()->GetConfigDouble("CB.Time.TDC.Gain");
+    if (!iReadConfig::GetReader()->GetConfig("CB.Time.TDCGain")) fTimeGain = 0.11771;
+    else fTimeGain = iReadConfig::GetReader()->GetConfigDouble("CB.Time.TDCGain");
 
     // read old parameters
     iMySQLManager::GetManager()->ReadParameters(fSet, fData, fOldVal, fNelem);
@@ -72,19 +72,22 @@ void iCalibCBTime::Init()
     }
     
     // create the overview histogram
-    fOverviewHisto = new TH1F("Overview", ";Element;Time_{CB-CB} [ns]", 720, 0, 720);
-    fOverviewHisto->SetMarkerStyle(28);
+    fOverviewHisto = new TH1F("Overview", ";Element;Time_{CB-CB} [ns]", fNelem, 0, fNelem);
+    fOverviewHisto->SetMarkerStyle(2);
     fOverviewHisto->SetMarkerColor(4);
     
     // get parameters from configuration file
-    Double_t low = iReadConfig::GetReader()->GetConfigDouble("CB.Time.Overview.Y.Min");
-    Double_t upp = iReadConfig::GetReader()->GetConfigDouble("CB.Time.Overview.Y.Max");
-    
+    Double_t low = iReadConfig::GetReader()->GetConfigDouble("CB.Time.Histo.Overview.Yaxis.Min");
+    Double_t upp = iReadConfig::GetReader()->GetConfigDouble("CB.Time.Histo.Overview.Yaxis.Max");
+    fFitHistoXmin = iReadConfig::GetReader()->GetConfigDouble("CB.Time.Histo.Fit.Xaxis.Min");
+    fFitHistoXmax = iReadConfig::GetReader()->GetConfigDouble("CB.Time.Histo.Fit.Xaxis.Max");
+
     // ajust overview histogram
     if (low || upp) fOverviewHisto->GetYaxis()->SetRangeUser(low, upp);
 
     // draw main histogram
     fCanvasFit->cd(1)->SetLogz();
+    fMainHisto->GetXaxis()->SetRangeUser(fFitHistoXmin, fFitHistoXmax);
     fMainHisto->Draw("colz");
 
     // draw the overview histogram
@@ -150,8 +153,8 @@ void iCalibCBTime::Fit(Int_t elem)
 
     // draw histogram
     fFitHisto->SetFillColor(35);
-    fFitHisto->GetXaxis()->SetRangeUser(peakval -50., peakval +50.);
     fCanvasFit->cd(2);
+    fFitHisto->GetXaxis()->SetRangeUser(fFitHistoXmin, fFitHistoXmax);
     fFitHisto->Draw();
     
     // draw fitting function
@@ -190,7 +193,7 @@ void iCalibCBTime::Calculate(Int_t elem)
     
         // update overview histogram
         fOverviewHisto->SetBinContent(elem + 1, fMean);
-        fOverviewHisto->SetBinError(elem + 1, 0.1);
+        fOverviewHisto->SetBinError(elem + 1, 0.0000001);
     }
     else
     {   

@@ -4,21 +4,22 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// iCalibCBEnergy                                                       //
+// iCalibTAPSEnergy                                                     //
 //                                                                      //
-// Calibration module for the CB energy.                                //
+// Calibration module for the TAPS energy.                              //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#include "iCalibCBEnergy.hh"
+#include "iCalibTAPSEnergy.hh"
 
-ClassImp(iCalibCBEnergy)
+ClassImp(iCalibTAPSEnergy)
 
 
 //______________________________________________________________________________
-iCalibCBEnergy::iCalibCBEnergy()
-    : iCalib("CB.Energy", "CB energy calibration", kCALIB_CB_E1, iConfig::kMaxCB)
+iCalibTAPSEnergy::iCalibTAPSEnergy()
+    : iCalib("TAPS.Energy", "TAPS energy calibration", kCALIB_TAPS_LG_E1,
+             iReadConfig::GetReader()->GetConfigInt("TAPS.Elements"))
 {
     // Empty constructor.
     
@@ -30,7 +31,7 @@ iCalibCBEnergy::iCalibCBEnergy()
 }
 
 //______________________________________________________________________________
-iCalibCBEnergy::~iCalibCBEnergy()
+iCalibTAPSEnergy::~iCalibTAPSEnergy()
 {
     // Destructor. 
     
@@ -40,7 +41,7 @@ iCalibCBEnergy::~iCalibCBEnergy()
 }
 
 //______________________________________________________________________________
-void iCalibCBEnergy::Init()
+void iCalibTAPSEnergy::Init()
 {
     // Init the module.
     
@@ -50,16 +51,16 @@ void iCalibCBEnergy::Init()
     fLine = new TLine();
 
     // get histogram name
-    if (!iReadConfig::GetReader()->GetConfig("CB.Energy.Histo.Fit.Name"))
+    if (!iReadConfig::GetReader()->GetConfig("TAPS.Energy.Histo.Fit.Name"))
     {
         Error("Init", "Histogram name was not found in configuration!");
         return;
     }
-    else fHistoName = *iReadConfig::GetReader()->GetConfig("CB.Energy.Histo.Fit.Name");
+    else fHistoName = *iReadConfig::GetReader()->GetConfig("TAPS.Energy.Histo.Fit.Name");
     
     // read old parameters
     iMySQLManager::GetManager()->ReadParameters(fSet, fData, fOldVal, fNelem);
-    //iMySQLManager::GetManager()->ReadParameters(fSet, ECALIB_CB_PI0IM, fPi0IMOld, fNelem);
+    //iMySQLManager::GetManager()->ReadParameters(fSet, ECALIB_TAPS_PI0IM, fPi0IMOld, fNelem);
 
     // sum up all files contained in this runset
     iFileManager f(fSet, fData);
@@ -78,10 +79,10 @@ void iCalibCBEnergy::Init()
     fOverviewHisto->SetMarkerColor(4);
     
     // get parameters from configuration file
-    Double_t low = iReadConfig::GetReader()->GetConfigDouble("CB.Energy.Histo.Overview.Yaxis.Min");
-    Double_t upp = iReadConfig::GetReader()->GetConfigDouble("CB.Energy.Histo.Overview.Yaxis.Max");
-    fFitHistoXmin = iReadConfig::GetReader()->GetConfigDouble("CB.Energy.Histo.Fit.Xaxis.Min");
-    fFitHistoXmax = iReadConfig::GetReader()->GetConfigDouble("CB.Energy.Histo.Fit.Xaxis.Max");
+    Double_t low = iReadConfig::GetReader()->GetConfigDouble("TAPS.Energy.Histo.Overview.Yaxis.Min");
+    Double_t upp = iReadConfig::GetReader()->GetConfigDouble("TAPS.Energy.Histo.Overview.Yaxis.Max");
+    fFitHistoXmin = iReadConfig::GetReader()->GetConfigDouble("TAPS.Energy.Histo.Fit.Xaxis.Min");
+    fFitHistoXmax = iReadConfig::GetReader()->GetConfigDouble("TAPS.Energy.Histo.Fit.Xaxis.Max");
     
     // ajust overview histogram
     if (low || upp) fOverviewHisto->GetYaxis()->SetRangeUser(low, upp);
@@ -97,7 +98,7 @@ void iCalibCBEnergy::Init()
 }
 
 //______________________________________________________________________________
-void iCalibCBEnergy::Fit(Int_t elem)
+void iCalibTAPSEnergy::Fit(Int_t elem)
 {
     // Perform the fit of the element 'elem'.
     
@@ -178,7 +179,7 @@ void iCalibCBEnergy::Fit(Int_t elem)
 }
 
 //______________________________________________________________________________
-void iCalibCBEnergy::Calculate(Int_t elem)
+void iCalibTAPSEnergy::Calculate(Int_t elem)
 {
     // Calculate the new value of the element 'elem'.
     

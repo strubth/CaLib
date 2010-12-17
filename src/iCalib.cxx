@@ -45,7 +45,9 @@ void iCalib::Start(Int_t set)
     fMainHisto = 0;
     fFitHisto = 0;
     fFitFunc = 0;
-    
+    fFitHistoXmin = 0;
+    fFitHistoXmax = 0;
+
     fOverviewHisto = 0;
 
     fCanvasFit = 0;
@@ -67,6 +69,13 @@ void iCalib::Start(Int_t set)
     // user information
     Info("Start", "Starting calibration module %s", GetName());
     Info("Start", "Module description: %s", GetTitle());
+
+    // style options
+    gStyle->SetPalette(1);
+    gStyle->SetFrameBorderMode(0);
+    gStyle->SetFrameFillColor(10);
+    gStyle->SetCanvasBorderMode(0);
+    gStyle->SetPadBorderMode(0);
 
     // draw the fitting canvas
     fCanvasFit = new TCanvas("Fitting", "Fitting", 0, 0, 400, 800);
@@ -96,7 +105,6 @@ void iCalib::ProcessElement(Int_t elem)
             fTimer->Stop();
             delete fTimer;
             fTimer = 0;
-            return;
         }
         
         // calculate last element
@@ -193,12 +201,23 @@ void iCalib::Write()
     if (TString* path = iReadConfig::GetReader()->GetConfig("Log.Images"))
     {
         Char_t tmp[256];
+        Char_t date[256];
+
         // create directory
         sprintf(tmp, "%s/%s", path->Data(), GetName());
         gSystem->mkdir(tmp, kTRUE);
-    
+        
+        // format time stamp
+        UInt_t day, month, year;
+        UInt_t hour, min;
+        TTimeStamp t;
+        t.GetDate(kFALSE, 0, &year, &month, &day);
+        t.GetTime(kFALSE, 0, &hour, &min);
+        sprintf(date, "%d-%d-%d_%d:%d", year, month, day, hour, min);
+
         // save canvas
-        sprintf(tmp, "%s/%s/overview_set_%d.png", path->Data(), GetName(), fSet);
+        sprintf(tmp, "%s/%s/Overview_Set_%d_%s.png", 
+                path->Data(), GetName(), fSet, date);
         fCanvasResult->SaveAs(tmp);
     }
 }

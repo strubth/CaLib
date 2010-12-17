@@ -13,7 +13,7 @@
 
 // global variables
 TList* gCaLibModules;
-iCalib* gCurrentModule;
+void* gCurrentModule;
 
 
 class ButtonWindow : public TGMainFrame 
@@ -52,7 +52,7 @@ ButtonWindow::ButtonWindow()
   fMainFrame->SetWindowName("CaLib Control Panel");
   // fMainFrame->SetLayoutBroken(kTRUE);
   
-  TGButtonGroup *horizontal = new TGButtonGroup(fMainFrame, "Run Set Window", kHorizontalFrame);
+  TGButtonGroup *horizontal = new TGButtonGroup(fMainFrame, "Main configuration", kHorizontalFrame);
   horizontal->SetTitlePos(TGGroupFrame::kLeft);
 
   fCBox_Module = new TGComboBox(horizontal, "Choose calibration module");
@@ -162,11 +162,10 @@ ButtonWindow::ButtonWindow()
   fTB_Quit = new TGTextButton(horizontal_4, "Quit");
   fTB_Quit->Resize(80,50);
   fTB_Quit->ChangeOptions(fTB_Quit->GetOptions() | kFixedSize );
-  fTB_Quit->Connect("Pressed()", "TApplication", gApplication, "Terminate()");
+  fTB_Quit->Connect("Pressed()", "ButtonWindow", this, "Quit()");
 
   fMainFrame->AddFrame(horizontal_4, new TGLayoutHints(kLHintsExpandX, 5,5,5,5));
-
-  fMainFrame->Connect("CloseWindow()", "TApplication", gApplication, "Terminate()");
+  fMainFrame->Connect("CloseWindow()", "ButtonWindow", this, "Quit()");
   fMainFrame->DontCallClose();
 
   // Map all subwindows of main frame
@@ -177,7 +176,7 @@ ButtonWindow::ButtonWindow()
 
   fMainFrame->SetWMSizeHints( 600, 400, 800, 700, 0 ,0);
   fMainFrame->MapRaised();
-  fMainFrame->Move(500, 300);
+  fMainFrame->Move(500, 500);
 }
 
 //______________________________________________________________________________
@@ -189,7 +188,7 @@ void ButtonWindow::Goto()
     Int_t n = fNE_Elem->GetNumber();
   
     if (gCurrentModule)
-        gCurrentModule->ProcessElement(n);
+        ((iCalib*)gCurrentModule)->ProcessElement(n);
 }
 
 //______________________________________________________________________________
@@ -198,7 +197,7 @@ void ButtonWindow::DoPrev()
     // Go to the previous element in the current module.
     
     if (gCurrentModule)
-        gCurrentModule->Previous();
+        ((iCalib*)gCurrentModule)->Previous();
 }
 
 //______________________________________________________________________________
@@ -207,7 +206,7 @@ void ButtonWindow::DoNext()
     // Go to the next element in the current module.
     
     if (gCurrentModule)
-        gCurrentModule->Next();
+        ((iCalib*)gCurrentModule)->Next();
 }
 
 //______________________________________________________________________________
@@ -216,7 +215,7 @@ void ButtonWindow::DoWrite()
     // Write the values of the current module to the database.
 
     if (gCurrentModule)
-        gCurrentModule->Write();
+        ((iCalib*)gCurrentModule)->Write();
 }
 
 //______________________________________________________________________________
@@ -225,7 +224,19 @@ void ButtonWindow::Print()
     // Print the values obtained by the current module.
     
     if (gCurrentModule)
-        gCurrentModule->PrintValues();
+        ((iCalib*)gCurrentModule)->PrintValues();
+}
+
+//______________________________________________________________________________
+void ButtonWindow::Quit()
+{
+    // Quit the application.
+    
+    // delete list of modules
+    delete gCaLibModules;
+    
+    // quit ROOT
+    gApplication->Terminate();
 }
 
 //______________________________________________________________________________
@@ -236,7 +247,7 @@ void ButtonWindow::DoAll()
     Float_t delay = fNE_Delay->GetNumber();
     
     if (gCurrentModule)
-        gCurrentModule->ProcessAll(1000*delay);
+        ((iCalib*)gCurrentModule)->ProcessAll(1000*delay);
 }
 
 //______________________________________________________________________________
@@ -245,7 +256,7 @@ void ButtonWindow::Stop()
     // Stop automatic processing of the current module.
 
     if (gCurrentModule)
-        gCurrentModule->StopProcessing();
+        ((iCalib*)gCurrentModule)->StopProcessing();
 }
 
 //______________________________________________________________________________
@@ -294,7 +305,7 @@ void ButtonWindow::StartModule()
     gCurrentModule = (iCalib*) gCaLibModules->At(module);
 
     // start the module
-    gCurrentModule->Start(runset);
+    ((iCalib*)gCurrentModule)->Start(runset);
 }
 
 //______________________________________________________________________________
@@ -304,7 +315,8 @@ void CreateModuleList()
     
     // create the module list
     gCaLibModules = new TList();
-    
+    gCaLibModules->SetOwner(kTRUE);
+
     // init class list
     gClassTable->Init();
 
@@ -341,6 +353,6 @@ void gui_helper()
     gCurrentModule = 0;
 
     // Main method.
-    ButtonWindow* w = new ButtonWindow();
+    ButtonWindow* gui = new ButtonWindow();
 }
 

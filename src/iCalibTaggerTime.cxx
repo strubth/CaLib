@@ -4,62 +4,58 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// iCalibCBEnergy                                                       //
+// iCalibTaggerTime                                                     //
 //                                                                      //
-// Calibration module for the CB energy.                                //
+// Calibration module for the Tagger time.                              //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#include "iCalibCBEnergy.hh"
+#include "iCalibTaggerTime.hh"
 
-ClassImp(iCalibCBEnergy)
+ClassImp(iCalibTaggerTime)
 
 
 //______________________________________________________________________________
-iCalibCBEnergy::iCalibCBEnergy()
-    : iCalib("CB.Energy", "CB energy calibration", kCALIB_CB_E1, iConfig::kMaxCB)
+iCalibTaggerTime::iCalibTaggerTime()
+    : iCalib("Tagger.Time", "Tagger time calibration", kCALIB_TAGG_T0, 
+              iReadConfig::GetReader()->GetConfigInt("Tagger.Elements"))
 {
     // Empty constructor.
-    
-    // init members
-    fPi0IMOld = 0;
-    fPi0IMNew = 0;
-    fLine = 0;
 
+    // init members
+    fTimeGain = 0.11771;
+    fMean = 0;
+    fLine = 0;
 }
 
 //______________________________________________________________________________
-iCalibCBEnergy::~iCalibCBEnergy()
+iCalibTaggerTime::~iCalibTaggerTime()
 {
     // Destructor. 
     
-    if (fPi0IMOld) delete [] fPi0IMOld;
-    if (fPi0IMNew) delete [] fPi0IMNew;
     if (fLine) delete fLine;
 }
 
 //______________________________________________________________________________
-void iCalibCBEnergy::Init()
+void iCalibTaggerTime::Init()
 {
     // Init the module.
     
     // init members
-    fPi0IMOld = new Double_t[fNelem];
-    fPi0IMNew = new Double_t[fNelem];
+    fMean = 0;
     fLine = new TLine();
 
     // get histogram name
-    if (!iReadConfig::GetReader()->GetConfig("CB.Energy.Histo.Fit.Name"))
+    if (!iReadConfig::GetReader()->GetConfig("Tagger.Time.Histo.Fit.Name"))
     {
         Error("Init", "Histogram name was not found in configuration!");
         return;
     }
-    else fHistoName = *iReadConfig::GetReader()->GetConfig("CB.Energy.Histo.Fit.Name");
+    else fHistoName = *iReadConfig::GetReader()->GetConfig("Tagger.Time.Histo.Fit.Name");
     
     // read old parameters
     iMySQLManager::GetManager()->ReadParameters(fSet, fData, fOldVal, fNelem);
-    //iMySQLManager::GetManager()->ReadParameters(fSet, ECALIB_CB_PI0IM, fPi0IMOld, fNelem);
 
     // sum up all files contained in this runset
     iFileManager f(fSet, fData);
@@ -73,16 +69,16 @@ void iCalibCBEnergy::Init()
     }
     
     // create the overview histogram
-    fOverviewHisto = new TH1F("Overview", ";Element;2#gamma inv. mass [MeV]", fNelem, 0, fNelem);
+    fOverviewHisto = new TH1F("Overview", ";Element;Time_{Tagger-TAPS} [ns]", fNelem, 0, fNelem);
     fOverviewHisto->SetMarkerStyle(2);
     fOverviewHisto->SetMarkerColor(4);
     
     // get parameters from configuration file
-    Double_t low = iReadConfig::GetReader()->GetConfigDouble("CB.Energy.Histo.Overview.Yaxis.Min");
-    Double_t upp = iReadConfig::GetReader()->GetConfigDouble("CB.Energy.Histo.Overview.Yaxis.Max");
-    fFitHistoXmin = iReadConfig::GetReader()->GetConfigDouble("CB.Energy.Histo.Fit.Xaxis.Min");
-    fFitHistoXmax = iReadConfig::GetReader()->GetConfigDouble("CB.Energy.Histo.Fit.Xaxis.Max");
-    
+    Double_t low = iReadConfig::GetReader()->GetConfigDouble("Tagger.Time.Histo.Overview.Yaxis.Min");
+    Double_t upp = iReadConfig::GetReader()->GetConfigDouble("Tagger.Time.Histo.Overview.Yaxis.Max");
+    fFitHistoXmin = iReadConfig::GetReader()->GetConfigDouble("Tagger.Time.Histo.Fit.Xaxis.Min");
+    fFitHistoXmax = iReadConfig::GetReader()->GetConfigDouble("Tagger.Time.Histo.Fit.Xaxis.Max");
+
     // ajust overview histogram
     if (low || upp) fOverviewHisto->GetYaxis()->SetRangeUser(low, upp);
 
@@ -97,7 +93,7 @@ void iCalibCBEnergy::Init()
 }
 
 //______________________________________________________________________________
-void iCalibCBEnergy::Fit(Int_t elem)
+void iCalibTaggerTime::Fit(Int_t elem)
 {
     // Perform the fit of the element 'elem'.
     
@@ -109,34 +105,39 @@ void iCalibCBEnergy::Fit(Int_t elem)
     if (fFitHisto) delete fFitHisto;
     fFitHisto = (TH1D*) h2->ProjectionX(tmp, elem+1, elem+1);
     
+    // init variables
+    Double_t factor = 5.0;
+    Double_t peakval = 0;
+    
     // check for sufficient statistics
     if (fFitHisto->GetEntries())
     {
         // delete old function
         if (fFitFunc) delete fFitFunc;
-        sprintf(tmp, "fEnergy_%i", elem);
-        fFitFunc = new TF1(tmp, "pol1+gaus(2)");
+        sprintf(tmp, "fTime_%i", elem);
+        fFitFunc = new TF1(tmp, "pol1(0)+gaus(2)");
         fFitFunc->SetLineColor(2);
-        
+    
         // estimate peak position
-        fPi0IMNew[elem] = fFitHisto->GetBinCenter(fFitHisto->GetMaximumBin());
-        if (fPi0IMNew[elem] < 100 || fPi0IMNew[elem] > 160) fPi0IMNew[elem] = 135;
+        peakval = fFitHisto->GetBinCenter(fFitHisto->GetMaximumBin());
 
-        // estimate background
-        Double_t bgPar0, bgPar1;
-        iUtils::FindBackground(fFitHisto, fPi0IMNew[elem], 50, 50, &bgPar0, &bgPar1);
-        
-        // configure fitting function
-        fFitFunc->SetRange(fPi0IMNew[elem] - 70, fPi0IMNew[elem] + 50);
-        fFitFunc->SetLineColor(2);
-        fFitFunc->SetParameters( 3.8e+2, -1.90, 150, fPi0IMNew[elem], 8.9);
-        fFitFunc->SetParLimits(4, 3, 20);  
-        //fFitFunc->SetParameters(bgPar0, bgPar1, fFitHisto->GetMaximum(), fPi0IMNew[elem], 9.);
-        fFitFunc->SetParLimits(4, 1., 200); //5,150 sigma
+        // temporary
+        fMean = peakval;
+
+        // first iteration
+        fFitFunc->SetRange(peakval - 5, peakval + 5);
+        fFitFunc->SetParameters(500, -1, fFitHisto->GetMaximum(), peakval, 0.5);
+        fFitFunc->SetParLimits(4, 0.5, 3.); // sigma
+        fFitHisto->Fit(fFitFunc, "+R0Q");
+
+        // second iteration
+        peakval = fFitFunc->GetParameter(3);
+        Double_t sigma = fFitFunc->GetParameter(4);
+        fFitFunc->SetRange(peakval -factor*sigma, peakval +factor*sigma);
         fFitHisto->Fit(fFitFunc, "+R0Q");
 
         // final results
-        fPi0IMNew[elem] = fFitFunc->GetParameter(3); 
+        fMean = fFitFunc->GetParameter(3); // store peak value
 
         // draw mean indicator line
         fLine->SetVertical();
@@ -144,13 +145,8 @@ void iCalibCBEnergy::Fit(Int_t elem)
         fLine->SetLineWidth(3);
         fLine->SetY1(0);
         fLine->SetY2(fFitHisto->GetMaximum() + 20);
-        
-        // check if mass is in normal range
-        if (fPi0IMNew[elem] < 80 || fPi0IMNew[elem] > 200) fPi0IMNew[elem] = 135;
-        
-        // set indicator line
-        fLine->SetX1(fPi0IMNew[elem]);
-        fLine->SetX2(fPi0IMNew[elem]);
+        fLine->SetX1(fMean);
+        fLine->SetX2(fMean);
     }
 
     // draw histogram
@@ -178,7 +174,7 @@ void iCalibCBEnergy::Fit(Int_t elem)
 }
 
 //______________________________________________________________________________
-void iCalibCBEnergy::Calculate(Int_t elem)
+void iCalibTaggerTime::Calculate(Int_t elem)
 {
     // Calculate the new value of the element 'elem'.
     
@@ -188,24 +184,14 @@ void iCalibCBEnergy::Calculate(Int_t elem)
     if (fFitHisto->GetEntries())
     {
         // check if line position was modified by hand
-        if (fLine->GetX1() != fPi0IMNew[elem]) fPi0IMNew[elem] = fLine->GetX1();
-        
-        // set new pi0 position
-        fPi0IMNew[elem] = fPi0IMNew[elem];
+        if (fLine->GetX1() != fMean) fMean = fLine->GetX1();
 
         // calculate the new offset
-        fNewVal[elem] = fOldVal[elem] * (iConfig::kPi0Mass / fPi0IMNew[elem]);
+        fNewVal[elem] = fOldVal[elem] + fMean / fTimeGain;
     
-        // if new value is negative take old
-        if (fNewVal[elem] < 0) 
-        {
-            fNewVal[elem] = fOldVal[elem];
-            unchanged = kTRUE;
-        }
-
         // update overview histogram
-        fOverviewHisto->SetBinContent(elem+1, fPi0IMNew[elem]);
-        fOverviewHisto->SetBinError(elem+1, 0.0000001);
+        fOverviewHisto->SetBinContent(elem + 1, fMean);
+        fOverviewHisto->SetBinError(elem + 1, 0.000001);
     }
     else
     {   
@@ -215,9 +201,9 @@ void iCalibCBEnergy::Calculate(Int_t elem)
     }
 
     // user information
-    printf("Element: %03d    Pi0: %12.8f    "
-           "old gain: %12.8f    new gain: %12.8f",
-           elem, fPi0IMNew[elem], fOldVal[elem], fNewVal[elem]);
+    printf("Element: %03d    Peak: %12.8f    "
+           "old offset: %12.8f    new offset: %12.8f",
+           elem, fMean, fOldVal[elem], fNewVal[elem]);
     if (unchanged) printf("    -> unchanged");
     printf("\n");
 }   
