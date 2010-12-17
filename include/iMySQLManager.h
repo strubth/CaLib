@@ -11,8 +11,8 @@
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef IMYSQLMANAGER_HH
-#define IMYSQLMANAGER_HH
+#ifndef IMYSQLMANAGER_H
+#define IMYSQLMANAGER_H
 
 #include "TSQLServer.h"
 #include "TSQLResult.h"
@@ -21,8 +21,8 @@
 #include "TError.h"
 #include "TObjString.h"
 
-#include "iConfig.hh"
-#include "iReadConfig.hh"
+#include "iConfig.h"
+#include "iReadConfig.h"
 
 
 class iMySQLManager

@@ -11,8 +11,8 @@
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef ICALIB_HH
-#define ICALIB_HH
+#ifndef ICALIB_H
+#define ICALIB_H
 
 #include "TString.h"
 #include "TError.h"
@@ -24,8 +24,8 @@
 #include "TTimeStamp.h"
 #include "TStyle.h"
 
-#include "iMySQLManager.hh"
-#include "iReadConfig.hh"
+#include "iMySQLManager.h"
+#include "iReadConfig.h"
 
 
 class iCalib : public TNamed

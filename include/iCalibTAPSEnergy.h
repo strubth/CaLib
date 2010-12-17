@@ -11,16 +11,16 @@
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef ICALIBTAPSENERGY_HH
-#define ICALIBTAPSENERGY_HH
+#ifndef ICALIBTAPSENERGY_H
+#define ICALIBTAPSENERGY_H
 
 #include "TCanvas.h"
 #include "TH2.h"
 #include "TLine.h"
 
-#include "iCalib.hh"
-#include "iUtils.hh"
-#include "iFileManager.hh"
+#include "iCalib.h"
+#include "iUtils.h"
+#include "iFileManager.h"
 
 
 class iCalibTAPSEnergy : public iCalib

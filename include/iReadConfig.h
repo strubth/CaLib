@@ -11,8 +11,8 @@
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef IREADCONFIG_HH
-#define IREADCONFIG_HH
+#ifndef IREADCONFIG_H
+#define IREADCONFIG_H
 
 #include <fstream>
 

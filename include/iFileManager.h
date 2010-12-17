@@ -11,14 +11,14 @@
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef IFILEMANAGER_HH 
-#define IFILEMANAGER_HH
+#ifndef IFILEMANAGER_H 
+#define IFILEMANAGER_H
 
 #include "TFile.h"
 #include "TH1.h"
 
-#include "iReadConfig.hh"
-#include "iMySQLManager.hh"
+#include "iReadConfig.h"
+#include "iMySQLManager.h"
 
 
 class iFileManager

@@ -1,34 +1,33 @@
 /*************************************************************************
- * Author: Irakli Keshelashvili, Dominik Werthmueller
+ * Author: Irakli Keshelashvili, Dominik Werthmueller, Lilian Witthauer
  *************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// iCalibCBEnergy                                                       //
+// iCalibCBTime                                                         //
 //                                                                      //
-// Calibration module for the CB energy.                                //
+// Calibration module for the CB time.                                  //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef ICALIBCBENERGY_HH
-#define ICALIBCBENERGY_HH
+#ifndef ICALIBCBTIME_H
+#define ICALIBCBTIME_H
 
 #include "TCanvas.h"
 #include "TH2.h"
 #include "TLine.h"
 
-#include "iCalib.hh"
-#include "iUtils.hh"
-#include "iFileManager.hh"
+#include "iCalib.h"
+#include "iFileManager.h"
 
 
-class iCalibCBEnergy : public iCalib
+class iCalibCBTime : public iCalib
 {
 
 private:
-    Double_t* fPi0IMOld;                // old pi0 invariant mass values
-    Double_t* fPi0IMNew;                // old pi0 invariant mass values
+    Double_t fTimeGain;                 // CB TDC gain
+    Double_t fMean;                     // mean time position
     TLine* fLine;                       // indicator line
     
     virtual void Init();
@@ -36,10 +35,10 @@ private:
     virtual void Calculate(Int_t elem);
 
 public:
-    iCalibCBEnergy();
-    virtual ~iCalibCBEnergy();
+    iCalibCBTime();
+    virtual ~iCalibCBTime();
 
-    ClassDef(iCalibCBEnergy, 0)   // CB energy calibration
+    ClassDef(iCalibCBTime, 0)   // CB time calibration
 };
 
 #endif

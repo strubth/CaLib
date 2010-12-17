@@ -11,7 +11,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 
-#include "iCalibTaggerTime.hh"
+#include "iCalibTaggerTime.h"
 
 ClassImp(iCalibTaggerTime)
 

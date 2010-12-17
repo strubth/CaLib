@@ -13,7 +13,7 @@ L             = lib
 B             = bin
 
 SRC           = $(wildcard $(S)/i*.cxx) $(S)/Dict.cxx
-INCD          = $(wildcard $(I)/i*.hh)
+INCD          = $(wildcard $(I)/i*.h)
 INC           = $(notdir $(INCD))
 OBJD          = $(patsubst $(S)/%.cxx, $(O)/%.o, $(SRC))
 OBJ           = $(notdir $(OBJD))
@@ -27,7 +27,7 @@ ROOTLDFLAGS  := $(shell root-config --ldflags)
 BIN_INSTALL_DIR = $(HOME)/$(B)
 
 vpath %.cxx $(S)
-vpath %.hh  $(I)
+vpath %.h  $(I)
 vpath %.o  $(O)
 
 # ------------------------ Architecture dependent settings ------------------------
@@ -73,10 +73,10 @@ $(LIB_CaLib): $(OBJ)
 	@$(CCCOMP) $(LDFLAGS) $(ROOTGLIBS) $(SOFLAGS) $(OBJD) -o $(LIB_CaLib)
 	@$(POST_LIB_BUILD)
 
-$(S)/Dict.cxx: $(INC) $(I)/LinkDef.hh 
+$(S)/Dict.cxx: $(INC) $(I)/LinkDef.h
 	@echo
 	@echo "Creating CaLib dictionary ..."
-	@rootcint -v -f $@ -c -I./$(I) -p $(INC) $(I)/LinkDef.hh
+	@rootcint -v -f $@ -c -I./$(I) -p $(INC) $(I)/LinkDef.h
 
 %.o: %.cxx
 	@echo "Compiling $(notdir $<) ..."

@@ -11,7 +11,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 
-#include "iCalibTAPSEnergy.hh"
+#include "iCalibTAPSEnergy.h"
 
 ClassImp(iCalibTAPSEnergy)
 

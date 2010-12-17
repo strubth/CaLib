@@ -1,32 +1,32 @@
 /*************************************************************************
- * Author: Irakli Keshelashvili, Dominik Werthmueller, Lilian Witthauer
+ * Author: Irakli Keshelashvili, Dominik Werthmueller
  *************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// iCalibCBTime                                                         //
+// iCalibTAPSTime                                                       //
 //                                                                      //
-// Calibration module for the CB time.                                  //
+// Calibration module for the TAPS time.                                //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef ICALIBCBTIME_HH
-#define ICALIBCBTIME_HH
+#ifndef ICALIBTAPSTIME_H
+#define ICALIBTAPSTIME_H
 
 #include "TCanvas.h"
 #include "TH2.h"
 #include "TLine.h"
 
-#include "iCalib.hh"
-#include "iFileManager.hh"
+#include "iCalib.h"
+#include "iFileManager.h"
 
 
-class iCalibCBTime : public iCalib
+class iCalibTAPSTime : public iCalib
 {
 
 private:
-    Double_t fTimeGain;                 // CB TDC gain
+    Double_t* fTimeGain;                // TAPS TDC gain
     Double_t fMean;                     // mean time position
     TLine* fLine;                       // indicator line
     
@@ -35,10 +35,10 @@ private:
     virtual void Calculate(Int_t elem);
 
 public:
-    iCalibCBTime();
-    virtual ~iCalibCBTime();
+    iCalibTAPSTime();
+    virtual ~iCalibTAPSTime();
 
-    ClassDef(iCalibCBTime, 0)   // CB time calibration
+    ClassDef(iCalibTAPSTime, 0)   // TAPS time calibration
 };
 
 #endif

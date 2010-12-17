@@ -11,8 +11,8 @@
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef ICONFIG_HH
-#define ICONFIG_HH
+#ifndef ICONFIG_H
+#define ICONFIG_H
 
 #include "Rtypes.h"
 

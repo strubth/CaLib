@@ -11,8 +11,8 @@
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef IUTILS_HH
-#define IUTILS_HH
+#ifndef IUTILS_H
+#define IUTILS_H
 
 #include "TH1.h"
 

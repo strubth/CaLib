@@ -11,7 +11,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 
-#include "iCalibCBEnergy.hh"
+#include "iCalibCBEnergy.h"
 
 ClassImp(iCalibCBEnergy)
 

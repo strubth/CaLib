@@ -4,29 +4,29 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// iCalibTAPSTime                                                       //
+// iCalibTaggerTime                                                     //
 //                                                                      //
-// Calibration module for the TAPS time.                                //
+// Calibration module for the Tagger time.                              //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef ICALIBTAPSTIME_HH
-#define ICALIBTAPSTIME_HH
+#ifndef ICALIBTAGGERTIME_H
+#define ICALIBTAGGERTIME_H
 
 #include "TCanvas.h"
 #include "TH2.h"
 #include "TLine.h"
 
-#include "iCalib.hh"
-#include "iFileManager.hh"
+#include "iCalib.h"
+#include "iFileManager.h"
 
 
-class iCalibTAPSTime : public iCalib
+class iCalibTaggerTime : public iCalib
 {
 
 private:
-    Double_t* fTimeGain;                // TAPS TDC gain
+    Double_t fTimeGain;                 // Tagger TDC gain
     Double_t fMean;                     // mean time position
     TLine* fLine;                       // indicator line
     
@@ -35,10 +35,10 @@ private:
     virtual void Calculate(Int_t elem);
 
 public:
-    iCalibTAPSTime();
-    virtual ~iCalibTAPSTime();
+    iCalibTaggerTime();
+    virtual ~iCalibTaggerTime();
 
-    ClassDef(iCalibTAPSTime, 0)   // TAPS time calibration
+    ClassDef(iCalibTaggerTime, 0)   // Tagger time calibration
 };
 
 #endif

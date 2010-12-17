@@ -11,7 +11,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 
-#include "iCalibTAPSTime.hh"
+#include "iCalibTAPSTime.h"
 
 ClassImp(iCalibTAPSTime)
 
