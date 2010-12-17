@@ -119,9 +119,6 @@ TH1* iFileManager::GetHistogram(const Char_t* name)
     // do not keep histograms in memory
     TH1::AddDirectory(kFALSE);
 
-    // user information
-    Info("GetHistogram", "Adding histogram - please wait");
-
     // loop over files
     TIter next(fFiles);
     TFile* f;
@@ -141,7 +138,11 @@ TH1* iFileManager::GetHistogram(const Char_t* name)
             if (h->InheritsFrom("TH1"))
             {
                 // check if it is the first one
-                if (first) hOut = (TH1*) h->Clone();      
+                if (first) 
+                {
+                    hOut = (TH1*) h->Clone();      
+                    first = kFALSE;
+                }
                 else hOut->Add(h);
             }
             else

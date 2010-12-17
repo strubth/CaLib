@@ -62,7 +62,6 @@ namespace iConfig
     extern const Char_t* kCalibDataTableHeader;
      
     // constants
-    extern const Int_t kWalkNpar;
     extern const Double_t kPi0Mass;
 }
 

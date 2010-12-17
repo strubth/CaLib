@@ -81,7 +81,6 @@ namespace iConfig
                     "last_run INT,";
 
     // constants
-    const Int_t kWalkNpar   = 4;
     const Double_t kPi0Mass = 134.9766;
 }
 

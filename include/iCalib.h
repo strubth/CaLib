@@ -83,6 +83,7 @@ public:
     virtual ~iCalib();
     
     virtual void Write();
+    virtual void PrintValues();
 
     void Start(Int_t set);
     void ProcessAll(Int_t msecDelay = 0);
@@ -90,7 +91,6 @@ public:
     void Previous();
     void Next();
     void StopProcessing();
-    void PrintValues();
     
     CalibData_t GetCalibData() const { return fData; }
 

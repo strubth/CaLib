@@ -36,6 +36,7 @@
 // CB calibration classes
 #pragma link C++ class iCalibCBEnergy+;
 #pragma link C++ class iCalibCBTime+;
+#pragma link C++ class iCalibCBTimeWalk+;
 
 // TAPS calibration classes
 #pragma link C++ class iCalibTAPSEnergy+;
