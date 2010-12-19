@@ -4,24 +4,24 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// iFileManager                                                         //
+// TCFileManager                                                        //
 //                                                                      //
 // Histogram building class.                                            //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef IFILEMANAGER_H 
-#define IFILEMANAGER_H
+#ifndef TCFILEMANAGER_H 
+#define TCFILEMANAGER_H
 
 #include "TFile.h"
 #include "TH1.h"
 
-#include "iReadConfig.h"
-#include "iMySQLManager.h"
+#include "TCReadConfig.h"
+#include "TCMySQLManager.h"
 
 
-class iFileManager
+class TCFileManager
 {
 
 private:
@@ -33,14 +33,14 @@ private:
     void BuildFileList();
 
 public:
-    iFileManager() : fInputFilePatt(0), fFiles(0), 
-                     fSet(0), fCalibData(kCALIB_NODATA) { }
-    iFileManager(Int_t set, CalibData_t data);
-    virtual ~iFileManager();
+    TCFileManager() : fInputFilePatt(0), fFiles(0), 
+                      fSet(0), fCalibData(kCALIB_NODATA) { }
+    TCFileManager(Int_t set, CalibData_t data);
+    virtual ~TCFileManager();
 
     TH1* GetHistogram(const Char_t* name);
 
-    ClassDef(iFileManager, 0)  // Histogram building class
+    ClassDef(TCFileManager, 0)  // Histogram building class
 };
 
 #endif

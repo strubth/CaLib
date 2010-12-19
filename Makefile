@@ -12,8 +12,8 @@ O             = obj
 L             = lib
 B             = bin
 
-SRC           = $(wildcard $(S)/i*.cxx) $(S)/Dict.cxx
-INCD          = $(wildcard $(I)/i*.h)
+SRC           = $(wildcard $(S)/TC*.cxx) $(S)/Dict.cxx
+INCD          = $(wildcard $(I)/TC*.h)
 INC           = $(notdir $(INCD))
 OBJD          = $(patsubst $(S)/%.cxx, $(O)/%.o, $(SRC))
 OBJ           = $(notdir $(OBJD))

@@ -4,20 +4,20 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// iFileManager                                                         //
+// TCFileManager                                                        //
 //                                                                      //
 // Histogram building class.                                            //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#include "iFileManager.h"
+#include "TCFileManager.h"
 
-ClassImp(iFileManager)
+ClassImp(TCFileManager)
 
 
 //______________________________________________________________________________
-iFileManager::iFileManager(Int_t set, CalibData_t data)
+TCFileManager::TCFileManager(Int_t set, CalibData_t data)
 {
     // Constructor.
     
@@ -28,20 +28,20 @@ iFileManager::iFileManager(Int_t set, CalibData_t data)
     fFiles->SetOwner(kTRUE);
 
     // read input file pattern
-    if (TString* f = iReadConfig::GetReader()->GetConfig("File.Input.Rootfiles"))
+    if (TString* f = TCReadConfig::GetReader()->GetConfig("File.Input.Rootfiles"))
     {
         fInputFilePatt = *f;
         
         // check file pattern
         if (!fInputFilePatt.Contains("RUN"))
         {
-            Error("iFileManager", "Error in file pattern configuration!");
+            Error("TCFileManager", "Error in file pattern configuration!");
             return;
         }
     }
     else
     {
-        Error("iFileManager", "Could not load input file pattern from configuration!");
+        Error("TCFileManager", "Could not load input file pattern from configuration!");
         return;
     }
 
@@ -50,7 +50,7 @@ iFileManager::iFileManager(Int_t set, CalibData_t data)
 }
 
 //______________________________________________________________________________
-iFileManager::~iFileManager()
+TCFileManager::~TCFileManager()
 {
     // Destructor.
 
@@ -58,13 +58,13 @@ iFileManager::~iFileManager()
 }
 
 //______________________________________________________________________________
-void iFileManager::BuildFileList()
+void TCFileManager::BuildFileList()
 {
     // Build the list of files belonging to the runset.
     
     // get the list of runs for this set
     Int_t nRun;
-    Int_t* runs = iMySQLManager::GetManager()->GetRunsOfSet(fCalibData, fSet, &nRun);
+    Int_t* runs = TCMySQLManager::GetManager()->GetRunsOfSet(fCalibData, fSet, &nRun);
 
     // loop over runs
     for (Int_t i = 0; i < nRun; i++)
@@ -102,7 +102,7 @@ void iFileManager::BuildFileList()
 }
 
 //______________________________________________________________________________
-TH1* iFileManager::GetHistogram(const Char_t* name)
+TH1* TCFileManager::GetHistogram(const Char_t* name)
 {
     // Get the summed-up histogram with name 'name'.
     // NOTE: the histogram has to be destroyed by the caller.

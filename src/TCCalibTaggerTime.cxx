@@ -4,22 +4,22 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// iCalibTaggerTime                                                     //
+// TCCalibTaggerTime                                                    //
 //                                                                      //
 // Calibration module for the Tagger time.                              //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#include "iCalibTaggerTime.h"
+#include "TCCalibTaggerTime.h"
 
-ClassImp(iCalibTaggerTime)
+ClassImp(TCCalibTaggerTime)
 
 
 //______________________________________________________________________________
-iCalibTaggerTime::iCalibTaggerTime()
-    : iCalib("Tagger.Time", "Tagger time calibration", kCALIB_TAGG_T0, 
-              iReadConfig::GetReader()->GetConfigInt("Tagger.Elements"))
+TCCalibTaggerTime::TCCalibTaggerTime()
+    : TCCalib("Tagger.Time", "Tagger time calibration", kCALIB_TAGG_T0, 
+              TCReadConfig::GetReader()->GetConfigInt("Tagger.Elements"))
 {
     // Empty constructor.
 
@@ -30,7 +30,7 @@ iCalibTaggerTime::iCalibTaggerTime()
 }
 
 //______________________________________________________________________________
-iCalibTaggerTime::~iCalibTaggerTime()
+TCCalibTaggerTime::~TCCalibTaggerTime()
 {
     // Destructor. 
     
@@ -38,7 +38,7 @@ iCalibTaggerTime::~iCalibTaggerTime()
 }
 
 //______________________________________________________________________________
-void iCalibTaggerTime::Init()
+void TCCalibTaggerTime::Init()
 {
     // Init the module.
     
@@ -47,18 +47,18 @@ void iCalibTaggerTime::Init()
     fLine = new TLine();
 
     // get histogram name
-    if (!iReadConfig::GetReader()->GetConfig("Tagger.Time.Histo.Fit.Name"))
+    if (!TCReadConfig::GetReader()->GetConfig("Tagger.Time.Histo.Fit.Name"))
     {
         Error("Init", "Histogram name was not found in configuration!");
         return;
     }
-    else fHistoName = *iReadConfig::GetReader()->GetConfig("Tagger.Time.Histo.Fit.Name");
+    else fHistoName = *TCReadConfig::GetReader()->GetConfig("Tagger.Time.Histo.Fit.Name");
     
     // read old parameters
-    iMySQLManager::GetManager()->ReadParameters(fSet, fData, fOldVal, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(fSet, fData, fOldVal, fNelem);
 
     // sum up all files contained in this runset
-    iFileManager f(fSet, fData);
+    TCFileManager f(fSet, fData);
     
     // get the main calibration histogram
     fMainHisto = f.GetHistogram(fHistoName.Data());
@@ -74,10 +74,10 @@ void iCalibTaggerTime::Init()
     fOverviewHisto->SetMarkerColor(4);
     
     // get parameters from configuration file
-    Double_t low = iReadConfig::GetReader()->GetConfigDouble("Tagger.Time.Histo.Overview.Yaxis.Min");
-    Double_t upp = iReadConfig::GetReader()->GetConfigDouble("Tagger.Time.Histo.Overview.Yaxis.Max");
-    fFitHistoXmin = iReadConfig::GetReader()->GetConfigDouble("Tagger.Time.Histo.Fit.Xaxis.Min");
-    fFitHistoXmax = iReadConfig::GetReader()->GetConfigDouble("Tagger.Time.Histo.Fit.Xaxis.Max");
+    Double_t low = TCReadConfig::GetReader()->GetConfigDouble("Tagger.Time.Histo.Overview.Yaxis.Min");
+    Double_t upp = TCReadConfig::GetReader()->GetConfigDouble("Tagger.Time.Histo.Overview.Yaxis.Max");
+    fFitHistoXmin = TCReadConfig::GetReader()->GetConfigDouble("Tagger.Time.Histo.Fit.Xaxis.Min");
+    fFitHistoXmax = TCReadConfig::GetReader()->GetConfigDouble("Tagger.Time.Histo.Fit.Xaxis.Max");
 
     // ajust overview histogram
     if (low || upp) fOverviewHisto->GetYaxis()->SetRangeUser(low, upp);
@@ -93,7 +93,7 @@ void iCalibTaggerTime::Init()
 }
 
 //______________________________________________________________________________
-void iCalibTaggerTime::Fit(Int_t elem)
+void TCCalibTaggerTime::Fit(Int_t elem)
 {
     // Perform the fit of the element 'elem'.
     
@@ -174,7 +174,7 @@ void iCalibTaggerTime::Fit(Int_t elem)
 }
 
 //______________________________________________________________________________
-void iCalibTaggerTime::Calculate(Int_t elem)
+void TCCalibTaggerTime::Calculate(Int_t elem)
 {
     // Calculate the new value of the element 'elem'.
     

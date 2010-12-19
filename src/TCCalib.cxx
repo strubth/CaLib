@@ -4,20 +4,20 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// iCalib                                                               //
+// TCCalib                                                              //
 //                                                                      //
 // Abstract calibration module class.                                   //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#include "iCalib.h"
+#include "TCCalib.h"
 
-ClassImp(iCalib)
+ClassImp(TCCalib)
 
 
 //______________________________________________________________________________
-iCalib::~iCalib()
+TCCalib::~TCCalib()
 {
     // Destructor.
     
@@ -33,7 +33,7 @@ iCalib::~iCalib()
 }
 
 //______________________________________________________________________________
-void iCalib::Start(Int_t set)
+void TCCalib::Start(Int_t set)
 {
     // Start the calibration module for the set 'set'.
     
@@ -92,7 +92,7 @@ void iCalib::Start(Int_t set)
 }
 
 //______________________________________________________________________________
-void iCalib::ProcessElement(Int_t elem)
+void TCCalib::ProcessElement(Int_t elem)
 {
     // Process the element 'elem'.
 
@@ -125,7 +125,7 @@ void iCalib::ProcessElement(Int_t elem)
 }
 
 //______________________________________________________________________________
-void iCalib::ProcessAll(Int_t msecDelay)
+void TCCalib::ProcessAll(Int_t msecDelay)
 {
     // Process all elements using 'msecDelay' milliseconds delay.
     
@@ -134,7 +134,7 @@ void iCalib::ProcessAll(Int_t msecDelay)
     {
         // create timer
         fTimer = new TTimer();
-        fTimer->Connect("Timeout()", "iCalib", this, "Next()");
+        fTimer->Connect("Timeout()", "TCCalib", this, "Next()");
 
         // start automatic iteration
         fTimer->Start(msecDelay);
@@ -147,7 +147,7 @@ void iCalib::ProcessAll(Int_t msecDelay)
 }
 
 //______________________________________________________________________________
-void iCalib::Previous()
+void TCCalib::Previous()
 {
     // Process the previous element.
 
@@ -155,7 +155,7 @@ void iCalib::Previous()
 }
 
 //______________________________________________________________________________
-void iCalib::Next()
+void TCCalib::Next()
 {
     // Process the next element.
     
@@ -163,7 +163,7 @@ void iCalib::Next()
 }
 
 //______________________________________________________________________________
-void iCalib::StopProcessing()
+void TCCalib::StopProcessing()
 {
     // Stop processing when in automatic mode.
     
@@ -177,7 +177,7 @@ void iCalib::StopProcessing()
 }
 
 //______________________________________________________________________________
-void iCalib::PrintValues()
+void TCCalib::PrintValues()
 {
     // Print out the old and new values for all elements.
 
@@ -190,15 +190,15 @@ void iCalib::PrintValues()
 }
 
 //______________________________________________________________________________
-void iCalib::Write()
+void TCCalib::Write()
 {
     // Write the obtained calibration values to the database.
     
     // write values to database
-    iMySQLManager::GetManager()->WriteParameters(fSet, fData, fNewVal, fNelem);
+    TCMySQLManager::GetManager()->WriteParameters(fSet, fData, fNewVal, fNelem);
         
     // save overview picture
-    if (TString* path = iReadConfig::GetReader()->GetConfig("Log.Images"))
+    if (TString* path = TCReadConfig::GetReader()->GetConfig("Log.Images"))
     {
         Char_t tmp[256];
         Char_t date[256];

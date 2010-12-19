@@ -4,22 +4,21 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// iCalibTAPSEnergy                                                     //
+// TCCalibCBEnergy                                                      //
 //                                                                      //
-// Calibration module for the TAPS energy.                              //
+// Calibration module for the CB energy.                                //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#include "iCalibTAPSEnergy.h"
+#include "TCCalibCBEnergy.h"
 
-ClassImp(iCalibTAPSEnergy)
+ClassImp(TCCalibCBEnergy)
 
 
 //______________________________________________________________________________
-iCalibTAPSEnergy::iCalibTAPSEnergy()
-    : iCalib("TAPS.Energy", "TAPS energy calibration", kCALIB_TAPS_LG_E1,
-             iReadConfig::GetReader()->GetConfigInt("TAPS.Elements"))
+TCCalibCBEnergy::TCCalibCBEnergy()
+    : TCCalib("CB.Energy", "CB energy calibration", kCALIB_CB_E1, TCConfig::kMaxCB)
 {
     // Empty constructor.
     
@@ -31,7 +30,7 @@ iCalibTAPSEnergy::iCalibTAPSEnergy()
 }
 
 //______________________________________________________________________________
-iCalibTAPSEnergy::~iCalibTAPSEnergy()
+TCCalibCBEnergy::~TCCalibCBEnergy()
 {
     // Destructor. 
     
@@ -41,7 +40,7 @@ iCalibTAPSEnergy::~iCalibTAPSEnergy()
 }
 
 //______________________________________________________________________________
-void iCalibTAPSEnergy::Init()
+void TCCalibCBEnergy::Init()
 {
     // Init the module.
     
@@ -51,19 +50,19 @@ void iCalibTAPSEnergy::Init()
     fLine = new TLine();
 
     // get histogram name
-    if (!iReadConfig::GetReader()->GetConfig("TAPS.Energy.Histo.Fit.Name"))
+    if (!TCReadConfig::GetReader()->GetConfig("CB.Energy.Histo.Fit.Name"))
     {
         Error("Init", "Histogram name was not found in configuration!");
         return;
     }
-    else fHistoName = *iReadConfig::GetReader()->GetConfig("TAPS.Energy.Histo.Fit.Name");
+    else fHistoName = *TCReadConfig::GetReader()->GetConfig("CB.Energy.Histo.Fit.Name");
     
     // read old parameters
-    iMySQLManager::GetManager()->ReadParameters(fSet, fData, fOldVal, fNelem);
-    //iMySQLManager::GetManager()->ReadParameters(fSet, ECALIB_TAPS_PI0IM, fPi0IMOld, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(fSet, fData, fOldVal, fNelem);
+    //TCMySQLManager::GetManager()->ReadParameters(fSet, ECALIB_CB_PI0IM, fPi0IMOld, fNelem);
 
     // sum up all files contained in this runset
-    iFileManager f(fSet, fData);
+    TCFileManager f(fSet, fData);
     
     // get the main calibration histogram
     fMainHisto = f.GetHistogram(fHistoName.Data());
@@ -79,10 +78,10 @@ void iCalibTAPSEnergy::Init()
     fOverviewHisto->SetMarkerColor(4);
     
     // get parameters from configuration file
-    Double_t low = iReadConfig::GetReader()->GetConfigDouble("TAPS.Energy.Histo.Overview.Yaxis.Min");
-    Double_t upp = iReadConfig::GetReader()->GetConfigDouble("TAPS.Energy.Histo.Overview.Yaxis.Max");
-    fFitHistoXmin = iReadConfig::GetReader()->GetConfigDouble("TAPS.Energy.Histo.Fit.Xaxis.Min");
-    fFitHistoXmax = iReadConfig::GetReader()->GetConfigDouble("TAPS.Energy.Histo.Fit.Xaxis.Max");
+    Double_t low = TCReadConfig::GetReader()->GetConfigDouble("CB.Energy.Histo.Overview.Yaxis.Min");
+    Double_t upp = TCReadConfig::GetReader()->GetConfigDouble("CB.Energy.Histo.Overview.Yaxis.Max");
+    fFitHistoXmin = TCReadConfig::GetReader()->GetConfigDouble("CB.Energy.Histo.Fit.Xaxis.Min");
+    fFitHistoXmax = TCReadConfig::GetReader()->GetConfigDouble("CB.Energy.Histo.Fit.Xaxis.Max");
     
     // ajust overview histogram
     if (low || upp) fOverviewHisto->GetYaxis()->SetRangeUser(low, upp);
@@ -98,7 +97,7 @@ void iCalibTAPSEnergy::Init()
 }
 
 //______________________________________________________________________________
-void iCalibTAPSEnergy::Fit(Int_t elem)
+void TCCalibCBEnergy::Fit(Int_t elem)
 {
     // Perform the fit of the element 'elem'.
     
@@ -125,7 +124,7 @@ void iCalibTAPSEnergy::Fit(Int_t elem)
 
         // estimate background
         Double_t bgPar0, bgPar1;
-        iUtils::FindBackground(fFitHisto, fPi0IMNew[elem], 50, 50, &bgPar0, &bgPar1);
+        TCUtils::FindBackground(fFitHisto, fPi0IMNew[elem], 50, 50, &bgPar0, &bgPar1);
         
         // configure fitting function
         fFitFunc->SetRange(fPi0IMNew[elem] - 70, fPi0IMNew[elem] + 50);
@@ -179,7 +178,7 @@ void iCalibTAPSEnergy::Fit(Int_t elem)
 }
 
 //______________________________________________________________________________
-void iCalibTAPSEnergy::Calculate(Int_t elem)
+void TCCalibCBEnergy::Calculate(Int_t elem)
 {
     // Calculate the new value of the element 'elem'.
     
@@ -195,7 +194,7 @@ void iCalibTAPSEnergy::Calculate(Int_t elem)
         fPi0IMNew[elem] = fPi0IMNew[elem];
 
         // calculate the new offset
-        fNewVal[elem] = fOldVal[elem] * (iConfig::kPi0Mass / fPi0IMNew[elem]);
+        fNewVal[elem] = fOldVal[elem] * (TCConfig::kPi0Mass / fPi0IMNew[elem]);
     
         // if new value is negative take old
         if (fNewVal[elem] < 0) 

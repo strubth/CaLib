@@ -4,40 +4,42 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// iCalibCBTime                                                         //
+// TCCalibTAPSTime                                                      //
 //                                                                      //
-// Calibration module for the CB time.                                  //
+// Calibration module for the TAPS time.                                //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#include "iCalibCBTime.h"
+#include "TCCalibTAPSTime.h"
 
-ClassImp(iCalibCBTime)
+ClassImp(TCCalibTAPSTime)
 
 
 //______________________________________________________________________________
-iCalibCBTime::iCalibCBTime()
-    : iCalib("CB.Time", "CB time calibration", kCALIB_CB_T0, iConfig::kMaxCB)
+TCCalibTAPSTime::TCCalibTAPSTime()
+    : TCCalib("TAPS.Time", "TAPS time calibration", kCALIB_TAPS_T0, 
+              TCReadConfig::GetReader()->GetConfigInt("TAPS.Elements"))
 {
     // Empty constructor.
 
     // init members
-    fTimeGain = 0.11771;
+    fTimeGain = new Double_t[fNelem];
     fMean = 0;
     fLine = 0;
 }
 
 //______________________________________________________________________________
-iCalibCBTime::~iCalibCBTime()
+TCCalibTAPSTime::~TCCalibTAPSTime()
 {
     // Destructor. 
     
+    if (fTimeGain) delete [] fTimeGain;
     if (fLine) delete fLine;
 }
 
 //______________________________________________________________________________
-void iCalibCBTime::Init()
+void TCCalibTAPSTime::Init()
 {
     // Init the module.
     
@@ -46,22 +48,21 @@ void iCalibCBTime::Init()
     fLine = new TLine();
 
     // get histogram name
-    if (!iReadConfig::GetReader()->GetConfig("CB.Time.Histo.Fit.Name"))
+    if (!TCReadConfig::GetReader()->GetConfig("TAPS.Time.Histo.Fit.Name"))
     {
         Error("Init", "Histogram name was not found in configuration!");
         return;
     }
-    else fHistoName = *iReadConfig::GetReader()->GetConfig("CB.Time.Histo.Fit.Name");
+    else fHistoName = *TCReadConfig::GetReader()->GetConfig("TAPS.Time.Histo.Fit.Name");
     
-    // get time gain for CB TDCs
-    if (!iReadConfig::GetReader()->GetConfig("CB.Time.TDCGain")) fTimeGain = 0.11771;
-    else fTimeGain = iReadConfig::GetReader()->GetConfigDouble("CB.Time.TDCGain");
+    // get time gain for TAPS TDCs
+    TCMySQLManager::GetManager()->ReadParameters(fSet, kCALIB_TAPS_T1, fTimeGain, fNelem);
 
     // read old parameters
-    iMySQLManager::GetManager()->ReadParameters(fSet, fData, fOldVal, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(fSet, fData, fOldVal, fNelem);
 
     // sum up all files contained in this runset
-    iFileManager f(fSet, fData);
+    TCFileManager f(fSet, fData);
     
     // get the main calibration histogram
     fMainHisto = f.GetHistogram(fHistoName.Data());
@@ -72,15 +73,15 @@ void iCalibCBTime::Init()
     }
     
     // create the overview histogram
-    fOverviewHisto = new TH1F("Overview", ";Element;Time_{CB-CB} [ns]", fNelem, 0, fNelem);
+    fOverviewHisto = new TH1F("Overview", ";Element;Time_{TAPS-TAPS} [ns]", fNelem, 0, fNelem);
     fOverviewHisto->SetMarkerStyle(2);
     fOverviewHisto->SetMarkerColor(4);
     
     // get parameters from configuration file
-    Double_t low = iReadConfig::GetReader()->GetConfigDouble("CB.Time.Histo.Overview.Yaxis.Min");
-    Double_t upp = iReadConfig::GetReader()->GetConfigDouble("CB.Time.Histo.Overview.Yaxis.Max");
-    fFitHistoXmin = iReadConfig::GetReader()->GetConfigDouble("CB.Time.Histo.Fit.Xaxis.Min");
-    fFitHistoXmax = iReadConfig::GetReader()->GetConfigDouble("CB.Time.Histo.Fit.Xaxis.Max");
+    Double_t low = TCReadConfig::GetReader()->GetConfigDouble("TAPS.Time.Histo.Overview.Yaxis.Min");
+    Double_t upp = TCReadConfig::GetReader()->GetConfigDouble("TAPS.Time.Histo.Overview.Yaxis.Max");
+    fFitHistoXmin = TCReadConfig::GetReader()->GetConfigDouble("TAPS.Time.Histo.Fit.Xaxis.Min");
+    fFitHistoXmax = TCReadConfig::GetReader()->GetConfigDouble("TAPS.Time.Histo.Fit.Xaxis.Max");
 
     // ajust overview histogram
     if (low || upp) fOverviewHisto->GetYaxis()->SetRangeUser(low, upp);
@@ -96,7 +97,7 @@ void iCalibCBTime::Init()
 }
 
 //______________________________________________________________________________
-void iCalibCBTime::Fit(Int_t elem)
+void TCCalibTAPSTime::Fit(Int_t elem)
 {
     // Perform the fit of the element 'elem'.
     
@@ -109,7 +110,7 @@ void iCalibCBTime::Fit(Int_t elem)
     fFitHisto = (TH1D*) h2->ProjectionX(tmp, elem+1, elem+1);
     
     // init variables
-    Double_t factor = 3.0;
+    Double_t factor = 2.0;
     Double_t peakval = 0;
     
     // check for sufficient statistics
@@ -128,7 +129,7 @@ void iCalibCBTime::Fit(Int_t elem)
         fMean = peakval;
 
         // first iteration
-        fFitFunc->SetRange(peakval - 3.8, peakval + 3.8);
+        fFitFunc->SetRange(peakval - 0.8, peakval + 0.8);
         fFitFunc->SetParameters(fFitHisto->GetMaximum(), peakval, 0.5);
         fFitHisto->Fit(fFitFunc, "+R0Q");
 
@@ -176,7 +177,7 @@ void iCalibCBTime::Fit(Int_t elem)
 }
 
 //______________________________________________________________________________
-void iCalibCBTime::Calculate(Int_t elem)
+void TCCalibTAPSTime::Calculate(Int_t elem)
 {
     // Calculate the new value of the element 'elem'.
     
@@ -189,11 +190,11 @@ void iCalibCBTime::Calculate(Int_t elem)
         if (fLine->GetX1() != fMean) fMean = fLine->GetX1();
 
         // calculate the new offset
-        fNewVal[elem] = fOldVal[elem] + fMean / fTimeGain;
+        fNewVal[elem] = fOldVal[elem] + fMean / fTimeGain[elem];
     
         // update overview histogram
         fOverviewHisto->SetBinContent(elem + 1, fMean);
-        fOverviewHisto->SetBinError(elem + 1, 0.0000001);
+        fOverviewHisto->SetBinError(elem + 1, 0.000001);
     }
     else
     {   
@@ -203,9 +204,9 @@ void iCalibCBTime::Calculate(Int_t elem)
     }
 
     // user information
-    printf("Element: %03d    Peak: %12.8f    "
+    printf("Element: %03d    Peak: %12.8f    Gain: %12.8f    "
            "old offset: %12.8f    new offset: %12.8f",
-           elem, fMean, fOldVal[elem], fNewVal[elem]);
+           elem, fMean, fTimeGain[elem], fOldVal[elem], fNewVal[elem]);
     if (unchanged) printf("    -> unchanged");
     printf("\n");
 }   

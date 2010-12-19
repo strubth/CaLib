@@ -4,31 +4,30 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// iCalibCBEnergy                                                       //
+// TCCalibTaggerTime                                                    //
 //                                                                      //
-// Calibration module for the CB energy.                                //
+// Calibration module for the Tagger time.                              //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef ICALIBCBENERGY_H
-#define ICALIBCBENERGY_H
+#ifndef TCCALIBTAGGERTIME_H
+#define TCCALIBTAGGERTIME_H
 
 #include "TCanvas.h"
 #include "TH2.h"
 #include "TLine.h"
 
-#include "iCalib.h"
-#include "iUtils.h"
-#include "iFileManager.h"
+#include "TCCalib.h"
+#include "TCFileManager.h"
 
 
-class iCalibCBEnergy : public iCalib
+class TCCalibTaggerTime : public TCCalib
 {
 
 private:
-    Double_t* fPi0IMOld;                // old pi0 invariant mass values
-    Double_t* fPi0IMNew;                // old pi0 invariant mass values
+    Double_t fTimeGain;                 // Tagger TDC gain
+    Double_t fMean;                     // mean time position
     TLine* fLine;                       // indicator line
     
     virtual void Init();
@@ -36,10 +35,10 @@ private:
     virtual void Calculate(Int_t elem);
 
 public:
-    iCalibCBEnergy();
-    virtual ~iCalibCBEnergy();
+    TCCalibTaggerTime();
+    virtual ~TCCalibTaggerTime();
 
-    ClassDef(iCalibCBEnergy, 0)   // CB energy calibration
+    ClassDef(TCCalibTaggerTime, 0)   // Tagger time calibration
 };
 
 #endif

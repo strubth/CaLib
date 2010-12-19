@@ -4,24 +4,24 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// iMySQLManager                                                        //
+// TCMySQLManager                                                       //
 //                                                                      //
 // This class handles all the communication with the MySQL server.      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#include "iMySQLManager.h"
+#include "TCMySQLManager.h"
 
-ClassImp(iMySQLManager)
+ClassImp(TCMySQLManager)
 
 
 // init static class members
-iMySQLManager* iMySQLManager::fgMySQLManager = 0;
+TCMySQLManager* TCMySQLManager::fgMySQLManager = 0;
 
 
 //______________________________________________________________________________
-iMySQLManager::iMySQLManager()
+TCMySQLManager::TCMySQLManager()
 {
     // Constructor.
 
@@ -34,41 +34,41 @@ iMySQLManager::iMySQLManager()
     TString* strDBPass;
 
     // get database hostname
-    if (!(strDBHost = iReadConfig::GetReader()->GetConfig("DB.Host")))
+    if (!(strDBHost = TCReadConfig::GetReader()->GetConfig("DB.Host")))
     {
-        Error("iMySQLManager", "Database host not included in configuration file!");
+        Error("TCMySQLManager", "Database host not included in configuration file!");
         return;
     }
 
     // get database name
-    if (!(strDBName = iReadConfig::GetReader()->GetConfig("DB.Name")))
+    if (!(strDBName = TCReadConfig::GetReader()->GetConfig("DB.Name")))
     {
-        Error("iMySQLManager", "Database name not included in configuration file!");
+        Error("TCMySQLManager", "Database name not included in configuration file!");
         return;
     }
 
     // get database user
-    if (!(strDBUser = iReadConfig::GetReader()->GetConfig("DB.User")))
+    if (!(strDBUser = TCReadConfig::GetReader()->GetConfig("DB.User")))
     {
-        Error("iMySQLManager", "Database user not included in configuration file!");
+        Error("TCMySQLManager", "Database user not included in configuration file!");
         return;
     }
     
     // get database password
-    if (!(strDBPass = iReadConfig::GetReader()->GetConfig("DB.Pass")))
+    if (!(strDBPass = TCReadConfig::GetReader()->GetConfig("DB.Pass")))
     {
-        Error("iMySQLManager", "Database password not included in configuration file!");
+        Error("TCMySQLManager", "Database password not included in configuration file!");
         return;
     }
 
     // get calibration
-    if (TString* calib = iReadConfig::GetReader()->GetConfig("DB.Calibration"))
+    if (TString* calib = TCReadConfig::GetReader()->GetConfig("DB.Calibration"))
     {
         fCalibration = *calib;
     }
     else
     {
-        Error("iMySQLManager", "Calibration name not included in configuration file!");
+        Error("TCMySQLManager", "Calibration name not included in configuration file!");
         return;
     }
     
@@ -78,25 +78,25 @@ iMySQLManager::iMySQLManager()
     fDB = TSQLServer::Connect(szMySQL, strDBUser->Data(), strDBPass->Data());
     if (!fDB)
     {
-        Error("iMySQLManager", "Cannot connect to database %s on %s@%s!\n",
+        Error("TCMySQLManager", "Cannot connect to database %s on %s@%s!\n",
                strDBName->Data(), strDBUser->Data(), strDBHost->Data());
         return;
     }
     else if (fDB->IsZombie())
     {
-        Error("iMySQLManager", "Cannot connect to database %s on %s@%s!\n",
+        Error("TCMySQLManager", "Cannot connect to database %s on %s@%s!\n",
                strDBName->Data(), strDBUser->Data(), strDBHost->Data());
         return;
     }
     else
     {
-        Info("iMySQLManager", "Connected to database %s on %s@%s!\n",
+        Info("TCMySQLManager", "Connected to database %s on %s@%s!\n",
                strDBName->Data(), strDBUser->Data(), strDBHost->Data());
     }
 }
 
 //______________________________________________________________________________
-iMySQLManager::~iMySQLManager()
+TCMySQLManager::~TCMySQLManager()
 {
     // Destructor.
 
@@ -105,7 +105,7 @@ iMySQLManager::~iMySQLManager()
 }
 
 //______________________________________________________________________________
-TSQLResult* iMySQLManager::SendQuery(const Char_t* query)
+TSQLResult* TCMySQLManager::SendQuery(const Char_t* query)
 {
     // Send a query to the database and return the result.
 
@@ -121,7 +121,7 @@ TSQLResult* iMySQLManager::SendQuery(const Char_t* query)
 }
 
 //______________________________________________________________________________
-Bool_t iMySQLManager::IsConnected()
+Bool_t TCMySQLManager::IsConnected()
 {
     // Check if the connection to the database is open.
 
@@ -135,16 +135,16 @@ Bool_t iMySQLManager::IsConnected()
 }
 
 //______________________________________________________________________________
-void iMySQLManager::SearchTable(CalibData_t data, Char_t* outTableName)
+void TCMySQLManager::SearchTable(CalibData_t data, Char_t* outTableName)
 {
     // Search the table name of the calibration quantity 'data' and write it
     // to 'outTableName'.
 
-    strcpy(outTableName, iConfig::kCalibDataTableNames[(Int_t)data]);
+    strcpy(outTableName, TCConfig::kCalibDataTableNames[(Int_t)data]);
 }
 
 //______________________________________________________________________________
-Int_t iMySQLManager::GetNsets(CalibData_t data)
+Int_t TCMySQLManager::GetNsets(CalibData_t data)
 {
     // Get the number of runsets for the calibration data 'data'.
 
@@ -179,7 +179,7 @@ Int_t iMySQLManager::GetNsets(CalibData_t data)
 }
 
 //______________________________________________________________________________
-Long64_t iMySQLManager::GetUnixTimeOfRun(Int_t run)
+Long64_t TCMySQLManager::GetUnixTimeOfRun(Int_t run)
 {
     // Return the Unix time of the run 'run'.
 
@@ -187,7 +187,7 @@ Long64_t iMySQLManager::GetUnixTimeOfRun(Int_t run)
 
     // create the query
     sprintf(query,
-            "SELECT UNIX_TIMESTAMP(date) FROM %s WHERE run = %d", iConfig::kCalibMainTableName, run);
+            "SELECT UNIX_TIMESTAMP(date) FROM %s WHERE run = %d", TCConfig::kCalibMainTableName, run);
 
     // read from database
     TSQLResult* res = SendQuery(query);
@@ -211,7 +211,7 @@ Long64_t iMySQLManager::GetUnixTimeOfRun(Int_t run)
 }
 
 //______________________________________________________________________________
-Int_t iMySQLManager::GetFirstRunOfSet(CalibData_t data, Int_t set)
+Int_t TCMySQLManager::GetFirstRunOfSet(CalibData_t data, Int_t set)
 {
     // Get the first run of the runsets 'set' for the calibration data 'data'.
 
@@ -250,7 +250,7 @@ Int_t iMySQLManager::GetFirstRunOfSet(CalibData_t data, Int_t set)
 }
 
 //______________________________________________________________________________
-Int_t iMySQLManager::GetLastRunOfSet(CalibData_t data, Int_t set)
+Int_t TCMySQLManager::GetLastRunOfSet(CalibData_t data, Int_t set)
 {
     // Get the last run of the runsets 'set' for the calibration data 'data'.
 
@@ -289,7 +289,7 @@ Int_t iMySQLManager::GetLastRunOfSet(CalibData_t data, Int_t set)
 }
 
 //______________________________________________________________________________
-Int_t* iMySQLManager::GetRunsOfSet(CalibData_t data, Int_t set, Int_t* outNruns = 0)
+Int_t* TCMySQLManager::GetRunsOfSet(CalibData_t data, Int_t set, Int_t* outNruns = 0)
 {
     // Return the list of runs that are in the set 'set' of the calibration data 'data'.
     // If 'outNruns' is not zero the number of runs will be written to this variable.
@@ -341,8 +341,8 @@ Int_t* iMySQLManager::GetRunsOfSet(CalibData_t data, Int_t set, Int_t* outNruns 
             "WHERE date >= ( SELECT date FROM %s WHERE run = %d) "
             "AND date <= ( SELECT date FROM %s WHERE run = %d) "
             "ORDER by run,date",
-            iConfig::kCalibMainTableName, iConfig::kCalibMainTableName, first_run, 
-            iConfig::kCalibMainTableName, last_run);
+            TCConfig::kCalibMainTableName, TCConfig::kCalibMainTableName, first_run, 
+            TCConfig::kCalibMainTableName, last_run);
 
     // read from database
     res = SendQuery(query);
@@ -376,7 +376,7 @@ Int_t* iMySQLManager::GetRunsOfSet(CalibData_t data, Int_t set, Int_t* outNruns 
 }
 
 //______________________________________________________________________________
-void iMySQLManager::ReadParameters(Int_t set, CalibData_t data, Double_t* par, Int_t length)
+void TCMySQLManager::ReadParameters(Int_t set, CalibData_t data, Double_t* par, Int_t length)
 {
     // Read 'length' parameters of the 'set'-th set of the calibration data 'data'
     // from the database to the value array 'par'.
@@ -427,7 +427,7 @@ void iMySQLManager::ReadParameters(Int_t set, CalibData_t data, Double_t* par, I
 }
 
 //______________________________________________________________________________
-void iMySQLManager::WriteParameters(Int_t set, CalibData_t data, Double_t* par, Int_t length)
+void TCMySQLManager::WriteParameters(Int_t set, CalibData_t data, Double_t* par, Int_t length)
 {
     // Write 'length' parameters of the 'set'-th set of the calibration data 'data'
     // from the value array 'par' to the database.
@@ -496,13 +496,13 @@ void iMySQLManager::WriteParameters(Int_t set, CalibData_t data, Double_t* par, 
 }
 
 //______________________________________________________________________________
-void iMySQLManager::InitDatabase()
+void TCMySQLManager::InitDatabase()
 {
     // Init a new CaLib database on a MySQL server.
     
     // get database configuration
-    TString strDBHost = *iReadConfig::GetReader()->GetConfig("DB.Host");
-    TString strDBName = *iReadConfig::GetReader()->GetConfig("DB.Name");
+    TString strDBHost = *TCReadConfig::GetReader()->GetConfig("DB.Host");
+    TString strDBName = *TCReadConfig::GetReader()->GetConfig("DB.Name");
     
     // ask for user confirmation
     Char_t answer[256];
@@ -521,44 +521,44 @@ void iMySQLManager::InitDatabase()
     CreateMainTable();
 
     // create TAGG tables
-    CreateDataTable(kCALIB_TAGG_T0, iConfig::kMaxTAGGER);
+    CreateDataTable(kCALIB_TAGG_T0, TCConfig::kMaxTAGGER);
 
     // create CB tables
-    CreateDataTable(kCALIB_CB_T0, iConfig::kMaxCB);
-    CreateDataTable(kCALIB_CB_WALK0, iConfig::kMaxCB);
-    CreateDataTable(kCALIB_CB_WALK1, iConfig::kMaxCB);
-    CreateDataTable(kCALIB_CB_WALK2, iConfig::kMaxCB);
-    CreateDataTable(kCALIB_CB_WALK3, iConfig::kMaxCB);
-    CreateDataTable(kCALIB_CB_E1, iConfig::kMaxCB);
-    CreateDataTable(kCALIB_CB_EQUAD0, iConfig::kMaxCB);
-    CreateDataTable(kCALIB_CB_EQUAD1, iConfig::kMaxCB);
-    CreateDataTable(kCALIB_CB_PI0IM, iConfig::kMaxCB);
+    CreateDataTable(kCALIB_CB_T0, TCConfig::kMaxCB);
+    CreateDataTable(kCALIB_CB_WALK0, TCConfig::kMaxCB);
+    CreateDataTable(kCALIB_CB_WALK1, TCConfig::kMaxCB);
+    CreateDataTable(kCALIB_CB_WALK2, TCConfig::kMaxCB);
+    CreateDataTable(kCALIB_CB_WALK3, TCConfig::kMaxCB);
+    CreateDataTable(kCALIB_CB_E1, TCConfig::kMaxCB);
+    CreateDataTable(kCALIB_CB_EQUAD0, TCConfig::kMaxCB);
+    CreateDataTable(kCALIB_CB_EQUAD1, TCConfig::kMaxCB);
+    CreateDataTable(kCALIB_CB_PI0IM, TCConfig::kMaxCB);
 
     // create TAPS tables
-    CreateDataTable(kCALIB_TAPS_T0, iConfig::kMaxTAPS);
-    CreateDataTable(kCALIB_TAPS_T1, iConfig::kMaxTAPS);
-    CreateDataTable(kCALIB_TAPS_LG_E0, iConfig::kMaxTAPS);
-    CreateDataTable(kCALIB_TAPS_LG_E1, iConfig::kMaxTAPS);
-    CreateDataTable(kCALIB_TAPS_SG_E0, iConfig::kMaxTAPS);
-    CreateDataTable(kCALIB_TAPS_SG_E1, iConfig::kMaxTAPS);
-    CreateDataTable(kCALIB_TAPS_EQUAD0, iConfig::kMaxTAPS);
-    CreateDataTable(kCALIB_TAPS_EQUAD1, iConfig::kMaxTAPS);
-    CreateDataTable(kCALIB_TAPS_PI0IM, iConfig::kMaxTAPS);
+    CreateDataTable(kCALIB_TAPS_T0, TCConfig::kMaxTAPS);
+    CreateDataTable(kCALIB_TAPS_T1, TCConfig::kMaxTAPS);
+    CreateDataTable(kCALIB_TAPS_LG_E0, TCConfig::kMaxTAPS);
+    CreateDataTable(kCALIB_TAPS_LG_E1, TCConfig::kMaxTAPS);
+    CreateDataTable(kCALIB_TAPS_SG_E0, TCConfig::kMaxTAPS);
+    CreateDataTable(kCALIB_TAPS_SG_E1, TCConfig::kMaxTAPS);
+    CreateDataTable(kCALIB_TAPS_EQUAD0, TCConfig::kMaxTAPS);
+    CreateDataTable(kCALIB_TAPS_EQUAD1, TCConfig::kMaxTAPS);
+    CreateDataTable(kCALIB_TAPS_PI0IM, TCConfig::kMaxTAPS);
 
     // create PID tables
-    CreateDataTable(kCALIB_PID_T0, iConfig::kMaxPID);
-    CreateDataTable(kCALIB_PID_E0, iConfig::kMaxPID);
-    CreateDataTable(kCALIB_PID_E1, iConfig::kMaxPID);
+    CreateDataTable(kCALIB_PID_T0, TCConfig::kMaxPID);
+    CreateDataTable(kCALIB_PID_E0, TCConfig::kMaxPID);
+    CreateDataTable(kCALIB_PID_E1, TCConfig::kMaxPID);
 
     // create VETO tables
-    CreateDataTable(kCALIB_VETO_T0, iConfig::kMaxVETO); 
-    CreateDataTable(kCALIB_VETO_T1, iConfig::kMaxVETO);
-    CreateDataTable(kCALIB_VETO_E0, iConfig::kMaxVETO);
-    CreateDataTable(kCALIB_VETO_E1, iConfig::kMaxVETO);
+    CreateDataTable(kCALIB_VETO_T0, TCConfig::kMaxVETO); 
+    CreateDataTable(kCALIB_VETO_T1, TCConfig::kMaxVETO);
+    CreateDataTable(kCALIB_VETO_E0, TCConfig::kMaxVETO);
+    CreateDataTable(kCALIB_VETO_E1, TCConfig::kMaxVETO);
 }
 
 //______________________________________________________________________________
-void iMySQLManager::CreateMainTable()
+void TCMySQLManager::CreateMainTable()
 {
     // Create the main table for CaLib.
     
@@ -566,17 +566,17 @@ void iMySQLManager::CreateMainTable()
     Info("CreateMainTable", "Creating main CaLib table");
 
     // delete the old table if it exists
-    TSQLResult* res = SendQuery(TString::Format("DROP TABLE IF EXISTS %s", iConfig::kCalibMainTableName).Data());
+    TSQLResult* res = SendQuery(TString::Format("DROP TABLE IF EXISTS %s", TCConfig::kCalibMainTableName).Data());
     delete res;
 
     // create the table
     res = SendQuery(TString::Format("CREATE TABLE %s ( %s )", 
-                                     iConfig::kCalibMainTableName, iConfig::kCalibMainTableFormat).Data());
+                                     TCConfig::kCalibMainTableName, TCConfig::kCalibMainTableFormat).Data());
     delete res;
 }
 
 //______________________________________________________________________________
-void iMySQLManager::CreateDataTable(CalibData_t data, Int_t nElem)
+void TCMySQLManager::CreateDataTable(CalibData_t data, Int_t nElem)
 {
     // Create the table for the calibration data 'data' for 'nElem' elements.
     
@@ -593,7 +593,7 @@ void iMySQLManager::CreateDataTable(CalibData_t data, Int_t nElem)
 
     // prepare CREATE TABLE query
     TString query;
-    query.Append(TString::Format("CREATE TABLE %s ( %s ", table, iConfig::kCalibDataTableHeader));
+    query.Append(TString::Format("CREATE TABLE %s ( %s ", table, TCConfig::kCalibDataTableHeader));
 
     // loop over elements
     for (Int_t j = 0; j < nElem; j++)
@@ -611,7 +611,7 @@ void iMySQLManager::CreateDataTable(CalibData_t data, Int_t nElem)
 }
 
 //______________________________________________________________________________
-TList* iMySQLManager::GetAllTargets()
+TList* TCMySQLManager::GetAllTargets()
 {
     // Return a list of TStrings containing all targets in the database.
     // If no targets were found 0 is returned.
@@ -620,7 +620,7 @@ TList* iMySQLManager::GetAllTargets()
     Char_t query[256];
 
     // get all targets
-    sprintf(query, "SELECT DISTINCT target from %s", iConfig::kCalibMainTableName);
+    sprintf(query, "SELECT DISTINCT target from %s", TCConfig::kCalibMainTableName);
     TSQLResult* res = SendQuery(query);
 
     // count rows

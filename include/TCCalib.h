@@ -4,15 +4,15 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// iCalib                                                               //
+// TCCalib                                                              //
 //                                                                      //
 // Abstract calibration module class.                                   //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef ICALIB_H
-#define ICALIB_H
+#ifndef TCCALIB_H
+#define TCCALIB_H
 
 #include "TString.h"
 #include "TError.h"
@@ -24,11 +24,11 @@
 #include "TTimeStamp.h"
 #include "TStyle.h"
 
-#include "iMySQLManager.h"
-#include "iReadConfig.h"
+#include "TCMySQLManager.h"
+#include "TCReadConfig.h"
 
 
-class iCalib : public TNamed
+class TCCalib : public TNamed
 {
 
 protected:
@@ -58,29 +58,29 @@ protected:
     virtual void Calculate(Int_t elem) = 0;
 
 public:
-    iCalib() : TNamed(),
-               fData(kCALIB_NODATA), 
-               fSet(0), fHistoName(), 
-               fNelem(0), fCurrentElem(0),
-               fOldVal(0), fNewVal(0),
-               fMainHisto(0), fFitHisto(0), fFitFunc(0),
-               fFitHistoXmin(0), fFitHistoXmax(0),
-               fOverviewHisto(0),
-               fCanvasFit(0), fCanvasResult(0), 
-               fTimer(0) { }
-    iCalib(const Char_t* name, const Char_t* title, CalibData_t data,
-           Int_t nElem) 
+    TCCalib() : TNamed(),
+                fData(kCALIB_NODATA), 
+                fSet(0), fHistoName(), 
+                fNelem(0), fCurrentElem(0),
+                fOldVal(0), fNewVal(0),
+                fMainHisto(0), fFitHisto(0), fFitFunc(0),
+                fFitHistoXmin(0), fFitHistoXmax(0),
+                fOverviewHisto(0),
+                fCanvasFit(0), fCanvasResult(0), 
+                fTimer(0) { }
+    TCCalib(const Char_t* name, const Char_t* title, CalibData_t data,
+            Int_t nElem) 
         : TNamed(name, title),
-          fData(data), 
-          fSet(0), fHistoName(), 
-          fNelem(nElem), fCurrentElem(0),
-          fOldVal(0), fNewVal(0),
-          fMainHisto(0), fFitHisto(0), fFitFunc(0),
-          fFitHistoXmin(0), fFitHistoXmax(0),
-          fOverviewHisto(0),
-          fCanvasFit(0), fCanvasResult(0), 
-          fTimer(0) { }
-    virtual ~iCalib();
+           fData(data), 
+           fSet(0), fHistoName(), 
+           fNelem(nElem), fCurrentElem(0),
+           fOldVal(0), fNewVal(0),
+           fMainHisto(0), fFitHisto(0), fFitFunc(0),
+           fFitHistoXmin(0), fFitHistoXmax(0),
+           fOverviewHisto(0),
+           fCanvasFit(0), fCanvasResult(0), 
+           fTimer(0) { }
+    virtual ~TCCalib();
     
     virtual void Write();
     virtual void PrintValues();
@@ -94,7 +94,7 @@ public:
     
     CalibData_t GetCalibData() const { return fData; }
 
-    ClassDef(iCalib, 0)         // Base calibration module class
+    ClassDef(TCCalib, 0)         // Base calibration module class
 };
 
 #endif

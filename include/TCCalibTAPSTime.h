@@ -4,29 +4,29 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// iCalibCBTime                                                         //
+// TCCalibTAPSTime                                                      //
 //                                                                      //
-// Calibration module for the CB time.                                  //
+// Calibration module for the TAPS time.                                //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef ICALIBCBTIME_H
-#define ICALIBCBTIME_H
+#ifndef TCCALIBTAPSTIME_H
+#define TCCALIBTAPSTIME_H
 
 #include "TCanvas.h"
 #include "TH2.h"
 #include "TLine.h"
 
-#include "iCalib.h"
-#include "iFileManager.h"
+#include "TCCalib.h"
+#include "TCFileManager.h"
 
 
-class iCalibCBTime : public iCalib
+class TCCalibTAPSTime : public TCCalib
 {
 
 private:
-    Double_t fTimeGain;                 // CB TDC gain
+    Double_t* fTimeGain;                // TAPS TDC gain
     Double_t fMean;                     // mean time position
     TLine* fLine;                       // indicator line
     
@@ -35,10 +35,10 @@ private:
     virtual void Calculate(Int_t elem);
 
 public:
-    iCalibCBTime();
-    virtual ~iCalibCBTime();
+    TCCalibTAPSTime();
+    virtual ~TCCalibTAPSTime();
 
-    ClassDef(iCalibCBTime, 0)   // CB time calibration
+    ClassDef(TCCalibTAPSTime, 0)   // TAPS time calibration
 };
 
 #endif

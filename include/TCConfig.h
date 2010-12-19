@@ -4,15 +4,15 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// iConfig                                                              //
+// TCConfig                                                             //
 //                                                                      //
 // CaLib configuration namespace                                        //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef ICONFIG_H
-#define ICONFIG_H
+#ifndef TCCONFIG_H
+#define TCCONFIG_H
 
 #include "Rtypes.h"
 
@@ -45,7 +45,7 @@ enum ECalibData
 typedef ECalibData CalibData_t;
 
 
-namespace iConfig
+namespace TCConfig
 {   
     // detector elements
     extern const Int_t kMaxCrystal;

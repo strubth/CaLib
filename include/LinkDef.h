@@ -26,24 +26,24 @@
 #pragma link C++ typedef CalibData_t;
 
 // common classes
-#pragma link C++ namespace iConfig;
-#pragma link C++ namespace iUtils;
-#pragma link C++ class iFileManager+;
-#pragma link C++ class iReadConfig+;
-#pragma link C++ class iMySQLManager+;
-#pragma link C++ class iCalib+;
+#pragma link C++ namespace TCConfig;
+#pragma link C++ namespace TCUtils;
+#pragma link C++ class TCFileManager+;
+#pragma link C++ class TCReadConfig+;
+#pragma link C++ class TCMySQLManager+;
+#pragma link C++ class TCCalib+;
 
 // CB calibration classes
-#pragma link C++ class iCalibCBEnergy+;
-#pragma link C++ class iCalibCBTime+;
-#pragma link C++ class iCalibCBTimeWalk+;
+#pragma link C++ class TCCalibCBEnergy+;
+#pragma link C++ class TCCalibCBTime+;
+#pragma link C++ class TCCalibCBTimeWalk+;
 
 // TAPS calibration classes
-#pragma link C++ class iCalibTAPSEnergy+;
-#pragma link C++ class iCalibTAPSTime+;
+#pragma link C++ class TCCalibTAPSEnergy+;
+#pragma link C++ class TCCalibTAPSTime+;
 
 // Tagger calibration classes
-#pragma link C++ class iCalibTaggerTime+;
+#pragma link C++ class TCCalibTaggerTime+;
 
 
 #endif

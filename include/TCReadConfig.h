@@ -4,15 +4,15 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// iReadConfig                                                          //
+// TCReadConfig                                                         //
 //                                                                      //
 // Read CaLib configuration files.                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef IREADCONFIG_H
-#define IREADCONFIG_H
+#ifndef TCREADCONFIG_H
+#define TCREADCONFIG_H
 
 #include <fstream>
 
@@ -22,7 +22,7 @@
 #include "TError.h"
 
 
-class iConfigElement : public TObject
+class TCConfigElement : public TObject
 {
 
 private:
@@ -30,8 +30,8 @@ private:
     TString value;              // config value
 
 public:
-    iConfigElement(const Char_t* k, const Char_t* v) : key(k), value(v) {  } 
-    virtual ~iConfigElement() { }
+    TCConfigElement(const Char_t* k, const Char_t* v) : key(k), value(v) {  } 
+    virtual ~TCConfigElement() { }
     TString* GetKey() { return &key; }
     TString* GetValue() { return &value; }
     virtual const Char_t* GetName() const { return key.Data(); }
@@ -39,7 +39,7 @@ public:
 };
 
 
-class iReadConfig
+class TCReadConfig
 {
 
 private:
@@ -47,26 +47,26 @@ private:
     TString fCaLibPath;             // path of the calib source
 
     void ReadConfigFile(const Char_t* cfgFile);
-    iConfigElement* CreateConfigElement(TString line);
+    TCConfigElement* CreateConfigElement(TString line);
     
-    static iReadConfig* fgReadConfig;
+    static TCReadConfig* fgReadConfig;
 
 public:
-    iReadConfig();
-    iReadConfig(Char_t* cfgFile);
-    virtual ~iReadConfig();
+    TCReadConfig();
+    TCReadConfig(Char_t* cfgFile);
+    virtual ~TCReadConfig();
 
     TString* GetConfig(TString configKey);
     Int_t GetConfigInt(TString configKey);
     Double_t GetConfigDouble(TString configKey);
     
-    static iReadConfig* GetReader() 
+    static TCReadConfig* GetReader() 
     {
-        if (!fgReadConfig) fgReadConfig = new iReadConfig();
+        if (!fgReadConfig) fgReadConfig = new TCReadConfig();
         return fgReadConfig; 
     }
 
-    ClassDef(iReadConfig, 0)   // Configuration file reader
+    ClassDef(TCReadConfig, 0)   // Configuration file reader
 };
 
 #endif

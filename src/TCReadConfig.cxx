@@ -4,24 +4,24 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// iReadConfig                                                          //
+// TCReadConfig                                                         //
 //                                                                      //
 // Read CaLib configuration files.                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#include "iReadConfig.h"
+#include "TCReadConfig.h"
 
-ClassImp(iReadConfig)
+ClassImp(TCReadConfig)
 
 
 // init static class members
-iReadConfig* iReadConfig::fgReadConfig = 0;
+TCReadConfig* TCReadConfig::fgReadConfig = 0;
 
 
 //______________________________________________________________________________
-iReadConfig::iReadConfig()
+TCReadConfig::TCReadConfig()
 {
     // Constructor. 
     
@@ -39,7 +39,7 @@ iReadConfig::iReadConfig()
 }
 
 //______________________________________________________________________________
-iReadConfig::iReadConfig(Char_t* cfgFile)
+TCReadConfig::TCReadConfig(Char_t* cfgFile)
 {   
     // Constructor using the configuration file 'cfgFile'.
     
@@ -48,7 +48,7 @@ iReadConfig::iReadConfig(Char_t* cfgFile)
 }
 
 //______________________________________________________________________________
-iReadConfig::~iReadConfig()
+TCReadConfig::~TCReadConfig()
 {
     // Destructor.
 
@@ -56,7 +56,7 @@ iReadConfig::~iReadConfig()
 }
 
 //______________________________________________________________________________
-void iReadConfig::ReadConfigFile(const Char_t* cfgFile)
+void TCReadConfig::ReadConfigFile(const Char_t* cfgFile)
 {
     // Read the configuration file 'cfgFile'.
 
@@ -88,7 +88,7 @@ void iReadConfig::ReadConfigFile(const Char_t* cfgFile)
             else
             {   
                 // extract and save configuration element
-                iConfigElement* elem = CreateConfigElement(line);
+                TCConfigElement* elem = CreateConfigElement(line);
                 
                 // check element
                 if (!elem) continue;
@@ -107,7 +107,7 @@ void iReadConfig::ReadConfigFile(const Char_t* cfgFile)
 }
 
 //______________________________________________________________________________
-iConfigElement* iReadConfig::CreateConfigElement(TString line)
+TCConfigElement* TCReadConfig::CreateConfigElement(TString line)
 {       
     // Create and return a configuration element (key: value) using the string
     // 'line'.
@@ -129,17 +129,17 @@ iConfigElement* iReadConfig::CreateConfigElement(TString line)
     if (key == "") return 0;
 
     // create the configuration element
-    return new iConfigElement(key.Data(), value.Data());
+    return new TCConfigElement(key.Data(), value.Data());
 }
 
 //______________________________________________________________________________
-TString* iReadConfig::GetConfig(TString configKey)
+TString* TCReadConfig::GetConfig(TString configKey)
 {   
     // Get the configuration value of the configuration key 'configKey'.
     // Return 0 if no such element exists.
     
     // search the configuration element
-    iConfigElement* elem = (iConfigElement*) fConfigTable->FindObject(configKey);
+    TCConfigElement* elem = (TCConfigElement*) fConfigTable->FindObject(configKey);
     
     // return configuration value
     if (elem) return elem->GetValue();
@@ -147,7 +147,7 @@ TString* iReadConfig::GetConfig(TString configKey)
 }
 
 //______________________________________________________________________________
-Int_t iReadConfig::GetConfigInt(TString configKey)
+Int_t TCReadConfig::GetConfigInt(TString configKey)
 {
     // Get the configuration value of the configuration key 'configKey' 
     // converted to Int_t.
@@ -162,7 +162,7 @@ Int_t iReadConfig::GetConfigInt(TString configKey)
 }
 
 //______________________________________________________________________________
-Double_t iReadConfig::GetConfigDouble(TString configKey)
+Double_t TCReadConfig::GetConfigDouble(TString configKey)
 {
     // Get the configuration value of the configuration key 'configKey' 
     // converted to Double_t.

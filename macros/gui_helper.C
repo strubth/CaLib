@@ -62,7 +62,7 @@ ButtonWindow::ButtonWindow()
   // fill modules
   for (Int_t i = 0; i < gCaLibModules->GetSize(); i++)
   {
-    iCalib* cmod = (iCalib*) gCaLibModules->At(i);
+    TCCalib* cmod = (TCCalib*) gCaLibModules->At(i);
     fCBox_Module->AddEntry(cmod->GetTitle(), i);
   }
 
@@ -188,7 +188,7 @@ void ButtonWindow::Goto()
     Int_t n = fNE_Elem->GetNumber();
   
     if (gCurrentModule)
-        ((iCalib*)gCurrentModule)->ProcessElement(n);
+        ((TCCalib*)gCurrentModule)->ProcessElement(n);
 }
 
 //______________________________________________________________________________
@@ -197,7 +197,7 @@ void ButtonWindow::DoPrev()
     // Go to the previous element in the current module.
     
     if (gCurrentModule)
-        ((iCalib*)gCurrentModule)->Previous();
+        ((TCCalib*)gCurrentModule)->Previous();
 }
 
 //______________________________________________________________________________
@@ -206,7 +206,7 @@ void ButtonWindow::DoNext()
     // Go to the next element in the current module.
     
     if (gCurrentModule)
-        ((iCalib*)gCurrentModule)->Next();
+        ((TCCalib*)gCurrentModule)->Next();
 }
 
 //______________________________________________________________________________
@@ -215,7 +215,7 @@ void ButtonWindow::DoWrite()
     // Write the values of the current module to the database.
 
     if (gCurrentModule)
-        ((iCalib*)gCurrentModule)->Write();
+        ((TCCalib*)gCurrentModule)->Write();
 }
 
 //______________________________________________________________________________
@@ -224,7 +224,7 @@ void ButtonWindow::Print()
     // Print the values obtained by the current module.
     
     if (gCurrentModule)
-        ((iCalib*)gCurrentModule)->PrintValues();
+        ((TCCalib*)gCurrentModule)->PrintValues();
 }
 
 //______________________________________________________________________________
@@ -247,7 +247,7 @@ void ButtonWindow::DoAll()
     Float_t delay = fNE_Delay->GetNumber();
     
     if (gCurrentModule)
-        ((iCalib*)gCurrentModule)->ProcessAll(1000*delay);
+        ((TCCalib*)gCurrentModule)->ProcessAll(1000*delay);
 }
 
 //______________________________________________________________________________
@@ -256,7 +256,7 @@ void ButtonWindow::Stop()
     // Stop automatic processing of the current module.
 
     if (gCurrentModule)
-        ((iCalib*)gCurrentModule)->StopProcessing();
+        ((TCCalib*)gCurrentModule)->StopProcessing();
 }
 
 //______________________________________________________________________________
@@ -266,19 +266,19 @@ void ButtonWindow::ReadRunsets(Int_t i)
     // in the module selection combo box
     
     // get the calibration data of the module
-    iCalib* c = (iCalib*) gCaLibModules->At(i);
+    TCCalib* c = (TCCalib*) gCaLibModules->At(i);
     CalibData_t data = c->GetCalibData();
     
     // get the number of runsets
-    Int_t nsets = iMySQLManager::GetManager()->GetNsets(data);
+    Int_t nsets = TCMySQLManager::GetManager()->GetNsets(data);
     
     // fill the runsets into the list
     fLB_RunSet->RemoveAll();
     for (Int_t i = 0; i < nsets; i++)
     {
         // get the first and last runs
-        Int_t first_run = iMySQLManager::GetManager()->GetFirstRunOfSet(data, i);
-        Int_t last_run = iMySQLManager::GetManager()->GetLastRunOfSet(data, i);
+        Int_t first_run = TCMySQLManager::GetManager()->GetFirstRunOfSet(data, i);
+        Int_t last_run = TCMySQLManager::GetManager()->GetLastRunOfSet(data, i);
     
         // add list entry
         Char_t tmp[256];
@@ -302,10 +302,10 @@ void ButtonWindow::StartModule()
     Int_t runset = fLB_RunSet->GetSelected();
 
     // get the calibration module
-    gCurrentModule = (iCalib*) gCaLibModules->At(module);
+    gCurrentModule = (TCCalib*) gCaLibModules->At(module);
 
     // start the module
-    ((iCalib*)gCurrentModule)->Start(runset);
+    ((TCCalib*)gCurrentModule)->Start(runset);
 }
 
 //______________________________________________________________________________
@@ -327,15 +327,15 @@ void CreateModuleList()
         // get class name
         TString c(gClassTable->At(i));
 
-        // get iCalib* classes
-        if (c.BeginsWith("iCalib"))
+        // get TCCalib* classes
+        if (c.BeginsWith("TCCalib"))
         {
             // skip non-module classes
-            if (c == "iCalib") continue;
+            if (c == "TCCalib") continue;
 
             // add module to list if it is really a module
             TClass tc(c.Data());
-            if (tc.InheritsFrom("iCalib")) gCaLibModules->Add((iCalib*) tc.New());
+            if (tc.InheritsFrom("TCCalib")) gCaLibModules->Add((TCCalib*) tc.New());
         }
     }
 }

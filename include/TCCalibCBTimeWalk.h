@@ -4,29 +4,29 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// iCalibCBTimeWalk                                                     //
+// TCCalibCBTimeWalk                                                    //
 //                                                                      //
 // Calibration module for the CB time walk.                             //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef ICALIBCBTIMEWALK_H
-#define ICALIBCBTIMEWALK_H
+#ifndef TCCALIBCBTIMEWALK_H
+#define TCCALIBCBTIMEWALK_H
 
 #include "TCanvas.h"
 #include "TH2.h"
 #include "TLine.h"
 
-#include "iCalib.h"
-#include "iFileManager.h"
+#include "TCCalib.h"
+#include "TCFileManager.h"
 
 
-class iCalibCBTimeWalk : public iCalib
+class TCCalibCBTimeWalk : public TCCalib
 {
 
 private:
-    iFileManager* fFileManager;         // file manager
+    TCFileManager* fFileManager;        // file manager
     Double_t* fPar0;                    // time walk parameter 0
     Double_t* fPar1;                    // time walk parameter 1
     Double_t* fPar2;                    // time walk parameter 2
@@ -37,13 +37,13 @@ private:
     virtual void Calculate(Int_t elem);
 
 public:
-    iCalibCBTimeWalk();
-    virtual ~iCalibCBTimeWalk();
+    TCCalibCBTimeWalk();
+    virtual ~TCCalibCBTimeWalk();
 
     virtual void Write();
     virtual void PrintValues();
 
-    ClassDef(iCalibCBTimeWalk, 0)   // CB time walk calibration
+    ClassDef(TCCalibCBTimeWalk, 0)   // CB time walk calibration
 };
 
 #endif

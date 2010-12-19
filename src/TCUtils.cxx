@@ -4,19 +4,19 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// iUtils                                                               //
+// TCUtils                                                              //
 //                                                                      //
 // CaLib utility methods namespace                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#include "iUtils.h"
+#include "TCUtils.h"
 
 
 //______________________________________________________________________________
-void iUtils::FindBackground(TH1* h, Double_t peak, Double_t low, Double_t high,
-                            Double_t* outPar0, Double_t* outPar1)
+void TCUtils::FindBackground(TH1* h, Double_t peak, Double_t low, Double_t high,
+                             Double_t* outPar0, Double_t* outPar1)
 {
     // Estimate the background.
 

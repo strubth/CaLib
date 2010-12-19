@@ -4,30 +4,31 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// iCalibTaggerTime                                                     //
+// TCCalibTAPSEnergy                                                    //
 //                                                                      //
-// Calibration module for the Tagger time.                              //
+// Calibration module for the TAPS energy.                              //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef ICALIBTAGGERTIME_H
-#define ICALIBTAGGERTIME_H
+#ifndef TCCALIBTAPSENERGY_H
+#define TCCALIBTAPSENERGY_H
 
 #include "TCanvas.h"
 #include "TH2.h"
 #include "TLine.h"
 
-#include "iCalib.h"
-#include "iFileManager.h"
+#include "TCCalib.h"
+#include "TCUtils.h"
+#include "TCFileManager.h"
 
 
-class iCalibTaggerTime : public iCalib
+class TCCalibTAPSEnergy : public TCCalib
 {
 
 private:
-    Double_t fTimeGain;                 // Tagger TDC gain
-    Double_t fMean;                     // mean time position
+    Double_t* fPi0IMOld;                // old pi0 invariant mass values
+    Double_t* fPi0IMNew;                // old pi0 invariant mass values
     TLine* fLine;                       // indicator line
     
     virtual void Init();
@@ -35,10 +36,10 @@ private:
     virtual void Calculate(Int_t elem);
 
 public:
-    iCalibTaggerTime();
-    virtual ~iCalibTaggerTime();
+    TCCalibTAPSEnergy();
+    virtual ~TCCalibTAPSEnergy();
 
-    ClassDef(iCalibTaggerTime, 0)   // Tagger time calibration
+    ClassDef(TCCalibTAPSEnergy, 0)   // TAPS energy calibration
 };
 
 #endif

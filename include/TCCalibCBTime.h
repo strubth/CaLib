@@ -4,31 +4,30 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// iCalibTAPSEnergy                                                     //
+// TCCalibCBTime                                                        //
 //                                                                      //
-// Calibration module for the TAPS energy.                              //
+// Calibration module for the CB time.                                  //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef ICALIBTAPSENERGY_H
-#define ICALIBTAPSENERGY_H
+#ifndef TCCALIBCBTIME_H
+#define TCCALIBCBTIME_H
 
 #include "TCanvas.h"
 #include "TH2.h"
 #include "TLine.h"
 
-#include "iCalib.h"
-#include "iUtils.h"
-#include "iFileManager.h"
+#include "TCCalib.h"
+#include "TCFileManager.h"
 
 
-class iCalibTAPSEnergy : public iCalib
+class TCCalibCBTime : public TCCalib
 {
 
 private:
-    Double_t* fPi0IMOld;                // old pi0 invariant mass values
-    Double_t* fPi0IMNew;                // old pi0 invariant mass values
+    Double_t fTimeGain;                 // CB TDC gain
+    Double_t fMean;                     // mean time position
     TLine* fLine;                       // indicator line
     
     virtual void Init();
@@ -36,10 +35,10 @@ private:
     virtual void Calculate(Int_t elem);
 
 public:
-    iCalibTAPSEnergy();
-    virtual ~iCalibTAPSEnergy();
+    TCCalibCBTime();
+    virtual ~TCCalibCBTime();
 
-    ClassDef(iCalibTAPSEnergy, 0)   // TAPS energy calibration
+    ClassDef(TCCalibCBTime, 0)   // CB time calibration
 };
 
 #endif

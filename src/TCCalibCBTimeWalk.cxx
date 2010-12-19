@@ -4,21 +4,21 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// iCalibCBTimeWalk                                                     //
+// TCCalibCBTimeWalk                                                    //
 //                                                                      //
 // Calibration module for the CB time walk.                             //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#include "iCalibCBTimeWalk.h"
+#include "TCCalibCBTimeWalk.h"
 
-ClassImp(iCalibCBTimeWalk)
+ClassImp(TCCalibCBTimeWalk)
 
 
 //______________________________________________________________________________
-iCalibCBTimeWalk::iCalibCBTimeWalk()
-    : iCalib("CB.TimeWalk", "CB time walk calibration", kCALIB_CB_WALK1, iConfig::kMaxCB)
+TCCalibCBTimeWalk::TCCalibCBTimeWalk()
+    : TCCalib("CB.TimeWalk", "CB time walk calibration", kCALIB_CB_WALK1, TCConfig::kMaxCB)
 {
     // Empty constructor.
 
@@ -31,7 +31,7 @@ iCalibCBTimeWalk::iCalibCBTimeWalk()
 }
 
 //______________________________________________________________________________
-iCalibCBTimeWalk::~iCalibCBTimeWalk()
+TCCalibCBTimeWalk::~TCCalibCBTimeWalk()
 {
     // Destructor. 
     
@@ -43,34 +43,34 @@ iCalibCBTimeWalk::~iCalibCBTimeWalk()
 }
 
 //______________________________________________________________________________
-void iCalibCBTimeWalk::Init()
+void TCCalibCBTimeWalk::Init()
 {
     // Init the module.
     
     // init members
-    fFileManager = new iFileManager(fSet, fData);
+    fFileManager = new TCFileManager(fSet, fData);
     fPar0 = new Double_t[fNelem];
     fPar1 = new Double_t[fNelem];
     fPar2 = new Double_t[fNelem];
     fPar3 = new Double_t[fNelem];
 
     // get histogram name
-    if (!iReadConfig::GetReader()->GetConfig("CB.TimeWalk.Histo.Fit.Name"))
+    if (!TCReadConfig::GetReader()->GetConfig("CB.TimeWalk.Histo.Fit.Name"))
     {
         Error("Init", "Histogram name was not found in configuration!");
         return;
     }
-    else fHistoName = *iReadConfig::GetReader()->GetConfig("CB.TimeWalk.Histo.Fit.Name");
+    else fHistoName = *TCReadConfig::GetReader()->GetConfig("CB.TimeWalk.Histo.Fit.Name");
     
     // read old parameters
-    iMySQLManager::GetManager()->ReadParameters(fSet, kCALIB_CB_WALK0, fPar0, fNelem);
-    iMySQLManager::GetManager()->ReadParameters(fSet, kCALIB_CB_WALK1, fPar1, fNelem);
-    iMySQLManager::GetManager()->ReadParameters(fSet, kCALIB_CB_WALK2, fPar2, fNelem);
-    iMySQLManager::GetManager()->ReadParameters(fSet, kCALIB_CB_WALK3, fPar3, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(fSet, kCALIB_CB_WALK0, fPar0, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(fSet, kCALIB_CB_WALK1, fPar1, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(fSet, kCALIB_CB_WALK2, fPar2, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(fSet, kCALIB_CB_WALK3, fPar3, fNelem);
 
     // get parameters from configuration file
-    fFitHistoXmin = iReadConfig::GetReader()->GetConfigDouble("CB.TimeWalk.Histo.Fit.Xaxis.Min");
-    fFitHistoXmax = iReadConfig::GetReader()->GetConfigDouble("CB.Timeralk.Histo.Fit.Xaxis.Max");
+    fFitHistoXmin = TCReadConfig::GetReader()->GetConfigDouble("CB.TimeWalk.Histo.Fit.Xaxis.Min");
+    fFitHistoXmax = TCReadConfig::GetReader()->GetConfigDouble("CB.TimeWalk.Histo.Fit.Xaxis.Max");
 
     // draw main histogram
     fCanvasFit->cd(1)->SetLogz();
@@ -80,19 +80,19 @@ void iCalibCBTimeWalk::Init()
 }
 
 //______________________________________________________________________________
-void iCalibCBTimeWalk::Fit(Int_t elem)
+void TCCalibCBTimeWalk::Fit(Int_t elem)
 {
     // Perform the fit of the element 'elem'.
     
     Char_t tmp[256];
-    
     
     // create histogram name
     sprintf(tmp, "%s_%03d", fHistoName.Data(), elem);
     
     // delete old histogram
     if (fMainHisto) delete fMainHisto;
-
+    
+    // get histogram
     fMainHisto = (TH2*) fFileManager->GetHistogram(tmp);
     if (!fMainHisto)
     {
@@ -108,7 +108,7 @@ void iCalibCBTimeWalk::Fit(Int_t elem)
 }
 
 //______________________________________________________________________________
-void iCalibCBTimeWalk::Calculate(Int_t elem)
+void TCCalibCBTimeWalk::Calculate(Int_t elem)
 {
     // Calculate the new value of the element 'elem'.
     
@@ -128,7 +128,7 @@ void iCalibCBTimeWalk::Calculate(Int_t elem)
 }   
 
 //______________________________________________________________________________
-void iCalibCBTimeWalk::PrintValues()
+void TCCalibCBTimeWalk::PrintValues()
 {
     // Print out the old and new values for all elements.
 
@@ -142,14 +142,14 @@ void iCalibCBTimeWalk::PrintValues()
 }
 
 //______________________________________________________________________________
-void iCalibCBTimeWalk::Write()
+void TCCalibCBTimeWalk::Write()
 {
     // Write the obtained calibration values to the database.
     
     // write values to database
-    iMySQLManager::GetManager()->WriteParameters(fSet, kCALIB_CB_WALK0, fPar0, fNelem);
-    iMySQLManager::GetManager()->WriteParameters(fSet, kCALIB_CB_WALK1, fPar1, fNelem);
-    iMySQLManager::GetManager()->WriteParameters(fSet, kCALIB_CB_WALK2, fPar2, fNelem);
-    iMySQLManager::GetManager()->WriteParameters(fSet, kCALIB_CB_WALK3, fPar3, fNelem);
+    TCMySQLManager::GetManager()->WriteParameters(fSet, kCALIB_CB_WALK0, fPar0, fNelem);
+    TCMySQLManager::GetManager()->WriteParameters(fSet, kCALIB_CB_WALK1, fPar1, fNelem);
+    TCMySQLManager::GetManager()->WriteParameters(fSet, kCALIB_CB_WALK2, fPar2, fNelem);
+    TCMySQLManager::GetManager()->WriteParameters(fSet, kCALIB_CB_WALK3, fPar3, fNelem);
 }
 

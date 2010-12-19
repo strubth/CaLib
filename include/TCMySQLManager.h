@@ -4,15 +4,15 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// iMySQLManager                                                        //
+// TCMySQLManager                                                       //
 //                                                                      //
 // This class handles all the communication with the MySQL server.      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef IMYSQLMANAGER_H
-#define IMYSQLMANAGER_H
+#ifndef TCMYSQLMANAGER_H
+#define TCMYSQLMANAGER_H
 
 #include "TSQLServer.h"
 #include "TSQLResult.h"
@@ -21,11 +21,11 @@
 #include "TError.h"
 #include "TObjString.h"
 
-#include "iConfig.h"
-#include "iReadConfig.h"
+#include "TCConfig.h"
+#include "TCReadConfig.h"
 
 
-class iMySQLManager
+class TCMySQLManager
 {
 
 private:
@@ -35,11 +35,11 @@ private:
     void CreateMainTable();
     void CreateDataTable(CalibData_t data, Int_t nElem);
     
-    static iMySQLManager* fgMySQLManager;
+    static TCMySQLManager* fgMySQLManager;
 
 public:
-    iMySQLManager();
-    virtual ~iMySQLManager();
+    TCMySQLManager();
+    virtual ~TCMySQLManager();
 
     TSQLResult* SendQuery(const Char_t* query);
     Bool_t IsConnected();
@@ -57,13 +57,13 @@ public:
 
     void InitDatabase();
 
-    static iMySQLManager* GetManager()
+    static TCMySQLManager* GetManager()
     {
-        if (!fgMySQLManager) fgMySQLManager = new iMySQLManager();
+        if (!fgMySQLManager) fgMySQLManager = new TCMySQLManager();
         return fgMySQLManager;
     }
     
-    ClassDef(iMySQLManager, 0)   // Communication with MySQL Server
+    ClassDef(TCMySQLManager, 0)   // Communication with MySQL Server
 };
 
 #endif

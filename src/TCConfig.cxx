@@ -4,17 +4,17 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// iConfig                                                              //
+// TCConfig                                                             //
 //                                                                      //
 // CaLib configuration namespace                                        //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#include "iConfig.h"
+#include "TCConfig.h"
 
 
-namespace iConfig
+namespace TCConfig
 {   
     // detector elements
     const Int_t kMaxCrystal = 720;
