@@ -204,14 +204,14 @@ void TCCalibTAPSQuadEnergy::Fit(Int_t elem)
     h2 = (TH2*) fMainHisto2;
     if (fFitHisto2) delete fFitHisto2;
     fFitHisto2 = h2->ProjectionX(tmp, elem+1, elem+1, "e");
-    fFitHisto2->GetXaxis()->SetRangeUser(50, 600);
+    fFitHisto2->GetXaxis()->SetRangeUser(0, 1000);
 
     // get eta mean energy projection
     sprintf(tmp, "ProjHistoMeanEta_%d", elem);
     h2 = (TH2*) fMainHisto3;
     if (fFitHisto3) delete fFitHisto3;
     fFitHisto3 = h2->ProjectionX(tmp, elem+1, elem+1, "e");
-    fFitHisto3->GetXaxis()->SetRangeUser(50, 600);
+    fFitHisto3->GetXaxis()->SetRangeUser(0, 1000);
 
     // check for sufficient statistics
     if (fFitHisto->GetEntries())
