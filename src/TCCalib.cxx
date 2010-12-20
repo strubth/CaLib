@@ -81,7 +81,6 @@ void TCCalib::Start(Int_t set)
 
     // draw the fitting canvas
     fCanvasFit = new TCanvas("Fitting", "Fitting", 0, 0, 400, 800);
-    fCanvasFit->Divide(1, 2, 0.001, 0.001);
 
     // draw the result canvas
     fCanvasResult = new TCanvas("Result", "Result", 630, 0, 900, 400);

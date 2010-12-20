@@ -46,7 +46,11 @@ void TCCalibCBTime::Init()
     // init members
     fMean = 0;
     fLine = new TLine();
-
+    
+    // configure line
+    fLine->SetLineColor(4);
+    fLine->SetLineWidth(3);
+ 
     // get histogram name
     if (!TCReadConfig::GetReader()->GetConfig("CB.Time.Histo.Fit.Name"))
     {
@@ -88,6 +92,7 @@ void TCCalibCBTime::Init()
     if (low || upp) fOverviewHisto->GetYaxis()->SetRangeUser(low, upp);
 
     // draw main histogram
+    fCanvasFit->Divide(1, 2, 0.001, 0.001);
     fCanvasFit->cd(1)->SetLogz();
     fMainHisto->GetXaxis()->SetRangeUser(fFitHistoXmin, fFitHistoXmax);
     fMainHisto->Draw("colz");
@@ -108,7 +113,7 @@ void TCCalibCBTime::Fit(Int_t elem)
     sprintf(tmp, "ProjHisto_%i", elem);
     TH2* h2 = (TH2*) fMainHisto;
     if (fFitHisto) delete fFitHisto;
-    fFitHisto = (TH1D*) h2->ProjectionX(tmp, elem+1, elem+1);
+    fFitHisto = (TH1D*) h2->ProjectionX(tmp, elem+1, elem+1, "e");
     
     // init variables
     Double_t factor = 3.0;
@@ -132,21 +137,18 @@ void TCCalibCBTime::Fit(Int_t elem)
         // first iteration
         fFitFunc->SetRange(peakval - 3.8, peakval + 3.8);
         fFitFunc->SetParameters(fFitHisto->GetMaximum(), peakval, 0.5);
-        fFitHisto->Fit(fFitFunc, "+R0Q");
+        fFitHisto->Fit(fFitFunc, "RBQ0");
 
         // second iteration
         peakval = fFitFunc->GetParameter(1);
         Double_t sigma = fFitFunc->GetParameter(2);
         fFitFunc->SetRange(peakval -factor*sigma, peakval +factor*sigma);
-        fFitHisto->Fit(fFitFunc, "+R0Q");
+        fFitHisto->Fit(fFitFunc, "RBQ0");
 
         // final results
         fMean = fFitFunc->GetParameter(1); // store peak value
 
         // draw mean indicator line
-        fLine->SetVertical();
-        fLine->SetLineColor(4);
-        fLine->SetLineWidth(3);
         fLine->SetY1(0);
         fLine->SetY2(fFitHisto->GetMaximum() + 20);
         fLine->SetX1(fMean);
@@ -157,7 +159,7 @@ void TCCalibCBTime::Fit(Int_t elem)
     fFitHisto->SetFillColor(35);
     fCanvasFit->cd(2);
     fFitHisto->GetXaxis()->SetRangeUser(fFitHistoXmin, fFitHistoXmax);
-    fFitHisto->Draw();
+    fFitHisto->Draw("hist");
     
     // draw fitting function
     if (fFitFunc) fFitFunc->Draw("same");

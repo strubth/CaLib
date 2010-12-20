@@ -37,11 +37,13 @@
 
 // CB calibration classes
 #pragma link C++ class TCCalibCBEnergy+;
+#pragma link C++ class TCCalibCBQuadEnergy+;
 #pragma link C++ class TCCalibCBTime+;
 #pragma link C++ class TCCalibCBTimeWalk+;
 
 // TAPS calibration classes
 #pragma link C++ class TCCalibTAPSEnergy+;
+#pragma link C++ class TCCalibTAPSQuadEnergy+;
 #pragma link C++ class TCCalibTAPSTime+;
 
 // Tagger calibration classes

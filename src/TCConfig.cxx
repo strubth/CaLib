@@ -19,12 +19,13 @@
 namespace TCConfig
 {   
     // detector elements
-    const Int_t kMaxCrystal = 720;
-    const Int_t kMaxCB      = 720;
-    const Int_t kMaxTAPS    = 438;
-    const Int_t kMaxPID     =  24;
-    const Int_t kMaxVETO    = 384;
-    const Int_t kMaxTAGGER  = 352;
+    const Int_t kMaxCrystal   = 720;
+    const Int_t kMaxCB        = 720;
+    const Int_t kMaxTAPS      = 438;
+    const Int_t kMaxTAPSRings =  11;
+    const Int_t kMaxPID       =  24;
+    const Int_t kMaxVETO      = 384;
+    const Int_t kMaxTAGGER    = 352;
 
     // data table names
     // NOTE: This has to be synchronized with the enum ECalibData
@@ -38,12 +39,11 @@ namespace TCConfig
 
         // CB data
         "cb_t0", "cb_walk0", "cb_walk1", "cb_walk2", "cb_walk3",
-        "cb_e1", "cb_equad0", "cb_equad1", "cb_pi0im",
+        "cb_e1", "cb_equad0", "cb_equad1",
 
         // TAPS data
         "taps_t0", "taps_t1", "taps_lg_e0", "taps_lg_e1",
         "taps_sg_e0", "taps_sg_e1", "taps_equad0", "taps_equad1",
-        "taps_pi0im",
 
         // PID data
         "pid_t0", "pid_e0", "pid_e1", 
@@ -84,5 +84,6 @@ namespace TCConfig
 
     // constants
     const Double_t kPi0Mass = 134.9766;
+    const Double_t kEtaMass = 547.853;
 }
 

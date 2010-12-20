@@ -29,8 +29,7 @@ class TCCalibCBEnergy : public TCCalib
 {
 
 private:
-    Double_t* fPi0IMOld;                // old pi0 invariant mass values
-    Double_t* fPi0IMNew;                // old pi0 invariant mass values
+    Double_t fPi0Pos;                   // pi0 position
     TLine* fLine;                       // indicator line
     
     virtual void Init();

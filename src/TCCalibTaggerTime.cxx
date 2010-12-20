@@ -47,7 +47,11 @@ void TCCalibTaggerTime::Init()
     // init members
     fMean = 0;
     fLine = new TLine();
-
+    
+    // configure line
+    fLine->SetLineColor(4);
+    fLine->SetLineWidth(3);
+ 
     // get histogram name
     if (!TCReadConfig::GetReader()->GetConfig("Tagger.Time.Histo.Fit.Name"))
     {
@@ -85,6 +89,7 @@ void TCCalibTaggerTime::Init()
     if (low || upp) fOverviewHisto->GetYaxis()->SetRangeUser(low, upp);
 
     // draw main histogram
+    fCanvasFit->Divide(1, 2, 0.001, 0.001);
     fCanvasFit->cd(1)->SetLogz();
     fMainHisto->GetXaxis()->SetRangeUser(fFitHistoXmin, fFitHistoXmax);
     fMainHisto->Draw("colz");
@@ -105,7 +110,7 @@ void TCCalibTaggerTime::Fit(Int_t elem)
     sprintf(tmp, "ProjHisto_%i", elem);
     TH2* h2 = (TH2*) fMainHisto;
     if (fFitHisto) delete fFitHisto;
-    fFitHisto = (TH1D*) h2->ProjectionX(tmp, elem+1, elem+1);
+    fFitHisto = (TH1D*) h2->ProjectionX(tmp, elem+1, elem+1, "e");
     
     // init variables
     Double_t factor = 5.0;
@@ -129,22 +134,26 @@ void TCCalibTaggerTime::Fit(Int_t elem)
         // first iteration
         fFitFunc->SetRange(peakval - 5, peakval + 5);
         fFitFunc->SetParameters(500, -1, fFitHisto->GetMaximum(), peakval, 0.5);
-        fFitFunc->SetParLimits(4, 0.5, 3.); // sigma
-        fFitHisto->Fit(fFitFunc, "+R0Q");
+        fFitFunc->SetParLimits(4, 0.02, 2.); // sigma
+        fFitHisto->Fit(fFitFunc, "RBQ0");
+        
+        // search the right peak
+	if (fFitFunc->GetParameter(3) < peakval-0.3 || fFitFunc->GetParameter(3) > peakval+0.3)
+	{
+	  fFitFunc->SetParLimits(4, 0.0002, 0.6);
+	  fFitHisto->Fit(fFitFunc, "RBQ0");
+	}
 
         // second iteration
         peakval = fFitFunc->GetParameter(3);
         Double_t sigma = fFitFunc->GetParameter(4);
         fFitFunc->SetRange(peakval -factor*sigma, peakval +factor*sigma);
-        fFitHisto->Fit(fFitFunc, "+R0Q");
+        fFitHisto->Fit(fFitFunc, "RBQ0");
 
         // final results
         fMean = fFitFunc->GetParameter(3); // store peak value
 
         // draw mean indicator line
-        fLine->SetVertical();
-        fLine->SetLineColor(4);
-        fLine->SetLineWidth(3);
         fLine->SetY1(0);
         fLine->SetY2(fFitHisto->GetMaximum() + 20);
         fLine->SetX1(fMean);
@@ -155,7 +164,7 @@ void TCCalibTaggerTime::Fit(Int_t elem)
     fFitHisto->SetFillColor(35);
     fCanvasFit->cd(2);
     fFitHisto->GetXaxis()->SetRangeUser(fFitHistoXmin, fFitHistoXmax);
-    fFitHisto->Draw();
+    fFitHisto->Draw("hist");
     
     // draw fitting function
     if (fFitFunc) fFitFunc->Draw("same");

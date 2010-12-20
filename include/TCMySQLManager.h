@@ -56,6 +56,8 @@ public:
 
     void ReadParameters(Int_t set, CalibData_t data, Double_t* par, Int_t length);
     void WriteParameters(Int_t set, CalibData_t data, Double_t* par, Int_t length);
+    void AddSet(CalibData_t data, const Char_t* calib, const Char_t* desc,
+                Int_t first_run, Int_t last_run, Double_t* par, Int_t length);
 
     void InitDatabase();
 

@@ -31,12 +31,11 @@ enum ECalibData
 
     // CB data
     kCALIB_CB_T0, kCALIB_CB_WALK0, kCALIB_CB_WALK1, kCALIB_CB_WALK2, kCALIB_CB_WALK3,
-    kCALIB_CB_E1, kCALIB_CB_EQUAD0, kCALIB_CB_EQUAD1, kCALIB_CB_PI0IM,
+    kCALIB_CB_E1, kCALIB_CB_EQUAD0, kCALIB_CB_EQUAD1,
 
     // TAPS data
     kCALIB_TAPS_T0, kCALIB_TAPS_T1, kCALIB_TAPS_LG_E0, kCALIB_TAPS_LG_E1,
     kCALIB_TAPS_SG_E0, kCALIB_TAPS_SG_E1, kCALIB_TAPS_EQUAD0, kCALIB_TAPS_EQUAD1,
-    kCALIB_TAPS_PI0IM,
 
     // PID data
     kCALIB_PID_T0, kCALIB_PID_E0, kCALIB_PID_E1, 
@@ -53,6 +52,7 @@ namespace TCConfig
     extern const Int_t kMaxCrystal;
     extern const Int_t kMaxCB;
     extern const Int_t kMaxTAPS;
+    extern const Int_t kMaxTAPSRings;
     extern const Int_t kMaxPID;
     extern const Int_t kMaxVETO;
     extern const Int_t kMaxTAGGER;
@@ -65,6 +65,7 @@ namespace TCConfig
      
     // constants
     extern const Double_t kPi0Mass;
+    extern const Double_t kEtaMass;
 }
 
 #endif

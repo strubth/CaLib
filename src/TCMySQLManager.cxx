@@ -477,24 +477,8 @@ void TCMySQLManager::WriteParameters(Int_t set, CalibData_t data, Double_t* par,
     delete row;
     delete res;
 
-    // prepare the insert query
-    TString ins_query = TString::Format("INSERT INTO %s SET calibration = '%s', description = '%s', first_run = %d, last_run = %d,",
-                                        table, fCalibration.Data(), desc, first_run, last_run);
-    
-    // read all parameters and write them to new query
-    for (Int_t j = 0; j < length; j++)
-    {
-        // append parameter to query
-        ins_query.Append(TString::Format("par_%03d = %f", j, par[j]));
-        if (j != length - 1) ins_query.Append(",");
-    }
-
-    // write data to database
-    res = SendQuery(ins_query.Data());
-    delete res;
-
-    // user information
-    Info("WriteParameters", "%d parameters written to table '%s'", length, table);
+    // add the set
+    AddSet(data, fCalibration.Data(), desc, first_run, last_run, par, length);
 }
 
 //______________________________________________________________________________
@@ -534,7 +518,6 @@ void TCMySQLManager::InitDatabase()
     CreateDataTable(kCALIB_CB_E1, TCConfig::kMaxCB);
     CreateDataTable(kCALIB_CB_EQUAD0, TCConfig::kMaxCB);
     CreateDataTable(kCALIB_CB_EQUAD1, TCConfig::kMaxCB);
-    CreateDataTable(kCALIB_CB_PI0IM, TCConfig::kMaxCB);
 
     // create TAPS tables
     CreateDataTable(kCALIB_TAPS_T0, TCConfig::kMaxTAPS);
@@ -543,9 +526,8 @@ void TCMySQLManager::InitDatabase()
     CreateDataTable(kCALIB_TAPS_LG_E1, TCConfig::kMaxTAPS);
     CreateDataTable(kCALIB_TAPS_SG_E0, TCConfig::kMaxTAPS);
     CreateDataTable(kCALIB_TAPS_SG_E1, TCConfig::kMaxTAPS);
-    CreateDataTable(kCALIB_TAPS_EQUAD0, TCConfig::kMaxTAPS);
-    CreateDataTable(kCALIB_TAPS_EQUAD1, TCConfig::kMaxTAPS);
-    CreateDataTable(kCALIB_TAPS_PI0IM, TCConfig::kMaxTAPS);
+    CreateDataTable(kCALIB_TAPS_EQUAD0, TCConfig::kMaxTAPSRings);
+    CreateDataTable(kCALIB_TAPS_EQUAD1, TCConfig::kMaxTAPSRings);
 
     // create PID tables
     CreateDataTable(kCALIB_PID_T0, TCConfig::kMaxPID);
@@ -657,5 +639,38 @@ TList* TCMySQLManager::GetAllTargets()
 
     // return the list
     return list;
+}
+
+//______________________________________________________________________________
+void TCMySQLManager::AddSet(CalibData_t data, const Char_t* calib, const Char_t* desc,
+                            Int_t first_run, Int_t last_run, Double_t* par, Int_t length)
+{
+    // Write 'length' parameters of the calibration data 'data' from the value array 
+    // 'par' to the database. Use 'calib' as calibration name, 'desc' as description
+    // as well as 'first_run' and 'last_run'.
+    
+    Char_t table[256];
+ 
+    // get the data table
+    SearchTable(data, table);
+
+    // prepare the insert query
+    TString ins_query = TString::Format("INSERT INTO %s SET calibration = '%s', description = '%s', first_run = %d, last_run = %d,",
+                                        table, calib, desc, first_run, last_run);
+    
+    // read all parameters and write them to new query
+    for (Int_t j = 0; j < length; j++)
+    {
+        // append parameter to query
+        ins_query.Append(TString::Format("par_%03d = %f", j, par[j]));
+        if (j != length - 1) ins_query.Append(",");
+    }
+
+    // write data to database
+    TSQLResult* res = SendQuery(ins_query.Data());
+    delete res;
+
+    // user information
+    Info("AddSet", "%d parameters written to table '%s'", length, table);
 }
 
