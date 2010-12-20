@@ -45,8 +45,6 @@ protected:
     TH1* fMainHisto;            // main histogram 
     TH1* fFitHisto;             // fitting histogram
     TF1* fFitFunc;              // fitting function
-    Double_t fFitHistoXmin;     // fitting histogram x-axis minimum
-    Double_t fFitHistoXmax;     // fitting histogram x-axis maximum
 
     TH1* fOverviewHisto;        // overview result histogram
 
@@ -66,7 +64,6 @@ public:
                 fNelem(0), fCurrentElem(0),
                 fOldVal(0), fNewVal(0),
                 fMainHisto(0), fFitHisto(0), fFitFunc(0),
-                fFitHistoXmin(0), fFitHistoXmax(0),
                 fOverviewHisto(0),
                 fCanvasFit(0), fCanvasResult(0), 
                 fTimer(0) { }
@@ -78,7 +75,6 @@ public:
            fNelem(nElem), fCurrentElem(0),
            fOldVal(0), fNewVal(0),
            fMainHisto(0), fFitHisto(0), fFitFunc(0),
-           fFitHistoXmin(0), fFitHistoXmax(0),
            fOverviewHisto(0),
            fCanvasFit(0), fCanvasResult(0), 
            fTimer(0) { }

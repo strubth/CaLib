@@ -154,21 +154,17 @@ void TCCalibTAPSQuadEnergy::Init()
         return;
     }
     
-    // get parameters from configuration file
-    Double_t lowPi0 = TCReadConfig::GetReader()->GetConfigDouble("TAPS.Energy.Histo.Overview.Pi0.Yaxis.Min");
-    Double_t uppPi0 = TCReadConfig::GetReader()->GetConfigDouble("TAPS.Energy.Histo.Overview.Pi0.Yaxis.Max");
-    Double_t lowEta = TCReadConfig::GetReader()->GetConfigDouble("TAPS.Energy.Histo.Overview.Eta.Yaxis.Min");
-    Double_t uppEta = TCReadConfig::GetReader()->GetConfigDouble("TAPS.Energy.Histo.Overview.Eta.Yaxis.Max");
-    
-    // create the overview histograms
+    // create the pi0 overview histogram
     fPi0PosHisto = new TH1F("Pi0 position overview", ";Element;#pi^{0} peak position [MeV]", fNelem, 0, fNelem);
     fPi0PosHisto->SetMarkerStyle(2);
     fPi0PosHisto->SetMarkerColor(4);
-    fPi0PosHisto->GetYaxis()->SetRangeUser(lowPi0, uppPi0);
+    TCUtils::FormatHistogram(fPi0PosHisto, "TAPS.QuadEnergy.Histo.Overview.Pi0");
+    
+    // create the eta overview histogram
     fEtaPosHisto = new TH1F("Eta position overview", ";Element;#eta peak position [MeV]", fNelem, 0, fNelem);
     fEtaPosHisto->SetMarkerStyle(2);
     fEtaPosHisto->SetMarkerColor(4);
-    fEtaPosHisto->GetYaxis()->SetRangeUser(lowEta, uppEta);
+    TCUtils::FormatHistogram(fEtaPosHisto, "TAPS.QuadEnergy.Histo.Overview.Eta");
     
     // prepare fit histogram canvas
     fCanvasFit->Divide(1, 4, 0.001, 0.001);
@@ -194,24 +190,24 @@ void TCCalibTAPSQuadEnergy::Fit(Int_t elem)
     if (fFitHisto) delete fFitHisto;
     if (fFitHisto1b) delete fFitHisto1b;
     fFitHisto = (TH1*) h2->ProjectionX(tmp, elem+1, elem+1, "e");
-    fFitHisto1b = (TH1*) fFitHisto->Clone();
-    fFitHisto1b->Rebin(2);
-    fFitHisto->GetXaxis()->SetRangeUser(50, 200);
-    fFitHisto1b->GetXaxis()->SetRangeUser(350, 700);
-    
+    sprintf(tmp, "ProjHisto_%db", elem);
+    fFitHisto1b = (TH1*) fFitHisto->Clone(tmp);
+    TCUtils::FormatHistogram(fFitHisto, "TAPS.QuadEnergy.Histo.Fit.Pi0.IM");
+    TCUtils::FormatHistogram(fFitHisto1b, "TAPS.QuadEnergy.Histo.Fit.Eta.IM");
+
     // get pi0 mean energy projection
     sprintf(tmp, "ProjHistoMeanPi0_%d", elem);
     h2 = (TH2*) fMainHisto2;
     if (fFitHisto2) delete fFitHisto2;
     fFitHisto2 = h2->ProjectionX(tmp, elem+1, elem+1, "e");
-    fFitHisto2->GetXaxis()->SetRangeUser(0, 1000);
+    TCUtils::FormatHistogram(fFitHisto2, "TAPS.QuadEnergy.Histo.Fit.Pi0.MeanE");
 
     // get eta mean energy projection
     sprintf(tmp, "ProjHistoMeanEta_%d", elem);
     h2 = (TH2*) fMainHisto3;
     if (fFitHisto3) delete fFitHisto3;
     fFitHisto3 = h2->ProjectionX(tmp, elem+1, elem+1, "e");
-    fFitHisto3->GetXaxis()->SetRangeUser(0, 1000);
+    TCUtils::FormatHistogram(fFitHisto3, "TAPS.QuadEnergy.Histo.Fit.Eta.MeanE");
 
     // check for sufficient statistics
     if (fFitHisto->GetEntries())

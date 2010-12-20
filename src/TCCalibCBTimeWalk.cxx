@@ -70,11 +70,8 @@ void TCCalibCBTimeWalk::Init()
     TCMySQLManager::GetManager()->ReadParameters(fSet, kCALIB_CB_WALK2, fPar2, fNelem);
     TCMySQLManager::GetManager()->ReadParameters(fSet, kCALIB_CB_WALK3, fPar3, fNelem);
 
-    // get parameters from configuration file
-    fFitHistoXmin = TCReadConfig::GetReader()->GetConfigDouble("CB.TimeWalk.Histo.Fit.Xaxis.Min");
-    fFitHistoXmax = TCReadConfig::GetReader()->GetConfigDouble("CB.TimeWalk.Histo.Fit.Xaxis.Max");
-
     // draw main histogram
+    fCanvasFit->Divide(1, 2, 0.001, 0.001);
     fCanvasFit->cd(1)->SetLogz();
 
     // draw the overview histogram
@@ -104,7 +101,7 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
  
     // draw main histogram
     fCanvasFit->cd(1);
-    fMainHisto->GetXaxis()->SetRangeUser(fFitHistoXmin, fFitHistoXmax);
+    TCUtils::FormatHistogram(fMainHisto, "CB.TimeWalk.Histo.Fit");
     fMainHisto->Draw("colz");
     fCanvasFit->Update();
 }
@@ -125,6 +122,7 @@ void TCCalibCBTimeWalk::Calculate(Int_t elem)
            "Par1: %12.8f    Par2: %12.8f    Par3: %12.8f",
            elem, fPar0[elem], fPar1[elem], fPar2[elem], fPar3[elem]);
     if (unchanged) printf("    -> unchanged");
+    if (TCUtils::IsCBHole(elem)) printf(" (hole)");
     printf("\n");
     */
 }   

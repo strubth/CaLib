@@ -79,23 +79,15 @@ void TCCalibTAPSEnergy::Init()
     fOverviewHisto->SetMarkerStyle(2);
     fOverviewHisto->SetMarkerColor(4);
     
-    // get parameters from configuration file
-    Double_t low = TCReadConfig::GetReader()->GetConfigDouble("TAPS.Energy.Histo.Overview.Yaxis.Min");
-    Double_t upp = TCReadConfig::GetReader()->GetConfigDouble("TAPS.Energy.Histo.Overview.Yaxis.Max");
-    fFitHistoXmin = TCReadConfig::GetReader()->GetConfigDouble("TAPS.Energy.Histo.Fit.Xaxis.Min");
-    fFitHistoXmax = TCReadConfig::GetReader()->GetConfigDouble("TAPS.Energy.Histo.Fit.Xaxis.Max");
-    
-    // ajust overview histogram
-    if (low || upp) fOverviewHisto->GetYaxis()->SetRangeUser(low, upp);
-
     // draw main histogram
     fCanvasFit->Divide(1, 2, 0.001, 0.001);
     fCanvasFit->cd(1)->SetLogz();
-    fMainHisto->GetXaxis()->SetRangeUser(fFitHistoXmin, fFitHistoXmax);
+    TCUtils::FormatHistogram(fMainHisto, "TAPS.Energy.Histo.Fit");
     fMainHisto->Draw("colz");
 
     // draw the overview histogram
     fCanvasResult->cd();
+    TCUtils::FormatHistogram(fOverviewHisto, "TAPS.Energy.Histo.Overview");
     fOverviewHisto->Draw("P");
 }
 
@@ -118,7 +110,6 @@ void TCCalibTAPSEnergy::Fit(Int_t elem)
         // delete old function
         if (fFitFunc) delete fFitFunc;
         sprintf(tmp, "fEnergy_%i", elem);
-	//        fFitFunc = new TF1(tmp, "pol2+gaus(3)");
 	
 	// the fit function
 	fFitFunc = new TF1("fFitFunc", "gaus(0)+pol3(3)", 0, 1000);
@@ -162,6 +153,7 @@ void TCCalibTAPSEnergy::Fit(Int_t elem)
     // draw histogram
     fFitHisto->SetFillColor(35);
     fCanvasFit->cd(2);
+    TCUtils::FormatHistogram(fFitHisto, "TAPS.Energy.Histo.Fit");
     fFitHisto->Draw("hist");
     
     // draw fitting function

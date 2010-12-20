@@ -121,11 +121,11 @@ TCConfigElement* TCReadConfig::CreateConfigElement(TString line)
     
     // extract the key
     TString key = line(0, aa-1);
-    key.ReplaceAll(" ", "");
+    key.Remove(TString::kBoth, ' ');
 
     // extract the value
     TString value = line(aa, bb);
-    value.ReplaceAll(" ","");
+    value.Remove(TString::kBoth, ' ');
 
     // check for empty key
     if (key == "") return 0;

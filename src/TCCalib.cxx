@@ -47,8 +47,6 @@ void TCCalib::Start(Int_t set)
     fMainHisto = 0;
     fFitHisto = 0;
     fFitFunc = 0;
-    fFitHistoXmin = 0;
-    fFitHistoXmax = 0;
 
     fOverviewHisto = 0;
 

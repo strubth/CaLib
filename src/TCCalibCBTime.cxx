@@ -82,23 +82,15 @@ void TCCalibCBTime::Init()
     fOverviewHisto->SetMarkerStyle(2);
     fOverviewHisto->SetMarkerColor(4);
     
-    // get parameters from configuration file
-    Double_t low = TCReadConfig::GetReader()->GetConfigDouble("CB.Time.Histo.Overview.Yaxis.Min");
-    Double_t upp = TCReadConfig::GetReader()->GetConfigDouble("CB.Time.Histo.Overview.Yaxis.Max");
-    fFitHistoXmin = TCReadConfig::GetReader()->GetConfigDouble("CB.Time.Histo.Fit.Xaxis.Min");
-    fFitHistoXmax = TCReadConfig::GetReader()->GetConfigDouble("CB.Time.Histo.Fit.Xaxis.Max");
-
-    // ajust overview histogram
-    if (low || upp) fOverviewHisto->GetYaxis()->SetRangeUser(low, upp);
-
     // draw main histogram
     fCanvasFit->Divide(1, 2, 0.001, 0.001);
     fCanvasFit->cd(1)->SetLogz();
-    fMainHisto->GetXaxis()->SetRangeUser(fFitHistoXmin, fFitHistoXmax);
+    TCUtils::FormatHistogram(fMainHisto, "CB.Time.Histo.Fit");
     fMainHisto->Draw("colz");
 
     // draw the overview histogram
     fCanvasResult->cd();
+    TCUtils::FormatHistogram(fOverviewHisto, "CB.Time.Histo.Overview");
     fOverviewHisto->Draw("P");
 }
 
@@ -158,7 +150,7 @@ void TCCalibCBTime::Fit(Int_t elem)
     // draw histogram
     fFitHisto->SetFillColor(35);
     fCanvasFit->cd(2);
-    fFitHisto->GetXaxis()->SetRangeUser(fFitHistoXmin, fFitHistoXmax);
+    TCUtils::FormatHistogram(fFitHisto, "CB.Time.Histo.Fit");
     fFitHisto->Draw("hist");
     
     // draw fitting function
@@ -211,6 +203,7 @@ void TCCalibCBTime::Calculate(Int_t elem)
            "old offset: %12.8f    new offset: %12.8f",
            elem, fMean, fOldVal[elem], fNewVal[elem]);
     if (unchanged) printf("    -> unchanged");
+    if (TCUtils::IsCBHole(elem)) printf(" (hole)");
     printf("\n");
 }   
 
