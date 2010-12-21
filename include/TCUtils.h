@@ -27,7 +27,6 @@ namespace TCUtils
                         Double_t* outPar0, Double_t* outPar1);
     void FormatHistogram(TH1* h, const Char_t* ident);
     Bool_t IsCBHole(Int_t elem);
-
 }
 
 #endif

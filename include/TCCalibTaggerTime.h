@@ -41,7 +41,7 @@ public:
     TCCalibTaggerTime();
     virtual ~TCCalibTaggerTime();
 
-    ClassDef(TCCalibTaggerTime, 0)   // Tagger time calibration
+    ClassDef(TCCalibTaggerTime, 0) // Tagger time calibration
 };
 
 #endif

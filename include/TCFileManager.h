@@ -42,7 +42,7 @@ public:
 
     TH1* GetHistogram(const Char_t* name);
 
-    ClassDef(TCFileManager, 0)  // Histogram building class
+    ClassDef(TCFileManager, 0) // Histogram building class
 };
 
 #endif

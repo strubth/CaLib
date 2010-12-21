@@ -67,7 +67,7 @@ public:
         return fgMySQLManager;
     }
     
-    ClassDef(TCMySQLManager, 0)   // Communication with MySQL Server
+    ClassDef(TCMySQLManager, 0) // Communication with MySQL Server
 };
 
 #endif

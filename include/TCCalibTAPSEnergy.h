@@ -40,7 +40,7 @@ public:
     TCCalibTAPSEnergy();
     virtual ~TCCalibTAPSEnergy();
 
-    ClassDef(TCCalibTAPSEnergy, 0)   // TAPS energy calibration
+    ClassDef(TCCalibTAPSEnergy, 0) // TAPS energy calibration
 };
 
 #endif

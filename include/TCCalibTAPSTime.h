@@ -41,7 +41,7 @@ public:
     TCCalibTAPSTime();
     virtual ~TCCalibTAPSTime();
 
-    ClassDef(TCCalibTAPSTime, 0)   // TAPS time calibration
+    ClassDef(TCCalibTAPSTime, 0) // TAPS time calibration
 };
 
 #endif

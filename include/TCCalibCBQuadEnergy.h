@@ -60,7 +60,7 @@ public:
     virtual void Write();
     virtual void PrintValues();
 
-    ClassDef(TCCalibCBQuadEnergy, 0)   // CB quadratic energy correction
+    ClassDef(TCCalibCBQuadEnergy, 0) // CB quadratic energy correction
 };
 
 #endif

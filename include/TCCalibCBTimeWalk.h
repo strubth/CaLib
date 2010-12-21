@@ -46,7 +46,7 @@ public:
     virtual void Write();
     virtual void PrintValues();
 
-    ClassDef(TCCalibCBTimeWalk, 0)   // CB time walk calibration
+    ClassDef(TCCalibCBTimeWalk, 0) // CB time walk calibration
 };
 
 #endif

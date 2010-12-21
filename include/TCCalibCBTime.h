@@ -41,7 +41,7 @@ public:
     TCCalibCBTime();
     virtual ~TCCalibCBTime();
 
-    ClassDef(TCCalibCBTime, 0)   // CB time calibration
+    ClassDef(TCCalibCBTime, 0) // CB time calibration
 };
 
 #endif

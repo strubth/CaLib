@@ -34,6 +34,7 @@
 #pragma link C++ class TCReadConfig+;
 #pragma link C++ class TCMySQLManager+;
 #pragma link C++ class TCCalib+;
+#pragma link C++ class TCCalibPed+;
 
 // CB calibration classes
 #pragma link C++ class TCCalibCBEnergy+;
@@ -43,6 +44,9 @@
 
 // TAPS calibration classes
 #pragma link C++ class TCCalibTAPSEnergy+;
+#pragma link C++ class TCCalibTAPSPedLG+;
+#pragma link C++ class TCCalibTAPSPedSG+;
+#pragma link C++ class TCCalibTAPSPedVETO+;
 #pragma link C++ class TCCalibTAPSQuadEnergy+;
 #pragma link C++ class TCCalibTAPSTime+;
 

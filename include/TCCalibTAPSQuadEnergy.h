@@ -60,7 +60,7 @@ public:
     virtual void Write();
     virtual void PrintValues();
 
-    ClassDef(TCCalibTAPSQuadEnergy, 0)   // TAPS quadratic energy correction
+    ClassDef(TCCalibTAPSQuadEnergy, 0) // TAPS quadratic energy correction
 };
 
 #endif

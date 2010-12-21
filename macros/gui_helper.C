@@ -334,6 +334,7 @@ void CreateModuleList()
         {
             // skip non-module classes
             if (c == "TCCalib") continue;
+            if (c == "TCCalibPed") continue;
 
             // add module to list if it is really a module
             TClass tc(c.Data());

@@ -92,7 +92,7 @@ public:
     
     CalibData_t GetCalibData() const { return fData; }
 
-    ClassDef(TCCalib, 0)         // Base calibration module class
+    ClassDef(TCCalib, 0) // Base calibration module class
 };
 
 #endif

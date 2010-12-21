@@ -40,7 +40,7 @@ public:
     TCCalibCBEnergy();
     virtual ~TCCalibCBEnergy();
 
-    ClassDef(TCCalibCBEnergy, 0)   // CB energy calibration
+    ClassDef(TCCalibCBEnergy, 0) // CB energy calibration
 };
 
 #endif

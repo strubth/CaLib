@@ -68,7 +68,7 @@ public:
         return fgReadConfig; 
     }
 
-    ClassDef(TCReadConfig, 0)   // Configuration file reader
+    ClassDef(TCReadConfig, 0) // Configuration file reader
 };
 
 #endif

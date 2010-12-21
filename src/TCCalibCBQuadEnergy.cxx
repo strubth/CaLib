@@ -194,7 +194,7 @@ void TCCalibCBQuadEnergy::Fit(Int_t elem)
     fFitHisto1b = (TH1*) fFitHisto->Clone(tmp);
     TCUtils::FormatHistogram(fFitHisto, "CB.QuadEnergy.Histo.Fit.Pi0.IM");
     TCUtils::FormatHistogram(fFitHisto1b, "CB.QuadEnergy.Histo.Fit.Eta.IM");
-
+ 
     // get pi0 mean energy projection
     sprintf(tmp, "ProjHistoMeanPi0_%d", elem);
     h2 = (TH2*) fMainHisto2;
@@ -226,16 +226,31 @@ void TCCalibCBQuadEnergy::Fit(Int_t elem)
         fFitFunc1b = new TF1(tmp, "gaus(0)+pol2(3)", 450, 650);
         fFitFunc1b->SetLineColor(2);
          
+	// get x-axis range
+	Double_t xmin = fFitHisto1b->GetXaxis()->GetBinCenter(fFitHisto1b->GetXaxis()->GetFirst());
+	Double_t xmax = fFitHisto1b->GetXaxis()->GetBinCenter(fFitHisto1b->GetXaxis()->GetLast());
+
+	// set new range & get the peak position of eta
+	fFitHisto1b->GetXaxis()->SetRangeUser(500, 600);
+	Double_t fMaxEta = fFitHisto1b->GetBinCenter(fFitHisto1b->GetMaximumBin());
+	fFitHisto1b->GetXaxis()->SetRangeUser(xmin, xmax);
+
         // configure fitting functions
+	// pi0
         fFitFunc->SetParameters(fFitHisto->GetMaximum(), 135, 10, 1, 1, 1);
         fFitFunc->SetParLimits(0, 0, 1e6);
         fFitFunc->SetParLimits(1, 120, 140);
         fFitFunc->SetParLimits(2, 0, 40);
-        fFitFunc1b->SetParameters(fFitHisto1b->GetMaximum(), 547, 20, 1, 1, 0.1);
+
+	// eta
+        fFitFunc1b->SetParameters(fFitHisto1b->GetMaximum(), fMaxEta, 15, 1, 1, 0.1);
         fFitFunc1b->SetParLimits(0, 0, 1e6);
         fFitFunc1b->SetParLimits(1, 500, 570);
-        fFitFunc1b->SetParLimits(2, 0, 50);
-
+        fFitFunc1b->SetParLimits(2, 0, 50);//0, 50
+	fFitFunc1b->SetParLimits(3, 0, 100);
+        fFitFunc1b->SetParLimits(4, -1, 0);
+        fFitFunc1b->SetParLimits(5, -1, 0);//0, 50
+	
         // fit peaks
         fFitHisto->Fit(fFitFunc, "RBQ0");
         fFitHisto1b->Fit(fFitFunc1b, "RBQ0");
@@ -277,14 +292,14 @@ void TCCalibCBQuadEnergy::Fit(Int_t elem)
 
     // draw pi0 stuff
     fCanvasFit->cd(1); 
-    fFitHisto->SetFillColor(35);
+    fFitHisto->SetFillColor(35);   
     fFitHisto->Draw("hist");
     if (fFitFunc) fFitFunc->Draw("same");
     fLinePi0->Draw();
     
     // draw eta stuff
     fCanvasFit->cd(2); 
-    fFitHisto1b->SetFillColor(35);
+    fFitHisto1b->SetFillColor(35);   
     fFitHisto1b->Draw("hist");
     if (fFitFunc1b) fFitFunc1b->Draw("same");
     fLineEta->Draw();
