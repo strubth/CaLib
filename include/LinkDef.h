@@ -32,6 +32,7 @@
 #pragma link C++ namespace TCUtils;
 #pragma link C++ class TCFileManager+;
 #pragma link C++ class TCReadConfig+;
+#pragma link C++ class TCReadARCalib+;
 #pragma link C++ class TCMySQLManager+;
 #pragma link C++ class TCCalib+;
 #pragma link C++ class TCCalibPed+;

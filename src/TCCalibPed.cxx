@@ -206,43 +206,25 @@ void TCCalibPed::ReadADC()
     }
     else filename = TCReadConfig::GetReader()->GetConfig(tmp)->Data();
     
-    // open the file
-    std::ifstream infile;
-    infile.open(filename);
-        
-    // check if file is open
-    if (!infile.is_open())
+    // read the calibration file with the correct element identifier
+    if (this->InheritsFrom("TCCalibTAPSPedSG")) strcpy(tmp, "TAPSSG:");
+    else strcpy(tmp, "Element:");
+    TCReadARCalib c(filename, tmp);
+
+    // check number of detectors
+    if (c.GetNelements() != fNelem)
     {
-        Error("ReadADC", "Could not open ADC list file '%s'", filename);
+        Error("ReadADC", "Number of elements in calibration file differs "
+                         "from number requested by this module! (%d != %d)",
+                         c.GetNelements(), fNelem);
+        return;
     }
-    else
-    {
-        Info("ReadADC", "Reading ADC list from file '%s'", filename);
-        
-        // read the file
-        while (infile.good())
-        {
-            TString line;
-            Int_t n, adc;
-            line.ReadLine(infile);
-                
-            // trim line
-            line.Remove(TString::kBoth, ' ');
-            
-            // skip comments
-            if (line.BeginsWith("#")) continue;
-            else
-            { 
-                // get element and ADC
-                sscanf(line.Data(), "%d%d", &n, &adc);
-                
-                // save ADC
-                if (n >= 0 && n < fNelem) fADC[n] = adc;
-            }
-        }
-    }
-    
-    // close the file
-    infile.close();
+
+    // get element list and fill ADC numbers
+    TList* list = c.GetElements();
+    TIter next(list);
+    TCARElement* e;
+    Int_t n = 0;
+    while ((e = (TCARElement*)next())) fADC[n++] = atoi(e->GetADC());
 } 
 

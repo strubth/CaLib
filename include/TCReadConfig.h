@@ -55,7 +55,6 @@ private:
 
 public:
     TCReadConfig();
-    TCReadConfig(Char_t* cfgFile);
     virtual ~TCReadConfig();
 
     TString* GetConfig(TString configKey);

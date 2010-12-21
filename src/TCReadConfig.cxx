@@ -41,15 +41,6 @@ TCReadConfig::TCReadConfig()
 }
 
 //______________________________________________________________________________
-TCReadConfig::TCReadConfig(Char_t* cfgFile)
-{   
-    // Constructor using the configuration file 'cfgFile'.
-    
-    // read the configuration file
-    ReadConfigFile(cfgFile);
-}
-
-//______________________________________________________________________________
 TCReadConfig::~TCReadConfig()
 {
     // Destructor.
@@ -85,8 +76,11 @@ void TCReadConfig::ReadConfigFile(const Char_t* cfgFile)
             TString line;
             line.ReadLine(infile);
             
-            // skip comments
-            if (line.BeginsWith("#")) continue;
+            // trim line
+            line.Remove(TString::kBoth, ' ');
+            
+            // skip comments and empty lines
+            if (line.BeginsWith("#") || line == "") continue;
             else
             {   
                 // extract and save configuration element
