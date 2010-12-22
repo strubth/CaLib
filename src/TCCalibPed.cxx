@@ -106,15 +106,30 @@ void TCCalibPed::Fit(Int_t elem)
         fFitFunc->SetLineColor(2);
         
         // estimate peak position
-        fMean = fFitHisto->GetBinCenter(fFitHisto->GetMaximumBin());
-        if (fMean > 120) fMean = 100;
+	Double_t fTotMaxPos = fFitHisto->GetBinCenter(fFitHisto->GetMaximumBin());
+	fFitHisto->GetXaxis()->SetRangeUser(70, 112);
+	fMean = fFitHisto->GetBinCenter(fFitHisto->GetMaximumBin());
 
         // configure fitting function
-        fFitFunc->SetRange(fMean - 10, fMean + 10);
+        fFitFunc->SetRange(fMean - 2, fMean + 2);
         fFitFunc->SetLineColor(2);
         fFitFunc->SetParameters(1, fMean, 0.1);
+	fFitFunc->SetParLimits(2, 0.001, 1);
+	if (fTotMaxPos > fMean) // if pedestal isn't the maximum
+	{
+	  fFitFunc->SetRange(fMean - 7, fMean + 7);
+	  fFitFunc->SetParLimits(2, 0.0000001, 5);
+	}
         fFitHisto->Fit(fFitFunc, "RB0Q");
-
+	
+	// second iteration for elements where pedestal isn't the maximum
+	if (fTotMaxPos > fMean)
+	{
+	  fFitHisto->GetXaxis()->SetRangeUser(fFitFunc->GetParameter(1) - 5, fFitFunc->GetParameter(1) + 5);
+	  fFitFunc->SetRange(fFitFunc->GetParameter(1) - 10,fFitFunc->GetParameter(1)  + 10);
+	  fFitHisto->Fit(fFitFunc, "RB0Q");
+	}
+	
         // final results
         fMean = fFitFunc->GetParameter(1); 
 

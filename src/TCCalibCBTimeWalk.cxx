@@ -32,6 +32,8 @@ TCCalibCBTimeWalk::TCCalibCBTimeWalk()
     fPar3 = 0;
     fEnergyProj = 0;
     fTimeProj = 0;
+    fLine = 0;
+    fDelay = 0;
 }
 
 //______________________________________________________________________________
@@ -46,6 +48,7 @@ TCCalibCBTimeWalk::~TCCalibCBTimeWalk()
     if (fPar3) delete [] fPar3;
     if (fEnergyProj) delete fEnergyProj;
     if (fTimeProj) delete fTimeProj;
+    if (fLine) delete fLine;
 }
 
 //______________________________________________________________________________
@@ -61,6 +64,12 @@ void TCCalibCBTimeWalk::Init()
     fPar3 = new Double_t[fNelem];
     fEnergyProj = 0;
     fTimeProj = 0;
+    fLine =  new TLine();
+    fDelay = 0;
+
+    // configure line
+    fLine->SetLineColor(4);
+    fLine->SetLineWidth(3);
 
     // get histogram name
     if (!TCReadConfig::GetReader()->GetConfig("CB.TimeWalk.Histo.Fit.Name"))
@@ -70,6 +79,9 @@ void TCCalibCBTimeWalk::Init()
     }
     else fHistoName = *TCReadConfig::GetReader()->GetConfig("CB.TimeWalk.Histo.Fit.Name");
     
+    // get projection fit display delay
+    fDelay = TCReadConfig::GetReader()->GetConfigInt("CB.TimeWalk.Fit.Delay");
+
     // read old parameters
     TCMySQLManager::GetManager()->ReadParameters(fSet, kCALIB_CB_WALK0, fPar0, fNelem);
     TCMySQLManager::GetManager()->ReadParameters(fSet, kCALIB_CB_WALK1, fPar1, fNelem);
@@ -91,12 +103,16 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
     
     Char_t tmp[256];
     
+    // get configuration
+    Double_t lowLimit, highLimit;
+    TCReadConfig::GetReader()->GetConfigDoubleDouble("CB.TimeWalk.Histo.Fit.Xaxis.Range", &lowLimit, &highLimit);
+     
     // create histogram name
     sprintf(tmp, "%s_%03d", fHistoName.Data(), elem);
-    
+   
     // delete old histogram
     if (fMainHisto) delete fMainHisto;
-    
+  
     // get histogram
     fMainHisto = fFileManager->GetHistogram(tmp);
     if (!fMainHisto)
@@ -118,27 +134,70 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
         sprintf(tmp, "ProjEnergy_%d", elem);
         TH2* h2 = (TH2*) fMainHisto;
         if (fEnergyProj) delete fEnergyProj;
-        fEnergyProj = (TH1D*) h2->ProjectionX(tmp, 1, h2->GetNbinsY(), "e");
+        fEnergyProj = new TH1F(tmp, tmp, 4000, 0, 1000);
 
-        // loop over all energy bins
-        Int_t nBins = fEnergyProj->GetNbinsX();
-        for (Int_t i = 1; i <= nBins; i++)
+        // prepare stuff for adding
+        Int_t added = 0;
+        Double_t added_e[100];
+        
+        // get bins for fitting range
+        Int_t startBin = h2->GetXaxis()->FindBin(lowLimit);
+        Int_t endBin = h2->GetXaxis()->FindBin(highLimit);
+
+        // loop over energy bins
+        for (Int_t i = startBin; i <= endBin; i++)
         {   
-            printf("bin %d\n", i);
-            // check if projection has enough entries
-            if (fEnergyProj->GetBinContent(i) > 30)
+            // create time projection
+            sprintf(tmp, "ProjTime_%d_%d", elem, i);
+            TH1* proj = (TH1D*) h2->ProjectionY(tmp, i, i, "e");
+            
+            // check if in adding mode
+            if (added)
             {
-                // find fit range
-                //if (!low && fEnergyProj->GetBinContent(i-1))
-                //    low = fEnergyProj->GetBinLowEdge(i);
-                //else
-                //    upp = fEnergyProj->GetBinLowEdge(i+1);
-                
-                // create time projection
+                // add projection
+                fTimeProj->Add(proj);
+                delete proj;
+                 
+                // save bin contribution
+                added_e[added++] = h2->GetXaxis()->GetBinCenter(i);
+            }
+            else 
+            {
                 if (fTimeProj) delete fTimeProj;
-                sprintf(tmp, "ProjTime_%d_%d", elem, i);
-                fTimeProj = (TH1D*) h2->ProjectionY(tmp, i, i, "e");
-                
+                fTimeProj = proj;
+            }
+
+            // check if projection has enough entries
+            if (fTimeProj->GetEntries() < 100)
+            {
+                // start adding mode
+                if (!added)
+                {
+                    // enter adding mode
+                    added_e[added++] = h2->GetXaxis()->GetBinCenter(i);
+                }
+
+                // go to next bin
+                continue;
+            }
+            else
+            {
+                Double_t energy = 0;
+
+                // finish adding mode
+                if (added)
+                {
+                    // calculate energy
+                    for (Int_t j = 0; j < added; j++) energy += added_e[j];
+                    energy /= (Double_t)added;
+                    
+                    added = 0;
+                }
+                else
+                {
+                    energy = h2->GetXaxis()->GetBinCenter(i);
+                }
+
                 //
                 // fit time projection
                 //
@@ -167,51 +226,82 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
                 Double_t error = fFitFunc->GetParError(2);
 
                 // format line
-                //fLine->SetVertical();
-                //fLine->SetLineColor(4);
-                //fLine->SetLineWidth(3);
-                //fLine->SetY1(0);
-                //fLine->SetY2(hhTWpro[(id-1)]->GetMaximum() + 20);
-                //fLine->SetX1(mean_gaus[(id-1)]);
-                //fLine->SetX2(mean_gaus[(id-1)]);
+                fLine->SetY1(0);
+                fLine->SetY2(fTimeProj->GetMaximum() + 20);
+                fLine->SetX1(mean);
+                fLine->SetX2(mean);
 
                 // check fit error
                 if (error < 1.)
                 {
-                    fEnergyProj->SetBinContent(i, mean);
-                    fEnergyProj->SetBinError(i, error);
+                    Int_t bin = fEnergyProj->GetXaxis()->FindBin(energy);
+                    fEnergyProj->SetBinContent(bin, mean);
+                    fEnergyProj->SetBinError(bin, error);
                 }
 
-                // plot projection fit   
-                //if (!(i % 1))
-                //{
-                //    fTimeProj->GetXaxis()->SetRangeUser(-100, 100);
-                //    fCanvasFit->cd(2);
-                //    if (fTimeProj)
-                //    {
-                //        fTimeProj->Draw();
-                //        //fLine->Draw();
-                //        fCanvasFit->Update();
-                //    }
-                //}
+                // plot projection fit  
+                if (fDelay > 0)
+                {
+                    fCanvasFit->cd(2);
+                    fTimeProj->GetXaxis()->SetRangeUser(mean - 30, mean + 30);
+                    fTimeProj->Draw("hist");
+                    fFitFunc->Draw("same");
+                    fLine->Draw();
+                    fCanvasFit->Update();
+                    gSystem->Sleep(fDelay);
+                }
+            
             } // if: projection has sufficient statistics
-            else
-            {
-                fEnergyProj->SetBinContent(i, 0);
-                fEnergyProj->SetBinError(i, 0);
-            }
+        
         } // for: loop over energy bins
 
-        // get configuration
-        Double_t low, upp;
-        TCReadConfig::GetReader()->GetConfigDoubleDouble("CB.TimeWalk.Histo.Fit.Range", &low, &upp);
+        //
+        // fit profile
+        //
+        
+        // create fitting function
+        sprintf(tmp, "fTWalk_%d", elem);
+        if (fFitFunc) delete fFitFunc;
+        fFitFunc = new TF1(tmp, this, &TCCalibCBTimeWalk::TWFunc, 
+                           lowLimit, highLimit, 4, 
+                           "TCCalibCBTimeWalk", "TWFunc");
 
-        // draw energy projection
+        // prepare fitting function
+        fFitFunc->SetLineColor(2);
+	fFitFunc->SetParameters(3.55e+01, 6.77e+01, 2.43e-01, 1.66e-01);
+	fFitFunc->SetParLimits(0, 30, 80);
+	fFitFunc->SetParLimits(1, 30, 90);
+	fFitFunc->SetParLimits(2, -2, 1);
+	fFitFunc->SetParLimits(3, 0, 1);
+	
+        // perform fit
+        fEnergyProj->Fit(fFitFunc, "RB0Q");
+    
+        // read parameters
+        fPar0[elem] = fFitFunc->GetParameter(0);
+        fPar1[elem] = fFitFunc->GetParameter(1);
+        fPar2[elem] = fFitFunc->GetParameter(2);
+        fPar3[elem] = fFitFunc->GetParameter(3);
+
+        // draw energy projection and fit
         fCanvasResult->cd();
+        fEnergyProj->SetMarkerStyle(20);
+        fEnergyProj->SetMarkerColor(4);
+        fEnergyProj->GetXaxis()->SetRangeUser(lowLimit, highLimit);
+        fEnergyProj->GetYaxis()->SetRangeUser(TCUtils::GetHistogramMinimum(fEnergyProj) - 5, fEnergyProj->GetMaximum() + 5);
         fEnergyProj->Draw("E1");
+        fFitFunc->Draw("same");
         fCanvasResult->Update();
 
     } // if: sufficient statistics
+}
+
+//______________________________________________________________________________
+Double_t TCCalibCBTimeWalk::TWFunc(Double_t* x, Double_t* par)
+{   
+    // Time walk fitting function.
+
+    return par[0] + par[1] / TMath::Power(x[0] + par[2], par[3]);
 }
 
 //______________________________________________________________________________
@@ -219,20 +309,19 @@ void TCCalibCBTimeWalk::Calculate(Int_t elem)
 {
     // Calculate the new value of the element 'elem'.
     
-    Bool_t unchanged = kFALSE;
+    Bool_t noval = kFALSE;
     
-    /*
-    // check if fit was performed
-    if (!fFitHisto->GetEntries()) unchanged = kTRUE;
+    // check no fits
+    if (fPar0[elem] == 0 && fPar1[elem] == 0 &&
+        fPar2[elem] == 0 && fPar3[elem] == 0) noval = kTRUE;
 
     // user information
     printf("Element: %03d    Par0: %12.8f    "
            "Par1: %12.8f    Par2: %12.8f    Par3: %12.8f",
            elem, fPar0[elem], fPar1[elem], fPar2[elem], fPar3[elem]);
-    if (unchanged) printf("    -> unchanged");
+    if (noval) printf("    -> no fit");
     if (TCUtils::IsCBHole(elem)) printf(" (hole)");
     printf("\n");
-    */
 }   
 
 //______________________________________________________________________________
@@ -244,7 +333,7 @@ void TCCalibCBTimeWalk::PrintValues()
     for (Int_t i = 0; i < fNelem; i++)
     {
         printf("Element: %03d    Par0: %12.8f    "
-               "Par1: %12.8f    Par2: %12.8f    Par3: %12.8f",
+               "Par1: %12.8f    Par2: %12.8f    Par3: %12.8f\n",
                i, fPar0[i], fPar1[i], fPar2[i], fPar3[i]);
     }
 }

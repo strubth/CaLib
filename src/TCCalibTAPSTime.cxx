@@ -123,8 +123,18 @@ void TCCalibTAPSTime::Fit(Int_t elem)
         sprintf(tmp, "fTime_%i", elem);
         fFitFunc = new TF1(tmp, "gaus");
         fFitFunc->SetLineColor(2);
-    
-        // estimate peak position
+
+	// get important parameter positions
+	Double_t maxPos = fFitHisto->GetXaxis()->GetBinCenter(fFitHisto->GetMaximumBin());
+	Double_t max = fFitHisto->GetBinContent(fFitHisto->GetMaximumBin());
+
+	// configure fitting function
+	fFitFunc->SetParameters(max, maxPos, 4);
+	fFitFunc->SetParLimits(0, max - 20, max + 20); // height of the gaus
+	fFitFunc->SetParLimits(1, maxPos - 2, maxPos + 2); // peak position of the gaus
+	fFitFunc->SetParLimits(2, 0.1, 5);                  // sigma of the gaus
+
+	// estimate peak position
         peakval = fFitHisto->GetBinCenter(fFitHisto->GetMaximumBin());
 
         // temporary

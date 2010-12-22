@@ -35,6 +35,27 @@ void TCUtils::FindBackground(TH1* h, Double_t peak, Double_t low, Double_t high,
 }
 
 //______________________________________________________________________________
+Double_t TCUtils::GetHistogramMinimum(TH1* h)
+{
+    // Return the non-zero minimum bin content of the histogram 'h'.
+
+    Double_t min = 1e100;
+
+    // loop over bins
+    Int_t nBins = h->GetNbinsX();
+    for (Int_t i = 1; i <= nBins; i++)
+    {
+        // get bin content
+        Double_t c = h->GetBinContent(i);
+        
+        // check bin content
+        if (c < min && c != 0) min = c;
+    }
+
+    return min;
+}
+
+//______________________________________________________________________________
 void TCUtils::FormatHistogram(TH1* h, const Char_t* ident)
 {
     // Apply the formatting read from the configuration file for the identifier

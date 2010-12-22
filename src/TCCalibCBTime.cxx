@@ -111,7 +111,7 @@ void TCCalibCBTime::Fit(Int_t elem)
     fFitHisto = (TH1D*) h2->ProjectionX(tmp, elem+1, elem+1, "e");
     
     // init variables
-    Double_t factor = 3.0;
+    Double_t factor = 2.5;
     Double_t peakval = 0;
     
     // check for sufficient statistics
@@ -120,8 +120,20 @@ void TCCalibCBTime::Fit(Int_t elem)
         // delete old function
         if (fFitFunc) delete fFitFunc;
         sprintf(tmp, "fTime_%i", elem);
-        fFitFunc = new TF1(tmp, "gaus");
-        fFitFunc->SetLineColor(2);
+
+	// the fit function
+	fFitFunc = new TF1("fFitFunc", "gaus(0)");
+	fFitFunc->SetLineColor(2);
+	
+	// get important parameter positions
+	Double_t maxPos = fFitHisto->GetXaxis()->GetBinCenter(fFitHisto->GetMaximumBin());
+	Double_t max = fFitHisto->GetBinContent(fFitHisto->GetMaximumBin());
+
+	// configure fitting function
+	fFitFunc->SetParameters(max, maxPos, 8);
+	fFitFunc->SetParLimits(0, max - 100, max + 50);    // height of the gaus
+	fFitFunc->SetParLimits(1, maxPos - 2, maxPos + 2); // peak position of the gaus
+	fFitFunc->SetParLimits(2, 4, 16);                  // sigma of the gaus
     
         // estimate peak position
         peakval = fFitHisto->GetBinCenter(fFitHisto->GetMaximumBin());
@@ -130,12 +142,12 @@ void TCCalibCBTime::Fit(Int_t elem)
         fMean = peakval;
 
         // first iteration
-        fFitFunc->SetRange(peakval - 3.8, peakval + 3.8);
-        fFitFunc->SetParameters(fFitHisto->GetMaximum(), peakval, 0.5);
-        fFitHisto->Fit(fFitFunc, "RBQ0");
+	fFitFunc->SetRange(peakval - 3.8, peakval + 3.8);
+	//fFitFunc->SetParameters(fFitHisto->GetMaximum(), peakval, 7);
+	fFitHisto->Fit(fFitFunc, "RBQ0");
 
         // second iteration
-        peakval = fFitFunc->GetParameter(1);
+	peakval = fFitFunc->GetParameter(1);
         Double_t sigma = fFitFunc->GetParameter(2);
         fFitFunc->SetRange(peakval -factor*sigma, peakval +factor*sigma);
         fFitHisto->Fit(fFitFunc, "RBQ0");
