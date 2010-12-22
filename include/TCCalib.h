@@ -82,6 +82,7 @@ public:
     
     virtual void Write();
     virtual void PrintValues();
+    virtual void PrintValuesChanged();
 
     void Start(Int_t set);
     void ProcessAll(Int_t msecDelay = 0);

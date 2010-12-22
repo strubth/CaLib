@@ -34,6 +34,8 @@ private:
     Double_t* fPar1;                    // time walk parameter 1
     Double_t* fPar2;                    // time walk parameter 2
     Double_t* fPar3;                    // time walk parameter 3
+    TH1* fEnergyProj;                   // energy projection histogram
+    TH1* fTimeProj;                     // time projection histogram
 
     virtual void Init();
     virtual void Fit(Int_t elem);

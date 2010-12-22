@@ -172,3 +172,32 @@ Double_t TCReadConfig::GetConfigDouble(TString configKey)
     else return 0;
 }
 
+//______________________________________________________________________________
+void TCReadConfig::GetConfigDoubleDouble(TString configKey, Double_t* out1, Double_t* out2)
+{
+    // Read two Double_t values of the configuration key 'configKey' and save them
+    // to 'out1' and 'out2'.
+
+    // get value as string
+    TString* v = GetConfig(configKey);
+    
+    // check value
+    if (!v) return;
+
+    // read values
+    Double_t d1, d2;
+    Int_t n = sscanf(v->Data(), "%lf%lf", &d1, &d2);
+
+    // check result
+    if (n == 2)
+    {
+        *out1 = d1;
+        *out2 = d2;
+    }
+    else
+    {
+        Error("GetConfigDoubleDouble", "Problems reading two double values from '%s'", 
+              v->Data());
+    }
+}
+

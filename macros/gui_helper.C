@@ -27,6 +27,7 @@ private:
   TGTextButton *fTB_Prev;
   TGTextButton *fTB_Next;
   TGTextButton *fTB_Print;
+  TGTextButton *fTB_PrintChanges;
   TGTextButton *fTB_Goto;
   TGTextButton *fTB_DoAll;
   TGTextButton *fTB_Quit;
@@ -161,6 +162,11 @@ ButtonWindow::ButtonWindow()
   fTB_Print->ChangeOptions(fTB_Print->GetOptions() | kFixedSize);
   fTB_Print->Connect("Pressed()", "ButtonWindow", this, "Print()");
 
+  fTB_PrintChanges = new TGTextButton(horizontal_4,"Changes");
+  fTB_PrintChanges->Resize(80,50);
+  fTB_PrintChanges->ChangeOptions(fTB_Print->GetOptions() | kFixedSize);
+  fTB_PrintChanges->Connect("Pressed()", "ButtonWindow", this, "PrintChanges()");
+
   fTB_Quit = new TGTextButton(horizontal_4, "Quit");
   fTB_Quit->Resize(80,50);
   fTB_Quit->ChangeOptions(fTB_Quit->GetOptions() | kFixedSize );
@@ -227,6 +233,15 @@ void ButtonWindow::Print()
     
     if (gCurrentModule)
         ((TCCalib*)gCurrentModule)->PrintValues();
+}
+
+//______________________________________________________________________________
+void ButtonWindow::PrintChanges()
+{
+    // Print the changed values obtained by the current module.
+    
+    if (gCurrentModule)
+        ((TCCalib*)gCurrentModule)->PrintValuesChanged();
 }
 
 //______________________________________________________________________________

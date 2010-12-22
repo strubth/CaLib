@@ -65,6 +65,9 @@ void TCCalibPed::Init()
 
     // read old parameters
     TCMySQLManager::GetManager()->ReadParameters(fSet, fData, fOldVal, fNelem);
+    
+    // copy to new parameters
+    for (Int_t i = 0; i < fNelem; i++) fNewVal[i] = fOldVal[i];
 
     // create the overview histogram
     fOverviewHisto = new TH1F("Overview", ";Element;Pedestal position [Channel]", fNelem, 0, fNelem);
@@ -159,6 +162,9 @@ void TCCalibPed::Calculate(Int_t elem)
     // check if fit was performed
     if (fFitHisto->GetEntries())
     {
+        // check if line position was modified by hand
+        if (fLine->GetX1() != fMean) fMean = fLine->GetX1();
+ 
         // save pedestal position
         fNewVal[elem] = fMean;
     
@@ -170,7 +176,7 @@ void TCCalibPed::Calculate(Int_t elem)
         }
 
         // update overview histogram
-        fOverviewHisto->SetBinContent(elem+1, fMean);
+        fOverviewHisto->SetBinContent(elem+1, fNewVal[elem]);
         fOverviewHisto->SetBinError(elem+1, 0.0000001);
     }
     else

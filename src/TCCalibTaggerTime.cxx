@@ -63,6 +63,9 @@ void TCCalibTaggerTime::Init()
     // read old parameters
     TCMySQLManager::GetManager()->ReadParameters(fSet, fData, fOldVal, fNelem);
 
+    // copy to new parameters
+    for (Int_t i = 0; i < fNelem; i++) fNewVal[i] = fOldVal[i];
+
     // sum up all files contained in this runset
     TCFileManager f(fSet, fData);
     

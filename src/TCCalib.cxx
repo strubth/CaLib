@@ -22,7 +22,7 @@ ClassImp(TCCalib)
 TCCalib::~TCCalib()
 {
     // Destructor.
-    
+        
     if (fOldVal) delete [] fOldVal;
     if (fNewVal) delete [] fNewVal;
     if (fMainHisto) delete fMainHisto;
@@ -76,6 +76,10 @@ void TCCalib::Start(Int_t set)
     gStyle->SetFrameFillColor(10);
     gStyle->SetCanvasBorderMode(0);
     gStyle->SetPadBorderMode(0);
+    gStyle->SetPadColor(10);
+    gStyle->SetCanvasColor(10);
+    gStyle->SetStatColor(10);
+    gStyle->SetFillColor(10);
 
     // draw the fitting canvas
     fCanvasFit = new TCanvas("Fitting", "Fitting", 0, 0, 400, 800);
@@ -181,11 +185,29 @@ void TCCalib::PrintValues()
     // Print out the old and new values for all elements.
 
     // loop over elements
+    printf("\n");
     for (Int_t i = 0; i < fNelem; i++)
     {
         printf("Element: %03d    old value: %12.8f    new value: %12.8f\n",
                i, fOldVal[i], fNewVal[i]);
     }
+    printf("\n");
+}
+
+//______________________________________________________________________________
+void TCCalib::PrintValuesChanged()
+{
+    // Print out the old and new values only for elements for which they changed.
+
+    // loop over elements
+    printf("\n");
+    for (Int_t i = 0; i < fNelem; i++)
+    {
+        if (fOldVal[i] != fNewVal[i])
+            printf("Element: %03d    old value: %12.8f    new value: %12.8f\n",
+                   i, fOldVal[i], fNewVal[i]);
+    }
+    printf("\n");
 }
 
 //______________________________________________________________________________
