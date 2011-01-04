@@ -20,7 +20,7 @@ ClassImp(TCCalibTAPSQuadEnergy)
 
 //______________________________________________________________________________
 TCCalibTAPSQuadEnergy::TCCalibTAPSQuadEnergy()
-    : TCCalib("TAPS.QuadEnergy", "TAPS quadratic energy correction", kCALIB_TAPS_EQUAD0, TCConfig::kMaxTAPSRings)
+    : TCCalib("TAPS.QuadEnergy", "TAPS quadratic energy correction", kCALIB_TAPS_EQUAD0, TCConfig::kMaxTAPSThetaBins)
 {
     // Empty constructor.
     

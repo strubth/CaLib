@@ -52,10 +52,12 @@ namespace TCConfig
     extern const Int_t kMaxCrystal;
     extern const Int_t kMaxCB;
     extern const Int_t kMaxTAPS;
-    extern const Int_t kMaxTAPSRings;
     extern const Int_t kMaxPID;
     extern const Int_t kMaxVETO;
     extern const Int_t kMaxTAGGER;
+    
+    // maximum theta bins for TAPS quadratic energy correction
+    extern const Int_t kMaxTAPSThetaBins;
     
     // database format definitions
     extern const Char_t* kCalibDataTableNames[];

@@ -22,7 +22,6 @@ namespace TCConfig
     const Int_t kMaxCrystal   = 720;
     const Int_t kMaxCB        = 720;
     const Int_t kMaxTAPS      = 510;
-    const Int_t kMaxTAPSRings =  11;
     const Int_t kMaxPID       =  24;
     const Int_t kMaxVETO      = 510;
     const Int_t kMaxTAGGER    = 352;
@@ -81,6 +80,9 @@ namespace TCConfig
                     "                 ON UPDATE CURRENT_TIMESTAMP,"
                     "first_run INT,"
                     "last_run INT,";
+    
+    // maximum theta bins for TAPS quadratic energy correction
+    const Int_t kMaxTAPSThetaBins =  30;
 
     // constants
     const Double_t kPi0Mass = 134.9766;
