@@ -21,10 +21,10 @@ namespace TCConfig
     // detector elements
     const Int_t kMaxCrystal   = 720;
     const Int_t kMaxCB        = 720;
-    const Int_t kMaxTAPS      = 438;
+    const Int_t kMaxTAPS      = 510;
     const Int_t kMaxTAPSRings =  11;
     const Int_t kMaxPID       =  24;
-    const Int_t kMaxVETO      = 384;
+    const Int_t kMaxVETO      = 510;
     const Int_t kMaxTAGGER    = 352;
 
     // data table names
@@ -46,7 +46,7 @@ namespace TCConfig
         "taps_sg_e0", "taps_sg_e1", "taps_equad0", "taps_equad1",
 
         // PID data
-        "pid_t0", "pid_e0", "pid_e1", 
+        "pid_phi", "pid_t0", "pid_e0", "pid_e1", 
 
         // VETO data
         "veto_t0", "veto_t1", "veto_e0", "veto_e1"

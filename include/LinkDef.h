@@ -37,10 +37,14 @@
 #pragma link C++ class TCCalib+;
 #pragma link C++ class TCCalibPed+;
 
+// Tagger calibration classes
+#pragma link C++ class TCCalibTaggerTime+;
+
 // CB calibration classes
 #pragma link C++ class TCCalibCBEnergy+;
 #pragma link C++ class TCCalibCBQuadEnergy+;
 #pragma link C++ class TCCalibCBTime+;
+#pragma link C++ class TCCalibCBRiseTime+;
 #pragma link C++ class TCCalibCBTimeWalk+;
 
 // TAPS calibration classes
@@ -51,9 +55,8 @@
 #pragma link C++ class TCCalibTAPSQuadEnergy+;
 #pragma link C++ class TCCalibTAPSTime+;
 
-// Tagger calibration classes
-#pragma link C++ class TCCalibTaggerTime+;
-
+// PID calibration classes
+#pragma link C++ class TCCalibPIDPhi+;
 
 #endif
 
