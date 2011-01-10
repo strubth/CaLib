@@ -28,6 +28,7 @@ namespace TCUtils
     Double_t GetHistogramMinimum(TH1* h);
     void FormatHistogram(TH1* h, const Char_t* ident);
     Bool_t IsCBHole(Int_t elem);
+    Int_t GetVetoInFrontOfElement(Int_t id, Int_t maxTAPS);
 }
 
 #endif

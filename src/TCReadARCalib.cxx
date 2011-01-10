@@ -19,17 +19,21 @@ ClassImp(TCReadARCalib)
 
 
 //______________________________________________________________________________
-TCReadARCalib::TCReadARCalib(const Char_t* calibFile, const Char_t* elemIdent)
+TCReadARCalib::TCReadARCalib(const Char_t* calibFile, 
+                             const Char_t* elemIdent,
+                             const Char_t* nebrIdent)
 {
-    // Constructor using the calibration file 'calibFile' and the element
-    // identifier 'elemIdent'.
+    // Constructor using the calibration file 'calibFile', the element
+    // identifier 'elemIdent' and the next-neighbour identifier 'nebrIdent'.
     
     // init members
     fElements = new TList();
     fElements->SetOwner(kTRUE);
+    fNeighbours = new TList();
+    fNeighbours->SetOwner(kTRUE);
     
     // read the calibration file
-    ReadCalibFile(calibFile, elemIdent);
+    ReadCalibFile(calibFile, elemIdent, nebrIdent);
 }
 
 //______________________________________________________________________________
@@ -38,10 +42,13 @@ TCReadARCalib::~TCReadARCalib()
     // Destructor.
     
     if (fElements) delete fElements;
+    if (fNeighbours) delete fNeighbours;
 }
 
 //______________________________________________________________________________
-void TCReadARCalib::ReadCalibFile(const Char_t* filename, const Char_t* elemIdent)
+void TCReadARCalib::ReadCalibFile(const Char_t* filename, 
+                                  const Char_t* elemIdent,
+                                  const Char_t* nebrIdent)
 {
     // Read the calibration file 'filename'.
 
@@ -82,6 +89,24 @@ void TCReadARCalib::ReadCalibFile(const Char_t* filename, const Char_t* elemIden
                 else
                 {
                     Error("ReadCalibFile", "Could not read element in "
+                          "calibration file '%s'", filename);
+                }
+            }
+            // search neighbours statements
+            else if (line.BeginsWith(nebrIdent))
+            {       
+                // create element
+                TCARNeighbours* elem = new TCARNeighbours();
+                
+                // try to read parameters
+                if (elem->Parse(line))
+                {
+                    // add element to list
+                    fNeighbours->Add(elem);
+                }
+                else
+                {
+                    Error("ReadCalibFile", "Could not read neighbours in "
                           "calibration file '%s'", filename);
                 }
             }

@@ -17,6 +17,7 @@
 #define TCREADARCALIB_H
 
 #include <fstream>
+#include <sstream>
 
 #include "TSystem.h"
 #include "TString.h"
@@ -43,7 +44,7 @@ private:
     Double_t fZ;                            // z coordinate
 
 public:
-    TCARElement() 
+    TCARElement() : TObject()
     {
         fADC[0] = '\0';
         fEnergyLow = 0;
@@ -103,21 +104,73 @@ public:
 };
 
 
+class TCARNeighbours : public TObject
+{
+
+private:
+    Int_t fNneighbours;             // number of neighbours
+    Int_t* fNeighbours;             // list of neighbours
+
+public:
+    TCARNeighbours() : TObject(), fNneighbours(0), fNeighbours(0) { }
+    virtual ~TCARNeighbours()
+    {
+        if (fNeighbours) delete [] fNeighbours;
+    }
+
+    Bool_t Parse(const Char_t* line)
+    {
+        // create stringstream
+        std::istringstream iss(line);
+        
+        // skip tag
+        std::string tag;
+        iss >> tag;
+
+        // read number of neighbours
+        iss >> fNneighbours;
+
+        // create array
+        if (fNeighbours) delete [] fNeighbours;
+        fNeighbours = new Int_t[fNneighbours];
+        
+        // read neighbours
+        for (Int_t i = 0; i < fNneighbours; i++) 
+            iss >> fNeighbours[i];
+        
+        return kTRUE;
+    }
+
+    Int_t GetNneighbours() const { return fNneighbours; }
+    Int_t* GetNeighbours() const { return fNeighbours; }
+    Int_t GetNeighbour(Int_t n) const { return fNeighbours ? fNeighbours[n] : 0; }
+};
+
+
 class TCReadARCalib
 {
 
 private:
     TList* fElements;               // list of detector elements
-    
-    void ReadCalibFile(const Char_t* filename, const Char_t* elemIdent);
+    TList* fNeighbours;             // list of neighbour statements
+
+    void ReadCalibFile(const Char_t* filename, 
+                       const Char_t* elemIdent,
+                       const Char_t* nebrIdent);
 
 public:
     TCReadARCalib() : fElements(0) { }
-    TCReadARCalib(const Char_t* calibFile, const Char_t* elemIdent = "Element:");
+    TCReadARCalib(const Char_t* calibFile, 
+                  const Char_t* elemIdent = "Element:",
+                  const Char_t* nebrIdent = "Next-Neighbour:");
     virtual ~TCReadARCalib();
     
     TList* GetElements() const { return fElements; }
     Int_t GetNelements() const { return fElements ? fElements->GetSize() : 0; }
+    TCARElement* GetElement(Int_t n) const { return fElements ? (TCARElement*)fElements->At(n) : 0; }
+    TList* GetNeighbours() const { return fNeighbours; }
+    Int_t GetNneighbours() const { return fNeighbours ? fNeighbours->GetSize() : 0; }
+    TCARNeighbours* GetNeighbour(Int_t n) const { return fNeighbours ? (TCARNeighbours*)fNeighbours->At(n) : 0; }
 
     ClassDef(TCReadARCalib, 0) // AcquRoot calibration file reader
 };

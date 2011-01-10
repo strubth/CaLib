@@ -137,12 +137,18 @@ Bool_t TCMySQLManager::IsConnected()
 }
 
 //______________________________________________________________________________
-void TCMySQLManager::SearchTable(CalibData_t data, Char_t* outTableName)
+Bool_t TCMySQLManager::SearchTable(CalibData_t data, Char_t* outTableName)
 {
     // Search the table name of the calibration quantity 'data' and write it
     // to 'outTableName'.
-
+    // Return kTRUE when a true table was found, otherwise kFALSE.
+    
+    // copy table name
     strcpy(outTableName, TCConfig::kCalibDataTableNames[(Int_t)data]);
+    
+    // check for empty table
+    if (data == kCALIB_NODATA) return kFALSE;
+    else return kTRUE;
 }
 
 //______________________________________________________________________________
@@ -154,7 +160,11 @@ Int_t TCMySQLManager::GetNsets(CalibData_t data)
     Char_t table[256];
 
     // get the data table
-    SearchTable(data, table);
+    if (!SearchTable(data, table))
+    {
+        Error("GetNsets", "No data table found!");
+        return 0;
+    }
 
     // create the query
     sprintf(query,
@@ -221,7 +231,11 @@ Int_t TCMySQLManager::GetFirstRunOfSet(CalibData_t data, Int_t set)
     Char_t table[256];
 
     // get the data table
-    SearchTable(data, table);
+    if (!SearchTable(data, table))
+    {
+        Error("GetFirstRunOfSet", "No data table found!");
+        return 0;
+    }
 
     // create the query
     sprintf(query,
@@ -260,7 +274,11 @@ Int_t TCMySQLManager::GetLastRunOfSet(CalibData_t data, Int_t set)
     Char_t table[256];
 
     // get the data table
-    SearchTable(data, table);
+    if (!SearchTable(data, table))
+    {
+        Error("GetLastRunOfSet", "No data table found!");
+        return 0;
+    }
 
     // create the query
     sprintf(query,
@@ -301,7 +319,11 @@ Int_t* TCMySQLManager::GetRunsOfSet(CalibData_t data, Int_t set, Int_t* outNruns
     Char_t table[256];
 
     // get the data table
-    SearchTable(data, table);
+    if (!SearchTable(data, table))
+    {
+        Error("GetRunsOfSet", "No data table found!");
+        return 0;
+    }
 
     //
     // get the first and the last run of the set
@@ -387,7 +409,11 @@ void TCMySQLManager::ReadParameters(Int_t set, CalibData_t data, Double_t* par, 
     Char_t table[256];
 
     // get the data table
-    SearchTable(data, table);
+    if (!SearchTable(data, table))
+    {
+        Error("ReadParameters", "No data table found!");
+        return;
+    }
 
     // get the first run of the set
     Int_t first_run = GetFirstRunOfSet(data, set);
@@ -438,7 +464,11 @@ void TCMySQLManager::WriteParameters(Int_t set, CalibData_t data, Double_t* par,
     Char_t table[256];
 
     // get the data table
-    SearchTable(data, table);
+    if (!SearchTable(data, table))
+    {
+        Error("WriteParameters", "No data table found!");
+        return;
+    }
 
     // get the first run of the set
     Int_t first_run = GetFirstRunOfSet(data, set);
@@ -568,7 +598,11 @@ void TCMySQLManager::CreateDataTable(CalibData_t data, Int_t nElem)
     Char_t table[256];
     
     // get the table name
-    SearchTable(data, table);
+    if (!SearchTable(data, table))
+    {
+        Error("CreateDataTable", "No data table found!");
+        return;
+    }
 
     Info("CreateDataTable", "Adding data table %s", table);
         
@@ -653,7 +687,11 @@ void TCMySQLManager::AddSet(CalibData_t data, const Char_t* calib, const Char_t*
     Char_t table[256];
  
     // get the data table
-    SearchTable(data, table);
+    if (!SearchTable(data, table))
+    {
+        Error("AddSet", "No data table found!");
+        return;
+    }
 
     // prepare the insert query
     TString ins_query = TString::Format("INSERT INTO %s SET calibration = '%s', description = '%s', first_run = %d, last_run = %d,",

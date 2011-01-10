@@ -45,7 +45,7 @@ public:
 
     TSQLResult* SendQuery(const Char_t* query);
     Bool_t IsConnected();
-    void SearchTable(CalibData_t data, Char_t* outTableName);
+    Bool_t SearchTable(CalibData_t data, Char_t* outTableName);
 
     TList* GetAllTargets();
     Int_t GetNsets(CalibData_t data);

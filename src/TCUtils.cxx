@@ -113,3 +113,64 @@ Bool_t TCUtils::IsCBHole(Int_t elem)
     return kFALSE;
 }
 
+//______________________________________________________________________________
+Int_t TCUtils::GetVetoInFrontOfElement(Int_t id, Int_t maxTAPS)
+{
+    // Return the index of the veto that is installed in front of the
+    // BaF2 or PWO element with the index 'id' depending on the TAPS setup
+    // configured by the number of TAPS elements 'maxTAPS'.
+    
+    // check TAPS setup
+    switch (maxTAPS)
+    {
+        case 384:
+        {
+            return id;
+        }
+        case 402:
+        {
+            // 1st PWO ring
+            if (id >=   0 && id <=   3) return   0;
+            if (id >=  67 && id <=  70) return  64;
+            if (id >= 134 && id <= 137) return 128;
+            if (id >= 201 && id <= 204) return 192;
+            if (id >= 268 && id <= 271) return 256;
+            if (id >= 335 && id <= 338) return 320;
+            
+            // other elements
+            else return id - 3*(id/67 + 1);
+        }
+        case 438:
+        {
+            // 1st PWO ring
+            if (id >=   0 && id <=   3) return   0;
+            if (id >=  73 && id <=  76) return  64;
+            if (id >= 146 && id <= 149) return 128;
+            if (id >= 219 && id <= 222) return 192;
+            if (id >= 292 && id <= 295) return 256;
+            if (id >= 365 && id <= 368) return 320;
+            
+            // 2nd PWO ring
+            if (id >=   4 && id <=   7) return   1;
+            if (id >=   8 && id <=  11) return   2;
+            if (id >=  77 && id <=  80) return  65;
+            if (id >=  81 && id <=  84) return  66;
+            if (id >= 150 && id <= 153) return 129;
+            if (id >= 154 && id <= 157) return 130;
+            if (id >= 223 && id <= 226) return 193;
+            if (id >= 227 && id <= 230) return 194;
+            if (id >= 296 && id <= 299) return 257;
+            if (id >= 300 && id <= 303) return 258;
+            if (id >= 369 && id <= 372) return 321;
+            if (id >= 373 && id <= 376) return 322;
+            
+            // other elements
+            else return id - 9*(id/73 + 1);
+        }
+        default:
+        {
+            return id;
+        }
+    }
+}
+
