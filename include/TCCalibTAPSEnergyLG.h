@@ -6,15 +6,15 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// TCCalibTAPSEnergy                                                    //
+// TCCalibTAPSEnergyLG                                                  //
 //                                                                      //
-// Calibration module for the TAPS energy.                              //
+// Calibration module for the TAPS LG energy.                           //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef TCCALIBTAPSENERGY_H
-#define TCCALIBTAPSENERGY_H
+#ifndef TCCALIBTAPSENERGYLG_H
+#define TCCALIBTAPSENERGYLG_H
 
 #include "TCanvas.h"
 #include "TH2.h"
@@ -25,7 +25,7 @@
 #include "TCFileManager.h"
 
 
-class TCCalibTAPSEnergy : public TCCalib
+class TCCalibTAPSEnergyLG : public TCCalib
 {
 
 private:
@@ -37,10 +37,10 @@ private:
     virtual void Calculate(Int_t elem);
 
 public:
-    TCCalibTAPSEnergy();
-    virtual ~TCCalibTAPSEnergy();
+    TCCalibTAPSEnergyLG();
+    virtual ~TCCalibTAPSEnergyLG();
 
-    ClassDef(TCCalibTAPSEnergy, 0) // TAPS energy calibration
+    ClassDef(TCCalibTAPSEnergyLG, 0) // TAPS LG energy calibration
 };
 
 #endif

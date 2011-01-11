@@ -6,21 +6,21 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// TCCalibTAPSEnergy                                                    //
+// TCCalibTAPSEnergyLG                                                  //
 //                                                                      //
-// Calibration module for the TAPS energy.                              //
+// Calibration module for the TAPS LG energy.                           //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#include "TCCalibTAPSEnergy.h"
+#include "TCCalibTAPSEnergyLG.h"
 
-ClassImp(TCCalibTAPSEnergy)
+ClassImp(TCCalibTAPSEnergyLG)
 
 
 //______________________________________________________________________________
-TCCalibTAPSEnergy::TCCalibTAPSEnergy()
-    : TCCalib("TAPS.Energy", "TAPS energy calibration", kCALIB_TAPS_LG_E1,
+TCCalibTAPSEnergyLG::TCCalibTAPSEnergyLG()
+    : TCCalib("TAPS.Energy.LG", "TAPS LG energy calibration", kCALIB_TAPS_LG_E1,
               TCReadConfig::GetReader()->GetConfigInt("TAPS.Elements"))
 {
     // Empty constructor.
@@ -32,7 +32,7 @@ TCCalibTAPSEnergy::TCCalibTAPSEnergy()
 }
 
 //______________________________________________________________________________
-TCCalibTAPSEnergy::~TCCalibTAPSEnergy()
+TCCalibTAPSEnergyLG::~TCCalibTAPSEnergyLG()
 {
     // Destructor. 
     
@@ -40,7 +40,7 @@ TCCalibTAPSEnergy::~TCCalibTAPSEnergy()
 }
 
 //______________________________________________________________________________
-void TCCalibTAPSEnergy::Init()
+void TCCalibTAPSEnergyLG::Init()
 {
     // Init the module.
     
@@ -53,12 +53,12 @@ void TCCalibTAPSEnergy::Init()
     fLine->SetLineWidth(3);
  
     // get histogram name
-    if (!TCReadConfig::GetReader()->GetConfig("TAPS.Energy.Histo.Fit.Name"))
+    if (!TCReadConfig::GetReader()->GetConfig("TAPS.Energy.LG.Histo.Fit.Name"))
     {
         Error("Init", "Histogram name was not found in configuration!");
         return;
     }
-    else fHistoName = *TCReadConfig::GetReader()->GetConfig("TAPS.Energy.Histo.Fit.Name");
+    else fHistoName = *TCReadConfig::GetReader()->GetConfig("TAPS.Energy.LG.Histo.Fit.Name");
     
     // read old parameters
     TCMySQLManager::GetManager()->ReadParameters(fSet, fData, fOldVal, fNelem);
@@ -85,17 +85,17 @@ void TCCalibTAPSEnergy::Init()
     // draw main histogram
     fCanvasFit->Divide(1, 2, 0.001, 0.001);
     fCanvasFit->cd(1)->SetLogz();
-    TCUtils::FormatHistogram(fMainHisto, "TAPS.Energy.Histo.Fit");
+    TCUtils::FormatHistogram(fMainHisto, "TAPS.Energy.LG.Histo.Fit");
     fMainHisto->Draw("colz");
 
     // draw the overview histogram
     fCanvasResult->cd();
-    TCUtils::FormatHistogram(fOverviewHisto, "TAPS.Energy.Histo.Overview");
+    TCUtils::FormatHistogram(fOverviewHisto, "TAPS.Energy.LG.Histo.Overview");
     fOverviewHisto->Draw("P");
 }
 
 //______________________________________________________________________________
-void TCCalibTAPSEnergy::Fit(Int_t elem)
+void TCCalibTAPSEnergyLG::Fit(Int_t elem)
 {
     // Perform the fit of the element 'elem'.
     
@@ -156,7 +156,7 @@ void TCCalibTAPSEnergy::Fit(Int_t elem)
     // draw histogram
     fFitHisto->SetFillColor(35);
     fCanvasFit->cd(2);
-    TCUtils::FormatHistogram(fFitHisto, "TAPS.Energy.Histo.Fit");
+    TCUtils::FormatHistogram(fFitHisto, "TAPS.Energy.LG.Histo.Fit");
     fFitHisto->Draw("hist");
     
     // draw fitting function
@@ -178,7 +178,7 @@ void TCCalibTAPSEnergy::Fit(Int_t elem)
 }
 
 //______________________________________________________________________________
-void TCCalibTAPSEnergy::Calculate(Int_t elem)
+void TCCalibTAPSEnergyLG::Calculate(Int_t elem)
 {
     // Calculate the new value of the element 'elem'.
     
