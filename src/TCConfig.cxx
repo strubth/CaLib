@@ -43,6 +43,7 @@ namespace TCConfig
         // TAPS data
         "taps_t0", "taps_t1", "taps_lg_e0", "taps_lg_e1",
         "taps_sg_e0", "taps_sg_e1", "taps_equad0", "taps_equad1",
+        "taps_led1", "taps_led2",
 
         // PID data
         "pid_phi", "pid_t0", "pid_e0", "pid_e1", 

@@ -55,6 +55,9 @@
 #pragma link C++ class TCCalibTAPSPedVETO+;
 #pragma link C++ class TCCalibTAPSQuadEnergy+;
 #pragma link C++ class TCCalibTAPSTime+;
+#pragma link C++ class TCCalibTAPSLED+;
+#pragma link C++ class TCCalibTAPSLED1+;
+#pragma link C++ class TCCalibTAPSLED2+;
 
 // PID calibration classes
 #pragma link C++ class TCCalibPIDPhi+;

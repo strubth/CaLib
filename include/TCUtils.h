@@ -16,7 +16,7 @@
 #ifndef TCUTILS_H
 #define TCUTILS_H
 
-#include "TH1.h"
+#include "TH2.h"
 
 #include "TCReadConfig.h"
 

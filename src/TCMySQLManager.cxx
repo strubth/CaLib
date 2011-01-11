@@ -558,6 +558,8 @@ void TCMySQLManager::InitDatabase()
     CreateDataTable(kCALIB_TAPS_SG_E1, TCConfig::kMaxTAPS);
     CreateDataTable(kCALIB_TAPS_EQUAD0, TCConfig::kMaxTAPS);
     CreateDataTable(kCALIB_TAPS_EQUAD1, TCConfig::kMaxTAPS);
+    CreateDataTable(kCALIB_TAPS_LED1, TCConfig::kMaxTAPS);
+    CreateDataTable(kCALIB_TAPS_LED2, TCConfig::kMaxTAPS);
 
     // create PID tables
     CreateDataTable(kCALIB_PID_PHI, TCConfig::kMaxPID);

@@ -68,7 +68,16 @@ void TCUtils::FormatHistogram(TH1* h, const Char_t* ident)
     if (TString* value = TCReadConfig::GetReader()->GetConfig(key))
     {
         Int_t rebin = atoi(value->Data());
-        if (rebin > 1) h->Rebin(rebin);
+        if (rebin > 1) 
+        {
+            // check for 2d-histogram
+            if (h->InheritsFrom("TH2")) 
+            {
+                TH2* h2 = (TH2*) h;
+                h2->RebinX(rebin);
+            }
+            else h->Rebin(rebin);
+        }
     }
 
     // x-axis range
