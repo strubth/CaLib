@@ -566,6 +566,10 @@ void TCMySQLManager::InitDatabase()
     CreateDataTable(kCALIB_PID_T0, TCConfig::kMaxPID);
     CreateDataTable(kCALIB_PID_E0, TCConfig::kMaxPID);
     CreateDataTable(kCALIB_PID_E1, TCConfig::kMaxPID);
+    CreateDataTable(kCALIB_PID_DROOP0, TCConfig::kMaxPID);
+    CreateDataTable(kCALIB_PID_DROOP1, TCConfig::kMaxPID);
+    CreateDataTable(kCALIB_PID_DROOP2, TCConfig::kMaxPID);
+    CreateDataTable(kCALIB_PID_DROOP3, TCConfig::kMaxPID);
 
     // create VETO tables
     CreateDataTable(kCALIB_VETO_T0, TCConfig::kMaxVETO); 

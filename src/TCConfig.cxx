@@ -47,6 +47,7 @@ namespace TCConfig
 
         // PID data
         "pid_phi", "pid_t0", "pid_e0", "pid_e1", 
+        "pid_droop0", "pid_droop1", "pid_droop2", "pid_droop3",
 
         // VETO data
         "veto_t0", "veto_t1", "veto_e0", "veto_e1"
