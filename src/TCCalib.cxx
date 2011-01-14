@@ -67,8 +67,11 @@ void TCCalib::Start(Int_t set)
     }
     
     // user information
+    Int_t first_run = TCMySQLManager::GetManager()->GetFirstRunOfSet(fData, fSet);
+    Int_t last_run = TCMySQLManager::GetManager()->GetLastRunOfSet(fData, fSet);
     Info("Start", "Starting calibration module %s", GetName());
     Info("Start", "Module description: %s", GetTitle());
+    Info("Start", "Calibrating set %d (Run %d to %d)", fSet, first_run, last_run);
 
     // style options
     gStyle->SetPalette(1);

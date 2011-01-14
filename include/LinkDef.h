@@ -66,6 +66,7 @@
 
 // Veto calibration classes
 #pragma link C++ class TCCalibVetoCorr+;
+#pragma link C++ class TCCalibVetoEnergy+;
 
 #endif
 

@@ -6,15 +6,15 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// TCCalibPIDEnergy                                                     //
+// TCCalibVetoEnergy                                                    //
 //                                                                      //
-// Calibration module for the PID energy.                               //
+// Calibration module for the Veto energy.                              //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef TCCALIBPIDENERGY_H
-#define TCCALIBPIDENERGY_H
+#ifndef TCCALIBVETOENERGY_H
+#define TCCALIBVETOENERGY_H
 
 #include "TCanvas.h"
 #include "TH2.h"
@@ -29,7 +29,7 @@
 #include "TCUtils.h"
 
 
-class TCCalibPIDEnergy : public TCCalib
+class TCCalibVetoEnergy : public TCCalib
 {
 
 private:
@@ -52,14 +52,14 @@ private:
     void FitSlices(TH2* h);
 
 public:
-    TCCalibPIDEnergy();
-    virtual ~TCCalibPIDEnergy();
+    TCCalibVetoEnergy();
+    virtual ~TCCalibVetoEnergy();
 
     virtual void Write();
     virtual void PrintValues();
 
 
-    ClassDef(TCCalibPIDEnergy, 0) // PID energy calibration
+    ClassDef(TCCalibVetoEnergy, 0) // Veto energy calibration
 };
 
 #endif

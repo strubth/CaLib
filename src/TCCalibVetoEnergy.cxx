@@ -6,21 +6,22 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// TCCalibPIDEnergy                                                     //
+// TCCalibVetoEnergy                                                    //
 //                                                                      //
-// Calibration module for the PID energy.                               //
+// Calibration module for the Veto energy.                              //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#include "TCCalibPIDEnergy.h"
+#include "TCCalibVetoEnergy.h"
 
-ClassImp(TCCalibPIDEnergy)
+ClassImp(TCCalibVetoEnergy)
 
 
 //______________________________________________________________________________
-TCCalibPIDEnergy::TCCalibPIDEnergy()
-    : TCCalib("PID.Energy", "PID energy calibration", kCALIB_PID_E1, TCConfig::kMaxPID)
+TCCalibVetoEnergy::TCCalibVetoEnergy()
+    : TCCalib("Veto.Energy", "Veto energy calibration", kCALIB_VETO_E1,
+              TCReadConfig::GetReader()->GetConfigInt("Veto.Elements"))
 {
     // Empty constructor.
 
@@ -39,7 +40,7 @@ TCCalibPIDEnergy::TCCalibPIDEnergy()
 }
 
 //______________________________________________________________________________
-TCCalibPIDEnergy::~TCCalibPIDEnergy()
+TCCalibVetoEnergy::~TCCalibVetoEnergy()
 {
     // Destructor. 
     
@@ -55,7 +56,7 @@ TCCalibPIDEnergy::~TCCalibPIDEnergy()
 }
 
 //______________________________________________________________________________
-void TCCalibPIDEnergy::Init()
+void TCCalibVetoEnergy::Init()
 {
     // Init the module.
     
@@ -77,37 +78,37 @@ void TCCalibPIDEnergy::Init()
     fLine->SetLineWidth(3);
 
     // get histogram name
-    if (!TCReadConfig::GetReader()->GetConfig("PID.Energy.Histo.Fit.Name"))
+    if (!TCReadConfig::GetReader()->GetConfig("Veto.Energy.Histo.Fit.Name"))
     {
         Error("Init", "Histogram name was not found in configuration!");
         return;
     }
-    else fHistoName = *TCReadConfig::GetReader()->GetConfig("PID.Energy.Histo.Fit.Name");
+    else fHistoName = *TCReadConfig::GetReader()->GetConfig("Veto.Energy.Histo.Fit.Name");
     
     // get MC histogram file
     TString fileMC;
-    if (!TCReadConfig::GetReader()->GetConfig("PID.Energy.MC.File"))
+    if (!TCReadConfig::GetReader()->GetConfig("Veto.Energy.MC.File"))
     {
         Error("Init", "MC file name was not found in configuration!");
         return;
     }
-    else fileMC = *TCReadConfig::GetReader()->GetConfig("PID.Energy.MC.File");
+    else fileMC = *TCReadConfig::GetReader()->GetConfig("Veto.Energy.MC.File");
     
     // get MC histogram name
     TString histoMC;
-    if (!TCReadConfig::GetReader()->GetConfig("PID.Energy.Histo.MC.Name"))
+    if (!TCReadConfig::GetReader()->GetConfig("Veto.Energy.Histo.MC.Name"))
     {
         Error("Init", "MC histogram name was not found in configuration!");
         return;
     }
-    else histoMC = *TCReadConfig::GetReader()->GetConfig("PID.Energy.Histo.MC.Name");
+    else histoMC = *TCReadConfig::GetReader()->GetConfig("Veto.Energy.Histo.MC.Name");
 
     // get projection fit display delay
-    fDelay = TCReadConfig::GetReader()->GetConfigInt("PID.Energy.Fit.Delay");
+    fDelay = TCReadConfig::GetReader()->GetConfigInt("Veto.Energy.Fit.Delay");
 
     // read old parameters
-    TCMySQLManager::GetManager()->ReadParameters(fSet, kCALIB_PID_E0, fPed, fNelem);
-    TCMySQLManager::GetManager()->ReadParameters(fSet, kCALIB_PID_E1, fGain, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(fSet, kCALIB_VETO_E0, fPed, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(fSet, kCALIB_VETO_E1, fGain, fNelem);
 
     // draw main histogram
     fCanvasFit->Divide(1, 2, 0.001, 0.001);
@@ -150,7 +151,7 @@ void TCCalibPIDEnergy::Init()
 }
 
 //______________________________________________________________________________
-void TCCalibPIDEnergy::FitSlices(TH2* h)
+void TCCalibVetoEnergy::FitSlices(TH2* h)
 {
     // Fit the energy slices of the dE vs E histogram 'h'.
     
@@ -158,8 +159,8 @@ void TCCalibPIDEnergy::FitSlices(TH2* h)
 
     // get configuration
     Double_t lowLimit, highLimit;
-    TCReadConfig::GetReader()->GetConfigDoubleDouble("PID.Energy.Fit.Range", &lowLimit, &highLimit);
-    Double_t interval = TCReadConfig::GetReader()->GetConfigDouble("PID.Energy.Fit.Interval");
+    TCReadConfig::GetReader()->GetConfigDoubleDouble("Veto.Energy.Fit.Range", &lowLimit, &highLimit);
+    Double_t interval = TCReadConfig::GetReader()->GetConfigDouble("Veto.Energy.Fit.Interval");
     
     // count points
     fNpeak = (highLimit - lowLimit) / interval;
@@ -182,7 +183,7 @@ void TCCalibPIDEnergy::FitSlices(TH2* h)
         Int_t lastBin = h->GetXaxis()->FindBin(start + interval);
         if (fFitHisto) delete fFitHisto;
         fFitHisto = (TH1D*) h->ProjectionY(tmp, firstBin, lastBin, "e");
-        if (h != fMCHisto) TCUtils::FormatHistogram(fFitHisto, "PID.Energy.Histo.Fit");
+        if (h != fMCHisto) TCUtils::FormatHistogram(fFitHisto, "Veto.Energy.Histo.Fit");
         
         // create fitting function
         if (fFitFunc) delete fFitFunc;
@@ -192,7 +193,7 @@ void TCCalibPIDEnergy::FitSlices(TH2* h)
         
         // estimate peak position
         TSpectrum s;
-        s.Search(fFitHisto, 10, "goff nobackground", 0.05);
+        s.Search(fFitHisto, 5, "goff nobackground", 0.03);
         Double_t peak = TMath::MaxElement(s.GetNPeaks(), s.GetPositionX());
         
         // prepare fitting function
@@ -200,7 +201,7 @@ void TCCalibPIDEnergy::FitSlices(TH2* h)
         Double_t peak_range;
         if (h == fMCHisto)
         {
-            range = 20./start+0.3;
+            range = 30./start+0.3;
             peak_range = 0.2;
             fFitFunc->SetRange(peak - range, peak + range*2);
             fFitFunc->SetParameter(2, fFitHisto->GetXaxis()->FindBin(peak));
@@ -230,7 +231,7 @@ void TCCalibPIDEnergy::FitSlices(TH2* h)
 
             // adjust fitting range
             Double_t sigma = fFitFunc->GetParameter(4);
-            fFitFunc->SetRange(peak - 3*sigma, peak + range+3.5*sigma);
+            fFitFunc->SetRange(peak - 2.5*sigma, peak + range+3*sigma);
 
             // perform second fit
             fFitHisto->Fit(fFitFunc, "RB0Q");
@@ -269,7 +270,7 @@ void TCCalibPIDEnergy::FitSlices(TH2* h)
 }
 
 //______________________________________________________________________________
-void TCCalibPIDEnergy::Fit(Int_t elem)
+void TCCalibVetoEnergy::Fit(Int_t elem)
 {
     // Perform the fit of the element 'elem'.
     
@@ -278,24 +279,20 @@ void TCCalibPIDEnergy::Fit(Int_t elem)
     // create histogram name
     sprintf(tmp, "%s_%03d", fHistoName.Data(), elem);
    
+    // delete old histogram
+    if (fMainHisto) delete fMainHisto;
+
     // get histogram
-    TH3* h3 = (TH3*) fFileManager->GetHistogram(tmp);
-    if (!h3)
+    fMainHisto = (TH2*) fFileManager->GetHistogram(tmp);
+    if (!fMainHisto)
     {
         Error("Init", "Main histogram does not exist!\n");
         return;
     }
     
-    // create 2D projection
-    if (fMainHisto) delete fMainHisto;
-    sprintf(tmp, "%02d_yxe", elem);
-    fMainHisto = (TH2D*) h3->Project3D(tmp);
-    fMainHisto->SetTitle(tmp);
-    delete h3;
- 
     // draw main histogram
     fCanvasFit->cd(1);
-    TCUtils::FormatHistogram(fMainHisto, "PID.Energy.Histo.Fit");
+    TCUtils::FormatHistogram(fMainHisto, "Veto.Energy.Histo.Fit");
     fMainHisto->Draw("colz");
     fCanvasFit->Update();
  
@@ -335,7 +332,7 @@ void TCCalibPIDEnergy::Fit(Int_t elem)
 }
 
 //______________________________________________________________________________
-void TCCalibPIDEnergy::Calculate(Int_t elem)
+void TCCalibVetoEnergy::Calculate(Int_t elem)
 {
     // Calculate the new value of the element 'elem'.
     
@@ -365,7 +362,7 @@ void TCCalibPIDEnergy::Calculate(Int_t elem)
 }   
 
 //______________________________________________________________________________
-void TCCalibPIDEnergy::PrintValues()
+void TCCalibVetoEnergy::PrintValues()
 {
     // Print out the old and new values for all elements.
 
@@ -378,12 +375,12 @@ void TCCalibPIDEnergy::PrintValues()
 }
 
 //______________________________________________________________________________
-void TCCalibPIDEnergy::Write()
+void TCCalibVetoEnergy::Write()
 {
     // Write the obtained calibration values to the database.
     
     // write values to database
-    TCMySQLManager::GetManager()->WriteParameters(fSet, kCALIB_PID_E0, fPed, fNelem);
-    TCMySQLManager::GetManager()->WriteParameters(fSet, kCALIB_PID_E1, fGain, fNelem);
+    TCMySQLManager::GetManager()->WriteParameters(fSet, kCALIB_VETO_E0, fPed, fNelem);
+    TCMySQLManager::GetManager()->WriteParameters(fSet, kCALIB_VETO_E1, fGain, fNelem);
 }
 

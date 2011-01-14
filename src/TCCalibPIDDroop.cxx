@@ -132,12 +132,11 @@ void TCCalibPIDDroop::FitSlices(TH3* h, Int_t elem)
         if (fProj2D) delete fProj2D;
         sprintf(tmp, "Proj2D_%d_yxe", (Int_t)start);
         fProj2D = (TH2D*) h->Project3D(tmp);
-        TCUtils::FormatHistogram(fProj2D, "PID.Droop.Histo.Fit");
         sprintf(tmp, "%02d dE vs E : %.f < #theta < %.f", elem, start, start + interval);
         fProj2D->SetTitle(tmp);
 
-        Double_t lowEnergy = 80;
-        Double_t highEnergy = 90;
+        Double_t lowEnergy = 90;
+        Double_t highEnergy = 100;
 
         // create 1D projection
         if (fFitHisto) delete fFitHisto;
@@ -148,18 +147,17 @@ void TCCalibPIDDroop::FitSlices(TH3* h, Int_t elem)
         sprintf(tmp, "%02d dE : %.f < #theta < %.f, %.f < E < %.f", elem, start, start + interval,
                                                              lowEnergy, highEnergy);
         fFitHisto->SetTitle(tmp);
-        TCUtils::FormatHistogram(fFitHisto, "PID.Droop.Histo.Fit");
-    
-        // create fitting function
-        if (fFitFunc) delete fFitFunc;
-        sprintf(tmp, "fGauss_%d", (Int_t)start);
-        fFitFunc = new TF1(tmp, "expo(0)+gaus(2)");
-        fFitFunc->SetLineColor(2);
         
         // estimate peak position
         TSpectrum s;
         s.Search(fFitHisto, 10, "goff nobackground", 0.05);
         Double_t peak = TMath::MaxElement(s.GetNPeaks(), s.GetPositionX());
+     
+        // create fitting function
+        if (fFitFunc) delete fFitFunc;
+        sprintf(tmp, "fGauss_%d", (Int_t)start);
+        fFitFunc = new TF1(tmp, "expo(0)+gaus(2)");
+        fFitFunc->SetLineColor(2);
         
         // prepare fitting function
         Double_t range = 6000/start+40;
@@ -176,11 +174,11 @@ void TCCalibPIDDroop::FitSlices(TH3* h, Int_t elem)
         fFitHisto->Fit(fFitFunc, "RB0Q");
 
         // adjust fitting range
-        //Double_t sigma = fFitFunc->GetParameter(4);
-        //fFitFunc->SetRange(peak - 3*sigma, peak + range+3*sigma);
+        Double_t sigma = fFitFunc->GetParameter(4);
+        fFitFunc->SetRange(peak - 3*sigma, peak + range+3.5*sigma);
 
         // perform second fit
-        //fFitHisto->Fit(fFitFunc, "RB0Q");
+        fFitHisto->Fit(fFitFunc, "RB0Q");
         
         // get peak
         peak = fFitFunc->GetParameter(3);
@@ -199,6 +197,7 @@ void TCCalibPIDDroop::FitSlices(TH3* h, Int_t elem)
         if (fDelay > 0)
         {
             fCanvasFit->cd(1);
+            TCUtils::FormatHistogram(fProj2D, "PID.Droop.Histo.Fit");
             fProj2D->Draw("colz");
             fCanvasFit->cd(2);
             fFitHisto->GetXaxis()->SetRangeUser(peak*0.4, peak*1.6);
