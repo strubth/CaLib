@@ -319,27 +319,6 @@ void TCCalibPIDPhi::Write()
     TCCalib::Write();
 
     // save overview picture
-    if (TString* path = TCReadConfig::GetReader()->GetConfig("Log.Images"))
-    {
-        Char_t tmp[256];
-        Char_t date[256];
-
-        // create directory
-        sprintf(tmp, "%s/%s", path->Data(), GetName());
-        gSystem->mkdir(tmp, kTRUE);
-        
-        // format time stamp
-        UInt_t day, month, year;
-        UInt_t hour, min;
-        TTimeStamp t;
-        t.GetDate(kFALSE, 0, &year, &month, &day);
-        t.GetTime(kFALSE, 0, &hour, &min);
-        sprintf(date, "%d-%d-%d_%d:%d", year, month, day, hour, min);
-
-        // save canvas
-        sprintf(tmp, "%s/%s/Overview2_Set_%d_%s.png", 
-                path->Data(), GetName(), fSet, date);
-        fCanvasResult2->SaveAs(tmp);
-    }
+    SaveCanvas(fCanvasResult2, "Overview2");
 }
 

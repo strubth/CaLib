@@ -245,6 +245,9 @@ void TCCalibPIDDroop::Fit(Int_t elem)
         // create linear plot
         if (fLinPlot) delete fLinPlot;
         fLinPlot = new TGraph(fNpeak, fTheta, fPeak);
+        sprintf(tmp, "Element %d", elem);
+        fLinPlot->SetName(tmp);
+        fLinPlot->SetTitle(tmp);
         fLinPlot->GetXaxis()->SetTitle("Cluster theta angle [deg]");
         fLinPlot->GetYaxis()->SetTitle("Data peak position [Channel]");
         fLinPlot->SetMarkerStyle(2);
@@ -302,6 +305,11 @@ void TCCalibPIDDroop::Calculate(Int_t elem)
            elem, fPar0[elem], fPar1[elem], fPar2[elem], fPar3[elem]);
     if (noval) printf("    -> no fit");
     printf("\n");
+    
+    // save canvas
+    Char_t tmp[256];
+    sprintf(tmp, "Elem_%d", elem);
+    SaveCanvas(fCanvasResult, tmp);
 }   
 
 //______________________________________________________________________________

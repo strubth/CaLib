@@ -222,6 +222,15 @@ void TCCalib::Write()
     TCMySQLManager::GetManager()->WriteParameters(fSet, fData, fNewVal, fNelem);
         
     // save overview picture
+    SaveCanvas(fCanvasResult, "Overview");
+}
+
+//______________________________________________________________________________
+void TCCalib::SaveCanvas(TCanvas* c, const Char_t* name)
+{
+    // Save the canvas 'c' to disk using the name 'name'.
+    
+    // get log directory
     if (TString* path = TCReadConfig::GetReader()->GetConfig("Log.Images"))
     {
         Char_t tmp[256];
@@ -240,9 +249,9 @@ void TCCalib::Write()
         sprintf(date, "%d-%d-%d_%d:%d", year, month, day, hour, min);
 
         // save canvas
-        sprintf(tmp, "%s/%s/Overview_Set_%d_%s.png", 
-                path->Data(), GetName(), fSet, date);
-        fCanvasResult->SaveAs(tmp);
+        sprintf(tmp, "%s/%s/%s_Set_%d_%s.png", 
+                path->Data(), GetName(), name, fSet, date);
+        c->SaveAs(tmp);
     }
 }
 

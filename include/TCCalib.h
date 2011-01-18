@@ -56,6 +56,7 @@ protected:
     virtual void Init() = 0;
     virtual void Fit(Int_t elem) = 0;
     virtual void Calculate(Int_t elem) = 0;
+    void SaveCanvas(TCanvas* c, const Char_t* name);
 
 public:
     TCCalib() : TNamed(),

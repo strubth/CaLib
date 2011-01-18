@@ -231,7 +231,7 @@ void TCCalibVetoEnergy::FitSlices(TH2* h)
 
             // adjust fitting range
             Double_t sigma = fFitFunc->GetParameter(4);
-            fFitFunc->SetRange(peak - 2.5*sigma, peak + range+3*sigma);
+            fFitFunc->SetRange(peak - 1.5*sigma, peak + range+3*sigma);
 
             // perform second fit
             fFitHisto->Fit(fFitFunc, "RB0Q");
@@ -305,6 +305,9 @@ void TCCalibVetoEnergy::Fit(Int_t elem)
         // create linear plot
         if (fLinPlot) delete fLinPlot;
         fLinPlot = new TGraph(fNpeak, fPeakMC, fPeak);
+        sprintf(tmp, "Element %d", elem);
+        fLinPlot->SetName(tmp);
+        fLinPlot->SetTitle(tmp);
         fLinPlot->GetXaxis()->SetTitle("MC peak position [MeV]");
         fLinPlot->GetYaxis()->SetTitle("Data peak position [Channel]");
         fLinPlot->SetMarkerStyle(2);
@@ -359,6 +362,11 @@ void TCCalibVetoEnergy::Calculate(Int_t elem)
            elem, fPed[elem], fGain[elem]);
     if (noval) printf("    -> no fit");
     printf("\n");
+
+    // save canvas
+    Char_t tmp[256];
+    sprintf(tmp, "Elem_%d", elem);
+    SaveCanvas(fCanvasResult, tmp);
 }   
 
 //______________________________________________________________________________
