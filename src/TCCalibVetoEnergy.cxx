@@ -27,14 +27,9 @@ TCCalibVetoEnergy::TCCalibVetoEnergy()
 
     // init members
     fFileManager = 0;
-    fPed = 0;
-    fGain = 0;
-    fLinPlot = 0;
-    fNpeak = 0;
     fPeak = 0;
     fPeakMC = 0;
     fLine = 0;
-    fDelay = 0;
     fMCHisto = 0;
     fMCFile = 0;
 }
@@ -45,11 +40,6 @@ TCCalibVetoEnergy::~TCCalibVetoEnergy()
     // Destructor. 
     
     if (fFileManager) delete fFileManager;
-    if (fPed) delete [] fPed;
-    if (fGain) delete [] fGain;
-    if (fLinPlot) delete fLinPlot;
-    if (fPeak) delete [] fPeak;
-    if (fPeakMC) delete [] fPeakMC;
     if (fLine) delete fLine;
     if (fMCHisto) delete fMCHisto;
     if (fMCFile) delete fMCFile;
@@ -62,14 +52,9 @@ void TCCalibVetoEnergy::Init()
     
     // init members
     fFileManager = new TCFileManager(fSet, fData);
-    fPed = new Double_t[fNelem];
-    fGain = new Double_t[fNelem];
-    fLinPlot = 0;
-    fNpeak = 0;
     fPeak = 0;
     fPeakMC = 0;
     fLine =  new TLine();
-    fDelay = 0;
     fMCHisto = 0;
     fMCFile = 0;
 
@@ -103,13 +88,17 @@ void TCCalibVetoEnergy::Init()
     }
     else histoMC = *TCReadConfig::GetReader()->GetConfig("Veto.Energy.Histo.MC.Name");
 
-    // get projection fit display delay
-    fDelay = TCReadConfig::GetReader()->GetConfigInt("Veto.Energy.Fit.Delay");
-
     // read old parameters
-    TCMySQLManager::GetManager()->ReadParameters(fSet, kCALIB_VETO_E0, fPed, fNelem);
-    TCMySQLManager::GetManager()->ReadParameters(fSet, kCALIB_VETO_E1, fGain, fNelem);
-
+    TCMySQLManager::GetManager()->ReadParameters(fSet, fData, fOldVal, fNelem);
+    
+    // copy to new parameters
+    for (Int_t i = 0; i < fNelem; i++) fNewVal[i] = fOldVal[i];
+    
+    // create the overview histogram
+    fOverviewHisto = new TH1F("Overview", ";Element;proton peak position [MeV]", fNelem, 0, fNelem);
+    fOverviewHisto->SetMarkerStyle(2);
+    fOverviewHisto->SetMarkerColor(4);
+ 
     // draw main histogram
     fCanvasFit->Divide(1, 2, 0.001, 0.001);
     fCanvasFit->cd(1)->SetLogz();
@@ -139,11 +128,16 @@ void TCCalibVetoEnergy::Init()
     fCanvasFit->cd(1);
     fMCHisto->Draw("colz");
     
+    // draw the overview histogram
+    fCanvasResult->cd();
+    TCUtils::FormatHistogram(fOverviewHisto, "Veto.Energy.Histo.Overview");
+    fOverviewHisto->Draw("P");
+    
     // user information
     Info("Init", "Fitting MC data");
 
     // perform fitting for the MC histogram
-    FitSlices(fMCHisto);
+    FitSlice(fMCHisto, -1);
     fCanvasFit->Update();
 
     // user information
@@ -151,122 +145,74 @@ void TCCalibVetoEnergy::Init()
 }
 
 //______________________________________________________________________________
-void TCCalibVetoEnergy::FitSlices(TH2* h)
+void TCCalibVetoEnergy::FitSlice(TH2* h, Int_t elem)
 {
-    // Fit the energy slices of the dE vs E histogram 'h'.
+    // Fit the energy slice of the dE vs E histogram 'h' of the element 'elem'.
     
     Char_t tmp[256];
 
     // get configuration
     Double_t lowLimit, highLimit;
     TCReadConfig::GetReader()->GetConfigDoubleDouble("Veto.Energy.Fit.Range", &lowLimit, &highLimit);
-    Double_t interval = TCReadConfig::GetReader()->GetConfigDouble("Veto.Energy.Fit.Interval");
     
-    // count points
-    fNpeak = (highLimit - lowLimit) / interval;
+    // create projection
+    sprintf(tmp, "Proj_%d", elem);
+    Int_t firstBin = h->GetXaxis()->FindBin(lowLimit);
+    Int_t lastBin = h->GetXaxis()->FindBin(highLimit);
+    if (fFitHisto) delete fFitHisto;
+    fFitHisto = (TH1D*) h->ProjectionY(tmp, firstBin, lastBin, "e");
+    if (h != fMCHisto) TCUtils::FormatHistogram(fFitHisto, "Veto.Energy.Histo.Fit");
+        
+    // create fitting function
+    if (fFitFunc) delete fFitFunc;
+    sprintf(tmp, "fFunc_%d", elem);
+    fFitFunc = new TF1(tmp, "expo(0)+gaus(2)");
+    fFitFunc->SetLineColor(2);
+        
+    // estimate peak position
+    TSpectrum s;
+    s.Search(fFitHisto, 5, "goff nobackground", 0.03);
+    fPeak = TMath::MaxElement(s.GetNPeaks(), s.GetPositionX());
+        
+    // prepare fitting function
+    Double_t range = 30./lowLimit+0.3;
+    Double_t peak_range = 0.2;
+    fFitFunc->SetRange(fPeak - range, fPeak + range*2);
+    fFitFunc->SetParameter(2, fFitHisto->GetXaxis()->FindBin(fPeak));
+    fFitFunc->SetParLimits(2, 0, 100000);
+    fFitFunc->SetParameter(3, fPeak);
+    fFitFunc->SetParLimits(3, fPeak - peak_range, fPeak + peak_range);
+    fFitFunc->SetParameter(4, 1);
+    fFitFunc->SetParLimits(4, 0.1, 10);
+     
+    // perform first fit
+    fFitHisto->Fit(fFitFunc, "RB0Q");
+
+    // adjust fitting range
+    Double_t sigma = fFitFunc->GetParameter(4);
+    fFitFunc->SetRange(fPeak - 3*sigma, fPeak + range+3*sigma);
+
+    // perform second fit
+    fFitHisto->Fit(fFitFunc, "RB0Q");
     
-    // prepare arrays
-    if (h == fMCHisto) fPeakMC = new Double_t[fNpeak];
-    else
-    {
-        if (!fPeak) fPeak = new Double_t[fNpeak];
-    }
+    // get peak
+    fPeak = fFitFunc->GetParameter(3);
+
+    // format line
+    fLine->SetY1(0);
+    fLine->SetY2(fFitHisto->GetMaximum() + 20);
+    fLine->SetX1(fPeak);
+    fLine->SetX2(fPeak);
     
-    // loop over energy slices
-    Double_t start = lowLimit;
-    Int_t nfit = 0;
-    while (start < highLimit)
-    {
-        // create projection
-        sprintf(tmp, "Proj_%d", (Int_t)start);
-        Int_t firstBin = h->GetXaxis()->FindBin(start);
-        Int_t lastBin = h->GetXaxis()->FindBin(start + interval);
-        if (fFitHisto) delete fFitHisto;
-        fFitHisto = (TH1D*) h->ProjectionY(tmp, firstBin, lastBin, "e");
-        if (h != fMCHisto) TCUtils::FormatHistogram(fFitHisto, "Veto.Energy.Histo.Fit");
-        
-        // create fitting function
-        if (fFitFunc) delete fFitFunc;
-        sprintf(tmp, "fGauss_%d", (Int_t)start);
-        fFitFunc = new TF1(tmp, "expo(0)+gaus(2)");
-        fFitFunc->SetLineColor(2);
-        
-        // estimate peak position
-        TSpectrum s;
-        s.Search(fFitHisto, 5, "goff nobackground", 0.03);
-        Double_t peak = TMath::MaxElement(s.GetNPeaks(), s.GetPositionX());
-        
-        // prepare fitting function
-        Double_t range;
-        Double_t peak_range;
-        if (h == fMCHisto)
-        {
-            range = 30./start+0.3;
-            peak_range = 0.2;
-            fFitFunc->SetRange(peak - range, peak + range*2);
-            fFitFunc->SetParameter(2, fFitHisto->GetXaxis()->FindBin(peak));
-            fFitFunc->SetParLimits(2, 0, 100000);
-            fFitFunc->SetParameter(3, peak);
-            fFitFunc->SetParLimits(3, peak - peak_range, peak + peak_range);
-            fFitFunc->SetParameter(4, 1);
-            fFitFunc->SetParLimits(4, 0.1, 10);
-             
-            // perform fit
-            fFitHisto->Fit(fFitFunc, "RB0Q");
-        }
-        else
-        {
-            range = 6000/start+40;
-            peak_range = 10;
-            fFitFunc->SetRange(peak - range, peak + range);
-            fFitFunc->SetParameter(2, fFitHisto->GetXaxis()->FindBin(peak));
-            fFitFunc->SetParLimits(2, 0, 100000);
-            fFitFunc->SetParameter(3, peak);
-            fFitFunc->SetParLimits(3, peak - peak_range, peak + peak_range);
-            fFitFunc->SetParameter(4, 20);
-            fFitFunc->SetParLimits(4, 18, 100);
-             
-            // perform first fit
-            fFitHisto->Fit(fFitFunc, "RB0Q");
+    // save peak position
+    if (h == fMCHisto) fPeakMC = fPeak;
 
-            // adjust fitting range
-            Double_t sigma = fFitFunc->GetParameter(4);
-            fFitFunc->SetRange(peak - 1.5*sigma, peak + range+3*sigma);
-
-            // perform second fit
-            fFitHisto->Fit(fFitFunc, "RB0Q");
-        }
-        
-        // get peak
-        peak = fFitFunc->GetParameter(3);
-
-        // format line
-        fLine->SetY1(0);
-        fLine->SetY2(fFitHisto->GetMaximum() + 20);
-        fLine->SetX1(peak);
-        fLine->SetX2(peak);
-        
-        // save peak position
-        if (h == fMCHisto) fPeakMC[nfit] = peak;
-        else fPeak[nfit] = peak;
-
-        // plot projection fit  
-        if (fDelay > 0)
-        {
-            fCanvasFit->cd(2);
-            fFitHisto->GetXaxis()->SetRangeUser(peak*0.4, peak*1.6);
-            fFitHisto->Draw("hist");
-            fFitFunc->Draw("same");
-            fLine->Draw();
-            fCanvasFit->Update();
-            gSystem->Sleep(fDelay);
-        }
-
-        // increment loop variables
-        start += interval;
-        nfit++;
-        
-    } // while: loop over energy slices
+    fCanvasFit->cd(2);
+    fFitHisto->GetXaxis()->SetRangeUser(fPeak*0.4, fPeak*1.6);
+    fFitHisto->Draw("hist");
+    fFitFunc->Draw("same");
+    fLine->Draw();
+    fCanvasFit->Update();
 }
 
 //______________________________________________________________________________
@@ -299,37 +245,16 @@ void TCCalibVetoEnergy::Fit(Int_t elem)
     // check for sufficient statistics
     if (fMainHisto->GetEntries())
     {   
-        // fit the energy slices
-        FitSlices((TH2*)fMainHisto);
-
-        // create linear plot
-        if (fLinPlot) delete fLinPlot;
-        fLinPlot = new TGraph(fNpeak, fPeakMC, fPeak);
-        sprintf(tmp, "Element %d", elem);
-        fLinPlot->SetName(tmp);
-        fLinPlot->SetTitle(tmp);
-        fLinPlot->GetXaxis()->SetTitle("MC peak position [MeV]");
-        fLinPlot->GetYaxis()->SetTitle("Data peak position [Channel]");
-        fLinPlot->SetMarkerStyle(2);
-        fLinPlot->SetMarkerSize(2);
-        fLinPlot->SetMarkerColor(kBlue);
+        // fit the energy slice
+        FitSlice((TH2*)fMainHisto, elem);
         
-        // create linear fitting function
-        if (fFitFunc) delete fFitFunc;
-        sprintf(tmp, "Func_%d", elem);
-        fFitFunc = new TF1(tmp, "pol1");
-        fFitFunc->SetLineColor(kRed);
-        
-        // fit linear plot
-        fFitFunc->SetRange(0.9*TMath::MinElement(fNpeak, fPeakMC), 
-                           1.1*TMath::MaxElement(fNpeak, fPeakMC));
-        fLinPlot->Fit(fFitFunc, "RB0Q");
-
-        // plot linear plot
-        fCanvasResult->cd();
-        fLinPlot->Draw("ap");
-        fFitFunc->Draw("same");
-        fCanvasResult->Update();
+        // update overview
+        if (elem % 20 == 0)
+        {
+            fCanvasResult->cd();
+            fOverviewHisto->Draw("E1");
+            fCanvasResult->Update();
+        }   
 
     } // if: sufficient statistics
 }
@@ -339,56 +264,40 @@ void TCCalibVetoEnergy::Calculate(Int_t elem)
 {
     // Calculate the new value of the element 'elem'.
     
-    Bool_t noval = kFALSE;
+    Bool_t unchanged = kFALSE;
 
     // check if fit was performed
-    if (fMainHisto->GetEntries())
+    if (fFitHisto->GetEntries())
     {
-        // calculate pedestal
-        fPed[elem] = fFitFunc->GetParameter(0);
+        // check if line position was modified by hand
+        if (fLine->GetX1() != fPeak) fPeak = fLine->GetX1();
+        
+        // calculate the new offset
+        fNewVal[elem] = fOldVal[elem] * (fPeakMC / fPeak);
+    
+        // if new value is negative take old
+        if (fNewVal[elem] < 0) 
+        {
+            fNewVal[elem] = fOldVal[elem];
+            unchanged = kTRUE;
+        }
 
-        // calculate gain
-        fGain[elem] = 1. / fFitFunc->GetParameter(1);
+        // update overview histogram
+        fOverviewHisto->SetBinContent(elem+1, fPeak);
+        fOverviewHisto->SetBinError(elem+1, 0.0000001);
     }
     else
-    {
-        fPed[elem] = 0.;
-        fGain[elem] = 0.001;
-        noval = kTRUE;
+    {   
+        // do not change old value
+        fNewVal[elem] = fOldVal[elem];
+        unchanged = kTRUE;
     }
 
     // user information
-    printf("Element: %03d    Pedestal: %12.8f    Gain: %12.8f",
-           elem, fPed[elem], fGain[elem]);
-    if (noval) printf("    -> no fit");
+    printf("Element: %03d    peak: %12.8f    "
+           "old gain: %12.8f    new gain: %12.8f",
+           elem, fPeak, fOldVal[elem], fNewVal[elem]);
+    if (unchanged) printf("    -> unchanged");
     printf("\n");
-
-    // save canvas
-    Char_t tmp[256];
-    sprintf(tmp, "Elem_%d", elem);
-    SaveCanvas(fCanvasResult, tmp);
 }   
-
-//______________________________________________________________________________
-void TCCalibVetoEnergy::PrintValues()
-{
-    // Print out the old and new values for all elements.
-
-    // loop over elements
-    for (Int_t i = 0; i < fNelem; i++)
-    {
-        printf("Element: %03d    Pedestal: %12.8f    Gain: %12.8f\n",
-               i, fPed[i], fGain[i]);
-    }
-}
-
-//______________________________________________________________________________
-void TCCalibVetoEnergy::Write()
-{
-    // Write the obtained calibration values to the database.
-    
-    // write values to database
-    TCMySQLManager::GetManager()->WriteParameters(fSet, kCALIB_VETO_E0, fPed, fNelem);
-    TCMySQLManager::GetManager()->WriteParameters(fSet, kCALIB_VETO_E1, fGain, fNelem);
-}
 

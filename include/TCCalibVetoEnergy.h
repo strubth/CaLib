@@ -34,14 +34,9 @@ class TCCalibVetoEnergy : public TCCalib
 
 private:
     TCFileManager* fFileManager;        // file manager
-    Double_t* fPed;                     // pedestal values
-    Double_t* fGain;                    // gain values
-    TGraph* fLinPlot;                   // linear fitting histogram
-    Int_t fNpeak;                       // number of proton peaks
-    Double_t* fPeak;                    //[fNpeak] proton peak positions
-    Double_t* fPeakMC;                  //[fNpeak] proton MC peak positions
+    Double_t fPeak;                     // proton peak position
+    Double_t fPeakMC;                   // proton MC peak position
     TLine* fLine;                       // mean indicator line
-    Int_t fDelay;                       // projection fit display delay
     TH2* fMCHisto;                      // MC histogram
     TFile* fMCFile;                     // MC ROOT file
 
@@ -49,15 +44,11 @@ private:
     virtual void Fit(Int_t elem);
     virtual void Calculate(Int_t elem);
     
-    void FitSlices(TH2* h);
+    void FitSlice(TH2* h, Int_t elem);
 
 public:
     TCCalibVetoEnergy();
     virtual ~TCCalibVetoEnergy();
-
-    virtual void Write();
-    virtual void PrintValues();
-
 
     ClassDef(TCCalibVetoEnergy, 0) // Veto energy calibration
 };
