@@ -37,6 +37,9 @@
 #pragma link C++ class TCCalib+;
 #pragma link C++ class TCCalibPed+;
 
+// misc calibration classes
+#pragma link C++ class TCCalibTargetPosition+;
+
 // Tagger calibration classes
 #pragma link C++ class TCCalibTaggerTime+;
 

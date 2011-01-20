@@ -56,6 +56,35 @@ Double_t TCUtils::GetHistogramMinimum(TH1* h)
 }
 
 //______________________________________________________________________________
+Double_t TCUtils::GetHistogramMinimumPosition(TH1* h)
+{
+    // Return the position of the non-zero minimum bin content of the histogram 'h'.
+
+    Double_t min = 1e100;
+    Double_t minPos = 0;
+
+    // loop over bins
+    Int_t nBins = h->GetNbinsX();
+    for (Int_t i = 1; i <= nBins; i++)
+    {
+        // get bin content
+        Double_t c = h->GetBinContent(i);
+
+        // get position
+        Double_t pos = h->GetBinCenter(i);
+        
+        // check bin content
+        if (c < min && c != 0) 
+        {
+            min = c;
+            minPos = pos;
+        }
+    }
+
+    return minPos;
+}
+
+//______________________________________________________________________________
 void TCUtils::FormatHistogram(TH1* h, const Char_t* ident)
 {
     // Apply the formatting read from the configuration file for the identifier
