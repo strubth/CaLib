@@ -101,6 +101,8 @@ public:
     Double_t GetX() const { return fX; }
     Double_t GetY() const { return fY; }
     Double_t GetZ() const { return fZ; }
+    
+    ClassDef(TCARElement, 0) // Class for element statements in AcquRoot config files
 };
 
 
@@ -144,6 +146,8 @@ public:
     Int_t GetNneighbours() const { return fNneighbours; }
     Int_t* GetNeighbours() const { return fNeighbours; }
     Int_t GetNeighbour(Int_t n) const { return fNeighbours ? fNeighbours[n] : 0; }
+
+    ClassDef(TCARNeighbours, 0) // Class for neighbour statements in AcquRoot config files
 };
 
 

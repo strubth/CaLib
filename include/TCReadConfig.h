@@ -38,6 +38,8 @@ public:
     TString* GetValue() { return &value; }
     virtual const Char_t* GetName() const { return key.Data(); }
     virtual ULong_t Hash() const { return key.Hash(); }
+    
+    ClassDef(TCConfigElement, 0) // Key-value based configuration element
 };
 
 
