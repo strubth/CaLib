@@ -25,6 +25,7 @@
 
 #include "TCConfig.h"
 #include "TCReadConfig.h"
+#include "TCReadACQU.h"
 
 
 class TCMySQLManager
@@ -60,6 +61,7 @@ public:
                 Int_t first_run, Int_t last_run, Double_t* par, Int_t length);
 
     void InitDatabase();
+    void AddRunFiles(const Char_t* path);
 
     static TCMySQLManager* GetManager()
     {

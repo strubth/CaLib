@@ -59,17 +59,17 @@ namespace TCConfig
     // format of the main table
     const Char_t* kCalibMainTableFormat = 
                     "run INT NOT NULL DEFAULT 0,"
+                    "path VARCHAR(256),"
                     "filename VARCHAR(256),"
-                    "status VARCHAR(20),"
+                    "time DATETIME,"
+                    "description VARCHAR(256),"
+                    "run_note VARCHAR(256),"
+                    "size INT,"
                     "target VARCHAR(20),"
                     "target_pol VARCHAR(20),"
                     "target_pol_deg DOUBLE,"
                     "beam_pol VARCHAR(20),"
                     "beam_pol_deg DOUBLE,"
-                    "size INT,"
-                    "event INT,"
-                    "date DATETIME,"
-                    "comment VARCHAR(256),"
                     "filled TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP"
                     "                 ON UPDATE CURRENT_TIMESTAMP,"
                     "PRIMARY KEY (`run`)";

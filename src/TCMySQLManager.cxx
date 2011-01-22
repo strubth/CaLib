@@ -516,15 +516,11 @@ void TCMySQLManager::InitDatabase()
 {
     // Init a new CaLib database on a MySQL server.
     
-    // get database configuration
-    TString strDBHost = *TCReadConfig::GetReader()->GetConfig("DB.Host");
-    TString strDBName = *TCReadConfig::GetReader()->GetConfig("DB.Name");
-    
     // ask for user confirmation
     Char_t answer[256];
     printf("\nWARNING: You are about to initialize a new CaLib database.\n"
            "         All existing tables in the database '%s' on '%s'\n"
-           "         will be deleted!\n\n", strDBName.Data(), strDBHost.Data());
+           "         will be deleted!\n\n", fDB->GetDB(), fDB->GetHost());
     printf("Are you sure to continue? (yes/no) : ");
     scanf("%s", answer);
     if (strcmp(answer, "yes")) 
@@ -576,6 +572,60 @@ void TCMySQLManager::InitDatabase()
     CreateDataTable(kCALIB_VETO_T1, TCConfig::kMaxVETO);
     CreateDataTable(kCALIB_VETO_E0, TCConfig::kMaxVETO);
     CreateDataTable(kCALIB_VETO_E1, TCConfig::kMaxVETO);
+}
+
+//______________________________________________________________________________
+void TCMySQLManager::AddRunFiles(const Char_t* path)
+{
+    // Look for raw ACQU files in 'path' and add all runs to the database.
+
+    // read the raw files
+    TCReadACQU r(path);
+    Int_t nRun = r.GetNFiles();
+    
+    // ask for user confirmation
+    Char_t answer[256];
+    printf("\n%d runs were found in '%s'\n"
+           "They will be added to the database '%s' on '%s'\n", 
+           nRun, path, fDB->GetDB(), fDB->GetHost());
+    printf("Are you sure to continue? (yes/no) : ");
+    scanf("%s", answer);
+    if (strcmp(answer, "yes")) 
+    {
+        printf("Aborted.\n");
+        return;
+    }
+
+    // loop over runs
+    for (Int_t i = 0; i < nRun; i++)
+    {
+        TCACQUFile* f = r.GetFile(i);
+        
+        // prepare the insert query
+        TString ins_query = TString::Format("INSERT INTO %s SET "
+                                            "run = %d, "
+                                            "path = '%s', "
+                                            "filename = '%s', "
+                                            "time = STR_TO_DATE('%s', '%%a %%b %%d %%H:%%i:%%S %%Y'), "
+                                            "description = '%s', "
+                                            "run_note = '%s', "
+                                            "size = %d",
+                                            TCConfig::kCalibMainTableName, 
+                                            f->GetRun(),
+                                            path,
+                                            f->GetFileName(),
+                                            f->GetTime(),
+                                            f->GetDescription(),
+                                            f->GetRunNote(),
+                                            f->GetSize());
+
+        // write data to database
+        TSQLResult* res = SendQuery(ins_query.Data());
+        delete res;
+    }
+
+    // user information
+    Info("AddRunFiles", "Added %d runs to database", nRun);
 }
 
 //______________________________________________________________________________
