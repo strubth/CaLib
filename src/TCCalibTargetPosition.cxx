@@ -20,7 +20,7 @@ ClassImp(TCCalibTargetPosition)
 
 //______________________________________________________________________________
 TCCalibTargetPosition::TCCalibTargetPosition()
-    : TCCalib("Target.Position", "Target position calibration", kCALIB_CB_E1,
+    : TCCalib("Target.Position", "Target position calibration", kCALIB_TARGET_POS,
               TCReadConfig::GetReader()->GetConfigInt("Target.Position.Bins"))
 {
     // Empty constructor.
@@ -61,10 +61,10 @@ void TCCalibTargetPosition::Init()
     else fHistoName = *TCReadConfig::GetReader()->GetConfig("Target.Position.Histo.Fit.Name");
     
     // read old parameters
-    //TCMySQLManager::GetManager()->ReadParameters(fSet, fData, fOldVal, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(fSet, fData, fOldVal, TCConfig::kMaxTargPos);
     
     // copy to new parameters
-    //for (Int_t i = 0; i < fNelem; i++) fNewVal[i] = fOldVal[i];
+    fNewVal[0] = fOldVal[0];
 
     // sum up all files contained in this runset
     TCFileManager f(fSet, fData);
@@ -247,4 +247,27 @@ void TCCalibTargetPosition::Calculate(Int_t elem)
      }
 
 }   
+
+//______________________________________________________________________________
+void TCCalibTargetPosition::Write()
+{
+    // Write the obtained calibration values to the database.
+    
+    // write values to database
+    TCMySQLManager::GetManager()->WriteParameters(fSet, fData, fNewVal, TCConfig::kMaxTargPos);
+        
+    // save overview picture
+    SaveCanvas(fCanvasResult, "Overview");
+}
+
+//______________________________________________________________________________
+void TCCalibTargetPosition::PrintValues()
+{
+    // Print out the old and new values for all elements.
+
+    // loop over elements
+    printf("\n");
+    printf("old target position: %12.8f    new target position: %12.8f\n", fOldVal[0], fNewVal[0]);
+    printf("\n");
+}
 

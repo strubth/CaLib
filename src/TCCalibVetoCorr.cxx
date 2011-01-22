@@ -191,7 +191,7 @@ void TCCalibVetoCorr::ReadNeighbours()
     else filename = TCReadConfig::GetReader()->GetConfig(tmp)->Data();
     
     // read the calibration file with the correct element identifier
-    fARCalib = new TCReadARCalib(filename, "Element:", "Next-TAPS:");
+    fARCalib = new TCReadARCalib(filename, kFALSE, "Element:", "Next-TAPS:");
 
     // check number of detectors
     if (fARCalib->GetNneighbours() != fNelem)

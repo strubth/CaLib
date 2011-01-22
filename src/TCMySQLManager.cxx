@@ -80,19 +80,19 @@ TCMySQLManager::TCMySQLManager()
     fDB = TSQLServer::Connect(szMySQL, strDBUser->Data(), strDBPass->Data());
     if (!fDB)
     {
-        Error("TCMySQLManager", "Cannot connect to database %s on %s@%s!\n",
+        Error("TCMySQLManager", "Cannot connect to database '%s' on '%s@%s'!\n",
                strDBName->Data(), strDBUser->Data(), strDBHost->Data());
         return;
     }
     else if (fDB->IsZombie())
     {
-        Error("TCMySQLManager", "Cannot connect to database %s on %s@%s!\n",
+        Error("TCMySQLManager", "Cannot connect to database '%s' on '%s@%s'!\n",
                strDBName->Data(), strDBUser->Data(), strDBHost->Data());
         return;
     }
     else
     {
-        Info("TCMySQLManager", "Connected to database %s on %s@%s!\n",
+        Info("TCMySQLManager", "Connected to database '%s' on '%s@%s'!\n",
                strDBName->Data(), strDBUser->Data(), strDBHost->Data());
     }
 }
@@ -147,7 +147,7 @@ Bool_t TCMySQLManager::SearchTable(CalibData_t data, Char_t* outTableName)
     strcpy(outTableName, TCConfig::kCalibDataTableNames[(Int_t)data]);
     
     // check for empty table
-    if (data == kCALIB_NODATA) return kFALSE;
+    if (data == kCALIB_EMPTY) return kFALSE;
     else return kTRUE;
 }
 
@@ -179,7 +179,7 @@ Int_t TCMySQLManager::GetNsets(CalibData_t data)
     // check result
     if (!res)
     {
-        Error("GetNsets", "No runsets found in table %s!\n", table);
+        Error("GetNsets", "No runsets found in table '%s'!\n", table);
         return 0;
     }
 
@@ -250,7 +250,7 @@ Int_t TCMySQLManager::GetFirstRunOfSet(CalibData_t data, Int_t set)
     // check result
     if (!res)
     {
-        Error("GetFirstRunOfSet", "No runset %d found in table %s!\n", set, table);
+        Error("GetFirstRunOfSet", "No runset %d found in table '%s'!\n", set, table);
         return 0;
     }
 
@@ -293,7 +293,7 @@ Int_t TCMySQLManager::GetLastRunOfSet(CalibData_t data, Int_t set)
     // check result
     if (!res)
     {
-        Error("GetLastRunOfSet", "No runset %d found in table %s!\n", set, table);
+        Error("GetLastRunOfSet", "No runset %d found in table '%s'!\n", set, table);
         return 0;
     }
 
@@ -342,7 +342,7 @@ Int_t* TCMySQLManager::GetRunsOfSet(CalibData_t data, Int_t set, Int_t* outNruns
     // check result
     if (!res)
     {
-        Error("GetRunsOfSet", "No runset %d found in table %s!\n", set, table);
+        Error("GetRunsOfSet", "No runset %d found in table '%s'!\n", set, table);
         return 0;
     }
 
@@ -432,12 +432,12 @@ void TCMySQLManager::ReadParameters(Int_t set, CalibData_t data, Double_t* par, 
     // check result
     if (!res)
     {
-        Error("ReadParameters", "No calibration found for set %d in table %s!\n", set, table);
+        Error("ReadParameters", "No calibration found for set %d in table '%s'!\n", set, table);
         return;
     }
     else if (!res->GetRowCount())
     {
-        Error("ReadParameters", "No calibration found for set %d in table %s!\n", set, table);
+        Error("ReadParameters", "No calibration found for set %d in table '%s'!\n", set, table);
         delete res;
         return;
     }
@@ -487,12 +487,12 @@ void TCMySQLManager::WriteParameters(Int_t set, CalibData_t data, Double_t* par,
     // check result
     if (!res)
     {
-        Error("WriteParameters", "No calibration found for set %d in table %s!\n", set, table);
+        Error("WriteParameters", "No calibration found for set %d in table '%s'!\n", set, table);
         return;
     }
     else if (!res->GetRowCount())
     {
-        Error("WriteParameters", "No calibration found for set %d in table %s!\n", set, table);
+        Error("WriteParameters", "No calibration found for set %d in table '%s'!\n", set, table);
         delete res;
         return;
     }
@@ -532,52 +532,19 @@ void TCMySQLManager::InitDatabase()
     // create the main table
     CreateMainTable();
 
-    // create TAGG tables
-    CreateDataTable(kCALIB_TAGG_T0, TCConfig::kMaxTAGGER);
-
-    // create CB tables
-    CreateDataTable(kCALIB_CB_T0, TCConfig::kMaxCB);
-    CreateDataTable(kCALIB_CB_WALK0, TCConfig::kMaxCB);
-    CreateDataTable(kCALIB_CB_WALK1, TCConfig::kMaxCB);
-    CreateDataTable(kCALIB_CB_WALK2, TCConfig::kMaxCB);
-    CreateDataTable(kCALIB_CB_WALK3, TCConfig::kMaxCB);
-    CreateDataTable(kCALIB_CB_E1, TCConfig::kMaxCB);
-    CreateDataTable(kCALIB_CB_EQUAD0, TCConfig::kMaxCB);
-    CreateDataTable(kCALIB_CB_EQUAD1, TCConfig::kMaxCB);
-
-    // create TAPS tables
-    CreateDataTable(kCALIB_TAPS_T0, TCConfig::kMaxTAPS);
-    CreateDataTable(kCALIB_TAPS_T1, TCConfig::kMaxTAPS);
-    CreateDataTable(kCALIB_TAPS_LG_E0, TCConfig::kMaxTAPS);
-    CreateDataTable(kCALIB_TAPS_LG_E1, TCConfig::kMaxTAPS);
-    CreateDataTable(kCALIB_TAPS_SG_E0, TCConfig::kMaxTAPS);
-    CreateDataTable(kCALIB_TAPS_SG_E1, TCConfig::kMaxTAPS);
-    CreateDataTable(kCALIB_TAPS_EQUAD0, TCConfig::kMaxTAPS);
-    CreateDataTable(kCALIB_TAPS_EQUAD1, TCConfig::kMaxTAPS);
-    CreateDataTable(kCALIB_TAPS_LED1, TCConfig::kMaxTAPS);
-    CreateDataTable(kCALIB_TAPS_LED2, TCConfig::kMaxTAPS);
-
-    // create PID tables
-    CreateDataTable(kCALIB_PID_PHI, TCConfig::kMaxPID);
-    CreateDataTable(kCALIB_PID_T0, TCConfig::kMaxPID);
-    CreateDataTable(kCALIB_PID_E0, TCConfig::kMaxPID);
-    CreateDataTable(kCALIB_PID_E1, TCConfig::kMaxPID);
-    CreateDataTable(kCALIB_PID_DROOP0, TCConfig::kMaxPID);
-    CreateDataTable(kCALIB_PID_DROOP1, TCConfig::kMaxPID);
-    CreateDataTable(kCALIB_PID_DROOP2, TCConfig::kMaxPID);
-    CreateDataTable(kCALIB_PID_DROOP3, TCConfig::kMaxPID);
-
-    // create VETO tables
-    CreateDataTable(kCALIB_VETO_T0, TCConfig::kMaxVETO); 
-    CreateDataTable(kCALIB_VETO_T1, TCConfig::kMaxVETO);
-    CreateDataTable(kCALIB_VETO_E0, TCConfig::kMaxVETO);
-    CreateDataTable(kCALIB_VETO_E1, TCConfig::kMaxVETO);
+    // create the data tables
+    for (Int_t i = kCALIB_EMPTY+1; i < TCConfig::kCalibNDataTables; i++)
+    {
+        // create the data table
+        CreateDataTable((CalibData_t)i, TCConfig::kCalibDataTableLengths[i]);
+    }
 }
 
 //______________________________________________________________________________
-void TCMySQLManager::AddRunFiles(const Char_t* path)
+void TCMySQLManager::AddRunFiles(const Char_t* path, const Char_t* target)
 {
-    // Look for raw ACQU files in 'path' and add all runs to the database.
+    // Look for raw ACQU files in 'path' and add all runs to the database
+    // using the target specifier 'target'.
 
     // read the raw files
     TCReadACQU r(path);
@@ -597,6 +564,7 @@ void TCMySQLManager::AddRunFiles(const Char_t* path)
     }
 
     // loop over runs
+    Int_t nRunAdded = 0;
     for (Int_t i = 0; i < nRun; i++)
     {
         TCACQUFile* f = r.GetFile(i);
@@ -609,7 +577,8 @@ void TCMySQLManager::AddRunFiles(const Char_t* path)
                                             "time = STR_TO_DATE('%s', '%%a %%b %%d %%H:%%i:%%S %%Y'), "
                                             "description = '%s', "
                                             "run_note = '%s', "
-                                            "size = %d",
+                                            "size = %d,"
+                                            "target = '%s'",
                                             TCConfig::kCalibMainTableName, 
                                             f->GetRun(),
                                             path,
@@ -617,15 +586,157 @@ void TCMySQLManager::AddRunFiles(const Char_t* path)
                                             f->GetTime(),
                                             f->GetDescription(),
                                             f->GetRunNote(),
-                                            f->GetSize());
+                                            f->GetSize(),
+                                            target);
 
-        // write data to database
+        // try to write data to database
         TSQLResult* res = SendQuery(ins_query.Data());
-        delete res;
+        if (res == 0)
+        {
+            Warning("AddRunFiles", "Run %d of file '%s/%s' could not be added!", 
+                    f->GetRun(), path, f->GetFileName());
+        }
+        else
+        {
+            nRunAdded++;
+            delete res;
+        }
     }
 
     // user information
-    Info("AddRunFiles", "Added %d runs to database", nRun);
+    Info("AddRunFiles", "Added %d runs to database", nRunAdded);
+}
+
+//______________________________________________________________________________
+void TCMySQLManager::AddCalibAR(CalibDetector_t det, const Char_t* calibFileAR,
+                                const Char_t* calib, const Char_t* desc,
+                                Int_t first_run, Int_t last_run)
+{
+    // Read the calibration for the detector 'det' from the AcquRoot calibration
+    // file 'calibFileAR' and create calibration sets for the runs 'first_run'
+    // to 'last_run' using the calibration name 'calib' and the description
+    // 'desc'.
+
+    // read the calibration file
+    TCReadARCalib r(calibFileAR, kFALSE);
+
+    // get the number of elements
+    Int_t nDet = r.GetNelements();
+
+    // user information
+    if (nDet) Info("AddCalibAR", "Found calibrations for %d detector elements", nDet);
+    else
+    {
+        Error("AddCalibAR", "No detector elements found in calibration file!");
+        return;
+    }
+
+    // create generic parameter arrays
+    Double_t e0[nDet];
+    Double_t e1[nDet];
+    Double_t t0[nDet];
+    Double_t t1[nDet];
+
+    // read generic parameters
+    for (Int_t i = 0; i < nDet; i++)
+    {
+        e0[i] = r.GetElement(i)->GetPedestal();
+        e1[i] = r.GetElement(i)->GetADCGain();
+        t0[i] = r.GetElement(i)->GetOffset();
+        t1[i] = r.GetElement(i)->GetTDCGain();
+    }
+
+    // read detector specific calibration values
+    // and write the data to the database (depends also
+    // on the detector)
+    switch (det)
+    {
+        // tagger
+        case kDETECTOR_TAGG:
+        {
+            // write to database
+            AddSet(kCALIB_TAGG_T0, calib, desc, first_run, last_run, t0, nDet);
+            
+            break;
+        }
+        // CB
+        case kDETECTOR_CB:
+        {
+            // write to database
+            AddSet(kCALIB_CB_E1, calib, desc, first_run, last_run, e1, nDet);
+            AddSet(kCALIB_CB_T0, calib, desc, first_run, last_run, t0, nDet);
+            
+            break;
+        }
+        // TAPS
+        case kDETECTOR_TAPS:
+        {
+            // read the calibration file again for the SG stuff
+            TCReadARCalib rSG(calibFileAR, kFALSE, "TAPSSG:");
+
+            // get the number of elements
+            Int_t nDetSG = rSG.GetNelements();
+
+            // user information
+            if (!nDetSG) 
+            {
+                Error("AddCalibAR", "No TAPS SG detector elements found in calibration file!");
+                return;
+            }
+
+            // create SG parameter arrays
+            Double_t e0SG[nDetSG];
+            Double_t e1SG[nDetSG];
+                
+            // read SG parameters
+            for (Int_t i = 0; i < nDetSG; i++)
+            {
+                e0SG[i] = rSG.GetElement(i)->GetPedestal();
+                e1SG[i] = rSG.GetElement(i)->GetADCGain();
+            }
+
+            // write to database
+            AddSet(kCALIB_TAPS_LG_E0, calib, desc, first_run, last_run, e0, nDet);
+            AddSet(kCALIB_TAPS_LG_E1, calib, desc, first_run, last_run, e1, nDet);
+            AddSet(kCALIB_TAPS_SG_E0, calib, desc, first_run, last_run, e0SG, nDetSG);
+            AddSet(kCALIB_TAPS_SG_E1, calib, desc, first_run, last_run, e1SG, nDetSG);
+            AddSet(kCALIB_TAPS_T0, calib, desc, first_run, last_run, t0, nDet);
+            AddSet(kCALIB_TAPS_T1, calib, desc, first_run, last_run, t1, nDet);
+            
+            break;
+        }
+        // PID
+        case kDETECTOR_PID:
+        {
+            // create special parameter arrays
+            Double_t phi[nDet];
+
+            // read special parameters
+            for (Int_t i = 0; i < nDet; i++)
+            {
+                phi[i] = r.GetElement(i)->GetZ();
+            }
+
+            // write to database
+            AddSet(kCALIB_PID_PHI, calib, desc, first_run, last_run, phi, nDet);
+            AddSet(kCALIB_PID_E0, calib, desc, first_run, last_run, e0, nDet);
+            AddSet(kCALIB_PID_E1, calib, desc, first_run, last_run, e1, nDet);
+            AddSet(kCALIB_PID_T0, calib, desc, first_run, last_run, t0, nDet);
+            
+            break;
+        }
+        // VETO
+        case kDETECTOR_VETO:
+        {
+            // write to database
+            AddSet(kCALIB_VETO_E0, calib, desc, first_run, last_run, e0, nDet);
+            AddSet(kCALIB_VETO_E1, calib, desc, first_run, last_run, e1, nDet);
+            AddSet(kCALIB_VETO_T0, calib, desc, first_run, last_run, t0, nDet);
+            AddSet(kCALIB_VETO_T1, calib, desc, first_run, last_run, t1, nDet);
+            
+            break;
+        }
+    }
 }
 
 //______________________________________________________________________________
@@ -660,7 +771,7 @@ void TCMySQLManager::CreateDataTable(CalibData_t data, Int_t nElem)
         return;
     }
 
-    Info("CreateDataTable", "Adding data table %s", table);
+    Info("CreateDataTable", "Adding data table '%s' for %d elements", table, nElem);
         
     // delete the old table if it exists
     TSQLResult* res = SendQuery(TString::Format("DROP TABLE IF EXISTS %s", table));
@@ -767,5 +878,24 @@ void TCMySQLManager::AddSet(CalibData_t data, const Char_t* calib, const Char_t*
 
     // user information
     Info("AddSet", "%d parameters written to table '%s'", length, table);
+}
+
+//______________________________________________________________________________
+void TCMySQLManager::AddSet(CalibData_t data, const Char_t* calib, const Char_t* desc,
+                            Int_t first_run, Int_t last_run, Double_t par)
+{
+    // Set all parameters of the calibration data 'data' to the value 'par' 
+    // in the database. Use 'calib' as calibration name, 'desc' as description
+    // as well as 'first_run' and 'last_run'.
+    
+    // get maximum number of parameters
+    Int_t length = TCConfig::kCalibDataTableLengths[(Int_t)data];
+    
+    // create and fill parameter array
+    Double_t par_array[length];
+    for (Int_t i = 0; i < length; i++) par_array[i] = par;
+
+    // set parameters
+    AddSet(data, calib, desc, first_run, last_run, par_array, length);
 }
 

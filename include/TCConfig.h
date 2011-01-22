@@ -20,11 +20,15 @@
 
 
 // calibrationd data enumeration
-// NOTE: This enum has to be synchronized with iConfig::fgCalibDataTableNames!
+// NOTE: This enum has to be synchronized with TCConfig::kCalibDataTableLengths
+//       and TCConfig::fgCalibDataTableNames!
 enum ECalibData
 {
     // empty element
-    kCALIB_NODATA = 0,
+    kCALIB_EMPTY = 0,
+    
+    // target position
+    kCALIB_TARGET_POS,
 
     // tagger data
     kCALIB_TAGG_T0,
@@ -48,9 +52,22 @@ enum ECalibData
 typedef ECalibData CalibData_t;
 
 
+// detector enumeration
+enum ECalibDetector
+{
+    kDETECTOR_TAGG = 0,
+    kDETECTOR_CB,
+    kDETECTOR_TAPS,
+    kDETECTOR_PID,
+    kDETECTOR_VETO
+};
+typedef ECalibDetector CalibDetector_t;
+
+
 namespace TCConfig
 {   
     // detector elements
+    extern const Int_t kMaxTargPos;
     extern const Int_t kMaxCrystal;
     extern const Int_t kMaxCB;
     extern const Int_t kMaxTAPS;
@@ -62,7 +79,9 @@ namespace TCConfig
     extern const Int_t kMaxTAPSThetaBins;
     
     // database format definitions
+    extern const Int_t kCalibNDataTables;
     extern const Char_t* kCalibDataTableNames[];
+    extern const Int_t kCalibDataTableLengths[];
     extern const Char_t* kCalibMainTableName;
     extern const Char_t* kCalibMainTableFormat; 
     extern const Char_t* kCalibDataTableHeader;

@@ -19,12 +19,49 @@
 namespace TCConfig
 {   
     // detector elements
+    const Int_t kMaxTargPos   =   1;
     const Int_t kMaxCrystal   = 720;
     const Int_t kMaxCB        = 720;
     const Int_t kMaxTAPS      = 510;
     const Int_t kMaxPID       =  24;
     const Int_t kMaxVETO      = 510;
     const Int_t kMaxTAGGER    = 352;
+    
+    // maximum theta bins for TAPS quadratic energy correction
+    const Int_t kMaxTAPSThetaBins =  30;
+    
+    // number of data tables
+    const Int_t kCalibNDataTables = 33;
+    
+    // data table names
+    // NOTE: This has to be synchronized with the enum ECalibData
+    const Int_t kCalibDataTableLengths[] =
+    {
+        // empty element
+        0,
+        
+        // target position
+        kMaxTargPos,
+
+        // tagger data
+        kMaxTAGGER,
+
+        // CB data
+        kMaxCB, kMaxCB, kMaxCB, kMaxCB, kMaxCB,
+        kMaxCB, kMaxCB, kMaxCB,
+
+        // TAPS data
+        kMaxTAPS, kMaxTAPS, kMaxTAPS, kMaxTAPS,
+        kMaxTAPS, kMaxTAPS, kMaxTAPS, kMaxTAPS,
+        kMaxTAPS, kMaxTAPS,
+
+        // PID data
+        kMaxPID, kMaxPID, kMaxPID, kMaxPID, 
+        kMaxPID, kMaxPID, kMaxPID, kMaxPID,
+
+        // VETO data
+        kMaxVETO, kMaxVETO, kMaxVETO, kMaxVETO
+    };
 
     // data table names
     // NOTE: This has to be synchronized with the enum ECalibData
@@ -32,6 +69,9 @@ namespace TCConfig
     {   
         // empty element
         "empty",
+        
+        // target position
+        "target_pos",
 
         // tagger data
         "tagg_t0",
@@ -78,14 +118,11 @@ namespace TCConfig
     const Char_t* kCalibDataTableHeader =
                     "calibration VARCHAR(256),"
                     "description VARCHAR(1024),"
-                    "filled TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP"
-                    "                 ON UPDATE CURRENT_TIMESTAMP,"
                     "first_run INT,"
-                    "last_run INT,";
+                    "last_run INT,"
+                    "filled TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP"
+                    "                 ON UPDATE CURRENT_TIMESTAMP,";
     
-    // maximum theta bins for TAPS quadratic energy correction
-    const Int_t kMaxTAPSThetaBins =  30;
-
     // constants
     const Double_t kPi0Mass = 134.9766;
     const Double_t kEtaMass = 547.853;

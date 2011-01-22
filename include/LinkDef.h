@@ -24,8 +24,13 @@
 #pragma link C++ nestedclasses;
 #pragma link C++ nestedtypedef;
 
+// enums
 #pragma link C++ enum ECalibData;
+#pragma link C++ enum ECalibDetector;
+
+// typedefs
 #pragma link C++ typedef CalibData_t;
+#pragma link C++ typedef CalibDetector_t;
 
 // common classes
 #pragma link C++ namespace TCConfig;

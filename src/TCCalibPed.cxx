@@ -230,7 +230,7 @@ void TCCalibPed::ReadADC()
     // read the calibration file with the correct element identifier
     if (this->InheritsFrom("TCCalibTAPSPedSG")) strcpy(tmp, "TAPSSG:");
     else strcpy(tmp, "Element:");
-    TCReadARCalib c(filename, tmp);
+    TCReadARCalib c(filename, kFALSE, tmp);
 
     // check number of detectors
     if (c.GetNelements() != fNelem)

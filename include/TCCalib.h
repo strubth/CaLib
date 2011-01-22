@@ -60,7 +60,7 @@ protected:
 
 public:
     TCCalib() : TNamed(),
-                fData(kCALIB_NODATA), 
+                fData(kCALIB_EMPTY), 
                 fSet(0), fHistoName(), 
                 fNelem(0), fCurrentElem(0),
                 fOldVal(0), fNewVal(0),

@@ -19,12 +19,12 @@ ClassImp(TCReadARCalib)
 
 
 //______________________________________________________________________________
-TCReadARCalib::TCReadARCalib(const Char_t* calibFile, 
-                             const Char_t* elemIdent,
-                             const Char_t* nebrIdent)
+TCReadARCalib::TCReadARCalib(const Char_t* calibFile, Bool_t isTagger,
+                             const Char_t* elemIdent, const Char_t* nebrIdent)
 {
     // Constructor using the calibration file 'calibFile', the element
     // identifier 'elemIdent' and the next-neighbour identifier 'nebrIdent'.
+    // 'isTagger' has to be kTRUE for tagger calibration files.
     
     // init members
     fElements = new TList();
@@ -33,7 +33,7 @@ TCReadARCalib::TCReadARCalib(const Char_t* calibFile,
     fNeighbours->SetOwner(kTRUE);
     
     // read the calibration file
-    ReadCalibFile(calibFile, elemIdent, nebrIdent);
+    ReadCalibFile(calibFile, isTagger, elemIdent, nebrIdent);
 }
 
 //______________________________________________________________________________
@@ -46,9 +46,8 @@ TCReadARCalib::~TCReadARCalib()
 }
 
 //______________________________________________________________________________
-void TCReadARCalib::ReadCalibFile(const Char_t* filename, 
-                                  const Char_t* elemIdent,
-                                  const Char_t* nebrIdent)
+void TCReadARCalib::ReadCalibFile(const Char_t* filename, Bool_t isTagger,
+                                  const Char_t* elemIdent, const Char_t* nebrIdent)
 {
     // Read the calibration file 'filename'.
 
@@ -81,7 +80,7 @@ void TCReadARCalib::ReadCalibFile(const Char_t* filename,
                 TCARElement* elem = new TCARElement();
                 
                 // try to read parameters
-                if (elem->Parse(line))
+                if (elem->Parse(line, isTagger))
                 {
                     // add element to list
                     fElements->Add(elem);

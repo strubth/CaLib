@@ -29,6 +29,7 @@ class TCARElement : public TObject
 {
 
 private:
+    Bool_t fIsTagger;                       // tagger toggle
     Char_t fADC[16];                        // ADC identifier
     Double_t fEnergyLow;                    // energy low threshold
     Double_t fEnergyHigh;                   // energy high threshold
@@ -42,10 +43,14 @@ private:
     Double_t fX;                            // x coordinate
     Double_t fY;                            // y coordinate
     Double_t fZ;                            // z coordinate
+    Double_t fTaggCalib;                    // tagger calibration
+    Double_t fTaggOverlap;                  // tagger overlap
+    Int_t fTaggScaler;                      // tagger scaler
 
 public:
     TCARElement() : TObject()
     {
+        fIsTagger = kFALSE;
         fADC[0] = '\0';
         fEnergyLow = 0;
         fEnergyHigh = 0;
@@ -59,35 +64,43 @@ public:
         fX = 0;
         fY = 0;
         fZ = 0;
+        fTaggCalib = 0;
+        fTaggOverlap = 0;
+        fTaggScaler = 0;
     }
     virtual ~TCARElement() { }
 
-    Bool_t Parse(const Char_t* line)
-    {
-        // read the calibration line
-        Int_t n = sscanf(line, "%*s%s%lf%lf%lf%lf%s%lf%lf%lf%lf%lf%lf%lf", 
-                         fADC, &fEnergyLow, &fEnergyHigh, &fPed, &fADCGain, 
-                         fTDC, &fTimeLow, &fTimeHigh, &fOffset, &fTDCGain, 
-                         &fX, &fY, &fZ);
+    Bool_t Parse(const Char_t* line, Bool_t isTagger)
+    {   
+        // set tagger toggle
+        fIsTagger = isTagger;
 
-        // check read-in
-        return n == 13 ? kTRUE : kFALSE;
+        // tagger calibration file or not
+        if (fIsTagger)
+        {
+            // read the calibration line
+            Int_t n = sscanf(line, "%*s%s%lf%lf%lf%lf%s%lf%lf%lf%lf%lf%lf%lf%lf%lf%d", 
+                             fADC, &fEnergyLow, &fEnergyHigh, &fPed, &fADCGain, 
+                             fTDC, &fTimeLow, &fTimeHigh, &fOffset, &fTDCGain, 
+                             &fX, &fY, &fZ, &fTaggCalib, &fTaggOverlap, &fTaggScaler);
+
+            // check read-in
+            return n == 16 ? kTRUE : kFALSE;
+        }
+        else
+        {
+            // read the calibration line
+            Int_t n = sscanf(line, "%*s%s%lf%lf%lf%lf%s%lf%lf%lf%lf%lf%lf%lf", 
+                             fADC, &fEnergyLow, &fEnergyHigh, &fPed, &fADCGain, 
+                             fTDC, &fTimeLow, &fTimeHigh, &fOffset, &fTDCGain, 
+                             &fX, &fY, &fZ);
+
+            // check read-in
+            return n == 13 ? kTRUE : kFALSE;
+        }
     }
 
-    void SetADC(const Char_t* adc) { strcpy(fADC, adc); }
-    void SetEnergyLow(Double_t low) { fEnergyLow = low; }
-    void SetEnergyHigh(Double_t high) { fEnergyHigh = high; }
-    void SetPedestal(Double_t ped) { fPed = ped; }
-    void SetADCGain(Double_t gain) { fADCGain = gain; }
-    void SetTDC(const Char_t* tdc) { strcpy(fTDC, tdc); }
-    void SetTimeLow(Double_t low) { fEnergyLow = low; }
-    void SetTimeHigh(Double_t high) { fEnergyHigh = high; }
-    void SetOffset(Double_t off) { fOffset = off; }
-    void SetTDCGain(Double_t gain) { fTDCGain = gain; }
-    void SetX(Double_t x) { fX = x; }
-    void SetY(Double_t y) { fY = y; }
-    void SetZ(Double_t z) { fZ = z; }
-
+    Bool_t IsTagger() const { return fIsTagger; }
     const Char_t* GetADC() const { return fADC; }
     Double_t GetEnergyLow() const { return fEnergyLow; }
     Double_t GetEnergyHigh() const { return fEnergyHigh; }
@@ -101,6 +114,9 @@ public:
     Double_t GetX() const { return fX; }
     Double_t GetY() const { return fY; }
     Double_t GetZ() const { return fZ; }
+    Double_t GetTaggCalib() const { return fTaggCalib; }
+    Double_t GetTaggOverlap() const { return fTaggOverlap; }
+    Int_t GetTaggScaler() const { return fTaggScaler; }
     
     ClassDef(TCARElement, 0) // Class for element statements in AcquRoot config files
 };
@@ -158,15 +174,13 @@ private:
     TList* fElements;               // list of detector elements
     TList* fNeighbours;             // list of neighbour statements
 
-    void ReadCalibFile(const Char_t* filename, 
-                       const Char_t* elemIdent,
-                       const Char_t* nebrIdent);
+    void ReadCalibFile(const Char_t* filename, Bool_t isTagger,
+                       const Char_t* elemIdent, const Char_t* nebrIdent);
 
 public:
     TCReadARCalib() : fElements(0) { }
-    TCReadARCalib(const Char_t* calibFile, 
-                  const Char_t* elemIdent = "Element:",
-                  const Char_t* nebrIdent = "Next-Neighbour:");
+    TCReadARCalib(const Char_t* calibFile, Bool_t isTagger,
+                  const Char_t* elemIdent = "Element:", const Char_t* nebrIdent = "Next-Neighbour:");
     virtual ~TCReadARCalib();
     
     TList* GetElements() const { return fElements; }

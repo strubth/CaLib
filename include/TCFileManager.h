@@ -36,7 +36,7 @@ private:
 
 public:
     TCFileManager() : fInputFilePatt(0), fFiles(0), 
-                      fSet(0), fCalibData(kCALIB_NODATA) { }
+                      fSet(0), fCalibData(kCALIB_EMPTY) { }
     TCFileManager(Int_t set, CalibData_t data);
     virtual ~TCFileManager();
 
