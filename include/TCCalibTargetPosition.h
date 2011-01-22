@@ -29,8 +29,6 @@ class TCCalibTargetPosition : public TCCalib
 {
 
 private:
-    Double_t fPeak;                     // pi0 peak position
-    Double_t fSigma;                    // pi0 peak sigma
     Double_t fSigmaPrev;                // previous pi0 peak sigma
     TLine* fLine;                       // indicator line
     
