@@ -6,7 +6,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// AddBeamtime                                                          //
+// AddBeamtime.C                                                        //
 //                                                                      //
 // Add a beamtime including raw data files and initial calibrations     //
 // from AcquRoot configuration files to a CaLib database.               //

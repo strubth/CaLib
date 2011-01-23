@@ -57,7 +57,7 @@ void TCCalibCBTimeWalk::Init()
     // Init the module.
     
     // init members
-    fFileManager = new TCFileManager(fSet, fData);
+    fFileManager = new TCFileManager(fCalibration.Data(), fSet, fData);
     fPar0 = new Double_t[fNelem];
     fPar1 = new Double_t[fNelem];
     fPar2 = new Double_t[fNelem];
@@ -83,10 +83,10 @@ void TCCalibCBTimeWalk::Init()
     fDelay = TCReadConfig::GetReader()->GetConfigInt("CB.TimeWalk.Fit.Delay");
 
     // read old parameters
-    TCMySQLManager::GetManager()->ReadParameters(fSet, kCALIB_CB_WALK0, fPar0, fNelem);
-    TCMySQLManager::GetManager()->ReadParameters(fSet, kCALIB_CB_WALK1, fPar1, fNelem);
-    TCMySQLManager::GetManager()->ReadParameters(fSet, kCALIB_CB_WALK2, fPar2, fNelem);
-    TCMySQLManager::GetManager()->ReadParameters(fSet, kCALIB_CB_WALK3, fPar3, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(fCalibration.Data(), fSet, kCALIB_CB_WALK0, fPar0, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(fCalibration.Data(), fSet, kCALIB_CB_WALK1, fPar1, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(fCalibration.Data(), fSet, kCALIB_CB_WALK2, fPar2, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(fCalibration.Data(), fSet, kCALIB_CB_WALK3, fPar3, fNelem);
 
     // draw main histogram
     fCanvasFit->Divide(1, 2, 0.001, 0.001);
@@ -344,9 +344,9 @@ void TCCalibCBTimeWalk::Write()
     // Write the obtained calibration values to the database.
     
     // write values to database
-    TCMySQLManager::GetManager()->WriteParameters(fSet, kCALIB_CB_WALK0, fPar0, fNelem);
-    TCMySQLManager::GetManager()->WriteParameters(fSet, kCALIB_CB_WALK1, fPar1, fNelem);
-    TCMySQLManager::GetManager()->WriteParameters(fSet, kCALIB_CB_WALK2, fPar2, fNelem);
-    TCMySQLManager::GetManager()->WriteParameters(fSet, kCALIB_CB_WALK3, fPar3, fNelem);
+    TCMySQLManager::GetManager()->WriteParameters(fCalibration.Data(), fSet, kCALIB_CB_WALK0, fPar0, fNelem);
+    TCMySQLManager::GetManager()->WriteParameters(fCalibration.Data(), fSet, kCALIB_CB_WALK1, fPar1, fNelem);
+    TCMySQLManager::GetManager()->WriteParameters(fCalibration.Data(), fSet, kCALIB_CB_WALK2, fPar2, fNelem);
+    TCMySQLManager::GetManager()->WriteParameters(fCalibration.Data(), fSet, kCALIB_CB_WALK3, fPar3, fNelem);
 }
 

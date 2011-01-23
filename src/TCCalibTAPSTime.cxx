@@ -62,16 +62,16 @@ void TCCalibTAPSTime::Init()
     else fHistoName = *TCReadConfig::GetReader()->GetConfig("TAPS.Time.Histo.Fit.Name");
     
     // get time gain for TAPS TDCs
-    TCMySQLManager::GetManager()->ReadParameters(fSet, kCALIB_TAPS_T1, fTimeGain, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(fCalibration.Data(), fSet, kCALIB_TAPS_T1, fTimeGain, fNelem);
 
     // read old parameters
-    TCMySQLManager::GetManager()->ReadParameters(fSet, fData, fOldVal, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(fCalibration.Data(), fSet, fData, fOldVal, fNelem);
     
     // copy to new parameters
     for (Int_t i = 0; i < fNelem; i++) fNewVal[i] = fOldVal[i];
 
     // sum up all files contained in this runset
-    TCFileManager f(fSet, fData);
+    TCFileManager f(fCalibration.Data(), fSet, fData);
     
     // get the main calibration histogram
     fMainHisto = f.GetHistogram(fHistoName.Data());

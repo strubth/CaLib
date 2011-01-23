@@ -6,7 +6,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// ManageCaLib.C                                                        //
+// Manager.C                                                            //
 //                                                                      //
 // Manage the CaLib database.                                           //
 //                                                                      //
@@ -42,7 +42,7 @@ void MainMenu()
     // show the menu
     ClearScreen();
     printf("*********************************************************\n");
-    printf(" ManageCaLib                                            *\n");
+    printf(" CaLib Manager                                          *\n");
     printf("*********************************************************\n");
     printf("\n");
     printf("Operations:\n");
@@ -71,7 +71,7 @@ void MainMenu()
 }
 
 //______________________________________________________________________________
-void ManageCaLib()
+void Manager()
 {
     // load CaLib
     gSystem->Load("libCaLib.so");

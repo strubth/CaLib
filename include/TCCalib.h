@@ -34,6 +34,7 @@ class TCCalib : public TNamed
 {
 
 protected:
+    TString fCalibration;       // calibration identifier
     CalibData_t fData;          // used calibration data
     Int_t fSet;                 // set to be calibrated
     TString fHistoName;         // name of the calibration histogram
@@ -60,6 +61,7 @@ protected:
 
 public:
     TCCalib() : TNamed(),
+                fCalibration(),
                 fData(kCALIB_EMPTY), 
                 fSet(0), fHistoName(), 
                 fNelem(0), fCurrentElem(0),
@@ -68,24 +70,25 @@ public:
                 fOverviewHisto(0),
                 fCanvasFit(0), fCanvasResult(0), 
                 fTimer(0) { }
-    TCCalib(const Char_t* name, const Char_t* title, CalibData_t data,
-            Int_t nElem) 
+    TCCalib(const Char_t* name, const Char_t* title, 
+            CalibData_t data, Int_t nElem) 
         : TNamed(name, title),
-           fData(data), 
-           fSet(0), fHistoName(), 
-           fNelem(nElem), fCurrentElem(0),
-           fOldVal(0), fNewVal(0),
-           fMainHisto(0), fFitHisto(0), fFitFunc(0),
-           fOverviewHisto(0),
-           fCanvasFit(0), fCanvasResult(0), 
-           fTimer(0) { }
+          fCalibration(),
+          fData(data), 
+          fSet(0), fHistoName(), 
+          fNelem(nElem), fCurrentElem(0),
+          fOldVal(0), fNewVal(0),
+          fMainHisto(0), fFitHisto(0), fFitFunc(0),
+          fOverviewHisto(0),
+          fCanvasFit(0), fCanvasResult(0), 
+          fTimer(0) { }
     virtual ~TCCalib();
     
     virtual void Write();
     virtual void PrintValues();
     virtual void PrintValuesChanged();
 
-    void Start(Int_t set);
+    void Start(const Char_t* calibration, Int_t set);
     void ProcessAll(Int_t msecDelay = 0);
     void ProcessElement(Int_t elem);
     void Previous();

@@ -60,13 +60,13 @@ void TCCalibCBEnergy::Init()
     else fHistoName = *TCReadConfig::GetReader()->GetConfig("CB.Energy.Histo.Fit.Name");
     
     // read old parameters
-    TCMySQLManager::GetManager()->ReadParameters(fSet, fData, fOldVal, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(fCalibration.Data(), fSet, fData, fOldVal, fNelem);
     
     // copy to new parameters
     for (Int_t i = 0; i < fNelem; i++) fNewVal[i] = fOldVal[i];
 
     // sum up all files contained in this runset
-    TCFileManager f(fSet, fData);
+    TCFileManager f(fCalibration.Data(), fSet, fData);
     
     // get the main calibration histogram
     fMainHisto = f.GetHistogram(fHistoName.Data());

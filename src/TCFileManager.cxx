@@ -19,11 +19,12 @@ ClassImp(TCFileManager)
 
 
 //______________________________________________________________________________
-TCFileManager::TCFileManager(Int_t set, CalibData_t data)
+TCFileManager::TCFileManager(const Char_t* calibration, Int_t set, CalibData_t data)
 {
     // Constructor.
     
     // init members
+    fCalibration = calibration;
     fSet = set;
     fCalibData = data;
     fFiles = new TList();
@@ -66,7 +67,7 @@ void TCFileManager::BuildFileList()
     
     // get the list of runs for this set
     Int_t nRun;
-    Int_t* runs = TCMySQLManager::GetManager()->GetRunsOfSet(fCalibData, fSet, &nRun);
+    Int_t* runs = TCMySQLManager::GetManager()->GetRunsOfSet(fCalibration.Data(), fCalibData, fSet, &nRun);
 
     // loop over runs
     for (Int_t i = 0; i < nRun; i++)

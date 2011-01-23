@@ -27,6 +27,7 @@
 #include "TCReadConfig.h"
 #include "TCReadACQU.h"
 #include "TCReadARCalib.h"
+#include "TCContainer.h"
 
 
 class TCMySQLManager
@@ -34,11 +35,14 @@ class TCMySQLManager
 
 private:
     TSQLServer* fDB;
-    TString fCalibration;
 
     void CreateMainTable();
     void CreateDataTable(CalibData_t data, Int_t nElem);
     
+    Bool_t SearchTable(CalibData_t data, Char_t* outTableName);
+    Bool_t SearchRunEntry(Int_t run, const Char_t* data, Char_t* outInfo);
+    TList* SearchDistinctEntries(const Char_t* data, const Char_t* table);
+
     static TCMySQLManager* fgMySQLManager;
 
 public:
@@ -47,17 +51,21 @@ public:
 
     TSQLResult* SendQuery(const Char_t* query);
     Bool_t IsConnected();
-    Bool_t SearchTable(CalibData_t data, Char_t* outTableName);
-
+    
+    TList* GetAllCalibrations();
     TList* GetAllTargets();
-    Int_t GetNsets(CalibData_t data);
-    Int_t GetFirstRunOfSet(CalibData_t data, Int_t set);
-    Int_t GetLastRunOfSet(CalibData_t data, Int_t set);
-    Int_t* GetRunsOfSet(CalibData_t data, Int_t set, Int_t* outNruns);
+    Int_t GetNsets(const Char_t* calibration, CalibData_t data);
+    Int_t GetFirstRunOfSet(const Char_t* calibration, CalibData_t data, Int_t set);
+    Int_t GetLastRunOfSet(const Char_t* calibration, CalibData_t data, Int_t set);
+    Int_t* GetRunsOfSet(const Char_t* calibration, CalibData_t data, 
+                        Int_t set, Int_t* outNruns);
     Long64_t GetUnixTimeOfRun(Int_t run);
 
-    void ReadParameters(Int_t set, CalibData_t data, Double_t* par, Int_t length);
-    void WriteParameters(Int_t set, CalibData_t data, Double_t* par, Int_t length);
+    void ReadParameters(const Char_t* calibration, Int_t set, CalibData_t data, 
+                        Double_t* par, Int_t length);
+    void WriteParameters(const Char_t* calibration, Int_t set, CalibData_t data, 
+                         Double_t* par, Int_t length);
+    
     void AddSet(CalibData_t data, const Char_t* calib, const Char_t* desc,
                 Int_t first_run, Int_t last_run, Double_t* par, Int_t length);
     void AddSet(CalibData_t data, const Char_t* calib, const Char_t* desc,
@@ -68,6 +76,9 @@ public:
     void AddCalibAR(CalibDetector_t det, const Char_t* calibFileAR,
                     const Char_t* calib, const Char_t* desc,
                     Int_t first_run, Int_t last_run);
+    
+    void ExportRuns(const Char_t* filename, Int_t first_run, Int_t last_run);
+    void ExportCalibrations(const Char_t* filename, const Char_t* calibration);
 
     static TCMySQLManager* GetManager()
     {

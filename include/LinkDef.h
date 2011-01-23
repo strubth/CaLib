@@ -44,6 +44,9 @@
 #pragma link C++ class TCReadACQU+;
 #pragma link C++ class TCACQUFile+;
 #pragma link C++ class TCMySQLManager+;
+#pragma link C++ class TCContainer+;
+#pragma link C++ class TCRun+;
+#pragma link C++ class TCCalibration+;
 #pragma link C++ class TCCalib+;
 #pragma link C++ class TCCalibPed+;
 

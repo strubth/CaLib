@@ -124,11 +124,11 @@ void TCCalibCBQuadEnergy::Init()
     else hMeanEtaName = *TCReadConfig::GetReader()->GetConfig("CB.QuadEnergy.Histo.MeanE.Eta.Name");
       
     // read old parameters
-    TCMySQLManager::GetManager()->ReadParameters(fSet, kCALIB_CB_EQUAD0, fPar0, fNelem);
-    TCMySQLManager::GetManager()->ReadParameters(fSet, kCALIB_CB_EQUAD1, fPar1, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(fCalibration.Data(), fSet, kCALIB_CB_EQUAD0, fPar0, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(fCalibration.Data(), fSet, kCALIB_CB_EQUAD1, fPar1, fNelem);
 
     // sum up all files contained in this runset
-    TCFileManager f(fSet, fData);
+    TCFileManager f(fCalibration.Data(), fSet, fData);
     
     // get the main calibration histogram
     fMainHisto = f.GetHistogram(fHistoName.Data());
@@ -401,7 +401,7 @@ void TCCalibCBQuadEnergy::Write()
     // Write the obtained calibration values to the database.
     
     // write values to database
-    TCMySQLManager::GetManager()->WriteParameters(fSet, kCALIB_CB_EQUAD0, fPar0, fNelem);
-    TCMySQLManager::GetManager()->WriteParameters(fSet, kCALIB_CB_EQUAD1, fPar1, fNelem);
+    TCMySQLManager::GetManager()->WriteParameters(fCalibration.Data(), fSet, kCALIB_CB_EQUAD0, fPar0, fNelem);
+    TCMySQLManager::GetManager()->WriteParameters(fCalibration.Data(), fSet, kCALIB_CB_EQUAD1, fPar1, fNelem);
 }
 

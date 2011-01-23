@@ -35,11 +35,13 @@ TCCalib::~TCCalib()
 }
 
 //______________________________________________________________________________
-void TCCalib::Start(Int_t set)
+void TCCalib::Start(const Char_t* calibration, Int_t set)
 {
-    // Start the calibration module for the set 'set'.
+    // Start the calibration module for the set 'set' and the calibration 
+    // identifier 'calibration'.
     
     // init members
+    fCalibration = calibration;
     fSet = set;
     fHistoName = "";
     fCurrentElem = 0;
@@ -67,8 +69,8 @@ void TCCalib::Start(Int_t set)
     }
     
     // user information
-    Int_t first_run = TCMySQLManager::GetManager()->GetFirstRunOfSet(fData, fSet);
-    Int_t last_run = TCMySQLManager::GetManager()->GetLastRunOfSet(fData, fSet);
+    Int_t first_run = TCMySQLManager::GetManager()->GetFirstRunOfSet(fCalibration.Data(), fData, fSet);
+    Int_t last_run = TCMySQLManager::GetManager()->GetLastRunOfSet(fCalibration.Data(), fData, fSet);
     Info("Start", "Starting calibration module %s", GetName());
     Info("Start", "Module description: %s", GetTitle());
     Info("Start", "Calibrating set %d (Run %d to %d)", fSet, first_run, last_run);
@@ -219,7 +221,7 @@ void TCCalib::Write()
     // Write the obtained calibration values to the database.
     
     // write values to database
-    TCMySQLManager::GetManager()->WriteParameters(fSet, fData, fNewVal, fNelem);
+    TCMySQLManager::GetManager()->WriteParameters(fCalibration.Data(), fSet, fData, fNewVal, fNelem);
         
     // save overview picture
     SaveCanvas(fCanvasResult, "Overview");

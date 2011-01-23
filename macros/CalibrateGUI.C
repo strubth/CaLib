@@ -6,16 +6,21 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// CalibrateGUI                                                         //
+// CalibrateGUI.C                                                       //
 //                                                                      //
 // GUI calibrations using CaLib.                                        //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
+class ButtonWindow;
+
 // global variables
+TList* gCalibrations;
 TList* gCaLibModules;
 void* gCurrentModule;
+Bool_t gCalibSelected;
+ButtonWindow* gMainWindow;
 
 
 class ButtonWindow : public TGMainFrame 
@@ -31,6 +36,7 @@ private:
     TGTextButton *fTB_Goto;
     TGTextButton *fTB_DoAll;
     TGTextButton *fTB_Quit;
+    TGComboBox* fCBox_Calibration;
     TGComboBox* fCBox_Module;
     TGListBox *fLB_RunSet;
     TGNumberEntry *fNE_Elem;
@@ -54,7 +60,27 @@ ButtonWindow::ButtonWindow()
     fMainFrame = new TGMainFrame(gClient->GetRoot(), 600, 500);
     fMainFrame->SetWindowName("CaLib Control Panel");
     // fMainFrame->SetLayoutBroken(kTRUE);
+    
+    TGButtonGroup *horizontal0 = new TGButtonGroup(fMainFrame, "Calibration configuration", kHorizontalFrame);
+    horizontal0->SetTitlePos(TGGroupFrame::kLeft);
 
+    fCBox_Calibration = new TGComboBox(horizontal0, "Choose calibration");
+    fCBox_Calibration->Resize(100, 30);
+    horizontal0->AddFrame(fCBox_Calibration, new TGLayoutHints(kLHintsExpandX));
+      
+    // fill calibrations
+    gCalibrations = TCMySQLManager::GetManager()->GetAllCalibrations();
+    for (Int_t i = 0; i < gCalibrations->GetSize(); i++)
+    {
+        TObjString* s = (TObjString*) gCalibrations->At(i);
+        fCBox_Calibration->AddEntry(s->GetString().Data(), i);
+    }
+    
+    fCBox_Calibration->Connect("Selected(Int_t)", "ButtonWindow", this, "EnableModuleSelection(Int_t)");
+
+    fMainFrame->AddFrame(horizontal0, new TGLayoutHints(kLHintsExpandX, 5, 5, 5, 5));
+
+    // ---------------------------------------------------------------------------------
     TGButtonGroup *horizontal = new TGButtonGroup(fMainFrame, "Main configuration", kHorizontalFrame);
     horizontal->SetTitlePos(TGGroupFrame::kLeft);
 
@@ -277,25 +303,45 @@ void ButtonWindow::Stop()
 }
 
 //______________________________________________________________________________
+void ButtonWindow::EnableModuleSelection(Int_t i)
+{
+    // Enable the module selection.
+    
+    gCalibSelected = kTRUE;
+}
+
+//______________________________________________________________________________
 void ButtonWindow::ReadRunsets(Int_t i)
 {
     // Read the runsets for the calibration data of the 'i'-th module
     // in the module selection combo box
     
+    // check if calibration was selected
+    if (!gCalibSelected)
+    {
+        new TGMsgBox(gClient->GetRoot(), gMainWindow, "Error", "Please select first "
+                     "the calibration you want to work with!",
+                     kMBIconStop, kMBOk, 0, kFitWidth | kFitHeight, kTextLeft);
+        return;
+    }
+
+    // get the selected calibration
+    TObjString* calibration = (TObjString*) gCalibrations->At(fCBox_Calibration->GetSelected());
+
     // get the calibration data of the module
     TCCalib* c = (TCCalib*) gCaLibModules->At(i);
     CalibData_t data = c->GetCalibData();
     
     // get the number of runsets
-    Int_t nsets = TCMySQLManager::GetManager()->GetNsets(data);
+    Int_t nsets = TCMySQLManager::GetManager()->GetNsets(calibration->GetString().Data(), data);
     
     // fill the runsets into the list
     fLB_RunSet->RemoveAll();
     for (Int_t i = 0; i < nsets; i++)
     {
         // get the first and last runs
-        Int_t first_run = TCMySQLManager::GetManager()->GetFirstRunOfSet(data, i);
-        Int_t last_run = TCMySQLManager::GetManager()->GetLastRunOfSet(data, i);
+        Int_t first_run = TCMySQLManager::GetManager()->GetFirstRunOfSet(calibration->GetString().Data(), data, i);
+        Int_t last_run = TCMySQLManager::GetManager()->GetLastRunOfSet(calibration->GetString().Data(), data, i);
     
         // add list entry
         Char_t tmp[256];
@@ -372,8 +418,11 @@ void CalibrateGUI()
     
     // no current module
     gCurrentModule = 0;
+    
+    // calibration not yet selected
+    gCalibSelected = kFALSE;
 
     // Main method.
-    ButtonWindow* gui = new ButtonWindow();
+    gMainWindow = new ButtonWindow();
 }
 

@@ -6,14 +6,14 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// InstallCaLib                                                         //
+// Install.C                                                            //
 //                                                                      //
 // Install the CaLib database.                                          //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-void InstallCaLib()
+void Install()
 {
     // load CaLib
     gSystem->Load("libCaLib.so");

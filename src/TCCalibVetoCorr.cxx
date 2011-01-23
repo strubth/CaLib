@@ -59,7 +59,7 @@ void TCCalibVetoCorr::Init()
     else fHistoName = *TCReadConfig::GetReader()->GetConfig("Veto.Correlation.Histo.Fit.Name");
     
     // sum up all files contained in this runset
-    TCFileManager f(fSet, fData);
+    TCFileManager f(fCalibration.Data(), fSet, fData);
     
     // get the main calibration histogram
     fMainHisto = f.GetHistogram(fHistoName.Data());

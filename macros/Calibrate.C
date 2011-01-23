@@ -6,7 +6,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// Calibrate                                                            //
+// Calibrate.C                                                          //
 //                                                                      //
 // Non-GUI calibrations using CaLib.                                    //
 //                                                                      //
@@ -20,7 +20,7 @@ void Calibrate()
  
     // get the calibration module
     TCCalibVetoEnergy c;
-    c.Start(0);
+    c.Start(Domi_Calib, 0);
     c.ProcessAll();
 }
 
