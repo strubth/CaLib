@@ -25,7 +25,7 @@ void AddBeamtime()
     const Char_t target[]           = "D-Butanol";
     const Int_t firstRun            = 35105;
     const Int_t lastRun             = 35110;
-    const Char_t calibName[]        = "Domi_Calib";
+    const Char_t calibName[]        = "D-Butanol_Domi";
     const Char_t calibDesc[]        = "My first calibration: This is used to test the description field";
     const Char_t calibFileTagger[]  = "/usr/users/werthm/AcquRoot/acqu/acqu/data/Dec_07/Tagger/FP_Dec07.dat";
     const Char_t calibFileCB[]      = "/usr/users/werthm/AcquRoot/acqu/acqu/data/Dec_07/CB/NaI.dat";

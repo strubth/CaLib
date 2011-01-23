@@ -47,14 +47,13 @@ class TCReadConfig
 {
 
 private:
-    THashTable* fConfigTable;       // hash table containing config elements
-    TString fCaLibPath;             // path of the calib source
+    THashTable* fConfigTable;           // hash table containing config elements
+    TString fCaLibPath;                 // path of the calib source
+    static TCReadConfig* fgReadConfig;  // pointer to the static instance of this class
 
     void ReadConfigFile(const Char_t* cfgFile);
     TCConfigElement* CreateConfigElement(TString line);
     
-    static TCReadConfig* fgReadConfig;
-
 public:
     TCReadConfig();
     virtual ~TCReadConfig();
@@ -66,6 +65,7 @@ public:
     
     static TCReadConfig* GetReader() 
     {
+        // return a pointer to the static instance of this class
         if (!fgReadConfig) fgReadConfig = new TCReadConfig();
         return fgReadConfig; 
     }

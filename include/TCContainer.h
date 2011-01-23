@@ -20,6 +20,8 @@
 #include "TFile.h"
 #include "TList.h"
 
+#include "TCConfig.h"
+
 
 class TCRun : public TObject
 {
@@ -108,29 +110,35 @@ class TCCalibration : public TObject
 {
 
 private:
+    CalibData_t fData;                  // calibration data type
     Char_t fCalibration[256];           // name
     Char_t fDescription[256];           // description
     Int_t fFirstRun;                    // first run
     Int_t fLastRun;                     // last run
+    Char_t fFillTime[64];               // fill time
     Int_t fNpar;                        // number of parameters
     Double_t* fPar;                     //[fNpar] parameters
 
 public:
     TCCalibration() : TObject() 
     {
+        fData = kCALIB_EMPTY;
         fCalibration[0] = '\0';
         fDescription[0] = '\0';
         fFirstRun = 0;
         fLastRun = 0;
+        fFillTime[0] = '\0';
         fNpar = 0;
         fPar = 0;
     }
     virtual ~TCCalibration() { if (fPar) delete [] fPar; }
 
+    void SetCalibData(CalibData_t data)  { fData = data; }
     void SetCalibration(const Char_t* calib) { strcpy(fCalibration, calib); }
     void SetDescription(const Char_t* desc) { strcpy(fDescription, desc); }
     void SetFirstRun(Int_t run) { fFirstRun = run; }
     void SetLastRun(Int_t run) { fLastRun = run; }
+    void SetFillTime(const Char_t* ftime) { strcpy(fFillTime, ftime); }
     void SetParameters(Int_t npar, Double_t* par)
     {
         fNpar = npar;
@@ -139,22 +147,26 @@ public:
         for (Int_t i = 0; i < fNpar; i++) fPar[i] = par[i];
     }
 
+    const CalibData_t GetCalibData() const { return fData; }
     const Char_t* GetCalibration() const { return fCalibration; }
     const Char_t* GetDescription() const { return fDescription; }
     Int_t GetFirstRun() const { return fFirstRun; }
     Int_t GetLastRun() const { return fLastRun; }
+    const Char_t* GetFillTime() const { return fFillTime; }
     Int_t GetNParameters() const { return fNpar; }
     Double_t* GetParameters() const { return fPar; }
     
     void Print()
     {
         printf("CaLib Calibration Information\n");
-        printf("Calibration    : %s\n", fCalibration);
-        printf("Description    : %s\n", fDescription);
-        printf("First run      : %d\n", fFirstRun);
-        printf("Last run       : %d\n", fLastRun);
-        printf("Number of par. : %d\n", fNpar);
-        printf("Parameters     : ");
+        printf("Calibration data : %s\n", TCConfig::kCalibDataNames[(Int_t)fData]);
+        printf("Calibration      : %s\n", fCalibration);
+        printf("Description      : %s\n", fDescription);
+        printf("First run        : %d\n", fFirstRun);
+        printf("Last run         : %d\n", fLastRun);
+        printf("Fill time        : %s\n", fFillTime);
+        printf("Number of par.   : %d\n", fNpar);
+        printf("Parameters       : ");
         for (Int_t i = 0; i < fNpar; i++) printf("%f ", fPar[i]);
         printf("\n");
         printf("\n");

@@ -366,9 +366,12 @@ void ButtonWindow::StartModule()
 
     // get the calibration module
     gCurrentModule = (TCCalib*) gCaLibModules->At(module);
-
+    
+    // get the selected calibration
+    TObjString* calibration = (TObjString*) gCalibrations->At(fCBox_Calibration->GetSelected());
+    
     // start the module
-    ((TCCalib*)gCurrentModule)->Start(runset);
+    ((TCCalib*)gCurrentModule)->Start(calibration->GetString().Data(), runset);
 }
 
 //______________________________________________________________________________
