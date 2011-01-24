@@ -69,19 +69,19 @@ TCMySQLManager::TCMySQLManager()
     fDB = TSQLServer::Connect(szMySQL, strDBUser->Data(), strDBPass->Data());
     if (!fDB)
     {
-        Error("TCMySQLManager", "Cannot connect to database '%s' on '%s@%s'!\n",
+        Error("TCMySQLManager", "Cannot connect to the database '%s' on '%s@%s'!\n",
                strDBName->Data(), strDBUser->Data(), strDBHost->Data());
         return;
     }
     else if (fDB->IsZombie())
     {
-        Error("TCMySQLManager", "Cannot connect to database '%s' on '%s@%s'!\n",
+        Error("TCMySQLManager", "Cannot connect to the database '%s' on '%s@%s'!\n",
                strDBName->Data(), strDBUser->Data(), strDBHost->Data());
         return;
     }
     else
     {
-        Info("TCMySQLManager", "Connected to database '%s' on '%s@%s'!\n",
+        Info("TCMySQLManager", "Connected to the database '%s' on '%s@%s'!\n",
                strDBName->Data(), strDBUser->Data(), strDBHost->Data());
     }
 }
@@ -103,7 +103,7 @@ TSQLResult* TCMySQLManager::SendQuery(const Char_t* query)
     // check server connection
     if (!IsConnected())
     {
-        Error("SendQuery", "No connection to database!");
+        Error("SendQuery", "No connection to the database!");
         return 0;
     }
 
@@ -161,7 +161,7 @@ Bool_t TCMySQLManager::SearchRunEntry(Int_t run, const Char_t* name, Char_t* out
     if (!res)
     {
         Error("SearchRunEntry", "Could not find the information '%s' for run %d",
-                                      name, run);
+                                 name, run);
         return kFALSE;
     }
 
@@ -441,7 +441,7 @@ void TCMySQLManager::ReadParameters(const Char_t* calibration, Int_t set, CalibD
     delete res;
     
     // user information
-    Info("ReadParameters", "Read %d parameters of '%s' from database", length, TCConfig::kCalibDataNames[(Int_t)data]);
+    Info("ReadParameters", "Read %d parameters of '%s' from the database", length, TCConfig::kCalibDataNames[(Int_t)data]);
 }
 
 //______________________________________________________________________________
@@ -470,7 +470,7 @@ void TCMySQLManager::WriteParameters(const Char_t* calibration, Int_t set, Calib
     for (Int_t j = 0; j < length; j++)
     {
         // append parameter to query
-        query.Append(TString::Format("par_%03d = %f", j, par[j]));
+        query.Append(TString::Format("par_%03d = %lf", j, par[j]));
         if (j != length - 1) query.Append(",");
     }
     
@@ -490,7 +490,7 @@ void TCMySQLManager::WriteParameters(const Char_t* calibration, Int_t set, Calib
     else
     {
         delete res;
-        Info("WriteParameters", "Wrote %d parameters of '%s' to database", 
+        Info("WriteParameters", "Wrote %d parameters of '%s' to the database", 
                                 length, TCConfig::kCalibDataNames[(Int_t)data]);
     }
 }
@@ -577,7 +577,7 @@ void TCMySQLManager::AddRunFiles(const Char_t* path, const Char_t* target)
         TSQLResult* res = SendQuery(ins_query.Data());
         if (res == 0)
         {
-            Warning("AddRunFiles", "Run %d of file '%s/%s' could not be added!", 
+            Warning("AddRunFiles", "Run %d of file '%s/%s' could not be added to the database!", 
                     f->GetRun(), path, f->GetFileName());
         }
         else
@@ -588,7 +588,7 @@ void TCMySQLManager::AddRunFiles(const Char_t* path, const Char_t* target)
     }
 
     // user information
-    Info("AddRunFiles", "Added %d runs to database", nRunAdded);
+    Info("AddRunFiles", "Added %d runs to the database", nRunAdded);
 }
 
 //______________________________________________________________________________
@@ -850,20 +850,21 @@ TList* TCMySQLManager::GetAllCalibrations()
 }
 
 //______________________________________________________________________________
-void TCMySQLManager::AddSet(CalibData_t data, const Char_t* calib, const Char_t* desc,
-                            Int_t first_run, Int_t last_run, Double_t* par, Int_t length)
+Bool_t TCMySQLManager::AddSet(CalibData_t data, const Char_t* calib, const Char_t* desc,
+                              Int_t first_run, Int_t last_run, Double_t* par, Int_t length)
 {
     // Write 'length' parameters of the calibration data 'data' from the value array 
     // 'par' to the database. Use 'calib' as calibration name, 'desc' as description
     // as well as 'first_run' and 'last_run'.
-    
+    // Return kFALSE when an error occured, otherwise kTRUE.
+
     Char_t table[256];
  
     // get the data table
     if (!SearchTable(data, table))
     {
         Error("AddSet", "No data table found!");
-        return;
+        return kFALSE;
     }
 
     // prepare the insert query
@@ -874,7 +875,7 @@ void TCMySQLManager::AddSet(CalibData_t data, const Char_t* calib, const Char_t*
     for (Int_t j = 0; j < length; j++)
     {
         // append parameter to query
-        ins_query.Append(TString::Format("par_%03d = %f", j, par[j]));
+        ins_query.Append(TString::Format("par_%03d = %lf", j, par[j]));
         if (j != length - 1) ins_query.Append(",");
     }
 
@@ -886,22 +887,25 @@ void TCMySQLManager::AddSet(CalibData_t data, const Char_t* calib, const Char_t*
     {
         Error("AddSet", "Could not add the set of '%s' for runs %d to %d!", 
                         TCConfig::kCalibDataNames[(Int_t)data], first_run, last_run);
+        return kFALSE;
     }
     else
     {
         delete res;
         Info("AddSet", "Added set of '%s' for runs %d to %d", 
              TCConfig::kCalibDataNames[(Int_t)data], first_run, last_run);
+        return kTRUE;
     }
 }
 
 //______________________________________________________________________________
-void TCMySQLManager::AddSet(CalibData_t data, const Char_t* calib, const Char_t* desc,
-                            Int_t first_run, Int_t last_run, Double_t par)
+Bool_t TCMySQLManager::AddSet(CalibData_t data, const Char_t* calib, const Char_t* desc,
+                              Int_t first_run, Int_t last_run, Double_t par)
 {
     // Set all parameters of the calibration data 'data' to the value 'par' 
     // in the database. Use 'calib' as calibration name, 'desc' as description
     // as well as 'first_run' and 'last_run'.
+    // Return kFALSE when an error occured, otherwise kTRUE.
     
     // get maximum number of parameters
     Int_t length = TCConfig::kCalibDataTableLengths[(Int_t)data];
@@ -911,7 +915,7 @@ void TCMySQLManager::AddSet(CalibData_t data, const Char_t* calib, const Char_t*
     for (Int_t i = 0; i < length; i++) par_array[i] = par;
 
     // set parameters
-    AddSet(data, calib, desc, first_run, last_run, par_array, length);
+    return AddSet(data, calib, desc, first_run, last_run, par_array, length);
 }
 
 //______________________________________________________________________________
@@ -1053,6 +1057,108 @@ void TCMySQLManager::DumpCalibrations(TCContainer* container, const Char_t* cali
 }
 
 //______________________________________________________________________________
+void TCMySQLManager::ImportRuns(TCContainer* container)
+{
+    // Import all runs from the CaLib container 'container' to the database.
+    
+    // get number of runs
+    Int_t nRun = container->GetNRuns();
+
+    // loop over runs
+    Int_t nRunAdded = 0;
+    for (Int_t i = 0; i < nRun; i++)
+    {
+        // get the run
+        TCRun* r = container->GetRun(i);
+        
+        // prepare the insert query
+        TString ins_query = TString::Format("INSERT INTO %s SET "
+                                            "run = %d, "
+                                            "path = '%s', "
+                                            "filename = '%s', "
+                                            "time = '%s', "
+                                            "description = '%s', "
+                                            "run_note = '%s', "
+                                            "size = %lld, "
+                                            "target = '%s', "
+                                            "target_pol = '%s', "
+                                            "target_pol_deg = %lf, "
+                                            "beam_pol = '%s', "
+                                            "beam_pol_deg = %lf",
+                                            TCConfig::kCalibMainTableName, 
+                                            r->GetRun(),
+                                            r->GetPath(),
+                                            r->GetFileName(),
+                                            r->GetTime(),
+                                            r->GetDescription(),
+                                            r->GetRunNote(),
+                                            r->GetSize(),
+                                            r->GetTarget(),
+                                            r->GetTargetPol(),
+                                            r->GetTargetPolDeg(),
+                                            r->GetBeamPol(),
+                                            r->GetBeamPolDeg());
+
+        // try to write data to database
+        TSQLResult* res = SendQuery(ins_query.Data());
+        if (res == 0)
+        {
+            Warning("ImportRuns", "Run %d could not be added to the database!", 
+                    r->GetRun());
+        }
+        else
+        {
+            Info("ImportRuns", "Added run %d to the database", r->GetRun());
+            nRunAdded++;
+            delete res;
+        }
+    }
+
+    // user information
+    Info("ImportRuns", "Added %d runs to the database", nRunAdded);
+}
+
+//______________________________________________________________________________
+void TCMySQLManager::ImportCalibrations(TCContainer* container, const Char_t* newCalibName)
+{
+    // Import all calibrations from the CaLib container 'container' to the database.
+    // If 'newCalibName' is non-zero rename the calibration to 'newCalibName'
+    
+    // get number of calibrations
+    Int_t nCalib = container->GetNCalibrations();
+
+    // loop over calibrations
+    Int_t nCalibAdded = 0;
+    for (Int_t i = 0; i < nCalib; i++)
+    {
+        // get the calibration
+        TCCalibration* c = container->GetCalibration(i);
+        
+        // add the set with new calibration identifer or the same
+        const Char_t* calibration;
+        if (newCalibName) calibration = newCalibName;
+        else calibration = c->GetCalibration();
+
+        // add the set
+        if (AddSet(c->GetCalibData(), calibration, c->GetDescription(), 
+                   c->GetFirstRun(), c->GetLastRun(), c->GetParameters(), c->GetNParameters()))
+        {
+            Info("ImportCalibrations", "Added calibration '%s' of '%s' to the database",
+                 calibration, TCConfig::kCalibDataNames[(Int_t)c->GetCalibData()]);
+            nCalibAdded++;
+        }
+        else
+        {
+            Error("ImportCalibrations", "Calibration '%s' of '%s' could not be added to the database!",
+                  calibration, TCConfig::kCalibDataNames[(Int_t)c->GetCalibData()]);
+        }
+    }
+
+    // user information
+    Info("ImportCalibrations", "Added %d calibrations to the database", nCalibAdded);
+}
+
+//______________________________________________________________________________
 void TCMySQLManager::Export(const Char_t* filename, Int_t first_run, Int_t last_run, 
                             const Char_t* calibration)
 {
@@ -1078,5 +1184,109 @@ void TCMySQLManager::Export(const Char_t* filename, Int_t first_run, Int_t last_
     
     // clean-up
     delete container;
+}
+
+//______________________________________________________________________________
+void TCMySQLManager::Import(const Char_t* filename, Bool_t runs, Bool_t calibrations,
+                            const Char_t* newCalibName)
+{
+    // Import run and/or calibration data from the ROOT file 'filename'
+    //
+    // If 'runs' is kTRUE all run information is imported.
+    // If 'calibrations' is kTRUE all calibration information is imported.
+    // If 'newCalibName' is non-zero rename the calibration to 'newCalibName'
+
+    // try to open the ROOT file
+    TFile* f = new TFile(filename);
+    if (!f)
+    {
+        Error("Import", "Could not open the ROOT file '%s'", filename);
+        return;
+    }
+    if (f->IsZombie())
+    {
+        Error("Import", "Could not open the ROOT file '%s'", filename);
+        return;
+    }
+
+    // to load the CaLib container
+    TCContainer* c = (TCContainer*) f->Get("CaLib_Dump");
+    if (!c)
+    {
+        Error("Import", "No CaLib container found in ROOT file '%s'", filename);
+        delete f;
+        return;
+    }
+
+    // import runs
+    if (runs) 
+    {
+        // get number of runs
+        Int_t nRun = c->GetNRuns();
+
+        // check if some runs were found
+        if (nRun)
+        {
+            // ask for user confirmation
+            Char_t answer[256];
+            printf("\n%d runs were found in the ROOT file '%s'\n"
+                   "They will be added to the database '%s' on '%s'\n", 
+                   nRun, filename, fDB->GetDB(), fDB->GetHost());
+            printf("Are you sure to continue? (yes/no) : ");
+            scanf("%s", answer);
+            if (strcmp(answer, "yes")) 
+            {
+                printf("Aborted.\n");
+            }
+            else
+            {
+                // import all runs
+                ImportRuns(c);
+            }
+        }
+        else
+        {
+            Error("Import", "No runs were found in ROOT file '%s'", filename);
+        }
+    }
+
+    // import calibrations
+    if (calibrations) 
+    {
+        // get number of calibrations
+        Int_t nCalib = c->GetNCalibrations();
+
+        // check if some calibrations were found
+        if (nCalib)
+        {
+            // get name of calibrations
+            const Char_t* calibName = c->GetCalibration(0)->GetCalibration();
+
+            // ask for user confirmation
+            Char_t answer[256];
+            printf("\n%d calibrations named '%s' were found in the ROOT file '%s'\n"
+                   "They will be added to the database '%s' on '%s'\n", 
+                   nCalib, calibName, filename, fDB->GetDB(), fDB->GetHost());
+            if (newCalibName) printf("The calibrations will be renamed to '%s'\n", newCalibName);
+            printf("Are you sure to continue? (yes/no) : ");
+            scanf("%s", answer);
+            if (strcmp(answer, "yes")) 
+            {
+                printf("Aborted.\n");
+            }
+            else
+            {
+                // import all runs
+                ImportCalibrations(c, newCalibName);
+            }
+        }
+        else
+        {
+            Error("Import", "No calibrations were found in ROOT file '%s'", filename);
+        }
+    }
+
+    // clean-up
+    delete f;
 }
 

@@ -17,15 +17,10 @@ void Import()
 {
     // load CaLib
     gSystem->Load("libCaLib.so");
- 
-    TFile f("export.root");
-    TCContainer* c = (TCContainer*) f.Get("CaLib_Dump");
-    c->Print();
-    for (Int_t i = 0; i < c->GetNRuns(); i++)
-    {
-        c->GetRun(i)->Print();
-    }
     
+    // import CaLib data
+    TCMySQLManager::GetManager()->Import("dump.root", kTRUE, kTRUE);
+  
     gSystem->Exit(0);
 }
 

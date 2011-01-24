@@ -19,7 +19,7 @@ void Export()
     gSystem->Load("libCaLib.so");
  
     // export CaLib data
-    TCMySQLManager::GetManager()->Export("export.root", 35105, 35110, "LD2_Domi");
+    TCMySQLManager::GetManager()->Export("dump.root", 13089, 13841, "LD2_Domi");
     
     gSystem->Exit(0);
 }

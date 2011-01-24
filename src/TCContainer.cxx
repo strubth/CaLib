@@ -82,7 +82,7 @@ void TCContainer::SaveAs(const Char_t* filename)
     // Save this container to the ROOT file 'filename'.
 
     // try to open the ROOT file
-    TFile* f = new TFile(filename, "RECREATE");
+    TFile* f = new TFile(filename, "CREATE");
     if (!f)
     {
         Error("SaveAs", "Could not create file '%s'!", filename);

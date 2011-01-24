@@ -96,9 +96,9 @@ public:
         printf("Size in bytes    : %lld\n", fSize);
         printf("Target           : %s\n", fTarget);
         printf("Target pol.      : %s\n", fTargetPol);
-        printf("Target pol. deg. : %f\n", fTargetPolDeg);
+        printf("Target pol. deg. : %lf\n", fTargetPolDeg);
         printf("Beam pol.        : %s\n", fBeamPol);
-        printf("Beam pol. deg.   : %f\n", fBeamPolDeg);
+        printf("Beam pol. deg.   : %lf\n", fBeamPolDeg);
         printf("\n");
     }
 
@@ -167,7 +167,7 @@ public:
         printf("Fill time        : %s\n", fFillTime);
         printf("Number of par.   : %d\n", fNpar);
         printf("Parameters       : ");
-        for (Int_t i = 0; i < fNpar; i++) printf("%f ", fPar[i]);
+        for (Int_t i = 0; i < fNpar; i++) printf("%lf ", fPar[i]);
         printf("\n");
         printf("\n");
     }

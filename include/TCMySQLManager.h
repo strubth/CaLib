@@ -50,6 +50,8 @@ private:
     
     void DumpRuns(TCContainer* container, Int_t first_run, Int_t last_run);
     void DumpCalibrations(TCContainer* container, const Char_t* calibration);
+    void ImportRuns(TCContainer* container);
+    void ImportCalibrations(TCContainer* container, const Char_t* newCalibName);
 
 public:
     TCMySQLManager();
@@ -75,18 +77,20 @@ public:
     void WriteParameters(const Char_t* calibration, Int_t set, CalibData_t data, 
                          Double_t* par, Int_t length);
     
-    void AddSet(CalibData_t data, const Char_t* calib, const Char_t* desc,
-                Int_t first_run, Int_t last_run, Double_t* par, Int_t length);
-    void AddSet(CalibData_t data, const Char_t* calib, const Char_t* desc,
-                Int_t first_run, Int_t last_run, Double_t par);
+    Bool_t AddSet(CalibData_t data, const Char_t* calib, const Char_t* desc,
+                  Int_t first_run, Int_t last_run, Double_t* par, Int_t length);
+    Bool_t AddSet(CalibData_t data, const Char_t* calib, const Char_t* desc,
+                  Int_t first_run, Int_t last_run, Double_t par);
     void AddRunFiles(const Char_t* path, const Char_t* target);
     void AddCalibAR(CalibDetector_t det, const Char_t* calibFileAR,
                     const Char_t* calib, const Char_t* desc,
                     Int_t first_run, Int_t last_run);
     
     void InitDatabase();
-    void Export(const Char_t* filename, Int_t first_run = 0, Int_t last_run = 0, 
-                const Char_t* calibration = 0);
+    void Export(const Char_t* filename, Int_t first_run, Int_t last_run, 
+                const Char_t* calibration);
+    void Import(const Char_t* filename, Bool_t runs, Bool_t calibrations,
+                const Char_t* newCalibName = 0);
 
     static TCMySQLManager* GetManager()
     {

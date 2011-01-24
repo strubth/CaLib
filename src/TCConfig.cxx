@@ -160,7 +160,7 @@ namespace TCConfig
                     "beam_pol_deg DOUBLE,"
                     "filled TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP"
                     "                 ON UPDATE CURRENT_TIMESTAMP,"
-                    "PRIMARY KEY (`run`)";
+                    "PRIMARY KEY (run) ";
 
     // header of the data tables
     const Char_t* kCalibDataTableHeader =
@@ -172,7 +172,7 @@ namespace TCConfig
                     "                 ON UPDATE CURRENT_TIMESTAMP,";
     
     // additional settings for the data tables
-    const Char_t* kCalibDataTableSettings = ",PRIMARY KEY (`first_run`) ";
+    const Char_t* kCalibDataTableSettings = ",PRIMARY KEY (calibration, first_run) ";
     
     // constants
     const Double_t kPi0Mass = 134.9766;
