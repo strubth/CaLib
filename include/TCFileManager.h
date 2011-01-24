@@ -29,16 +29,16 @@ class TCFileManager
 private:
     TString fInputFilePatt;                 // input file pattern
     TList* fFiles;                          // list of files
+    CalibData_t fCalibData;                 // calibration data
     TString fCalibration;                   // calibration identifier
     Int_t fSet;                             // number of set
-    CalibData_t fCalibData;                 // calibration data
     
     void BuildFileList();
 
 public:
     TCFileManager() : fInputFilePatt(0), fFiles(0), 
-                      fCalibration(), fSet(0), fCalibData(kCALIB_EMPTY) { }
-    TCFileManager(const Char_t* calibration, Int_t set, CalibData_t data);
+                      fCalibData(kCALIB_EMPTY), fCalibration(), fSet(0) { }
+    TCFileManager(CalibData_t data, const Char_t* calibration, Int_t set);
     virtual ~TCFileManager();
 
     TH1* GetHistogram(const Char_t* name);

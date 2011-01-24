@@ -60,7 +60,7 @@ void TCCalibPIDEnergy::Init()
     // Init the module.
     
     // init members
-    fFileManager = new TCFileManager(fCalibration.Data(), fSet, fData);
+    fFileManager = new TCFileManager(fData, fCalibration.Data(), fSet);
     fPed = new Double_t[fNelem];
     fGain = new Double_t[fNelem];
     fLinPlot = 0;
@@ -106,8 +106,8 @@ void TCCalibPIDEnergy::Init()
     fDelay = TCReadConfig::GetReader()->GetConfigInt("PID.Energy.Fit.Delay");
 
     // read old parameters
-    TCMySQLManager::GetManager()->ReadParameters(fCalibration.Data(), fSet, kCALIB_PID_E0, fPed, fNelem);
-    TCMySQLManager::GetManager()->ReadParameters(fCalibration.Data(), fSet, kCALIB_PID_E1, fGain, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(kCALIB_PID_E0, fCalibration.Data(), fSet, fPed, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(kCALIB_PID_E1, fCalibration.Data(), fSet, fGain, fNelem);
 
     // draw main histogram
     fCanvasFit->Divide(1, 2, 0.001, 0.001);
@@ -391,7 +391,7 @@ void TCCalibPIDEnergy::Write()
     // Write the obtained calibration values to the database.
     
     // write values to database
-    TCMySQLManager::GetManager()->WriteParameters(fCalibration.Data(), fSet, kCALIB_PID_E0, fPed, fNelem);
-    TCMySQLManager::GetManager()->WriteParameters(fCalibration.Data(), fSet, kCALIB_PID_E1, fGain, fNelem);
+    TCMySQLManager::GetManager()->WriteParameters(kCALIB_PID_E0, fCalibration.Data(), fSet, fPed, fNelem);
+    TCMySQLManager::GetManager()->WriteParameters(kCALIB_PID_E1, fCalibration.Data(), fSet, fGain, fNelem);
 }
 

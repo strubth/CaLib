@@ -34,8 +34,8 @@ class TCCalib : public TNamed
 {
 
 protected:
-    TString fCalibration;       // calibration identifier
     CalibData_t fData;          // used calibration data
+    TString fCalibration;       // calibration identifier
     Int_t fSet;                 // set to be calibrated
     TString fHistoName;         // name of the calibration histogram
     Int_t fNelem;               // number of calibration values
@@ -61,8 +61,8 @@ protected:
 
 public:
     TCCalib() : TNamed(),
-                fCalibration(),
                 fData(kCALIB_EMPTY), 
+                fCalibration(),
                 fSet(0), fHistoName(), 
                 fNelem(0), fCurrentElem(0),
                 fOldVal(0), fNewVal(0),
@@ -73,8 +73,8 @@ public:
     TCCalib(const Char_t* name, const Char_t* title, 
             CalibData_t data, Int_t nElem) 
         : TNamed(name, title),
-          fCalibration(),
           fData(data), 
+          fCalibration(),
           fSet(0), fHistoName(), 
           fNelem(nElem), fCurrentElem(0),
           fOldVal(0), fNewVal(0),

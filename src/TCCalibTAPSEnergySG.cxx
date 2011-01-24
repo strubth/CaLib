@@ -47,7 +47,7 @@ void TCCalibTAPSEnergySG::Init()
     
     // init members
     fMean = 0;
-    fFileManager = new TCFileManager(fCalibration.Data(), fSet, fData);
+    fFileManager = new TCFileManager(fData, fCalibration.Data(), fSet);
     fLine = new TLine();
 
     // configure line
@@ -63,7 +63,7 @@ void TCCalibTAPSEnergySG::Init()
     else fHistoName = *TCReadConfig::GetReader()->GetConfig("TAPS.Energy.SG.Histo.Fit.Name");
     
     // read old parameters
-    TCMySQLManager::GetManager()->ReadParameters(fCalibration.Data(), fSet, fData, fOldVal, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(fData, fCalibration.Data(), fSet, fOldVal, fNelem);
     
     // copy to new parameters
     for (Int_t i = 0; i < fNelem; i++) fNewVal[i] = fOldVal[i];

@@ -51,7 +51,7 @@ void TCCalibVetoEnergy::Init()
     // Init the module.
     
     // init members
-    fFileManager = new TCFileManager(fCalibration.Data(), fSet, fData);
+    fFileManager = new TCFileManager(fData, fCalibration.Data(), fSet);
     fPeak = 0;
     fPeakMC = 0;
     fLine =  new TLine();
@@ -89,7 +89,7 @@ void TCCalibVetoEnergy::Init()
     else histoMC = *TCReadConfig::GetReader()->GetConfig("Veto.Energy.Histo.MC.Name");
 
     // read old parameters
-    TCMySQLManager::GetManager()->ReadParameters(fCalibration.Data(), fSet, fData, fOldVal, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(fData, fCalibration.Data(), fSet, fOldVal, fNelem);
     
     // copy to new parameters
     for (Int_t i = 0; i < fNelem; i++) fNewVal[i] = fOldVal[i];

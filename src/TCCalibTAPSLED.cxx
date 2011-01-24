@@ -76,13 +76,13 @@ void TCCalibTAPSLED::Init()
     else normHistoName = *TCReadConfig::GetReader()->GetConfig(tmp);
     
     // read old parameters
-    TCMySQLManager::GetManager()->ReadParameters(fCalibration.Data(), fSet, fData, fOldVal, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(fData, fCalibration.Data(), fSet, fOldVal, fNelem);
     
     // copy to new parameters
     for (Int_t i = 0; i < fNelem; i++) fNewVal[i] = fOldVal[i];
     
     // sum up all files contained in this runset
-    TCFileManager f(fCalibration.Data(), fSet, fData);
+    TCFileManager f(fData, fCalibration.Data(), fSet);
   
     // get the main calibration histogram
     fMainHisto = f.GetHistogram(fHistoName.Data());

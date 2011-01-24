@@ -44,10 +44,14 @@ private:
     
     Bool_t SearchTable(CalibData_t data, Char_t* outTableName);
     Bool_t SearchRunEntry(Int_t run, const Char_t* name, Char_t* outInfo);
-    Bool_t SearchSetEntry(const Char_t* calibration, const Char_t* name,
-                          CalibData_t data, Int_t set, Char_t* outInfo);
+    Bool_t SearchSetEntry(CalibData_t data, const Char_t* calibration, Int_t set,
+                          const Char_t* name, Char_t* outInfo);
     TList* SearchDistinctEntries(const Char_t* data, const Char_t* table);
     
+    Bool_t ChangeRunEntry(Int_t run, const Char_t* name, const Char_t* value);
+    Bool_t ChangeSetEntry(CalibData_t data, const Char_t* calibration, Int_t set,
+                          const Char_t* name, const Char_t* value);
+
     void DumpRuns(TCContainer* container, Int_t first_run, Int_t last_run);
     void DumpCalibrations(TCContainer* container, const Char_t* calibration);
     void ImportRuns(TCContainer* container);
@@ -62,25 +66,29 @@ public:
     TList* GetAllCalibrations();
     TList* GetAllTargets();
     
-    Int_t GetNsets(const Char_t* calibration, CalibData_t data);
-    Int_t GetFirstRunOfSet(const Char_t* calibration, CalibData_t data, Int_t set);
-    Int_t GetLastRunOfSet(const Char_t* calibration, CalibData_t data, Int_t set);
-    void GetDescriptionOfSet(const Char_t* calibration, CalibData_t data, 
+    Int_t GetNsets(CalibData_t data, const Char_t* calibration);
+    Int_t GetFirstRunOfSet(CalibData_t data, const Char_t* calibration, Int_t set);
+    Int_t GetLastRunOfSet(CalibData_t data, const Char_t* calibration, Int_t set);
+    void GetDescriptionOfSet(CalibData_t data, const Char_t* calibration, 
                              Int_t set, Char_t* outDesc);
-    void GetFillTimeOfSet(const Char_t* calibration, CalibData_t data, 
+    void GetFillTimeOfSet(CalibData_t data, const Char_t* calibration, 
                           Int_t set, Char_t* outTime);
-    Int_t* GetRunsOfSet(const Char_t* calibration, CalibData_t data, 
+    Int_t* GetRunsOfSet(CalibData_t data, const Char_t* calibration,
                         Int_t set, Int_t* outNruns);
 
-    void ReadParameters(const Char_t* calibration, Int_t set, CalibData_t data, 
+    void ReadParameters(CalibData_t data, const Char_t* calibration, Int_t set, 
                         Double_t* par, Int_t length);
-    void WriteParameters(const Char_t* calibration, Int_t set, CalibData_t data, 
+    void WriteParameters(CalibData_t data, const Char_t* calibration, Int_t set, 
                          Double_t* par, Int_t length);
     
-    Bool_t AddSet(CalibData_t data, const Char_t* calib, const Char_t* desc,
+    Bool_t AddSet(CalibData_t data, const Char_t* calibration, const Char_t* desc,
                   Int_t first_run, Int_t last_run, Double_t* par, Int_t length);
-    Bool_t AddSet(CalibData_t data, const Char_t* calib, const Char_t* desc,
+    Bool_t AddSet(CalibData_t data, const Char_t* calibration, const Char_t* desc,
                   Int_t first_run, Int_t last_run, Double_t par);
+    Bool_t RemoveSet(CalibData_t data, const Char_t* calibration, Int_t set);
+    Bool_t SplitSet(CalibData_t data, const Char_t* calibration, Int_t set,
+                    Int_t lastRunFirstSet);
+
     void AddRunFiles(const Char_t* path, const Char_t* target);
     void AddCalibAR(CalibDetector_t det, const Char_t* calibFileAR,
                     const Char_t* calib, const Char_t* desc,

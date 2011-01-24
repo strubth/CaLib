@@ -66,7 +66,7 @@ void TCCalibPIDDroop::Init()
     fPar1 = new Double_t[fNelem];
     fPar2 = new Double_t[fNelem];
     fPar3 = new Double_t[fNelem];
-    fFileManager = new TCFileManager(fCalibration.Data(), fSet, fData);
+    fFileManager = new TCFileManager(fData, fCalibration.Data(), fSet);
     fProj2D = 0;
     fLinPlot = 0;
     fNpeak = 0;
@@ -91,10 +91,10 @@ void TCCalibPIDDroop::Init()
     fDelay = TCReadConfig::GetReader()->GetConfigInt("PID.Droop.Fit.Delay");
 
     // read old parameters
-    TCMySQLManager::GetManager()->ReadParameters(fCalibration.Data(), fSet, kCALIB_PID_DROOP0, fPar0, fNelem);
-    TCMySQLManager::GetManager()->ReadParameters(fCalibration.Data(), fSet, kCALIB_PID_DROOP1, fPar1, fNelem);
-    TCMySQLManager::GetManager()->ReadParameters(fCalibration.Data(), fSet, kCALIB_PID_DROOP2, fPar2, fNelem);
-    TCMySQLManager::GetManager()->ReadParameters(fCalibration.Data(), fSet, kCALIB_PID_DROOP3, fPar3, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(kCALIB_PID_DROOP0, fCalibration.Data(), fSet, fPar0, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(kCALIB_PID_DROOP1, fCalibration.Data(), fSet, fPar1, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(kCALIB_PID_DROOP2, fCalibration.Data(), fSet, fPar2, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(kCALIB_PID_DROOP3, fCalibration.Data(), fSet, fPar3, fNelem);
 
     // draw main histogram
     fCanvasFit->Divide(1, 2, 0.001, 0.001);
@@ -332,9 +332,9 @@ void TCCalibPIDDroop::Write()
     // Write the obtained calibration values to the database.
     
     // write values to database
-    TCMySQLManager::GetManager()->WriteParameters(fCalibration.Data(), fSet, kCALIB_PID_DROOP0, fPar0, fNelem);
-    TCMySQLManager::GetManager()->WriteParameters(fCalibration.Data(), fSet, kCALIB_PID_DROOP1, fPar1, fNelem);
-    TCMySQLManager::GetManager()->WriteParameters(fCalibration.Data(), fSet, kCALIB_PID_DROOP2, fPar2, fNelem);
-    TCMySQLManager::GetManager()->WriteParameters(fCalibration.Data(), fSet, kCALIB_PID_DROOP3, fPar3, fNelem);
+    TCMySQLManager::GetManager()->WriteParameters(kCALIB_PID_DROOP0, fCalibration.Data(), fSet, fPar0, fNelem);
+    TCMySQLManager::GetManager()->WriteParameters(kCALIB_PID_DROOP1, fCalibration.Data(), fSet, fPar1, fNelem);
+    TCMySQLManager::GetManager()->WriteParameters(kCALIB_PID_DROOP2, fCalibration.Data(), fSet, fPar2, fNelem);
+    TCMySQLManager::GetManager()->WriteParameters(kCALIB_PID_DROOP3, fCalibration.Data(), fSet, fPar3, fNelem);
 }
 
