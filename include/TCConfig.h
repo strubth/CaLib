@@ -61,7 +61,8 @@ typedef ECalibData CalibData_t;
 // detector enumeration
 enum ECalibDetector
 {
-    kDETECTOR_TAGG = 0,
+    kDETECTOR_NODET = 0,
+    kDETECTOR_TAGG,
     kDETECTOR_CB,
     kDETECTOR_TAPS,
     kDETECTOR_PID,

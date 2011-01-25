@@ -333,15 +333,15 @@ void ButtonWindow::ReadRunsets(Int_t i)
     CalibData_t data = c->GetCalibData();
     
     // get the number of runsets
-    Int_t nsets = TCMySQLManager::GetManager()->GetNsets(calibration->GetString().Data(), data);
+    Int_t nsets = TCMySQLManager::GetManager()->GetNsets(data, calibration->GetString().Data());
     
     // fill the runsets into the list
     fLB_RunSet->RemoveAll();
     for (Int_t i = 0; i < nsets; i++)
     {
         // get the first and last runs
-        Int_t first_run = TCMySQLManager::GetManager()->GetFirstRunOfSet(calibration->GetString().Data(), data, i);
-        Int_t last_run = TCMySQLManager::GetManager()->GetLastRunOfSet(calibration->GetString().Data(), data, i);
+        Int_t first_run = TCMySQLManager::GetManager()->GetFirstRunOfSet(data, calibration->GetString().Data(), i);
+        Int_t last_run = TCMySQLManager::GetManager()->GetLastRunOfSet(data, calibration->GetString().Data(), i);
     
         // add list entry
         Char_t tmp[256];

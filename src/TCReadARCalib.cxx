@@ -29,6 +29,8 @@ TCReadARCalib::TCReadARCalib(const Char_t* calibFile, Bool_t isTagger,
     // init members
     fElements = new TList();
     fElements->SetOwner(kTRUE);
+    fTimeWalks = new TList();
+    fTimeWalks->SetOwner(kTRUE);
     fNeighbours = new TList();
     fNeighbours->SetOwner(kTRUE);
     
@@ -42,6 +44,7 @@ TCReadARCalib::~TCReadARCalib()
     // Destructor.
     
     if (fElements) delete fElements;
+    if (fTimeWalks) delete fTimeWalks;
     if (fNeighbours) delete fNeighbours;
 }
 
@@ -88,6 +91,24 @@ void TCReadARCalib::ReadCalibFile(const Char_t* filename, Bool_t isTagger,
                 else
                 {
                     Error("ReadCalibFile", "Could not read element in "
+                          "calibration file '%s'", filename);
+                }
+            }
+            // search time walk statements
+            else if (line.BeginsWith("TimeWalk:"))
+            {       
+                // create time walk
+                TCARTimeWalk* tw = new TCARTimeWalk();
+                
+                // try to read parameters
+                if (tw->Parse(line))
+                {
+                    // add time walk to list
+                    fTimeWalks->Add(tw);
+                }
+                else
+                {
+                    Error("ReadCalibFile", "Could not read time walk in "
                           "calibration file '%s'", filename);
                 }
             }

@@ -482,11 +482,69 @@ Int_t* TCMySQLManager::GetRunsOfSet(CalibData_t data, const Char_t* calibration,
 }
 
 //______________________________________________________________________________
-void TCMySQLManager::ReadParameters(CalibData_t data, const Char_t* calibration, Int_t set, 
-                                    Double_t* par, Int_t length)
+Int_t TCMySQLManager::GetSetForRun(CalibData_t data, const Char_t* calibration, Int_t run)
+{
+    // Return the number of the set of the calibration data 'data' for the calibration
+    // identifier 'calibration' the run 'run' belongs to.
+    // Return -1 if there is no such set.
+
+    // get number of sets
+    Int_t nSet = GetNsets(data, calibration);
+    if (!nSet) return -1;
+    
+    // check if  run exists
+    Char_t tmp[256];
+    if (!SearchRunEntry(run, "run", tmp))
+    {
+        Error("GetSetForRun", "Run has no valid run number!");
+        return -1;
+    }
+ 
+    // loop over sets
+    for (Int_t i = 0; i < nSet; i++)
+    {
+        // get first and last run
+        Int_t first_run = GetFirstRunOfSet(data, calibration, i);
+        Int_t last_run = GetLastRunOfSet(data, calibration, i);
+
+        // check if run is in this set
+        if (run >= first_run && run <= last_run) return i;
+    }
+
+    // no set found here
+    return -1;
+}
+
+//______________________________________________________________________________
+Bool_t TCMySQLManager::ReadParametersRun(CalibData_t data, const Char_t* calibration, Int_t run, 
+                                         Double_t* par, Int_t length)
+{
+    // Read 'length' parameters of the calibration data 'data' for the calibration identifier
+    // 'calibration' valid for the run 'run' from the database to the value array 'par'.
+    // Return kFALSE if an error occured, otherwise kTRUE.
+
+    // get set
+    Int_t set = GetSetForRun(data, calibration, run);
+
+    // check set
+    if (set == -1)
+    {
+        Error("ReadParametersRun", "No set of '%s' found for run %d",
+              TCConfig::kCalibDataNames[(Int_t)data], run);
+        return kFALSE;
+    }
+
+    // call main parameter reading method
+    return ReadParameters(data, calibration, set, par, length);
+}
+
+//______________________________________________________________________________
+Bool_t TCMySQLManager::ReadParameters(CalibData_t data, const Char_t* calibration, Int_t set, 
+                                      Double_t* par, Int_t length)
 {
     // Read 'length' parameters of the 'set'-th set of the calibration data 'data'
     // for the calibration identifier 'calibration' from the database to the value array 'par'.
+    // Return kFALSE if an error occured, otherwise kTRUE.
 
     Char_t query[256];
     Char_t table[256];
@@ -495,7 +553,7 @@ void TCMySQLManager::ReadParameters(CalibData_t data, const Char_t* calibration,
     if (!SearchTable(data, table))
     {
         Error("ReadParameters", "No data table found!");
-        return;
+        return kFALSE;
     }
 
     // get the first run of the set
@@ -504,8 +562,9 @@ void TCMySQLManager::ReadParameters(CalibData_t data, const Char_t* calibration,
     // check first run
     if (!first_run)
     {
-        Error("ReadParameters", "No calibration found for set %d in table '%s'!", set, table);
-        return;
+        Error("ReadParameters", "No calibration found for set %d of '%s'!", 
+              set, TCConfig::kCalibDataNames[(Int_t)data]);
+        return kFALSE;
     }
 
     // create the query
@@ -521,14 +580,16 @@ void TCMySQLManager::ReadParameters(CalibData_t data, const Char_t* calibration,
     // check result
     if (!res)
     {
-        Error("ReadParameters", "No calibration found for set %d in table '%s'!", set, table);
-        return;
+        Error("ReadParameters", "No calibration found for set %d of '%s'!", 
+              set, TCConfig::kCalibDataNames[(Int_t)data]);
+        return kFALSE;
     }
     else if (!res->GetRowCount())
     {
-        Error("ReadParameters", "No calibration found for set %d in table '%s'!", set, table);
+        Error("ReadParameters", "No calibration found for set %d of '%s'!", 
+              set, TCConfig::kCalibDataNames[(Int_t)data]);
         delete res;
-        return;
+        return kFALSE;
     }
 
     // get data (parameters start at field 5)
@@ -541,14 +602,17 @@ void TCMySQLManager::ReadParameters(CalibData_t data, const Char_t* calibration,
     
     // user information
     Info("ReadParameters", "Read %d parameters of '%s' from the database", length, TCConfig::kCalibDataNames[(Int_t)data]);
+    
+    return kTRUE;
 }
 
 //______________________________________________________________________________
-void TCMySQLManager::WriteParameters(CalibData_t data, const Char_t* calibration, Int_t set, 
-                                     Double_t* par, Int_t length)
+Bool_t TCMySQLManager::WriteParameters(CalibData_t data, const Char_t* calibration, Int_t set, 
+                                       Double_t* par, Int_t length)
 {
     // Write 'length' parameters of the 'set'-th set of the calibration data 'data'
     // for the calibration identifier 'calibration' from the value array 'par' to the database.
+    // Return kFALSE if an error occured, otherwise kTRUE.
 
     Char_t table[256];
  
@@ -556,7 +620,7 @@ void TCMySQLManager::WriteParameters(CalibData_t data, const Char_t* calibration
     if (!SearchTable(data, table))
     {
         Error("WriteParameters", "No data table found!");
-        return;
+        return kFALSE;
     }
 
     // get the first run of the set
@@ -567,7 +631,7 @@ void TCMySQLManager::WriteParameters(CalibData_t data, const Char_t* calibration
     {
         Error("WriteParameters", "Could not write parameters of '%s'!",
                                  TCConfig::kCalibDataNames[(Int_t)data]);
-        return;
+        return kFALSE;
     }
 
     // prepare the insert query
@@ -593,12 +657,14 @@ void TCMySQLManager::WriteParameters(CalibData_t data, const Char_t* calibration
     {
         Error("WriteParameters", "Could not write parameters of '%s'!", 
                                  TCConfig::kCalibDataNames[(Int_t)data]);
+        return kFALSE;
     }
     else
     {
         delete res;
         Info("WriteParameters", "Wrote %d parameters of '%s' to the database", 
                                 length, TCConfig::kCalibDataNames[(Int_t)data]);
+        return kTRUE;
     }
 }
 
@@ -825,6 +891,12 @@ void TCMySQLManager::AddCalibAR(CalibDetector_t det, const Char_t* calibFileAR,
             AddSet(kCALIB_VETO_T0, calib, desc, first_run, last_run, t0, nDet);
             AddSet(kCALIB_VETO_T1, calib, desc, first_run, last_run, t1, nDet);
             
+            break;
+        }
+        // no detector
+        case kDETECTOR_NODET:
+        {
+            // do nothing
             break;
         }
     }
@@ -1232,7 +1304,11 @@ Bool_t TCMySQLManager::SplitSet(CalibData_t data, const Char_t* calibration, Int
 
     // backup parameters
     Double_t par[nPar];
-    ReadParameters(data, calibration, set, par, nPar);
+    if (!ReadParameters(data, calibration, set, par, nPar))
+    {
+        Error("SplitSet", "Cannot backup parameters of set %d in '%s' of calibration '%s'",
+                          set, TCConfig::kCalibDataNames[(Int_t)data], calibration);
+    }
 
     // 
     // modify first set

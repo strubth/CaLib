@@ -39,7 +39,9 @@
 #pragma link C++ class TCReadConfig+;
 #pragma link C++ class TCConfigElement+;
 #pragma link C++ class TCReadARCalib+;
+#pragma link C++ class TCWriteARCalib+;
 #pragma link C++ class TCARElement+;
+#pragma link C++ class TCARTimeWalk+;
 #pragma link C++ class TCARNeighbours+;
 #pragma link C++ class TCReadACQU+;
 #pragma link C++ class TCACQUFile+;

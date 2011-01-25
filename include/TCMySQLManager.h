@@ -75,11 +75,14 @@ public:
                           Int_t set, Char_t* outTime);
     Int_t* GetRunsOfSet(CalibData_t data, const Char_t* calibration,
                         Int_t set, Int_t* outNruns);
+    Int_t GetSetForRun(CalibData_t data, const Char_t* calibration, Int_t run);
 
-    void ReadParameters(CalibData_t data, const Char_t* calibration, Int_t set, 
-                        Double_t* par, Int_t length);
-    void WriteParameters(CalibData_t data, const Char_t* calibration, Int_t set, 
-                         Double_t* par, Int_t length);
+    Bool_t ReadParameters(CalibData_t data, const Char_t* calibration, Int_t set, 
+                          Double_t* par, Int_t length);
+    Bool_t ReadParametersRun(CalibData_t data, const Char_t* calibration, Int_t run, 
+                             Double_t* par, Int_t length);
+    Bool_t WriteParameters(CalibData_t data, const Char_t* calibration, Int_t set, 
+                           Double_t* par, Int_t length);
     
     Bool_t AddSet(CalibData_t data, const Char_t* calibration, const Char_t* desc,
                   Int_t first_run, Int_t last_run, Double_t* par, Int_t length);
