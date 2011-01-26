@@ -51,7 +51,7 @@ enum ECalibData
     kCALIB_PID_E0, kCALIB_PID_E1, 
     kCALIB_PID_DROOP0, kCALIB_PID_DROOP1, kCALIB_PID_DROOP2, kCALIB_PID_DROOP3,
 
-    // VETO data
+    // Veto data
     kCALIB_VETO_T0, kCALIB_VETO_T1, 
     kCALIB_VETO_E0, kCALIB_VETO_E1,
 };
@@ -79,7 +79,7 @@ namespace TCConfig
     extern const Int_t kMaxCB;
     extern const Int_t kMaxTAPS;
     extern const Int_t kMaxPID;
-    extern const Int_t kMaxVETO;
+    extern const Int_t kMaxVeto;
     extern const Int_t kMaxTAGGER;
     
     // maximum theta bins for TAPS quadratic energy correction

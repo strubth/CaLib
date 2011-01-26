@@ -319,9 +319,9 @@ void ButtonWindow::ReadRunsets(Int_t i)
     // check if calibration was selected
     if (!gCalibSelected)
     {
-        new TGMsgBox(gClient->GetRoot(), gMainWindow, "Error", "Please select first "
-                     "the calibration you want to work with!",
-                     kMBIconStop, kMBOk, 0, kFitWidth | kFitHeight, kTextLeft);
+        TGMsgBox* msg = new TGMsgBox(gClient->GetRoot(), gMainWindow, "Error", "Please select first "
+                                     "the calibration you want to work with!",
+                                     kMBIconStop, kMBOk, 0, kFitWidth | kFitHeight, kTextLeft);
         return;
     }
 
@@ -399,6 +399,7 @@ void CreateModuleList()
             // skip non-module classes
             if (c == "TCCalib") continue;
             if (c == "TCCalibPed") continue;
+            if (c == "TCCalibTime") continue;
             if (c == "TCCalibTAPSLED") continue;
 
             // add module to list if it is really a module

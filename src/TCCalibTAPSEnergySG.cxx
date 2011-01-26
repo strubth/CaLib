@@ -225,8 +225,9 @@ void TCCalibTAPSEnergySG::Calculate(Int_t elem)
 
     // user information
     printf("Element: %03d    Peak: %12.8f    "
-           "old gain: %12.8f    new gain: %12.8f",
-           elem, fMean, fOldVal[elem], fNewVal[elem]);
+           "old gain: %12.8f    new gain: %12.8f    diff: %6.2f %%",
+           elem, fMean, fOldVal[elem], fNewVal[elem],
+           TCUtils::GetDiffPercent(fOldVal[elem], fNewVal[elem]));
     if (unchanged) printf("    -> unchanged");
     printf("\n");
 }   

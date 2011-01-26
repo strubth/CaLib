@@ -212,3 +212,17 @@ Int_t TCUtils::GetVetoInFrontOfElement(Int_t id, Int_t maxTAPS)
     }
 }
 
+//______________________________________________________________________________
+Double_t TCUtils::GetDiffPercent(Double_t oldValue, Double_t newValue)
+{
+    // Return the relative difference in percent between 'oldValue' and 'newValue'.
+
+    // calculate difference
+    Double_t diff = newValue - oldValue;
+
+    // return relative difference
+    if (oldValue == 0 && newValue == 0) return 0;
+    else if (oldValue == 0. && newValue != 0) return 100 * diff / newValue;
+    else return 100 * diff / oldValue;
+}
+

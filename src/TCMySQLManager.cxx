@@ -882,7 +882,7 @@ void TCMySQLManager::AddCalibAR(CalibDetector_t det, const Char_t* calibFileAR,
             
             break;
         }
-        // VETO
+        // Veto
         case kDETECTOR_VETO:
         {
             // write to database

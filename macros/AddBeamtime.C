@@ -32,7 +32,7 @@ void AddBeamtime()
     const Char_t calibFileCB[]      = "/usr/users/werthm/AcquRoot/acqu/acqu/data/Dec_07/CB/NaI.dat";
     const Char_t calibFileTAPS[]    = "/usr/users/werthm/AcquRoot/acqu/acqu/data/Dec_07/TAPS/BaF2.dat";
     const Char_t calibFilePID[]     = "/usr/users/werthm/AcquRoot/acqu/acqu/data/Dec_07/PID/PID.dat";
-    const Char_t calibFileVETO[]    = "/usr/users/werthm/AcquRoot/acqu/acqu/data/Dec_07/TAPS/Veto.dat";
+    const Char_t calibFileVeto[]    = "/usr/users/werthm/AcquRoot/acqu/acqu/data/Dec_07/TAPS/Veto.dat";
 
     // add raw files to the database
     TCMySQLManager::GetManager()->AddRunFiles(rawfilePath, target);
@@ -99,8 +99,8 @@ void AddBeamtime()
     TCMySQLManager::GetManager()->AddSet(kCALIB_PID_DROOP3, calibName, calibDesc,
                                          firstRun, lastRun, 0);
      
-    // read AcquRoot calibration of VETO
-    TCMySQLManager::GetManager()->AddCalibAR(kDETECTOR_VETO, calibFileVETO,
+    // read AcquRoot calibration of Veto 
+    TCMySQLManager::GetManager()->AddCalibAR(kDETECTOR_VETO, calibFileVeto,
                                              calibName, calibDesc,
                                              firstRun, lastRun);
      

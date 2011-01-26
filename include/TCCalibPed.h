@@ -21,7 +21,6 @@
 #include "TLine.h"
 
 #include "TCCalib.h"
-#include "TCUtils.h"
 #include "TCReadARCalib.h"
 #include "TCFileManager.h"
 
@@ -79,17 +78,17 @@ public:
 };
 
 
-class TCCalibTAPSPedVETO : public TCCalibPed
+class TCCalibTAPSPedVeto : public TCCalibPed
 {
 
 public:
-    TCCalibTAPSPedVETO() 
-        : TCCalibPed("TAPS.Ped.VETO", "VETO pedestal calibration",
+    TCCalibTAPSPedVeto() 
+        : TCCalibPed("TAPS.Ped.Veto", "Veto pedestal calibration",
                      kCALIB_VETO_E0,
-                     TCConfig::kMaxVETO) { }
-    virtual ~TCCalibTAPSPedVETO() { }
+                     TCConfig::kMaxVeto) { }
+    virtual ~TCCalibTAPSPedVeto() { }
     
-    ClassDef(TCCalibTAPSPedVETO, 0) // VETO pedestal calibration class
+    ClassDef(TCCalibTAPSPedVeto, 0) // Veto pedestal calibration class
 };
 
 #endif

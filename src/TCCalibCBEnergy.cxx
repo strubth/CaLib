@@ -205,8 +205,9 @@ void TCCalibCBEnergy::Calculate(Int_t elem)
 
     // user information
     printf("Element: %03d    Pi0: %12.8f    "
-           "old gain: %12.8f    new gain: %12.8f",
-           elem, fPi0Pos, fOldVal[elem], fNewVal[elem]);
+           "old gain: %12.8f    new gain: %12.8f    diff: %6.2f %%",
+           elem, fPi0Pos, fOldVal[elem], fNewVal[elem],
+           TCUtils::GetDiffPercent(fOldVal[elem], fNewVal[elem]));
     if (unchanged) printf("    -> unchanged");
     if (TCUtils::IsCBHole(elem)) printf(" (hole)");
     printf("\n");

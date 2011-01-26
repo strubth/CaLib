@@ -51,6 +51,7 @@
 #pragma link C++ class TCCalibration+;
 #pragma link C++ class TCCalib+;
 #pragma link C++ class TCCalibPed+;
+#pragma link C++ class TCCalibTime+;
 
 // misc calibration classes
 #pragma link C++ class TCCalibTargetPosition+;
@@ -70,7 +71,7 @@
 #pragma link C++ class TCCalibTAPSEnergySG+;
 #pragma link C++ class TCCalibTAPSPedLG+;
 #pragma link C++ class TCCalibTAPSPedSG+;
-#pragma link C++ class TCCalibTAPSPedVETO+;
+#pragma link C++ class TCCalibTAPSPedVeto+;
 #pragma link C++ class TCCalibTAPSQuadEnergy+;
 #pragma link C++ class TCCalibTAPSTime+;
 #pragma link C++ class TCCalibTAPSLED+;
@@ -81,10 +82,12 @@
 #pragma link C++ class TCCalibPIDPhi+;
 #pragma link C++ class TCCalibPIDDroop+;
 #pragma link C++ class TCCalibPIDEnergy+;
+#pragma link C++ class TCCalibPIDTime+;
 
 // Veto calibration classes
 #pragma link C++ class TCCalibVetoCorr+;
 #pragma link C++ class TCCalibVetoEnergy+;
+#pragma link C++ class TCCalibVetoTime+;
 
 #endif
 

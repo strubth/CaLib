@@ -115,9 +115,13 @@ void TCCalib::ProcessElement(Int_t elem)
             fTimer = 0;
         }
         
-        // calculate last element
-        if (elem == fNelem) Calculate(fCurrentElem);
-        
+        // calculate last element and update result canvas
+        if (elem == fNelem) 
+        {
+            Calculate(fCurrentElem);
+            fCanvasResult->Update();
+        }
+
         // exit
         return;
     }
@@ -193,8 +197,10 @@ void TCCalib::PrintValues()
     printf("\n");
     for (Int_t i = 0; i < fNelem; i++)
     {
-        printf("Element: %03d    old value: %12.8f    new value: %12.8f\n",
-               i, fOldVal[i], fNewVal[i]);
+        printf("Element: %03d    old value: %12.8f    new value: %12.8f    "
+               "diff: %6.2f %%\n",
+               i, fOldVal[i], fNewVal[i],
+               TCUtils::GetDiffPercent(fOldVal[i], fNewVal[i]));
     }
     printf("\n");
 }
@@ -209,8 +215,10 @@ void TCCalib::PrintValuesChanged()
     for (Int_t i = 0; i < fNelem; i++)
     {
         if (fOldVal[i] != fNewVal[i])
-            printf("Element: %03d    old value: %12.8f    new value: %12.8f\n",
-                   i, fOldVal[i], fNewVal[i]);
+            printf("Element: %03d    old value: %12.8f    new value: %12.8f    "
+                   "diff: %6.2f %%\n",
+                   i, fOldVal[i], fNewVal[i],
+                   TCUtils::GetDiffPercent(fOldVal[i], fNewVal[i]));
     }
     printf("\n");
 }

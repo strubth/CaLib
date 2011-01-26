@@ -24,7 +24,7 @@ namespace TCConfig
     const Int_t kMaxCB        = 720;
     const Int_t kMaxTAPS      = 510;
     const Int_t kMaxPID       =  24;
-    const Int_t kMaxVETO      = 510;
+    const Int_t kMaxVeto      = 510;
     const Int_t kMaxTAGGER    = 352;
     
     // maximum theta bins for TAPS quadratic energy correction
@@ -64,9 +64,9 @@ namespace TCConfig
         "PID ADC pedestal", "PID ADC gain", 
         "PID droop corr. par0", "PID droop corr. par1", "PID droop corr. par2", "PID droop corr. par3",
 
-        // VETO data
-        "VETO time offset", "VETO TDC gain", 
-        "VETO ADC pedestal", "VETO ADC gain"
+        // Veto data
+        "Veto time offset", "Veto TDC gain", 
+        "Veto ADC pedestal", "Veto ADC gain"
     };
 
     // data table names
@@ -100,7 +100,7 @@ namespace TCConfig
         "pid_e0", "pid_e1", 
         "pid_droop0", "pid_droop1", "pid_droop2", "pid_droop3",
 
-        // VETO data
+        // Veto data
         "veto_t0", "veto_t1",
         "veto_e0", "veto_e1"
     };
@@ -136,9 +136,9 @@ namespace TCConfig
         kMaxPID, kMaxPID, 
         kMaxPID, kMaxPID, kMaxPID, kMaxPID,
 
-        // VETO data
-        kMaxVETO, kMaxVETO, 
-        kMaxVETO, kMaxVETO
+        // Veto data
+        kMaxVeto, kMaxVeto, 
+        kMaxVeto, kMaxVeto
     };
  
     // name of the main table

@@ -203,8 +203,9 @@ void TCCalibPed::Calculate(Int_t elem)
 
     // user information
     printf("Element: %03d    "
-           "old pedestal: %12.8f    new pedestal: %12.8f",
-           elem, fOldVal[elem], fNewVal[elem]);
+           "old pedestal: %12.8f    new pedestal: %12.8f    diff: %6.2f %%",
+           elem, fOldVal[elem], fNewVal[elem],
+           TCUtils::GetDiffPercent(fOldVal[elem], fNewVal[elem]));
     if (unchanged) printf("    -> unchanged");
     printf("\n");
 }   
