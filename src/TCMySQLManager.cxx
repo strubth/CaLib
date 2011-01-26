@@ -1343,6 +1343,81 @@ Bool_t TCMySQLManager::SplitSet(CalibData_t data, const Char_t* calibration, Int
 }
 
 //______________________________________________________________________________
+Bool_t TCMySQLManager::MergeSets(CalibData_t data, const Char_t* calibration, 
+                                 Int_t set1, Int_t set2)
+{
+    // Merge the two adjacent sets 'set1' and 'set2' of the calibration data 'data' and the 
+    // calibration identifier 'calibration' into one set. Description and parameters
+    // of 'set1' will be used in the merged set.
+    // get the first run of the set
+    
+    Char_t tmp[256];
+
+    // check if the two sets are adjacent 
+    if (TMath::Abs(set2 - set1) != 1)
+    {
+        Error("MergeSets", "Only adjacent sets can be merged!");
+        return kFALSE;
+    }
+
+    // get information of set 1
+    Int_t firstSet1 = GetFirstRunOfSet(data, calibration, set1);
+    Int_t lastSet1 = GetLastRunOfSet(data, calibration, set1);
+    
+    // get information of set 2
+    Int_t firstSet2 = GetFirstRunOfSet(data, calibration, set2);
+    Int_t lastSet2 = GetLastRunOfSet(data, calibration, set2);
+
+    // check set 1
+    if (!firstSet1 || !lastSet1)
+    {
+        Error("MergeSets", "Could not find set %d in '%s' of calibration '%s'!",
+                           set1, TCConfig::kCalibDataNames[(Int_t)data], calibration);
+        return kFALSE;
+    }
+
+    // check set 2
+    if (!firstSet2 || !lastSet2)
+    {
+        Error("MergeSets", "Could not find set %d in '%s' of calibration '%s'!",
+                           set2, TCConfig::kCalibDataNames[(Int_t)data], calibration);
+        return kFALSE;
+    }
+
+    // delete set 2
+    if (!RemoveSet(data, calibration, set2))
+    {
+        Error("MergeSets", "Could not remove set %d!", set2);
+        return kFALSE;
+    }
+    
+    // adjust run interval
+    // check if set 2 was in front of set 1
+    if (firstSet2 < firstSet1)
+    {
+        // adjust first run of remaining set
+        sprintf(tmp, "%d", firstSet2);
+        if (!ChangeSetEntry(data, calibration, set1-1, "first_run", tmp))
+        {
+            Error("MergeSets", "Could not adjust run interval of set %d!", set1-1);
+            return kFALSE;
+        }
+    }
+    else
+    {
+        // adjust last run of remaining set
+        sprintf(tmp, "%d", lastSet2);
+        if (!ChangeSetEntry(data, calibration, set1, "last_run", tmp))
+        {
+            Error("MergeSets", "Could not adjust run interval of set %d!", set1);
+            return kFALSE;
+        }
+    }
+
+    return kTRUE;
+}
+
+//______________________________________________________________________________
 void TCMySQLManager::DumpRuns(TCContainer* container, Int_t first_run, Int_t last_run)
 {
     // Dump the run information from run 'first_run' to run 'last_run' to 

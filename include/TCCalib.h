@@ -37,7 +37,8 @@ class TCCalib : public TNamed
 protected:
     CalibData_t fData;          // used calibration data
     TString fCalibration;       // calibration identifier
-    Int_t fSet;                 // set to be calibrated
+    Int_t fNset;                // number of sets to be calibrated
+    Int_t* fSet;                //[fNset] array of sets to be calibrated
     TString fHistoName;         // name of the calibration histogram
     Int_t fNelem;               // number of calibration values
     Int_t fCurrentElem;         // number of current element
@@ -89,7 +90,7 @@ public:
     virtual void PrintValues();
     virtual void PrintValuesChanged();
 
-    void Start(const Char_t* calibration, Int_t set);
+    void Start(const Char_t* calibration, Int_t nSet, Int_t* set);
     void ProcessAll(Int_t msecDelay = 0);
     void ProcessElement(Int_t elem);
     void Previous();

@@ -60,14 +60,14 @@ void TCCalibTargetPosition::Init()
     }
     else fHistoName = *TCReadConfig::GetReader()->GetConfig("Target.Position.Histo.Fit.Name");
     
-    // read old parameters
-    TCMySQLManager::GetManager()->ReadParameters(fData, fCalibration.Data(), fSet, fOldVal, TCConfig::kMaxTargPos);
+    // read old parameters (only from first set)
+    TCMySQLManager::GetManager()->ReadParameters(fData, fCalibration.Data(), fSet[0], fOldVal, TCConfig::kMaxTargPos);
     
     // copy to new parameters
     fNewVal[0] = fOldVal[0];
 
     // sum up all files contained in this runset
-    TCFileManager f(fData, fCalibration.Data(), fSet);
+    TCFileManager f(fData, fCalibration.Data(), fNset, fSet);
     
     // get the main calibration histogram
     fMainHisto = f.GetHistogram(fHistoName.Data());
@@ -254,7 +254,8 @@ void TCCalibTargetPosition::Write()
     // Write the obtained calibration values to the database.
     
     // write values to database
-    TCMySQLManager::GetManager()->WriteParameters(fData, fCalibration.Data(), fSet, fNewVal, TCConfig::kMaxTargPos);
+    for (Int_t i = 0; i < fNset; i++)
+        TCMySQLManager::GetManager()->WriteParameters(fData, fCalibration.Data(), fSet[i], fNewVal, TCConfig::kMaxTargPos);
         
     // save overview picture
     SaveCanvas(fCanvasResult, "Overview");

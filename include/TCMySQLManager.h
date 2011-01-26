@@ -91,6 +91,8 @@ public:
     Bool_t RemoveSet(CalibData_t data, const Char_t* calibration, Int_t set);
     Bool_t SplitSet(CalibData_t data, const Char_t* calibration, Int_t set,
                     Int_t lastRunFirstSet);
+    Bool_t MergeSets(CalibData_t data, const Char_t* calibration, 
+                     Int_t set1, Int_t set2);
 
     void AddRunFiles(const Char_t* path, const Char_t* target);
     void AddCalibAR(CalibDetector_t det, const Char_t* calibFileAR,

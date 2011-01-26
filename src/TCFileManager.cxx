@@ -19,14 +19,18 @@ ClassImp(TCFileManager)
 
 
 //______________________________________________________________________________
-TCFileManager::TCFileManager(CalibData_t data, const Char_t* calibration, Int_t set)
+TCFileManager::TCFileManager(CalibData_t data, const Char_t* calibration, 
+                             Int_t nSet, Int_t* set)
 {
-    // Constructor.
+    // Constructor using the calibration data 'data', the calibration identifier
+    // 'calibration' and the 'nSet' sets in the array 'set'.
     
     // init members
     fCalibData = data;
     fCalibration = calibration;
-    fSet = set;
+    fNset = nSet;
+    fSet = new Int_t[fNset];
+    for (Int_t i = 0; i < fNset; i++) fSet[i] = set[i];
     fFiles = new TList();
     fFiles->SetOwner(kTRUE);
 
@@ -58,50 +62,58 @@ TCFileManager::~TCFileManager()
     // Destructor.
 
     if (fFiles) delete fFiles;
+    if (fSet) delete [] fSet;
 }
 
 //______________________________________________________________________________
 void TCFileManager::BuildFileList()
 {
-    // Build the list of files belonging to the runset.
+    // Build the list of files belonging to the runsets.
     
-    // get the list of runs for this set
-    Int_t nRun;
-    Int_t* runs = TCMySQLManager::GetManager()->GetRunsOfSet(fCalibData, fCalibration.Data(), fSet, &nRun);
-
-    // loop over runs
-    for (Int_t i = 0; i < nRun; i++)
+    // loop over sets
+    for (Int_t i = 0; i < fNset; i++)
     {
-        // construct file name
-        TString filename(fInputFilePatt);
-        filename.ReplaceAll("RUN", TString::Format("%d", runs[i]));
-        
-        // open the file
-        TFile* f = new TFile(filename.Data());
-        
-        // check nonexisting file
-        if (!f) 
-        {   
-            Warning("BuildFileList", "Could not open file '%s'", filename.Data());
-            continue;
-        }
-
-        // check bad file
-        if (f->IsZombie())
-        {
-            Warning("BuildFileList", "Could not open file '%s'", filename.Data());
-            continue;
-        }
-
-        // add good file to list
-        fFiles->Add(f);
+        // get the list of runs for this set
+        Int_t nRun;
+        Int_t* runs = TCMySQLManager::GetManager()->GetRunsOfSet(fCalibData, fCalibration.Data(), fSet[i], &nRun);
 
         // user information
-        Info("BuildFileList", "%03d : added file '%s'", i, f->GetName());
-    }
+        Info("BuildFileList", "Adding runs of set %d", fSet[i]);
 
-    // clean-up
-    delete runs;
+        // loop over runs
+        for (Int_t j = 0; j < nRun; j++)
+        {
+            // construct file name
+            TString filename(fInputFilePatt);
+            filename.ReplaceAll("RUN", TString::Format("%d", runs[j]));
+            
+            // open the file
+            TFile* f = new TFile(filename.Data());
+            
+            // check nonexisting file
+            if (!f) 
+            {   
+                Warning("BuildFileList", "Could not open file '%s'", filename.Data());
+                continue;
+            }
+
+            // check bad file
+            if (f->IsZombie())
+            {
+                Warning("BuildFileList", "Could not open file '%s'", filename.Data());
+                continue;
+            }
+
+            // add good file to list
+            fFiles->Add(f);
+
+            // user information
+            Info("BuildFileList", "%03d : added file '%s'", j, f->GetName());
+        }
+
+        // clean-up
+        delete runs;
+    }
 }
 
 //______________________________________________________________________________

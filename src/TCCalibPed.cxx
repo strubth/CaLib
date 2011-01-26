@@ -52,7 +52,7 @@ void TCCalibPed::Init()
     // init members
     fADC = new Int_t[fNelem];
     for (Int_t i = 0; i < fNelem; i++) fADC[i] = 0;
-    fFileManager = new TCFileManager(fData, fCalibration.Data(), fSet);
+    fFileManager = new TCFileManager(fData, fCalibration.Data(), fNset, fSet);
     fMean = 0;
     fLine = new TLine();
     
@@ -63,8 +63,8 @@ void TCCalibPed::Init()
     // read ADC numbers
     ReadADC();
 
-    // read old parameters
-    TCMySQLManager::GetManager()->ReadParameters(fData, fCalibration.Data(), fSet, fOldVal, fNelem);
+    // read old parameters (only from first set)
+    TCMySQLManager::GetManager()->ReadParameters(fData, fCalibration.Data(), fSet[0], fOldVal, fNelem);
     
     // copy to new parameters
     for (Int_t i = 0; i < fNelem; i++) fNewVal[i] = fOldVal[i];

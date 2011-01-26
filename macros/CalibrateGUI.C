@@ -98,8 +98,8 @@ ButtonWindow::ButtonWindow()
     fCBox_Module->Connect("Selected(Int_t)", "ButtonWindow", this, "ReadRunsets(Int_t)");
 
     fLB_RunSet = new TGListBox(horizontal);
+    fLB_RunSet->SetMultipleSelections(kTRUE);
     fLB_RunSet->Resize(200, 100);
-    fLB_RunSet->SetMultipleSelections(kFALSE);            // implement this
     horizontal->AddFrame(fLB_RunSet, new TGLayoutHints(kLHintsLeft | kLHintsExpandY));
 
     fTB_Init = new TGTextButton(horizontal, "Start module");
@@ -361,8 +361,18 @@ void ButtonWindow::StartModule()
     // get the selected module
     Int_t module = fCBox_Module->GetSelected();
 
-    // get the selected runset
-    Int_t runset = fLB_RunSet->GetSelected();
+    // get the selected runsets
+    TList set_list;
+    fLB_RunSet->GetSelectedEntries(&set_list);
+
+    // fill sets
+    Int_t nSet = set_list.GetSize();
+    Int_t set[999];     
+    for (Int_t i = 0; i < nSet; i++)
+    {
+        TGLBEntry* e = (TGLBEntry*) set_list.At(i);
+        set[i] = e->EntryId();
+    }
 
     // get the calibration module
     gCurrentModule = (TCCalib*) gCaLibModules->At(module);
@@ -371,7 +381,7 @@ void ButtonWindow::StartModule()
     TObjString* calibration = (TObjString*) gCalibrations->At(fCBox_Calibration->GetSelected());
     
     // start the module
-    ((TCCalib*)gCurrentModule)->Start(calibration->GetString().Data(), runset);
+    ((TCCalib*)gCurrentModule)->Start(calibration->GetString().Data(), nSet, set);
 }
 
 //______________________________________________________________________________

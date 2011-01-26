@@ -67,14 +67,14 @@ void TCCalibPIDPhi::Init()
     }
     else fHistoName = *TCReadConfig::GetReader()->GetConfig("PID.Phi.Histo.Fit.Name");
     
-    // read old parameters
-    TCMySQLManager::GetManager()->ReadParameters(fData, fCalibration.Data(), fSet, fOldVal, fNelem);
+    // read old parameters (only from first set)
+    TCMySQLManager::GetManager()->ReadParameters(fData, fCalibration.Data(), fSet[0], fOldVal, fNelem);
     
     // copy to new parameters
     for (Int_t i = 0; i < fNelem; i++) fNewVal[i] = fOldVal[i];
 
     // sum up all files contained in this runset
-    TCFileManager f(fData, fCalibration.Data(), fSet);
+    TCFileManager f(fData, fCalibration.Data(), fNset, fSet);
     
     // get the main calibration histogram
     fMainHisto = f.GetHistogram(fHistoName.Data());

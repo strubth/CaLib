@@ -22,7 +22,8 @@ ClassImp(TCCalib)
 TCCalib::~TCCalib()
 {
     // Destructor.
-        
+     
+    if (fSet) delete [] fSet;
     if (fOldVal) delete [] fOldVal;
     if (fNewVal) delete [] fNewVal;
     if (fMainHisto) delete fMainHisto;
@@ -35,14 +36,16 @@ TCCalib::~TCCalib()
 }
 
 //______________________________________________________________________________
-void TCCalib::Start(const Char_t* calibration, Int_t set)
+void TCCalib::Start(const Char_t* calibration, Int_t nSet, Int_t* set)
 {
-    // Start the calibration module for the set 'set' and the calibration 
+    // Start the calibration module for the 'nSet' sets in 'set' using the calibration 
     // identifier 'calibration'.
     
     // init members
     fCalibration = calibration;
-    fSet = set;
+    fNset = nSet;
+    fSet = new Int_t[fNset];
+    for (Int_t i = 0; i < fNset; i++) fSet[i] = set[i];
     fHistoName = "";
     fCurrentElem = 0;
 
@@ -69,11 +72,14 @@ void TCCalib::Start(const Char_t* calibration, Int_t set)
     }
     
     // user information
-    Int_t first_run = TCMySQLManager::GetManager()->GetFirstRunOfSet(fData, fCalibration.Data(), fSet);
-    Int_t last_run = TCMySQLManager::GetManager()->GetLastRunOfSet(fData, fCalibration.Data(), fSet);
-    Info("Start", "Starting calibration module %s", GetName());
+   Info("Start", "Starting calibration module %s", GetName());
     Info("Start", "Module description: %s", GetTitle());
-    Info("Start", "Calibrating set %d (Run %d to %d)", fSet, first_run, last_run);
+    for (Int_t i = 0; i < fNset; i++)
+    {
+        Int_t first_run = TCMySQLManager::GetManager()->GetFirstRunOfSet(fData, fCalibration.Data(), fSet[i]);
+        Int_t last_run = TCMySQLManager::GetManager()->GetLastRunOfSet(fData, fCalibration.Data(), fSet[i]);
+        Info("Start", "Calibrating set %d (Run %d to %d)", fSet[i], first_run, last_run);
+    }
 
     // style options
     gStyle->SetPalette(1);
@@ -229,7 +235,8 @@ void TCCalib::Write()
     // Write the obtained calibration values to the database.
     
     // write values to database
-    TCMySQLManager::GetManager()->WriteParameters(fData, fCalibration.Data(), fSet, fNewVal, fNelem);
+    for (Int_t i = 0; i < fNset; i++)
+        TCMySQLManager::GetManager()->WriteParameters(fData, fCalibration.Data(), fSet[i], fNewVal, fNelem);
         
     // save overview picture
     SaveCanvas(fCanvasResult, "Overview");
@@ -258,9 +265,9 @@ void TCCalib::SaveCanvas(TCanvas* c, const Char_t* name)
         t.GetTime(kFALSE, 0, &hour, &min);
         sprintf(date, "%d-%d-%d_%d:%d", year, month, day, hour, min);
 
-        // save canvas
+        // save canvas (only for first set)
         sprintf(tmp, "%s/%s/%s_Set_%d_%s.png", 
-                path->Data(), GetName(), name, fSet, date);
+                path->Data(), GetName(), name, fSet[0], date);
         c->SaveAs(tmp);
     }
 }

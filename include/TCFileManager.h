@@ -31,14 +31,16 @@ private:
     TList* fFiles;                          // list of files
     CalibData_t fCalibData;                 // calibration data
     TString fCalibration;                   // calibration identifier
-    Int_t fSet;                             // number of set
+    Int_t fNset;                            // number of sets
+    Int_t* fSet;                            //[fNset] array of set numbers
     
     void BuildFileList();
 
 public:
     TCFileManager() : fInputFilePatt(0), fFiles(0), 
-                      fCalibData(kCALIB_EMPTY), fCalibration(), fSet(0) { }
-    TCFileManager(CalibData_t data, const Char_t* calibration, Int_t set);
+                      fCalibData(kCALIB_EMPTY), fCalibration(), fNset(0), fSet(0) { }
+    TCFileManager(CalibData_t data, const Char_t* calibration, 
+                  Int_t nSet, Int_t* set);
     virtual ~TCFileManager();
 
     TH1* GetHistogram(const Char_t* name);
