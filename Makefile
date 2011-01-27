@@ -52,7 +52,7 @@ LDFLAGS     = -g -O3 $(ROOTLDFLAGS)
 
 # ------------------------------------ targets ------------------------------------
 
-all:	begin $(LIB_CaLib) \
+all:	begin $(LIB_CaLib) $(B)/calib_manager \
 	end
 
 begin:
@@ -64,6 +64,11 @@ end:
 	@echo
 	@echo "-> Finished!"
 	@echo
+
+$(B)/calib_manager: $(LIB_CaLib) $(S)/MainCaLibManager.cxx
+	@echo "Building the CaLib Manager"
+	@mkdir -p $(B)
+	@$(CCCOMP) $(CXXFLAGS) $(ROOTGLIBS) $(CURDIR)/$(LIB_CaLib) -o $(B)/calib_manager $(S)/MainCaLibManager.cxx
 
 $(LIB_CaLib): $(OBJ)
 	@echo
