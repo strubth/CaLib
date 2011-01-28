@@ -158,8 +158,8 @@ namespace TCConfig
                     "target_pol_deg DOUBLE,"
                     "beam_pol VARCHAR(128),"
                     "beam_pol_deg DOUBLE,"
-                    "filled TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP"
-                    "                 ON UPDATE CURRENT_TIMESTAMP,"
+                    "changed TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP"
+                    "                  ON UPDATE CURRENT_TIMESTAMP,"
                     "PRIMARY KEY (run) ";
 
     // header of the data tables
@@ -168,12 +168,15 @@ namespace TCConfig
                     "description VARCHAR(1024),"
                     "first_run INT NOT NULL,"
                     "last_run INT NOT NULL,"
-                    "filled TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP"
-                    "                 ON UPDATE CURRENT_TIMESTAMP,";
+                    "changed TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP"
+                    "                  ON UPDATE CURRENT_TIMESTAMP,";
     
     // additional settings for the data tables
     const Char_t* kCalibDataTableSettings = ",PRIMARY KEY (calibration, first_run) ";
     
+    // version numbers
+    const Int_t kContainerFormatVersion = 1;
+
     // constants
     const Double_t kPi0Mass = 134.9766;
     const Double_t kEtaMass = 547.853;

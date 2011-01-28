@@ -115,7 +115,7 @@ private:
     Char_t fDescription[256];           // description
     Int_t fFirstRun;                    // first run
     Int_t fLastRun;                     // last run
-    Char_t fFillTime[64];               // fill time
+    Char_t fChangeTime[64];             // fill time
     Int_t fNpar;                        // number of parameters
     Double_t* fPar;                     //[fNpar] parameters
 
@@ -127,7 +127,7 @@ public:
         fDescription[0] = '\0';
         fFirstRun = 0;
         fLastRun = 0;
-        fFillTime[0] = '\0';
+        fChangeTime[0] = '\0';
         fNpar = 0;
         fPar = 0;
     }
@@ -138,7 +138,7 @@ public:
     void SetDescription(const Char_t* desc) { strcpy(fDescription, desc); }
     void SetFirstRun(Int_t run) { fFirstRun = run; }
     void SetLastRun(Int_t run) { fLastRun = run; }
-    void SetFillTime(const Char_t* ftime) { strcpy(fFillTime, ftime); }
+    void SetChangeTime(const Char_t* ctime) { strcpy(fChangeTime, ctime); }
     void SetParameters(Int_t npar, Double_t* par)
     {
         fNpar = npar;
@@ -152,7 +152,7 @@ public:
     const Char_t* GetDescription() const { return fDescription; }
     Int_t GetFirstRun() const { return fFirstRun; }
     Int_t GetLastRun() const { return fLastRun; }
-    const Char_t* GetFillTime() const { return fFillTime; }
+    const Char_t* GetChangeTime() const { return fChangeTime; }
     Int_t GetNParameters() const { return fNpar; }
     Double_t* GetParameters() const { return fPar; }
     
@@ -164,7 +164,7 @@ public:
         printf("Description      : %s\n", fDescription);
         printf("First run        : %d\n", fFirstRun);
         printf("Last run         : %d\n", fLastRun);
-        printf("Fill time        : %s\n", fFillTime);
+        printf("Change time      : %s\n", fChangeTime);
         printf("Number of par.   : %d\n", fNpar);
         printf("Parameters       : ");
         for (Int_t i = 0; i < fNpar; i++) printf("%lf ", fPar[i]);
@@ -180,14 +180,16 @@ class TCContainer : public TNamed
 {
 
 private:
+    Int_t fVersion;                 // container format version
     TList* fRuns;                   //-> run list
     TList* fCalibrations;           //-> calibration list
 
 public:
-    TCContainer() : TNamed(), fRuns(0), fCalibrations(0) { }
+    TCContainer() : TNamed(), fVersion(0), fRuns(0), fCalibrations(0) { }
     TCContainer(const Char_t* name);
     virtual ~TCContainer();
     
+    Int_t GetVersion() const { return fVersion; }
     TList* GetRuns() const { return fRuns; }
     Int_t GetNRuns() const { return fRuns ? fRuns->GetSize() : 0; }
     TCRun* GetRun(Int_t n) const { return fRuns ? (TCRun*)fRuns->At(n) : 0; }

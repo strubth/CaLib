@@ -35,8 +35,9 @@ class TCMySQLManager
 
 private:
     TSQLServer* fDB;                            // MySQL database conneciton
+    Bool_t fSilence;                            // silence mode toggle
     static TCMySQLManager* fgMySQLManager;      // pointer to static instance of this class
-
+    
     void CreateMainTable();
     void CreateDataTable(CalibData_t data, Int_t nElem);
     
@@ -52,7 +53,6 @@ private:
     Bool_t ChangeSetEntry(CalibData_t data, const Char_t* calibration, Int_t set,
                           const Char_t* name, const Char_t* value);
 
-    void DumpRuns(TCContainer* container, Int_t first_run, Int_t last_run);
     void DumpCalibrations(TCContainer* container, const Char_t* calibration);
     void ImportRuns(TCContainer* container);
     void ImportCalibrations(TCContainer* container, const Char_t* newCalibName);
@@ -61,6 +61,7 @@ public:
     TCMySQLManager();
     virtual ~TCMySQLManager();
 
+    void SetSilenceMode(Bool_t s) { fSilence = s; }
     Bool_t IsConnected();
     
     TList* GetAllCalibrations();
@@ -71,8 +72,8 @@ public:
     Int_t GetLastRunOfSet(CalibData_t data, const Char_t* calibration, Int_t set);
     void GetDescriptionOfSet(CalibData_t data, const Char_t* calibration, 
                              Int_t set, Char_t* outDesc);
-    void GetFillTimeOfSet(CalibData_t data, const Char_t* calibration, 
-                          Int_t set, Char_t* outTime);
+    void GetChangeTimeOfSet(CalibData_t data, const Char_t* calibration, 
+                            Int_t set, Char_t* outTime);
     Int_t* GetRunsOfSet(CalibData_t data, const Char_t* calibration,
                         Int_t set, Int_t* outNruns);
     Int_t GetSetForRun(CalibData_t data, const Char_t* calibration, Int_t run);
@@ -100,6 +101,9 @@ public:
                     Int_t first_run, Int_t last_run);
     
     void InitDatabase();
+    
+    void DumpRuns(TCContainer* container, Int_t first_run = 0, Int_t last_run = 0);
+    
     void Export(const Char_t* filename, Int_t first_run, Int_t last_run, 
                 const Char_t* calibration);
     void Import(const Char_t* filename, Bool_t runs, Bool_t calibrations,

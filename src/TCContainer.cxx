@@ -25,6 +25,7 @@ TCContainer::TCContainer(const Char_t* name)
     // Constructor.
 
     // init members
+    fVersion = TCConfig::kContainerFormatVersion;
     fRuns = new TList();
     fRuns->SetOwner(kTRUE);
     fCalibrations = new TList();
@@ -110,6 +111,7 @@ void TCContainer::Print()
     // Print content information.
 
     printf("CaLib Container Information\n");
+    printf("Container version      : %d\n", fVersion);
     printf("Number of runs         : %d\n", GetNRuns());
     printf("Number of calibrations : %d\n", GetNCalibrations());
     printf("\n");

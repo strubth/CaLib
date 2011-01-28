@@ -95,6 +95,9 @@ namespace TCConfig
     extern const Char_t* kCalibDataTableHeader;
     extern const Char_t* kCalibDataTableSettings;
      
+    // version numbers
+    extern const Int_t kContainerFormatVersion;
+
     // constants
     extern const Double_t kPi0Mass;
     extern const Double_t kEtaMass;
