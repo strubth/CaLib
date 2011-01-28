@@ -49,7 +49,8 @@ private:
                           const Char_t* name, Char_t* outInfo);
     TList* SearchDistinctEntries(const Char_t* data, const Char_t* table);
     
-    Bool_t ChangeRunEntry(Int_t run, const Char_t* name, const Char_t* value);
+    Bool_t ChangeRunEntries(Int_t first_run, Int_t last_run, 
+                            const Char_t* name, const Char_t* value);
     Bool_t ChangeSetEntry(CalibData_t data, const Char_t* calibration, Int_t set,
                           const Char_t* name, const Char_t* value);
 
@@ -85,6 +86,13 @@ public:
     Bool_t WriteParameters(CalibData_t data, const Char_t* calibration, Int_t set, 
                            Double_t* par, Int_t length);
     
+    Bool_t ChangeRunPath(Int_t first_run, Int_t last_run, const Char_t* path);
+    Bool_t ChangeRunTarget(Int_t first_run, Int_t last_run, const Char_t* target);
+    Bool_t ChangeRunTargetPol(Int_t first_run, Int_t last_run, const Char_t* target_pol);
+    Bool_t ChangeRunTargetPolDeg(Int_t first_run, Int_t last_run, Double_t target_pol_deg);
+    Bool_t ChangeRunBeamPol(Int_t first_run, Int_t last_run, const Char_t* beam_pol);
+    Bool_t ChangeRunBeamPolDeg(Int_t first_run, Int_t last_run, Double_t beam_pol_deg);
+
     Bool_t AddSet(CalibData_t data, const Char_t* calibration, const Char_t* desc,
                   Int_t first_run, Int_t last_run, Double_t* par, Int_t length);
     Bool_t AddSet(CalibData_t data, const Char_t* calibration, const Char_t* desc,

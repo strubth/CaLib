@@ -30,6 +30,20 @@ Int_t gNcol;
 // function prototypes
 void MainMenu();
 void RunEditor();
+void PrintStatusMessage(const Char_t* message);
+
+
+// locally used enum for run entries
+enum ERunEntry
+{
+    kPATH,
+    kTARGET,
+    kTARGET_POL,
+    kTARGET_POL_DEG,
+    kBEAM_POL,
+    kBEAM_POL_DEG
+};
+typedef ERunEntry RunEntry_t;
 
 
 //______________________________________________________________________________
@@ -95,7 +109,7 @@ Int_t ShowMenu(const Char_t* title, Int_t nEntries, const Char_t* entries[], Int
     }
 
     // user information
-    mvprintw(gNrow-1, 0, "Use UP and DOWN keys to select - hit ENTER or RIGHT key to confirm");
+    PrintStatusMessage("Use UP and DOWN keys to select - hit ENTER or RIGHT key to confirm");
     
     // wait for input
     for (;;)
@@ -306,6 +320,14 @@ WINDOW* FormatRunTable(TCContainer& c, Int_t* outColLengthTot, WINDOW** outHeade
 }
 
 //______________________________________________________________________________
+void PrintStatusMessage(const Char_t* message)
+{
+    // Print a status message.
+       
+    mvprintw(gNrow-1, 0, message);
+}
+
+//______________________________________________________________________________
 void RunBrowser()
 {
     // Show the run browser.
@@ -336,8 +358,10 @@ void RunBrowser()
     WINDOW* table = FormatRunTable(c, &colLengthTot, &header);
 
     // user information
-    mvprintw(gNrow-1, 0, "%d runs found. Use UP/DOWN keys to scroll "
-             "(PAGE-UP or 'p' / PAGE-DOWN or 'n' for fast mode) - hit ESC or 'q' to exit", nRuns);
+    Char_t tmp[256];
+    sprintf(tmp, "%d runs found. Use UP/DOWN keys to scroll "
+                 "(PAGE-UP or 'p' / PAGE-DOWN or 'n' for fast mode) - hit ESC or 'q' to exit", nRuns);
+    PrintStatusMessage(tmp);
  
     // refresh windows
     refresh();
@@ -394,11 +418,7 @@ void RunBrowser()
             else continue;
         }
         // exit
-        else if (c == KEY_ESC || c == 'q')
-        {
-            delwin(table);
-            RunEditor();
-        }
+        else if (c == KEY_ESC || c == 'q') break;
 
         // update window
         prefresh(header, 0, first_col, 8, 2, 8, gNcol-3);
@@ -409,6 +429,100 @@ void RunBrowser()
     delwin(table);
     delwin(header);
 
+    // go back to run editor
+    RunEditor();
+}
+
+//______________________________________________________________________________
+void ChangeRunEntry(const Char_t* title, const Char_t* name, RunEntry_t entry)
+{
+    // Change the run entry 'entry' with name for a certain range of runs.
+    // Use 'title' as the window title.
+    
+    Int_t first_run;
+    Int_t last_run;
+    Char_t new_value[256];
+    Char_t answer[16];
+
+    // clear the screen
+    clear();
+    
+    // echo input 
+    echo();
+ 
+    // draw header
+    DrawHeader("CaLib Manager");
+    
+    // draw title
+    attron(A_UNDERLINE);
+    mvprintw(6, 2, title);
+    attroff(A_UNDERLINE);
+ 
+    // ask first run
+    mvprintw(8, 2, "Enter first run                            : ");
+    scanw("%d", &first_run);
+
+    // ask last run
+    mvprintw(9, 2, "Enter last run                             : ");
+    scanw("%d", &last_run);
+
+    // ask new value 
+    mvprintw(10, 2, "Enter new %-32s : ", name);
+    scanw("%s", new_value);
+
+    // ask confirmation
+    mvprintw(12, 6, "Are you sure to continue? (yes/no) : ");
+    scanw("%s", answer);
+    if (strcmp(answer, "yes")) 
+    {
+        mvprintw(14, 6, "Aborted.");
+    }
+    else
+    {
+        Bool_t ret = kFALSE;
+        
+        // check what to change
+        if (entry == kPATH) 
+            ret = TCMySQLManager::GetManager()->ChangeRunPath(first_run, last_run, new_value);
+        else if (entry == kTARGET)
+            ret = TCMySQLManager::GetManager()->ChangeRunTarget(first_run, last_run, new_value);
+        else if (entry == kTARGET_POL)
+            ret = TCMySQLManager::GetManager()->ChangeRunTargetPol(first_run, last_run, new_value);
+        else if (entry == kTARGET_POL_DEG)
+            ret = TCMySQLManager::GetManager()->ChangeRunTargetPolDeg(first_run, last_run, atof(new_value));
+        else if (entry == kBEAM_POL)
+            ret = TCMySQLManager::GetManager()->ChangeRunBeamPol(first_run, last_run, new_value);
+        else if (entry == kBEAM_POL_DEG)
+            ret = TCMySQLManager::GetManager()->ChangeRunBeamPolDeg(first_run, last_run, atof(new_value));
+
+        // check return value
+        if (ret)
+        {
+            mvprintw(14, 2, "%s for runs %d to %d was successfully changed to", 
+                            name, first_run, last_run);
+            mvprintw(15, 2, "'%s'", new_value);
+        }
+        else
+            mvprintw(14, 2, "There was an error during %s changing for runs %d to %d!", 
+                            name, first_run, last_run);
+    }
+
+    // user information
+    PrintStatusMessage("Hit ESC or 'q' to exit");
+  
+    // wait for input
+    for (;;)
+    {
+        // get key
+        Int_t c = getch();
+        
+        // leave loop
+        if (c == KEY_ESC || c == 'q') break;
+    }
+
+    // don't echo input 
+    noecho();
+ 
     // go back to run editor
     RunEditor();
 }
@@ -437,6 +551,16 @@ void RunEditor()
     switch (choice)
     {
         case 0: RunBrowser();
+        case 1: ChangeRunEntry("CHANGE PATH", "path", kPATH);
+        case 2: ChangeRunEntry("CHANGE TARGET", "target", kTARGET);
+        case 3: ChangeRunEntry("CHANGE TARGET POLARIZATION", 
+                               "target polarization", kTARGET_POL);
+        case 4: ChangeRunEntry("CHANGE DEGREE OF TARGET POLARIZATION", 
+                               "degree of target polarization", kTARGET_POL_DEG);
+        case 5: ChangeRunEntry("CHANGE BEAM POLARIZATION", 
+                               "beam polarization", kBEAM_POL);
+        case 6: ChangeRunEntry("CHANGE DEGREE OF BEAM POLARIZATION", 
+                               "degree of beam polarization", kBEAM_POL_DEG);
         case 7: MainMenu();
     }
     
