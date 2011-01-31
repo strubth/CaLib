@@ -848,6 +848,78 @@ Bool_t TCMySQLManager::ChangeRunBeamPolDeg(Int_t first_run, Int_t last_run, Doub
 }
 
 //______________________________________________________________________________
+Bool_t TCMySQLManager::ChangeCalibrationName(const Char_t* calibration, const Char_t* newCalibration)
+{
+    // Change the calibration identifer 'calibration' in all calibration sets
+    // to 'newCalibration'.
+    
+    Char_t query[256];
+    
+    // get list of calibrations
+    TList* list = GetAllCalibrations();
+    
+    // no calibrations
+    if (!list)
+    {
+        if (!fSilence) Error("ChangeCalibrationName", "No calibrations found in database!");
+        return kFALSE;
+    }
+    
+    // check if calibration exists
+    TIter next(list);
+    Bool_t found = kFALSE;
+    TObjString* s;
+    while ((s = (TObjString*)next()))
+    {
+        if (!strcmp(calibration, s->GetString().Data()))
+        {
+            found = kTRUE;
+            break;
+        }
+    }
+
+    // clean-up
+    delete list;
+
+    // check if calibration was not found
+    if (!found)
+    {
+        if (!fSilence) Error("ChangeCalibrationName", "Calibration '%s' was not found in database!",
+                             calibration);
+        return kFALSE;
+    }
+
+    // loop over calibration data
+    for (Int_t i = kCALIB_EMPTY+1; i < TCConfig::kCalibNData; i++)
+    {
+        // create the query
+        sprintf(query,
+                "UPDATE %s SET calibration = '%s' "
+                "WHERE calibration = '%s'",
+                TCConfig::kCalibDataTableNames[i], newCalibration, calibration);
+
+        // read from database
+        TSQLResult* res = SendQuery(query);
+        
+        // check result
+        if (!res)
+        {
+            if (!fSilence) Error("ChangeCalibrationName", "Could not rename calibration '%s' to '%s'!",
+                                 calibration, newCalibration);
+            return kFALSE;
+        }
+
+        // clean-up
+        delete res;
+    }
+    
+    if (!fSilence) Info("ChangeCalibrationName", "Renamed calibration '%s' to '%s'!",
+                        calibration, newCalibration);
+ 
+    return kTRUE;
+}
+
+//______________________________________________________________________________
 void TCMySQLManager::AddCalibAR(CalibDetector_t det, const Char_t* calibFileAR,
                                 const Char_t* calib, const Char_t* desc,
                                 Int_t first_run, Int_t last_run)
@@ -1599,56 +1671,67 @@ void TCMySQLManager::DumpRuns(TCContainer* container, Int_t first_run, Int_t las
 }
 
 //______________________________________________________________________________
-void TCMySQLManager::DumpCalibrations(TCContainer* container, const Char_t* calibration)
+void TCMySQLManager::DumpCalibrations(TCContainer* container, const Char_t* calibration, 
+                                      CalibData_t data)
+{
+    // Dump calibrations of the calibration data 'data' with the calibration 
+    // identifier 'calibration' to the CaLib container 'container'.
+    
+    Char_t tmp[256];
+
+    // get number of parameters
+    Int_t nPar = TCConfig::kCalibDataTableLengths[(Int_t)data];
+
+    // create the parameter array
+    Double_t par[nPar];
+
+    // get the number of sets
+    Int_t nSet = GetNsets(data, calibration);
+
+    // loop over sets
+    for (Int_t i = 0; i < nSet; i++)
+    {
+        // read parameters
+        ReadParameters(data, calibration, i, par, nPar);
+        
+        // add the calibration
+        TCCalibration* c = container->AddCalibration(calibration);
+        
+        // set calibration data
+        c->SetCalibData(data);
+
+        // set description
+        GetDescriptionOfSet(data, calibration, i, tmp);
+        c->SetDescription(tmp);
+
+        // set first and last run
+        c->SetFirstRun(GetFirstRunOfSet(data, calibration, i));
+        c->SetLastRun(GetLastRunOfSet(data, calibration, i));
+        
+        // set fill time
+        GetChangeTimeOfSet(data, calibration, i, tmp);
+        c->SetChangeTime(tmp);
+
+        // set parameters
+        c->SetParameters(nPar, par);
+    }
+
+    // user information
+    if (!fSilence) Info("DumpAllCalibrations", "Dumped %d sets of '%s' of the calibration '%s'",
+                        nSet, TCConfig::kCalibDataNames[(Int_t)data], calibration);
+}
+
+//______________________________________________________________________________
+void TCMySQLManager::DumpAllCalibrations(TCContainer* container, const Char_t* calibration)
 {
     // Dump all calibrations with the calibration identifier 'calibration' to
     // the CaLib container 'container'.
     
-    Char_t tmp[256];
-
     // loop over calibration data
     for (Int_t i = kCALIB_EMPTY+1; i < TCConfig::kCalibNData; i++)
     {
-        // get number of parameters
-        Int_t nPar = TCConfig::kCalibDataTableLengths[i];
-
-        // create the parameter array
-        Double_t par[nPar];
-
-        // get the number of sets
-        Int_t nSet = GetNsets((CalibData_t)i, calibration);
-
-        // loop over sets
-        for (Int_t j = 0; j < nSet; j++)
-        {
-            // read parameters
-            ReadParameters((CalibData_t)i, calibration, j, par, nPar);
-            
-            // add the calibration
-            TCCalibration* c = container->AddCalibration(calibration);
-            
-            // set calibration data
-            c->SetCalibData((CalibData_t)i);
-
-            // set description
-            GetDescriptionOfSet((CalibData_t)i, calibration, j, tmp);
-            c->SetDescription(tmp);
-
-            // set first and last run
-            c->SetFirstRun(GetFirstRunOfSet((CalibData_t)i, calibration, j));
-            c->SetLastRun(GetLastRunOfSet((CalibData_t)i, calibration, j));
-            
-            // set fill time
-            GetChangeTimeOfSet((CalibData_t)i, calibration, j, tmp);
-            c->SetChangeTime(tmp);
-
-            // set parameters
-            c->SetParameters(nPar, par);
-        }
-
-        // user information
-        if (!fSilence) Info("DumpCalibrations", "Dumped %d sets of '%s' of the calibration '%s'",
-                                                nSet, TCConfig::kCalibDataNames[i], calibration);
+        // dump calibrations
+        DumpCalibrations(container, calibration, (CalibData_t)i);
     }
 }
 
@@ -1779,7 +1862,7 @@ void TCMySQLManager::Export(const Char_t* filename, Int_t first_run, Int_t last_
     // dump runs to container
     if (calibration)
     {
-        DumpCalibrations(container, calibration);
+        DumpAllCalibrations(container, calibration);
         if (!fSilence) Info("Export", "Dumped %d calibrations to '%s'", container->GetNCalibrations(), filename);
     }
 

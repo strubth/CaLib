@@ -54,7 +54,6 @@ private:
     Bool_t ChangeSetEntry(CalibData_t data, const Char_t* calibration, Int_t set,
                           const Char_t* name, const Char_t* value);
 
-    void DumpCalibrations(TCContainer* container, const Char_t* calibration);
     void ImportRuns(TCContainer* container);
     void ImportCalibrations(TCContainer* container, const Char_t* newCalibName);
 
@@ -92,6 +91,8 @@ public:
     Bool_t ChangeRunTargetPolDeg(Int_t first_run, Int_t last_run, Double_t target_pol_deg);
     Bool_t ChangeRunBeamPol(Int_t first_run, Int_t last_run, const Char_t* beam_pol);
     Bool_t ChangeRunBeamPolDeg(Int_t first_run, Int_t last_run, Double_t beam_pol_deg);
+    
+    Bool_t ChangeCalibrationName(const Char_t* calibration, const Char_t* newCalibration);
 
     Bool_t AddSet(CalibData_t data, const Char_t* calibration, const Char_t* desc,
                   Int_t first_run, Int_t last_run, Double_t* par, Int_t length);
@@ -111,6 +112,9 @@ public:
     void InitDatabase();
     
     void DumpRuns(TCContainer* container, Int_t first_run = 0, Int_t last_run = 0);
+    void DumpAllCalibrations(TCContainer* container, const Char_t* calibration);
+    void DumpCalibrations(TCContainer* container, const Char_t* calibration, 
+                          CalibData_t data);
     
     void Export(const Char_t* filename, Int_t first_run, Int_t last_run, 
                 const Char_t* calibration);
