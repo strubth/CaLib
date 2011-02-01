@@ -36,7 +36,8 @@ enum ECalibData
     // CB data
     kCALIB_CB_T0, 
     kCALIB_CB_WALK0, kCALIB_CB_WALK1, kCALIB_CB_WALK2, kCALIB_CB_WALK3,
-    kCALIB_CB_E1, kCALIB_CB_EQUAD0, kCALIB_CB_EQUAD1,
+    kCALIB_CB_E1, 
+    kCALIB_CB_EQUAD0, kCALIB_CB_EQUAD1,
 
     // TAPS data
     kCALIB_TAPS_T0, kCALIB_TAPS_T1, 
@@ -56,6 +57,49 @@ enum ECalibData
     kCALIB_VETO_E0, kCALIB_VETO_E1,
 };
 typedef ECalibData CalibData_t;
+
+
+// calibrationd type enumeration
+// NOTE: This enum has to be synchronized with TCConfig::kCalibTypeNames,
+//       TCConfig::fgCalibTypeNData and TCConfig::fgCalibTypeData!
+enum ECalibType
+{
+    // empty element
+    kCALIB_TYPE_EMPTY = 0,
+    
+    // target position
+    kCALIB_TYPE_TARGET_POS,
+
+    // tagger data
+    kCALIB_TYPE_TAGG_TIME,
+
+    // CB data
+    kCALIB_TYPE_CB_TIME, 
+    kCALIB_TYPE_CB_WALK,
+    kCALIB_TYPE_CB_ENERGY, 
+    kCALIB_TYPE_CB_EQUAD,
+
+    // TAPS data
+    kCALIB_TYPE_TAPS_TIME, 
+    kCALIB_TYPE_TAPS_LG_PED,
+    kCALIB_TYPE_TAPS_LG_ENERGY,
+    kCALIB_TYPE_TAPS_SG_PED, 
+    kCALIB_TYPE_TAPS_SG_ENERGY, 
+    kCALIB_TYPE_TAPS_EQUAD,
+    kCALIB_TYPE_TAPS_LED1, kCALIB_TYPE_TAPS_LED2,
+
+    // PID data
+    kCALIB_TYPE_PID_PHI, 
+    kCALIB_TYPE_PID_T0, 
+    kCALIB_TYPE_PID_ENERGY, 
+    kCALIB_TYPE_PID_DROOP,
+
+    // Veto data
+    kCALIB_TYPE_VETO_TIME, 
+    kCALIB_TYPE_VETO_PED, 
+    kCALIB_TYPE_VETO_ENERGY,
+};
+typedef ECalibType CalibType_t;
 
 
 // detector enumeration
@@ -90,12 +134,17 @@ namespace TCConfig
     extern const Char_t* kCalibDataNames[];
     extern const Char_t* kCalibDataTableNames[];
     extern const Int_t kCalibDataTableLengths[];
+    extern const Int_t kCalibNType;
+    extern const Char_t* kCalibTypeNames[];
+    extern const Int_t kCalibTypeNData[];
+    extern const CalibData_t kCalibTypeData[][4];
     extern const Char_t* kCalibMainTableName;
     extern const Char_t* kCalibMainTableFormat; 
     extern const Char_t* kCalibDataTableHeader;
     extern const Char_t* kCalibDataTableSettings;
      
     // version numbers
+    extern const Char_t kCaLibVersion[];
     extern const Int_t kContainerFormatVersion;
 
     // constants

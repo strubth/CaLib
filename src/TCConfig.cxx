@@ -30,7 +30,7 @@ namespace TCConfig
     // maximum theta bins for TAPS quadratic energy correction
     const Int_t kMaxTAPSThetaBins =  30;
     
-    // number of data types
+    // number of calibration data
     const Int_t kCalibNData = 33;
    
     // data names
@@ -49,7 +49,8 @@ namespace TCConfig
         // CB data
         "CB time offset", 
         "CB time walk par0", "CB time walk par1", "CB time walk par2", "CB time walk par3",
-        "CB ADC gain", "CB quadratic energy corr. par0", "CB quadratic energy corr. par1",
+        "CB ADC gain", 
+        "CB quadratic energy corr. par0", "CB quadratic energy corr. par1",
 
         // TAPS data
         "TAPS time offset", "TAPS TDC gain", 
@@ -85,7 +86,8 @@ namespace TCConfig
         // CB data
         "cb_t0",
         "cb_walk0", "cb_walk1", "cb_walk2", "cb_walk3",
-        "cb_e1", "cb_equad0", "cb_equad1",
+        "cb_e1", 
+        "cb_equad0", "cb_equad1",
 
         // TAPS data
         "taps_t0", "taps_t1", 
@@ -121,7 +123,8 @@ namespace TCConfig
         // CB data
         kMaxCB, 
         kMaxCB, kMaxCB, kMaxCB, kMaxCB,
-        kMaxCB, kMaxCB, kMaxCB,
+        kMaxCB, 
+        kMaxCB, kMaxCB,
 
         // TAPS data
         kMaxTAPS, kMaxTAPS, 
@@ -140,6 +143,135 @@ namespace TCConfig
         kMaxVeto, kMaxVeto, 
         kMaxVeto, kMaxVeto
     };
+    
+    // number of calibration types
+    const Int_t kCalibNType = 22;
+    
+    // type names
+    // NOTE: This has to be synchronized with the enum ECalibType
+    const Char_t* kCalibTypeNames[] =
+    {   
+        // empty element
+        "empty",
+        
+        // target position
+        "Target Position",
+
+        // tagger data
+        "Tagger time",
+
+        // CB data
+        "CB time", 
+        "CB time walk",
+        "CB energy", 
+        "CB quadratic energy correction",
+
+        // TAPS data
+        "TAPS time",
+        "TAPS LG pedestal", 
+        "TAPS LG energy",
+        "TAPS SG pedestal", 
+        "TAPS SG energy", 
+        "TAPS quadratic energy correction",
+        "TAPS LED1 threshold", 
+        "TAPS LED2 threshold",
+
+        // PID data
+        "PID azimuthal angle", 
+        "PID time", 
+        "PID energy", 
+        "PID droop correction",
+
+        // Veto data
+        "Veto time", 
+        "Veto pedestal", 
+        "Veto energy"
+    };
+
+    
+    // number of data for the calibration types
+    // NOTE: This has to be synchronized with the enum ECalibType
+    const Int_t kCalibTypeNData[] =
+    {   
+        // empty element
+        1,
+        
+        // target position
+        1,
+
+        // tagger data
+        1,
+
+        // CB data
+        1, 
+        4,
+        1, 
+        2,
+
+        // TAPS data
+        2,
+        1, 
+        1,
+        1, 
+        1, 
+        2,
+        1, 
+        1,
+
+        // PID data
+        1, 
+        1, 
+        2, 
+        4,
+
+        // Veto data
+        2, 
+        1, 
+        1
+    };
+
+
+    // data for the calibration types
+    // NOTE: This has to be synchronized with the enum ECalibType
+    const CalibData_t kCalibTypeData[][4] =
+    {   
+        // empty element
+        { kCALIB_EMPTY, kCALIB_EMPTY, kCALIB_EMPTY, kCALIB_EMPTY },
+        
+        // target position
+        { kCALIB_TARGET_POS, kCALIB_EMPTY, kCALIB_EMPTY, kCALIB_EMPTY },
+
+        // tagger data
+        { kCALIB_TAGG_T0, kCALIB_EMPTY, kCALIB_EMPTY, kCALIB_EMPTY },
+
+        // CB data
+        { kCALIB_CB_T0, kCALIB_EMPTY, kCALIB_EMPTY, kCALIB_EMPTY }, 
+        { kCALIB_CB_WALK0, kCALIB_CB_WALK1, kCALIB_CB_WALK2, kCALIB_CB_WALK3 },
+        { kCALIB_CB_E1, kCALIB_EMPTY, kCALIB_EMPTY, kCALIB_EMPTY }, 
+        { kCALIB_CB_EQUAD0, kCALIB_CB_EQUAD1, kCALIB_EMPTY, kCALIB_EMPTY },
+
+        // TAPS data
+        { kCALIB_TAPS_T0, kCALIB_TAPS_T1, kCALIB_EMPTY, kCALIB_EMPTY },
+        { kCALIB_TAPS_LG_E0, kCALIB_EMPTY, kCALIB_EMPTY, kCALIB_EMPTY }, 
+        { kCALIB_TAPS_LG_E1, kCALIB_EMPTY, kCALIB_EMPTY, kCALIB_EMPTY },
+        { kCALIB_TAPS_SG_E0, kCALIB_EMPTY, kCALIB_EMPTY, kCALIB_EMPTY }, 
+        { kCALIB_TAPS_SG_E1, kCALIB_EMPTY, kCALIB_EMPTY, kCALIB_EMPTY }, 
+        { kCALIB_TAPS_EQUAD0, kCALIB_TAPS_EQUAD1, kCALIB_EMPTY, kCALIB_EMPTY },
+        { kCALIB_TAPS_LED1, kCALIB_EMPTY, kCALIB_EMPTY, kCALIB_EMPTY }, 
+        { kCALIB_TAPS_LED2, kCALIB_EMPTY, kCALIB_EMPTY, kCALIB_EMPTY },
+
+        // PID data
+        { kCALIB_PID_PHI, kCALIB_EMPTY, kCALIB_EMPTY, kCALIB_EMPTY }, 
+        { kCALIB_PID_T0, kCALIB_EMPTY, kCALIB_EMPTY, kCALIB_EMPTY }, 
+        { kCALIB_PID_E0, kCALIB_PID_E1, kCALIB_EMPTY, kCALIB_EMPTY }, 
+        { kCALIB_PID_DROOP0, kCALIB_PID_DROOP1, kCALIB_PID_DROOP2, kCALIB_PID_DROOP3 },
+
+        // Veto data
+        { kCALIB_VETO_T0, kCALIB_VETO_T1, kCALIB_EMPTY, kCALIB_EMPTY }, 
+        { kCALIB_VETO_E0, kCALIB_EMPTY, kCALIB_EMPTY, kCALIB_EMPTY }, 
+        { kCALIB_VETO_E1, kCALIB_EMPTY, kCALIB_EMPTY, kCALIB_EMPTY }
+    };
+
  
     // name of the main table
     const Char_t* kCalibMainTableName = "run_main";
@@ -175,6 +307,7 @@ namespace TCConfig
     const Char_t* kCalibDataTableSettings = ",PRIMARY KEY (calibration, first_run) ";
     
     // version numbers
+    const Char_t kCaLibVersion[] = "0.1";
     const Int_t kContainerFormatVersion = 1;
 
     // constants

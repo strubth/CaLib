@@ -82,8 +82,8 @@ TCMySQLManager::TCMySQLManager()
     }
     else
     {
-        if (!fSilence) Info("TCMySQLManager", "Connected to the database '%s' on '%s@%s'!",
-                            strDBName->Data(), strDBUser->Data(), strDBHost->Data());
+        if (!fSilence) Info("TCMySQLManager", "Connected to the database '%s' on '%s@%s using CaLib %s'",
+                            strDBName->Data(), strDBUser->Data(), strDBHost->Data(), TCConfig::kCaLibVersion);
     }
 }
 
@@ -1322,6 +1322,35 @@ Bool_t TCMySQLManager::AddSet(CalibData_t data, const Char_t* calibration, const
 }
 
 //______________________________________________________________________________
+Bool_t TCMySQLManager::AddSet(CalibType_t type, const Char_t* calibration, const Char_t* desc,
+                              Int_t first_run, Int_t last_run, Double_t par)
+{
+    // Create new sets for the calibration type 'type' with the calibration identifier
+    // 'calibration' for the runs 'first_run' to 'last_run'. Use 'desc' as a 
+    // description. Set all parameters to the value 'par'.
+    // Return kFALSE when an error occured, otherwise kTRUE.
+    
+    Bool_t ret = kTRUE;
+    
+    // create and fill parameter array
+    Double_t par_array[TCConfig::kMaxCrystal];
+    for (Int_t i = 0; i < TCConfig::kMaxCrystal; i++) par_array[i] = par;
+
+    // loop over calibration data of this calibration type
+    for (Int_t i = 0; i < TCConfig::kCalibTypeNData[(Int_t)type]; i++)
+    {
+        // set data
+        CalibData_t data = TCConfig::kCalibTypeData[(Int_t)type][i];
+
+        // add set
+        if (AddSet(data, calibration, desc, first_run, last_run, par_array, 
+                   TCConfig::kCalibDataTableLengths[(Int_t)data])) ret = kFALSE;
+    }
+
+    return ret;
+}
+
+//______________________________________________________________________________
 Bool_t TCMySQLManager::RemoveSet(CalibData_t data, const Char_t* calibration, Int_t set)
 {
     // Remove the set 'set' from the calibration 'calibration' of the calibration data
@@ -1371,6 +1400,25 @@ Bool_t TCMySQLManager::RemoveSet(CalibData_t data, const Char_t* calibration, In
                                          set, TCConfig::kCalibDataNames[(Int_t)data], calibration);
         return kTRUE;
     }
+}
+
+//______________________________________________________________________________
+Bool_t TCMySQLManager::RemoveSet(CalibType_t type, const Char_t* calibration, Int_t set)
+{
+    // Remove all sets 'set' from the calibration 'calibration' that are needed by the
+    // calibration type 'type'.
+    
+    Bool_t ret = kTRUE;
+
+    // loop over calibration data of this calibration type
+    for (Int_t i = 0; i < TCConfig::kCalibTypeNData[(Int_t)type]; i++)
+    {
+        // remove set of calibration data
+        if (!RemoveSet(TCConfig::kCalibTypeData[(Int_t)type][i], calibration, set))
+            ret = kFALSE;
+    }
+
+    return ret;
 }
 
 //______________________________________________________________________________
@@ -1501,6 +1549,27 @@ Bool_t TCMySQLManager::SplitSet(CalibData_t data, const Char_t* calibration, Int
 }
 
 //______________________________________________________________________________
+Bool_t TCMySQLManager::SplitSet(CalibType_t type, const Char_t* calibration, Int_t set,
+                                Int_t lastRunFirstSet)
+{
+    // Split all sets 'set' of the calibration type 'type' and the calibration identifier
+    // 'calibration' into two sets. 'lastRunFirstSet' will be the last run of the first 
+    // set. The first run of the second set will be the next found run in the database.
+    
+    Bool_t ret = kTRUE;
+
+    // loop over calibration data of this calibration type
+    for (Int_t i = 0; i < TCConfig::kCalibTypeNData[(Int_t)type]; i++)
+    {
+        // split set of calibration data
+        if (!SplitSet(TCConfig::kCalibTypeData[(Int_t)type][i], calibration, set, lastRunFirstSet))
+            ret = kFALSE;
+    }
+
+    return ret;
+}
+
+//______________________________________________________________________________
 Bool_t TCMySQLManager::MergeSets(CalibData_t data, const Char_t* calibration, 
                                  Int_t set1, Int_t set2)
 {
@@ -1573,6 +1642,28 @@ Bool_t TCMySQLManager::MergeSets(CalibData_t data, const Char_t* calibration,
     }
 
     return kTRUE;
+}
+
+//______________________________________________________________________________
+Bool_t TCMySQLManager::MergeSets(CalibType_t type, const Char_t* calibration, 
+                                 Int_t set1, Int_t set2)
+{
+    // Merge all adjacent pairs of the sets 'set1' and 'set2' of the calibration type 'type' and the 
+    // calibration identifier 'calibration' into one set. Description and parameters
+    // of 'set1' will be used in the merged set.
+    // get the first run of the set
+    
+    Bool_t ret = kTRUE;
+
+    // loop over calibration data of this calibration type
+    for (Int_t i = 0; i < TCConfig::kCalibTypeNData[(Int_t)type]; i++)
+    {
+        // merge sets of calibration data
+        if (!MergeSets(TCConfig::kCalibTypeData[(Int_t)type][i], calibration, set1, set2))
+            ret = kFALSE;
+    }
+
+    return ret;
 }
 
 //______________________________________________________________________________

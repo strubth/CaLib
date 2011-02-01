@@ -53,6 +53,16 @@ private:
                             const Char_t* name, const Char_t* value);
     Bool_t ChangeSetEntry(CalibData_t data, const Char_t* calibration, Int_t set,
                           const Char_t* name, const Char_t* value);
+    
+    Bool_t AddSet(CalibData_t data, const Char_t* calibration, const Char_t* desc,
+                  Int_t first_run, Int_t last_run, Double_t* par, Int_t length);
+    Bool_t AddSet(CalibData_t data, const Char_t* calibration, const Char_t* desc,
+                  Int_t first_run, Int_t last_run, Double_t par);
+    Bool_t RemoveSet(CalibData_t data, const Char_t* calibration, Int_t set);
+    Bool_t SplitSet(CalibData_t data, const Char_t* calibration, Int_t set,
+                    Int_t lastRunFirstSet);
+    Bool_t MergeSets(CalibData_t data, const Char_t* calibration, 
+                     Int_t set1, Int_t set2);
 
     void ImportRuns(TCContainer* container);
     void ImportCalibrations(TCContainer* container, const Char_t* newCalibName);
@@ -93,15 +103,13 @@ public:
     Bool_t ChangeRunBeamPolDeg(Int_t first_run, Int_t last_run, Double_t beam_pol_deg);
     
     Bool_t ChangeCalibrationName(const Char_t* calibration, const Char_t* newCalibration);
-
-    Bool_t AddSet(CalibData_t data, const Char_t* calibration, const Char_t* desc,
-                  Int_t first_run, Int_t last_run, Double_t* par, Int_t length);
-    Bool_t AddSet(CalibData_t data, const Char_t* calibration, const Char_t* desc,
+    
+    Bool_t AddSet(CalibType_t type, const Char_t* calibration, const Char_t* desc,
                   Int_t first_run, Int_t last_run, Double_t par);
-    Bool_t RemoveSet(CalibData_t data, const Char_t* calibration, Int_t set);
-    Bool_t SplitSet(CalibData_t data, const Char_t* calibration, Int_t set,
+    Bool_t RemoveSet(CalibType_t type, const Char_t* calibration, Int_t set);
+    Bool_t SplitSet(CalibType_t type, const Char_t* calibration, Int_t set,
                     Int_t lastRunFirstSet);
-    Bool_t MergeSets(CalibData_t data, const Char_t* calibration, 
+    Bool_t MergeSets(CalibType_t type, const Char_t* calibration, 
                      Int_t set1, Int_t set2);
 
     void AddRunFiles(const Char_t* path, const Char_t* target);

@@ -26,10 +26,12 @@
 
 // enums
 #pragma link C++ enum ECalibData;
+#pragma link C++ enum ECalibType;
 #pragma link C++ enum ECalibDetector;
 
 // typedefs
 #pragma link C++ typedef CalibData_t;
+#pragma link C++ typedef CalibType_t;
 #pragma link C++ typedef CalibDetector_t;
 
 // common classes

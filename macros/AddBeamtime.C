@@ -38,7 +38,7 @@ void AddBeamtime()
     TCMySQLManager::GetManager()->AddRunFiles(rawfilePath, target);
     
     // add target position calibration
-    TCMySQLManager::GetManager()->AddSet(kCALIB_TARGET_POS, calibName, calibDesc,
+    TCMySQLManager::GetManager()->AddSet(kCALIB_TYPE_TARGET_POS, calibName, calibDesc,
                                          firstRun, lastRun, 0);
  
     // read AcquRoot calibration of tagger
@@ -52,19 +52,11 @@ void AddBeamtime()
                                              firstRun, lastRun);
     
     // init CB time walk calibration
-    TCMySQLManager::GetManager()->AddSet(kCALIB_CB_WALK0, calibName, calibDesc,
-                                         firstRun, lastRun, 0);
-    TCMySQLManager::GetManager()->AddSet(kCALIB_CB_WALK1, calibName, calibDesc,
-                                         firstRun, lastRun, 0);
-    TCMySQLManager::GetManager()->AddSet(kCALIB_CB_WALK2, calibName, calibDesc,
-                                         firstRun, lastRun, 0);
-    TCMySQLManager::GetManager()->AddSet(kCALIB_CB_WALK3, calibName, calibDesc,
+    TCMySQLManager::GetManager()->AddSet(kCALIB_TYPE_CB_WALK, calibName, calibDesc,
                                          firstRun, lastRun, 0);
      
     // init CB quadratic energy correction
-    TCMySQLManager::GetManager()->AddSet(kCALIB_CB_EQUAD0, calibName, calibDesc,
-                                         firstRun, lastRun, 0);
-    TCMySQLManager::GetManager()->AddSet(kCALIB_CB_EQUAD1, calibName, calibDesc,
+    TCMySQLManager::GetManager()->AddSet(kCALIB_TYPE_CB_EQUAD, calibName, calibDesc,
                                          firstRun, lastRun, 0);
  
     // read AcquRoot calibration of TAPS
@@ -73,15 +65,13 @@ void AddBeamtime()
                                              firstRun, lastRun);
     
     // init TAPS quadratic energy correction
-    TCMySQLManager::GetManager()->AddSet(kCALIB_TAPS_EQUAD0, calibName, calibDesc,
-                                         firstRun, lastRun, 0);
-    TCMySQLManager::GetManager()->AddSet(kCALIB_TAPS_EQUAD1, calibName, calibDesc,
+    TCMySQLManager::GetManager()->AddSet(kCALIB_TYPE_TAPS_EQUAD, calibName, calibDesc,
                                          firstRun, lastRun, 0);
  
     // init TAPS LED calibration
-    TCMySQLManager::GetManager()->AddSet(kCALIB_TAPS_LED1, calibName, calibDesc,
+    TCMySQLManager::GetManager()->AddSet(kCALIB_TYPE_TAPS_LED1, calibName, calibDesc,
                                          firstRun, lastRun, 0);
-    TCMySQLManager::GetManager()->AddSet(kCALIB_TAPS_LED2, calibName, calibDesc,
+    TCMySQLManager::GetManager()->AddSet(kCALIB_TYPE_TAPS_LED2, calibName, calibDesc,
                                          firstRun, lastRun, 0);
  
     // read AcquRoot calibration of PID
@@ -90,13 +80,7 @@ void AddBeamtime()
                                              firstRun, lastRun);
     
     // init PID droop correction
-    TCMySQLManager::GetManager()->AddSet(kCALIB_PID_DROOP0, calibName, calibDesc,
-                                         firstRun, lastRun, 0);
-    TCMySQLManager::GetManager()->AddSet(kCALIB_PID_DROOP1, calibName, calibDesc,
-                                         firstRun, lastRun, 0);
-    TCMySQLManager::GetManager()->AddSet(kCALIB_PID_DROOP2, calibName, calibDesc,
-                                         firstRun, lastRun, 0);
-    TCMySQLManager::GetManager()->AddSet(kCALIB_PID_DROOP3, calibName, calibDesc,
+    TCMySQLManager::GetManager()->AddSet(kCALIB_TYPE_PID_DROOP, calibName, calibDesc,
                                          firstRun, lastRun, 0);
      
     // read AcquRoot calibration of Veto 
