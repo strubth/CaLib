@@ -103,7 +103,8 @@ public:
     Bool_t ChangeRunBeamPolDeg(Int_t first_run, Int_t last_run, Double_t beam_pol_deg);
     
     Bool_t ChangeCalibrationName(const Char_t* calibration, const Char_t* newCalibration);
-    
+    Bool_t RemoveCalibration(const Char_t* calibration);
+
     Bool_t AddSet(CalibType_t type, const Char_t* calibration, const Char_t* desc,
                   Int_t first_run, Int_t last_run, Double_t par);
     Bool_t RemoveSet(CalibType_t type, const Char_t* calibration, Int_t set);

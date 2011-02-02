@@ -920,6 +920,77 @@ Bool_t TCMySQLManager::ChangeCalibrationName(const Char_t* calibration, const Ch
 }
 
 //______________________________________________________________________________
+Bool_t TCMySQLManager::RemoveCalibration(const Char_t* calibration)
+{
+    // Remove all calibrations with the calibration identifer 'calibration'.
+    
+    Char_t query[256];
+    
+    // get list of calibrations
+    TList* list = GetAllCalibrations();
+    
+    // no calibrations
+    if (!list)
+    {
+        if (!fSilence) Error("RemoveCalibration", "No calibrations found in database!");
+        return kFALSE;
+    }
+    
+    // check if calibration exists
+    TIter next(list);
+    Bool_t found = kFALSE;
+    TObjString* s;
+    while ((s = (TObjString*)next()))
+    {
+        if (!strcmp(calibration, s->GetString().Data()))
+        {
+            found = kTRUE;
+            break;
+        }
+    }
+
+    // clean-up
+    delete list;
+
+    // check if calibration was not found
+    if (!found)
+    {
+        if (!fSilence) Error("RemoveCalibration", "Calibration '%s' was not found in database!",
+                             calibration);
+        return kFALSE;
+    }
+
+    // loop over calibration data
+    for (Int_t i = kCALIB_EMPTY+1; i < TCConfig::kCalibNData; i++)
+    {
+        // create the query
+        sprintf(query,
+                "DELETE from %s "
+                "WHERE calibration = '%s'",
+                TCConfig::kCalibDataTableNames[i], calibration);
+
+        // read from database
+        TSQLResult* res = SendQuery(query);
+        
+        // check result
+        if (!res)
+        {
+            if (!fSilence) Error("RemoveCalibration", "Could not remove calibration '%s'!",
+                                 calibration);
+            return kFALSE;
+        }
+
+        // clean-up
+        delete res;
+    }
+    
+    if (!fSilence) Info("RemoveCalibration", "Removed calibration '%s'!",
+                        calibration);
+ 
+    return kTRUE;
+}
+
+//______________________________________________________________________________
 void TCMySQLManager::AddCalibAR(CalibDetector_t det, const Char_t* calibFileAR,
                                 const Char_t* calib, const Char_t* desc,
                                 Int_t first_run, Int_t last_run)

@@ -1,0 +1,49 @@
+# SVN Info: $Id$
+
+################################################################################
+#                                                                              #
+# CaLib - calibration database                                                 #
+# (c) 2010-2011 by Dominik Werthmueller and Irakli Keshelashvili,              #
+#                  University of Basel                                         #
+#                                                                              #
+################################################################################
+
+
+Software requirements
+=====================
+
+* gcc 4.2 or higher
+* ROOT 5.26 or higher (with MySQL support)
+* ncurses
+* MySQL database server
+
+
+Installation
+============
+
+1. unpack the CaLib distribution
+2. set the $CALIB environment variable pointing to that location
+3. add the CaLib location to the list of libraries in your ~/.rootrc file:
+   Unix.*.Root.DynamicPath:    .:$CALIB/lib
+4. add the CaLib bin directory to your $PATH environment variable
+5. change into the CaLib directory and build CaLib:
+   cd $CALIB
+   make clean
+   make 
+   make docs
+
+
+Configuration
+=============
+
+All the configuration is done in $CALIB/config/config.cfg. This file contains
+comments and a basic settings that should help to understand the configuration.
+
+
+Documentation
+=============
+
+The ROOT html documentation in $CALIB/htmldoc gives an overview of the 
+CaLib library and its classes.
+Further information and examples can be found in $CALIB/macros.
+

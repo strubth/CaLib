@@ -476,20 +476,20 @@ void SplitSet()
     echo();
  
     // ask set
-    mvprintw(32, 2, "Enter number of set to split               : ");
+    mvprintw(gNrow-10, 2, "Enter number of set to split               : ");
     scanw("%d", &set);
 
     // ask last run
-    mvprintw(33, 2, "Enter last run of first set                : ");
+    mvprintw(gNrow-9, 2, "Enter last run of first set                : ");
     scanw("%d", &last_run);
 
     // ask confirmation
-    mvprintw(35, 2, "Splitting set %d after run %d", set, last_run);
-    mvprintw(37, 6, "Are you sure to continue? (yes/no) : ");
+    mvprintw(gNrow-7, 2, "Splitting set %d after run %d", set, last_run);
+    mvprintw(gNrow-5, 6, "Are you sure to continue? (yes/no) : ");
     scanw("%s", answer);
     if (strcmp(answer, "yes")) 
     {
-        mvprintw(39, 2, "Aborted.");
+        mvprintw(gNrow-3, 2, "Aborted.");
     }
     else
     {
@@ -499,9 +499,9 @@ void SplitSet()
 
         // check return value
         if (ret)
-            mvprintw(39, 2, "Split set %d successfully into two sets", set); 
+            mvprintw(gNrow-3, 2, "Split set %d successfully into two sets", set); 
         else
-            mvprintw(39, 2, "There was an error during splitting set %d!", set);
+            mvprintw(gNrow-3, 2, "There was an error during splitting set %d!", set);
     }
 
     // user information
@@ -538,20 +538,20 @@ void MergeSets()
     echo();
  
     // ask set 1
-    mvprintw(32, 2, "Enter number of first set (use its paramters) : ");
+    mvprintw(gNrow-10, 2, "Enter number of first set (use its paramters) : ");
     scanw("%d", &set1);
 
     // ask set 2
-    mvprintw(33, 2, "Enter number of second set                    : ");
+    mvprintw(gNrow-9, 2, "Enter number of second set                    : ");
     scanw("%d", &set2);
 
     // ask confirmation
-    mvprintw(35, 2, "Merging sets %d and %d using the paramters of set %d", set1, set2, set1);
-    mvprintw(37, 6, "Are you sure to continue? (yes/no) : ");
+    mvprintw(gNrow-7, 2, "Merging sets %d and %d using the paramters of set %d", set1, set2, set1);
+    mvprintw(gNrow-5, 6, "Are you sure to continue? (yes/no) : ");
     scanw("%s", answer);
     if (strcmp(answer, "yes")) 
     {
-        mvprintw(39, 2, "Aborted.");
+        mvprintw(gNrow-3, 2, "Aborted.");
     }
     else
     {
@@ -561,9 +561,9 @@ void MergeSets()
 
         // check return value
         if (ret)
-            mvprintw(39, 2, "Merged sets %d and %d successfully into one set", set1, set2); 
+            mvprintw(gNrow-3, 2, "Merged sets %d and %d successfully into one set", set1, set2); 
         else
-            mvprintw(39, 2, "There was an error during merging sets %d and %d!", set1, set2);
+            mvprintw(gNrow-3, 2, "There was an error during merging sets %d and %d!", set1, set2);
     }
 
     // user information
@@ -740,13 +740,6 @@ void CalibBrowser(Bool_t browseTypes)
     if (browseTypes) table = FormatCalibTable(c, &colLengthTot, &header, kFALSE);
     else table = FormatCalibTable(c, &colLengthTot, &header, kTRUE);
 
-    // set operations
-    if (browseTypes)
-    {
-        mvprintw(29, 2, "Set operations:");
-        mvprintw(30, 2, "[s] split set    [m] merge sets");
-    }
-
     // user information
     Char_t tmp[256];
     sprintf(tmp, "%d sets found. Use UP/DOWN keys to scroll "
@@ -755,12 +748,19 @@ void CalibBrowser(Bool_t browseTypes)
   
     // user interface geometry
     Int_t rOffset;
-    if (browseTypes) rOffset = 18;
+    if (browseTypes) rOffset = 15;
     else rOffset = 3;
     Int_t first_row = 0;
     Int_t first_col = 0;
     Int_t winHeight = gNrow-rOffset-9;
     Int_t winWidth = gNcol;
+    
+    // set operations
+    if (browseTypes)
+    {
+        mvprintw(gNrow-13, 2, "Set operations:");
+        mvprintw(gNrow-12, 2, "[s] split set    [m] merge sets");
+    }
     
     // refresh windows
     refresh();
@@ -942,7 +942,12 @@ void SelectCalibration()
     TList* c = TCMySQLManager::GetManager()->GetAllCalibrations();
 
     // check if there are some calibrations
-    if (!c) return;
+    if (!c)
+    {
+        endwin();
+        printf("No calibrations found!\n");
+        exit(-1);
+    }
 
     // get number of calibrations
     Int_t nCalib = c->GetSize();
@@ -1039,7 +1044,7 @@ void RenameCalibration()
     scanw("%s", newName);
 
     // ask confirmation
-    mvprintw(9, 6, "Renaming calibration '%s' to '%s'", gCalibration, newName);
+    mvprintw(9, 2, "Renaming calibration '%s' to '%s'", gCalibration, newName);
     mvprintw(11, 6, "Are you sure to continue? (yes/no) : ");
     scanw("%s", answer);
     if (strcmp(answer, "yes")) 
@@ -1060,6 +1065,70 @@ void RenameCalibration()
         else
             mvprintw(13, 2, "There was an error during renaming the calibration '%s' to '%s'!", 
                             gCalibration, newName);
+    }
+    
+    // user information
+    PrintStatusMessage("Hit ESC or 'q' to exit");
+  
+    // wait for input
+    for (;;)
+    {
+        // get key
+        Int_t c = getch();
+        
+        // leave loop
+        if (c == KEY_ESC || c == 'q') break;
+    }
+ 
+    // don't echo input 
+    noecho();
+    
+    // go back
+    CalibEditor();
+}
+
+//______________________________________________________________________________
+void DeleteCalibration()
+{
+    // Delete a calibration.
+    
+    Char_t answer[16];
+
+    // select a calibration
+    SelectCalibration();
+    
+    // clear the screen
+    clear();
+    
+    // echo input 
+    echo();
+    
+    // draw header
+    DrawHeader();
+    
+    // draw title
+    attron(A_UNDERLINE);
+    mvprintw(4, 2, "DELETE CALIBRATION");
+    attroff(A_UNDERLINE);
+  
+    // ask confirmation
+    mvprintw(6, 2, "Deleting calibration '%s'", gCalibration);
+    mvprintw(8, 6, "Are you sure to continue? (yes/no) : ");
+    scanw("%s", answer);
+    if (strcmp(answer, "yes")) 
+    {
+        mvprintw(10, 2, "Aborted.");
+    }
+    else
+    {
+        // delete calibration
+        Bool_t ret = TCMySQLManager::GetManager()->RemoveCalibration(gCalibration);
+
+        // check return value
+        if (ret)
+            mvprintw(10, 2, "Deleted calibration '%s'", gCalibration);
+        else
+            mvprintw(10, 2, "There was an error during deleting the calibration '%s'!", gCalibration);
     }
     
     // user information
@@ -1132,10 +1201,11 @@ void CalibEditor()
     // menu configuration
     const Char_t mTitle[] = "CALIBRATION EDITOR";
     const Char_t mMsg[] = "Select a calibration operation";
-    const Int_t mN = 4;
+    const Int_t mN = 5;
     const Char_t* mEntries[] = { "Browse calibration data",
                                  "Manipulate calibration sets",
                                  "Rename calibration",
+                                 "Delete calibration",
                                  "Go back" };
     
     // show menu
@@ -1147,8 +1217,51 @@ void CalibEditor()
         case 0: CalibBrowser(kFALSE);
         case 1: CalibBrowser(kTRUE);
         case 2: RenameCalibration();
-        case 3: MainMenu();
+        case 3: DeleteCalibration();
+        case 4: MainMenu();
     }
+}
+
+//______________________________________________________________________________
+void About()
+{
+    // Show the about screen.
+    
+    // clear the screen
+    clear();
+
+    // draw header
+    DrawHeader();
+    
+    // draw title
+    attron(A_UNDERLINE);
+    mvprintw(4, 2, "ABOUT");
+    attroff(A_UNDERLINE);
+    
+    // print some information
+    mvprintw(6,  2, "CaLib Manager");
+    mvprintw(7,  2, "an ncurses-based CaLib administration software");
+    mvprintw(8,  2, "(c) 2011 by Dominik Werthmueller");
+    mvprintw(10, 2, "CaLib - calibration database");
+    mvprintw(11, 2, "Version %s", TCConfig::kCaLibVersion);
+    mvprintw(12, 2, "(c) 2010-2011 by Dominik Werthmueller and Irakli Keshelashvili");
+    mvprintw(13, 2, "                 University of Basel");
+
+    // user information
+    PrintStatusMessage("Hit ESC or 'q' to exit");
+  
+    // wait for input
+    for (;;)
+    {
+        // get key
+        Int_t c = getch();
+        
+        // leave loop
+        if (c == KEY_ESC || c == 'q') break;
+    }
+    
+    // go back to the main menu
+    MainMenu();
 }
 
 //______________________________________________________________________________
@@ -1159,9 +1272,10 @@ void MainMenu()
     // menu configuration
     const Char_t mTitle[] = "MAIN MENU";
     const Char_t mMsg[] = "Select an operation";
-    const Int_t mN = 3;
+    const Int_t mN = 4;
     const Char_t* mEntries[] = { "Run editor",
                                  "Calibration editor",
+                                 "About",
                                  "Exit" };
     
     // show menu
@@ -1172,7 +1286,8 @@ void MainMenu()
     {
         case 0: RunEditor();
         case 1: CalibEditor();
-        case 2: Finish(0);
+        case 2: About();
+        case 3: Finish(0);
     }
 }
 

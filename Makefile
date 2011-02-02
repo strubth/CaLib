@@ -94,6 +94,17 @@ docs:
 	root -b -n -q $(S)/htmldoc.C
 	@echo "Done."
 
+install: $(B)/calib_manager
+	@echo "Installing binaries in $(BIN_INSTALL_DIR)"
+	@mkdir -p $(BIN_INSTALL_DIR)
+	@cp $(B)/* $(BIN_INSTALL_DIR) 
+	@echo "Done."
+
+uninstall:
+	@echo "Uninstalling CaLib applications"
+	@rm -f $(BIN_INSTALL_DIR)/calib_manager
+	@echo "Done."
+	
 clean:
 	@echo "Cleaning CaLib distribution ..."
 	rm -f $(S)/Dict.*
