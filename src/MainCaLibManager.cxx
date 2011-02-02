@@ -477,16 +477,16 @@ void SplitSet()
  
     // ask set
     mvprintw(gNrow-10, 2, "Enter number of set to split               : ");
-    scanw("%d", &set);
+    scanw((Char_t*)"%d", &set);
 
     // ask last run
     mvprintw(gNrow-9, 2, "Enter last run of first set                : ");
-    scanw("%d", &last_run);
+    scanw((Char_t*)"%d", &last_run);
 
     // ask confirmation
     mvprintw(gNrow-7, 2, "Splitting set %d after run %d", set, last_run);
     mvprintw(gNrow-5, 6, "Are you sure to continue? (yes/no) : ");
-    scanw("%s", answer);
+    scanw((Char_t*)"%s", answer);
     if (strcmp(answer, "yes")) 
     {
         mvprintw(gNrow-3, 2, "Aborted.");
@@ -539,16 +539,16 @@ void MergeSets()
  
     // ask set 1
     mvprintw(gNrow-10, 2, "Enter number of first set (use its paramters) : ");
-    scanw("%d", &set1);
+    scanw((Char_t*)"%d", &set1);
 
     // ask set 2
     mvprintw(gNrow-9, 2, "Enter number of second set                    : ");
-    scanw("%d", &set2);
+    scanw((Char_t*)"%d", &set2);
 
     // ask confirmation
     mvprintw(gNrow-7, 2, "Merging sets %d and %d using the paramters of set %d", set1, set2, set1);
     mvprintw(gNrow-5, 6, "Are you sure to continue? (yes/no) : ");
-    scanw("%s", answer);
+    scanw((Char_t*)"%s", answer);
     if (strcmp(answer, "yes")) 
     {
         mvprintw(gNrow-3, 2, "Aborted.");
@@ -866,20 +866,20 @@ void ChangeRunEntry(const Char_t* title, const Char_t* name, RunEntry_t entry)
  
     // ask first run
     mvprintw(6, 2, "Enter first run                            : ");
-    scanw("%d", &first_run);
+    scanw((Char_t*)"%d", &first_run);
 
     // ask last run
     mvprintw(7, 2, "Enter last run                             : ");
-    scanw("%d", &last_run);
+    scanw((Char_t*)"%d", &last_run);
 
     // ask new value 
     mvprintw(8, 2, "Enter new %-32s : ", name);
-    scanw("%s", new_value);
+    scanw((Char_t*)"%s", new_value);
 
     // ask confirmation
     mvprintw(10, 2, "Changing %s for runs %d to %d to '%s'", name, first_run, last_run, new_value);
     mvprintw(12, 6, "Are you sure to continue? (yes/no) : ");
-    scanw("%s", answer);
+    scanw((Char_t*)"%s", answer);
     if (strcmp(answer, "yes")) 
     {
         mvprintw(14, 2, "Aborted.");
@@ -1041,12 +1041,12 @@ void RenameCalibration()
     // ask new name
     mvprintw(6, 2, "Old calibration identifier                 : %s", gCalibration);
     mvprintw(7, 2, "Enter new calibration identifier           : ");
-    scanw("%s", newName);
+    scanw((Char_t*)"%s", newName);
 
     // ask confirmation
     mvprintw(9, 2, "Renaming calibration '%s' to '%s'", gCalibration, newName);
     mvprintw(11, 6, "Are you sure to continue? (yes/no) : ");
-    scanw("%s", answer);
+    scanw((Char_t*)"%s", answer);
     if (strcmp(answer, "yes")) 
     {
         mvprintw(13, 2, "Aborted.");
@@ -1114,7 +1114,7 @@ void DeleteCalibration()
     // ask confirmation
     mvprintw(6, 2, "Deleting calibration '%s'", gCalibration);
     mvprintw(8, 6, "Are you sure to continue? (yes/no) : ");
-    scanw("%s", answer);
+    scanw((Char_t*)"%s", answer);
     if (strcmp(answer, "yes")) 
     {
         mvprintw(10, 2, "Aborted.");
@@ -1322,6 +1322,14 @@ Int_t main(Int_t argc, Char_t* argv[])
     {
         endwin();
         printf("Cannot run in a terminal smaller than 42 rows and 120 columns!\n");
+        exit(-1);
+    }
+    
+    // check connection to database
+    if (!TCMySQLManager::GetManager()->IsConnected())
+    {
+        endwin();
+        printf("No connection to CaLib database!\n");
         exit(-1);
     }
 

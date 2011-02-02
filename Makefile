@@ -68,7 +68,7 @@ end:
 $(B)/calib_manager: $(LIB_CaLib) $(S)/MainCaLibManager.cxx
 	@echo "Building the CaLib Manager"
 	@mkdir -p $(B)
-	@$(CCCOMP) $(CXXFLAGS) $(ROOTGLIBS) $(CURDIR)/$(LIB_CaLib) -o $(B)/calib_manager $(S)/MainCaLibManager.cxx
+	@$(CCCOMP) $(CXXFLAGS) $(ROOTGLIBS) $(CURDIR)/$(LIB_CaLib) -lncurses -o $(B)/calib_manager $(S)/MainCaLibManager.cxx
 
 $(LIB_CaLib): $(OBJ)
 	@echo
