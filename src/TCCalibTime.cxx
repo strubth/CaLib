@@ -142,7 +142,8 @@ void TCCalibTime::Fit(Int_t elem)
     // init variables
     Double_t factor = 2.5;
     Double_t peakval = 0;
-    
+    Double_t range = 3.8;
+
     // check for sufficient statistics
     if (fFitHisto->GetEntries())
     {
@@ -164,11 +165,17 @@ void TCCalibTime::Fit(Int_t elem)
 	fFitFunc->SetParLimits(4, 0, 20);                  
     
         // special configuration for certain classes
-        if (!this->InheritsFrom("TCCalibTaggerTime"))
+         if (!this->InheritsFrom("TCCalibTaggerTime") && 
+             !this->InheritsFrom("TCCalibTAPSTime")   && 
+             !this->InheritsFrom("TCCalibVetoTime"))
         {   
             // only gaussian
             fFitFunc->FixParameter(0, 0);
             fFitFunc->FixParameter(1, 0);
+        }
+        if (this->InheritsFrom("TCCalibTAPSTime"))
+        {
+	    fFitFunc->SetParLimits(4, 0.1, 2);                  
         }
 
         // estimate peak position
@@ -178,7 +185,7 @@ void TCCalibTime::Fit(Int_t elem)
         fMean = peakval;
 
         // first iteration
-	fFitFunc->SetRange(peakval - 3.8, peakval + 3.8);
+	fFitFunc->SetRange(peakval - range, peakval + range);
 	//fFitFunc->SetParameters(fFitHisto->GetMaximum(), peakval, 7);
 	fFitHisto->Fit(fFitFunc, "RBQ0");
 
