@@ -151,7 +151,10 @@ void TCCalibPIDPhi::Fit(Int_t elem)
 
         // final results
         fMean = fFitFunc->GetParameter(1); 
-        
+         
+        // correct bad fits
+        if (TMath::Abs(fMean) > 290) fMean = 0;
+
         // draw mean indicator line
         fLine->SetY1(0);
         fLine->SetY2(fFitHisto->GetMaximum() + 20);
