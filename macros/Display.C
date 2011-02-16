@@ -20,10 +20,10 @@ void Display()
     gSystem->Load("libCaLib.so");
     
     // configuration
-    const Int_t nSet = 14;
+    const Int_t nSet = 13;
     const Int_t nPar = 24;
     CalibData_t data = kCALIB_PID_PHI;
-    const Char_t calibration[] = "LD2_Feb_09";
+    const Char_t calibration[] = "LD2_May_09";
 
     // data array
     Double_t par[nSet][nPar];
@@ -39,7 +39,8 @@ void Display()
         // loop over sets
         for (Int_t j = 0; j < nSet; j++)
         {
-            printf("%10.3f;", par[j][i]);
+            //printf("%10.3lf  ", par[j][i]);
+            printf("%lf;", par[j][i]);
         }
         printf("\n");
     }
