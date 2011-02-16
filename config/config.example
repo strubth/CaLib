@@ -2,8 +2,7 @@
 # File configuration                                                           #
 ################################################################################
 
-File.Input.Rootfiles: /usr/panther_scratch0/werthm/A2/Dec_07/AR/out/ARHistograms_CB_RUN.root
-#File.Input.Rootfiles: /usr/panther_scratch0/werthm/A2/May_09/AR/out/ARHistograms_CB_RUN.root
+File.Input.Rootfiles: /tmp/ARHistograms_CB_RUN.root
 
 ################################################################################
 # Log configuration                                                            #
@@ -15,10 +14,10 @@ Log.Images:           /usr/users/werthm/src/ROOT/CaLib/images
 # Database configuration                                                       #
 ################################################################################
 
-DB.Host:        phys-jaguar
-DB.Name:        calib
-DB.User:        acqu_rw
-DB.Pass:        basel_write
+DB.Host:        db-host
+DB.Name:        db-name
+DB.User:        user
+DB.Pass:        password
 
 ################################################################################
 # Misc calibration configuration                                               #

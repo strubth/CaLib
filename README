@@ -38,6 +38,8 @@ Configuration
 
 All the configuration is done in $CALIB/config/config.cfg. This file contains
 comments and a basic settings that should help to understand the configuration.
+Rename the example file config.example in $CALIB/config to config.cfg and adapt
+the configuration.
 
 
 Documentation
