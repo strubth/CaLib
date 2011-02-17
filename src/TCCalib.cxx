@@ -58,8 +58,11 @@ void TCCalib::Start(const Char_t* calibration, Int_t nSet, Int_t* set)
     fCanvasFit = 0;
     fCanvasResult = 0;
     
-    fTimer = 0;
-    
+    // create timer
+    fTimer = new TTimer(100);
+    fTimer->Connect("Timeout()", "TCCalib", this, "Next()");
+    fTimerRunning = kFALSE;
+
     // create arrays
     fOldVal = new Double_t[fNelem];
     fNewVal = new Double_t[fNelem];
@@ -72,7 +75,7 @@ void TCCalib::Start(const Char_t* calibration, Int_t nSet, Int_t* set)
     }
     
     // user information
-   Info("Start", "Starting calibration module %s", GetName());
+    Info("Start", "Starting calibration module %s", GetName());
     Info("Start", "Module description: %s", GetTitle());
     for (Int_t i = 0; i < fNset; i++)
     {
@@ -94,6 +97,10 @@ void TCCalib::Start(const Char_t* calibration, Int_t nSet, Int_t* set)
 
     // draw the fitting canvas
     fCanvasFit = new TCanvas("Fitting", "Fitting", 0, 0, 400, 800);
+    
+    // connect event handler
+    fCanvasFit->Connect("ProcessedEvent(Int_t, Int_t, Int_t, TObject*)", "TCCalib", this, 
+                        "EventHandler(Int_t, Int_t, Int_t, TObject*)");
 
     // draw the result canvas
     fCanvasResult = new TCanvas("Result", "Result", 630, 0, 900, 400);
@@ -106,6 +113,37 @@ void TCCalib::Start(const Char_t* calibration, Int_t nSet, Int_t* set)
 }
 
 //______________________________________________________________________________
+void TCCalib::EventHandler(Int_t event, Int_t ox, Int_t oy, TObject* selected)
+{
+    // Event handler method.
+    
+    // catch key events
+    if (event == kKeyPress)
+    {
+        // left key
+        if (oy == kKey_Left) Previous();
+
+        // right key
+        if (oy == kKey_Right) Next();
+
+        // space
+        if (oy == kKey_Space) 
+        {
+            if (fTimerRunning) 
+            {
+                fTimer->Stop();
+                fTimerRunning = kFALSE;
+            }
+            else 
+            {
+                fTimer->Start();
+                fTimerRunning = kTRUE;
+            }
+        }
+    }
+}
+
+//______________________________________________________________________________
 void TCCalib::ProcessElement(Int_t elem)
 {
     // Process the element 'elem'.
@@ -114,13 +152,9 @@ void TCCalib::ProcessElement(Int_t elem)
     if (elem < 0 || elem >= fNelem)
     {
         // stop timer when it was active
-        if (fTimer) 
-        {
-            fTimer->Stop();
-            delete fTimer;
-            fTimer = 0;
-        }
-        
+        fTimer->Stop();
+        fTimerRunning = kFALSE;
+
         // calculate last element and update result canvas
         if (elem == fNelem) 
         {
@@ -150,12 +184,9 @@ void TCCalib::ProcessAll(Int_t msecDelay)
     // check for delay
     if (msecDelay > 0)
     {
-        // create timer
-        fTimer = new TTimer();
-        fTimer->Connect("Timeout()", "TCCalib", this, "Next()");
-
         // start automatic iteration
         fTimer->Start(msecDelay);
+        fTimerRunning = kTRUE;
     }
     else
     {
@@ -186,12 +217,8 @@ void TCCalib::StopProcessing()
     // Stop processing when in automatic mode.
     
     // stop timer when it was active
-    if (fTimer) 
-    {
-        fTimer->Stop();
-        delete fTimer;
-        fTimer = 0;
-    }
+    fTimer->Stop();
+    fTimerRunning = kFALSE;
 }
 
 //______________________________________________________________________________

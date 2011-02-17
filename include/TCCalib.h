@@ -16,6 +16,7 @@
 #ifndef TCCALIB_H
 #define TCCALIB_H
 
+#include "KeySymbols.h"
 #include "TString.h"
 #include "TError.h"
 #include "TH1.h"
@@ -55,6 +56,7 @@ protected:
     TCanvas* fCanvasResult;     // canvas containing the results
     
     TTimer* fTimer;             // slow-motion timer
+    Bool_t fTimerRunning;       // timer running state
 
     virtual void Init() = 0;
     virtual void Fit(Int_t elem) = 0;
@@ -71,7 +73,7 @@ public:
                 fMainHisto(0), fFitHisto(0), fFitFunc(0),
                 fOverviewHisto(0),
                 fCanvasFit(0), fCanvasResult(0), 
-                fTimer(0) { }
+                fTimer(0), fTimerRunning(kFALSE) { }
     TCCalib(const Char_t* name, const Char_t* title, 
             CalibData_t data, Int_t nElem) 
         : TNamed(name, title),
@@ -83,7 +85,7 @@ public:
           fMainHisto(0), fFitHisto(0), fFitFunc(0),
           fOverviewHisto(0),
           fCanvasFit(0), fCanvasResult(0), 
-          fTimer(0) { }
+          fTimer(0), fTimerRunning(kFALSE) { }
     virtual ~TCCalib();
     
     virtual void Write();
@@ -98,6 +100,8 @@ public:
     void StopProcessing();
     
     CalibData_t GetCalibData() const { return fData; }
+
+    void EventHandler(Int_t event, Int_t ox, Int_t oy, TObject* selected);
 
     ClassDef(TCCalib, 0) // Base calibration module class
 };
