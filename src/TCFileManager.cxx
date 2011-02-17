@@ -88,7 +88,7 @@ void TCFileManager::BuildFileList()
             filename.ReplaceAll("RUN", TString::Format("%d", runs[j]));
             
             // open the file
-            TFile* f = new TFile(filename.Data());
+            TFile* f = TFile::Open(filename.Data());
             
             // check nonexisting file
             if (!f) 
