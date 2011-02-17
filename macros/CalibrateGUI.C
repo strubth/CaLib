@@ -27,7 +27,6 @@ class ButtonWindow : public TGMainFrame
 {
 
 private:
-    TGMainFrame *fMainFrame; 
     TGTextButton *fTB_Init;
     TGTextButton *fTB_Prev;
     TGTextButton *fTB_Next;
@@ -55,13 +54,12 @@ public:
 
 //______________________________________________________________________________
 ButtonWindow::ButtonWindow() 
+    : TGMainFrame(gClient->GetRoot(), 600, 500)
 {
     // Main test window.
-    fMainFrame = new TGMainFrame(gClient->GetRoot(), 600, 500);
-    fMainFrame->SetWindowName("CaLib Control Panel");
-    // fMainFrame->SetLayoutBroken(kTRUE);
+    SetWindowName("CaLib Control Panel");
     
-    TGButtonGroup *horizontal0 = new TGButtonGroup(fMainFrame, "Calibration configuration", kHorizontalFrame);
+    TGButtonGroup *horizontal0 = new TGButtonGroup(this, "Calibration configuration", kHorizontalFrame);
     horizontal0->SetTitlePos(TGGroupFrame::kLeft);
 
     fCBox_Calibration = new TGComboBox(horizontal0, "Choose calibration");
@@ -78,10 +76,10 @@ ButtonWindow::ButtonWindow()
     
     fCBox_Calibration->Connect("Selected(Int_t)", "ButtonWindow", this, "EnableModuleSelection(Int_t)");
 
-    fMainFrame->AddFrame(horizontal0, new TGLayoutHints(kLHintsExpandX, 5, 5, 5, 5));
+    AddFrame(horizontal0, new TGLayoutHints(kLHintsExpandX, 5, 5, 5, 5));
 
     // ---------------------------------------------------------------------------------
-    TGButtonGroup *horizontal = new TGButtonGroup(fMainFrame, "Main configuration", kHorizontalFrame);
+    TGButtonGroup *horizontal = new TGButtonGroup(this, "Main configuration", kHorizontalFrame);
     horizontal->SetTitlePos(TGGroupFrame::kLeft);
 
     fCBox_Module = new TGComboBox(horizontal, "Choose calibration module");
@@ -110,10 +108,10 @@ ButtonWindow::ButtonWindow()
     horizontal->AddFrame(fTB_Init, new TGLayoutHints(kLHintsRight));
 
 
-    fMainFrame->AddFrame(horizontal, new TGLayoutHints(kLHintsExpandX, 5, 5, 5, 5));
+    AddFrame(horizontal, new TGLayoutHints(kLHintsExpandX, 5, 5, 5, 5));
 
     // ---------------------------------------------------------------------------------
-    TGButtonGroup *horizontal_2 = new TGButtonGroup(fMainFrame, "Manual navigation", kHorizontalFrame);
+    TGButtonGroup *horizontal_2 = new TGButtonGroup(this, "Manual navigation", kHorizontalFrame);
     horizontal_2->SetTitlePos(TGGroupFrame::kLeft);
 
     fTB_Prev = new TGTextButton(horizontal_2,"Prev.");
@@ -146,15 +144,14 @@ ButtonWindow::ButtonWindow()
 
     fTB_Next->Connect("Pressed()", "ButtonWindow", this, "DoNext()");
 
-    fMainFrame->AddFrame(horizontal_2, new TGLayoutHints(kLHintsExpandX, 5,5,5,5));
+    AddFrame(horizontal_2, new TGLayoutHints(kLHintsExpandX, 5,5,5,5));
        
     // ---------------------------------------------------------------------------------
-    TGButtonGroup *horizontal_3 = new TGButtonGroup(fMainFrame, "Automatic navigation", kHorizontalFrame);
+    TGButtonGroup *horizontal_3 = new TGButtonGroup(this, "Automatic navigation", kHorizontalFrame);
     horizontal_3->SetTitlePos(TGGroupFrame::kLeft);
 
-    fNE_Delay = new TGNumberEntry(horizontal_3, (Int_t) 1, 3, -1,(TGNumberFormat::EStyle) 1,
-                            (TGNumberFormat::EAttribute) 1,(TGNumberFormat::ELimit) 1,1,10);
-    fNE_Delay->SetIntNumber(1.);
+    fNE_Delay = new TGNumberEntry(horizontal_3, 0.1, 3, -1, TGNumberFormat::kNESRealTwo,
+                                  TGNumberFormat::kNEAAnyNumber, TGNumberFormat::kNELLimitMinMax, 0.01, 5);
     fNE_Delay->Resize(160, 50);
     horizontal_3->AddFrame(fNE_Delay, new TGLayoutHints(kLHintsLeft | kLHintsExpandY));
 
@@ -172,10 +169,10 @@ ButtonWindow::ButtonWindow()
     fTB_Stop->SetToolTipText("Stop processing", 200);
     fTB_Stop->Connect("Pressed()", "ButtonWindow", this, "Stop()");
 
-    fMainFrame->AddFrame(horizontal_3, new TGLayoutHints(kLHintsExpandX, 5,5,5,5));
+    AddFrame(horizontal_3, new TGLayoutHints(kLHintsExpandX, 5,5,5,5));
 
     // ---------------------------------------------------------------------------------
-    TGButtonGroup *horizontal_4 = new TGButtonGroup(fMainFrame, "Calibration control", kHorizontalFrame);
+    TGButtonGroup *horizontal_4 = new TGButtonGroup(this, "Calibration control", kHorizontalFrame);
     horizontal_4->SetTitlePos(TGGroupFrame::kLeft);
 
     fTB_Write = new TGTextButton(horizontal_4, "Write");
@@ -198,19 +195,19 @@ ButtonWindow::ButtonWindow()
     fTB_Quit->ChangeOptions(fTB_Quit->GetOptions() | kFixedSize );
     fTB_Quit->Connect("Pressed()", "ButtonWindow", this, "Quit()");
 
-    fMainFrame->AddFrame(horizontal_4, new TGLayoutHints(kLHintsExpandX, 5,5,5,5));
-    fMainFrame->Connect("CloseWindow()", "ButtonWindow", this, "Quit()");
-    fMainFrame->DontCallClose();
-
+    AddFrame(horizontal_4, new TGLayoutHints(kLHintsExpandX, 5,5,5,5));
+    Connect("CloseWindow()", "ButtonWindow", this, "Quit()");
+    DontCallClose();
+    
     // Map all subwindows of main frame
-    fMainFrame->MapSubwindows();
+    MapSubwindows();
 
     // Initialize the layout algorithm
-    fMainFrame->Resize(fMainFrame->GetDefaultSize());
+    Resize(GetDefaultSize());
 
-    fMainFrame->SetWMSizeHints( 600, 400, 800, 700, 0 ,0);
-    fMainFrame->MapRaised();
-    fMainFrame->Move(500, 500);
+    SetWMSizeHints( 600, 400, 800, 700, 0 ,0);
+    MapRaised();
+    Move(500, 500);
 }
 
 //______________________________________________________________________________

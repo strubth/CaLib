@@ -151,7 +151,7 @@ void TCCalib::ProcessAll(Int_t msecDelay)
     if (msecDelay > 0)
     {
         // create timer
-        fTimer = new TTimer();
+        fTimer = new TTimer(kTRUE);
         fTimer->Connect("Timeout()", "TCCalib", this, "Next()");
 
         // start automatic iteration

@@ -242,8 +242,11 @@ void TCCalibTargetPosition::Calculate(Int_t elem)
         fFitFunc->Draw("same");
         fCanvasResult->Update();
 
+        // save value
+        fNewVal[0] = targetPos;
+
         // user information
-        printf("Target position: %f cm\n", targetPos);
+        PrintValues();
      }
 
 }   
@@ -268,7 +271,8 @@ void TCCalibTargetPosition::PrintValues()
 
     // loop over elements
     printf("\n");
-    printf("old target position: %12.8f    new target position: %12.8f\n", fOldVal[0], fNewVal[0]);
+    printf("old target position: %12.8f    new target position: %12.8f    "
+           "diff: %6.2f %%\n", fOldVal[0], fNewVal[0], TCUtils::GetDiffPercent(fOldVal[0], fNewVal[0]));
     printf("\n");
 }
 

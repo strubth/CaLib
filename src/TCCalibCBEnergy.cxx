@@ -124,7 +124,7 @@ void TCCalibCBEnergy::Fit(Int_t elem)
         TCUtils::FindBackground(fFitHisto, fPi0Pos, 50, 50, &bgPar0, &bgPar1);
         
         // configure fitting function
-        fFitFunc->SetRange(fPi0Pos - 70, fPi0Pos + 50);
+        fFitFunc->SetRange(fPi0Pos - 20, fPi0Pos + 20);
         fFitFunc->SetLineColor(2);
         fFitFunc->SetParameters( 3.8e+2, -1.90, 150, fPi0Pos, 8.9);
         fFitFunc->SetParLimits(4, 3, 40);  
