@@ -16,13 +16,31 @@
 //______________________________________________________________________________
 void Export()
 {
+    Char_t tmp[256];
+    Char_t tstamp[256];
+
     // load CaLib
     gSystem->Load("libCaLib.so");
  
+    // get time-stamp
+    UInt_t day, month, year;
+    UInt_t hour, min;
+    TTimeStamp t;
+    t.GetDate(kFALSE, 0, &year, &month, &day);
+    t.GetTime(kFALSE, 0, &hour, &min);
+    sprintf(tstamp, "%d-%d-%d_%d:%d", year, month, day, hour, min);
+
     // export CaLib data
-    TCMySQLManager::GetManager()->Export("backup_Dec_07.root", 0, 0, "LD2_Dec_07");
-    TCMySQLManager::GetManager()->Export("backup_Feb_09.root", 0, 0, "LD2_Feb_09");
-    TCMySQLManager::GetManager()->Export("backup_May_09.root", 0, 0, "LD2_May_09");
+    sprintf(tmp, "backup_Dec_07_%s.root", tstamp);
+    TCMySQLManager::GetManager()->Export(tmp, 0, 0, "LD2_Dec_07");
+    
+    // export CaLib data
+    sprintf(tmp, "backup_Feb_09_%s.root", tstamp);
+    TCMySQLManager::GetManager()->Export(tmp, 0, 0, "LD2_Feb_09");
+
+    // export CaLib data
+    sprintf(tmp, "backup_May_09_%s.root", tstamp);
+    TCMySQLManager::GetManager()->Export(tmp, 0, 0, "LD2_May_09");
     
     gSystem->Exit(0);
 }
