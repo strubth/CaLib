@@ -91,25 +91,21 @@ void CBEnergy()
     // general configuration
     Bool_t watch = kFALSE;
     CalibData_t data = kCALIB_CB_E1;
+    const Char_t* hName = "CaLib_CB_IM_Neut";
     Double_t yMin = 110;
     Double_t yMax = 160;
 
     // configuration (December 2007)
-    const Char_t calibration[] = "LD2_Dec_07";
-    const Char_t* hName = "CaLib_CB_IM_Neut";
-    const Char_t* fLoc = "/usr/panther_scratch0/werthm/A2/Dec_07/AR/out/ADC";
+    //const Char_t calibration[] = "LD2_Dec_07";
+    //const Char_t* fLoc = "/usr/panther_scratch0/werthm/A2/Dec_07/AR/out/ADC";
 
     // configuration (February 2009)
-    //Int_t first_run = 21082;
-    //Int_t last_run = 22625;
-    //const Char_t* hName = "CaLib_CB_IM_Neut";
-    //const Char_t* fLoc = "/usr/panther_scratch0/werthm/A2/Feb_09/AR/out";
+    //const Char_t calibration[] = "LD2_Feb_09";
+    //const Char_t* fLoc = "/usr/panther_scratch0/werthm/A2/Feb_09/AR/out/ADC";
     
     // configuration (May 2009)
-    //Int_t first_run = 22626;
-    //Int_t last_run = 23728;
-    //const Char_t* hName = "CaLib_CB_IM_Neut";
-    //const Char_t* fLoc = "/usr/panther_scratch0/werthm/A2/May_09/AR/out";
+    const Char_t calibration[] = "LD2_May_09";
+    const Char_t* fLoc = "/usr/panther_scratch0/werthm/A2/May_09/AR/out/ADC";
 
     // create histogram
     gHOverview = new TH1F("Overview", "Overview", 40000, 0, 40000);
@@ -215,5 +211,7 @@ void CBEnergy()
     delete fout;
 
     printf("%d runs analyzed.\n", nTotRuns);
+
+    gSystem->Exit(0);
 }
 

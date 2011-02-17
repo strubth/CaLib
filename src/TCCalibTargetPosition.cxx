@@ -132,7 +132,7 @@ void TCCalibTargetPosition::Fit(Int_t elem)
         fFitFunc->SetRange(peak - 60, peak + 60);
         fFitFunc->SetLineColor(2);
         fFitFunc->SetParameters( 3.8e+2, -1.90, 0.1, 150, peak, 8.9);
-        fFitFunc->SetParLimits(5, 3, 40);  
+        fFitFunc->SetParLimits(5, 3, 20);  
         fFitFunc->FixParameter(2, 0);
         fFitHisto->Fit(fFitFunc, "RB0Q");
 
