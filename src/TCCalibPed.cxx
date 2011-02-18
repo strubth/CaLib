@@ -96,6 +96,9 @@ void TCCalibPed::Fit(Int_t elem)
     sprintf(tmp, "ADC%d", fADC[elem]);
     fFitHisto = fFileManager->GetHistogram(tmp);
     
+    // dummy position
+    fMean = 100;
+
     // check for sufficient statistics
     if (fFitHisto->GetEntries())
     {
@@ -117,24 +120,28 @@ void TCCalibPed::Fit(Int_t elem)
 	fFitFunc->SetParLimits(2, 0.001, 1);
 	if (fTotMaxPos > fMean) // if pedestal isn't the maximum
 	{
-	  fFitFunc->SetRange(fMean - 7, fMean + 7);
-	  fFitFunc->SetParLimits(2, 0.0000001, 5);
+	    fFitFunc->SetRange(fMean - 5, fMean + 5);
+	    fFitFunc->SetParLimits(2, 0.0000001, 5);
 	}
         fFitHisto->Fit(fFitFunc, "RB0Q");
 	
 	// second iteration for elements where pedestal isn't the maximum
 	if (fTotMaxPos > fMean)
 	{
-	  fFitHisto->GetXaxis()->SetRangeUser(fFitFunc->GetParameter(1) - 5, fFitFunc->GetParameter(1) + 5);
-	  fFitFunc->SetRange(fFitFunc->GetParameter(1) - 10,fFitFunc->GetParameter(1)  + 10);
-	  fFitHisto->Fit(fFitFunc, "RB0Q");
+	    fFitHisto->GetXaxis()->SetRangeUser(fFitFunc->GetParameter(1) - 5, fFitFunc->GetParameter(1) + 5);
+	    fFitFunc->SetRange(fFitFunc->GetParameter(1) - 10, fFitFunc->GetParameter(1) + 10);
+	    fFitHisto->Fit(fFitFunc, "RB0Q");
 	}
 	
         // final results
         fMean = fFitFunc->GetParameter(1); 
 
+        // check if reasonable
+        if (fMean < 50 || fMean > 130) fMean = 100;
+
         // draw mean indicator line
         fLine->SetY1(0);
+        fFitHisto->GetXaxis()->SetRange(0, fFitHisto->GetNbinsX());
         fLine->SetY2(fFitHisto->GetMaximum() + 20);
         
         // set indicator line
@@ -145,8 +152,7 @@ void TCCalibPed::Fit(Int_t elem)
     // draw histogram
     fFitHisto->SetFillColor(35);
     fCanvasFit->cd(2);
-    sprintf(tmp, "%s.Histo.Fit", GetName());
-    TCUtils::FormatHistogram(fFitHisto, tmp);
+    fFitHisto->GetXaxis()->SetRangeUser(fMean-10, fMean+10);
     fFitHisto->Draw("hist");
     
     // draw fitting function
