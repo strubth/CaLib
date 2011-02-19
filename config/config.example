@@ -20,6 +20,14 @@ DB.User:        user
 DB.Pass:        password
 
 ################################################################################
+# Number of detector elements                                                  #
+################################################################################
+
+Tagger.Elements: 352
+TAPS.Elements: 384
+Veto.Elements: 384
+
+################################################################################
 # Misc calibration configuration                                               #
 ################################################################################
 
@@ -33,9 +41,6 @@ Target.Position.Histo.Overview.Yaxis.Range: 0 20
 ################################################################################
 # Tagger calibration configuration                                             #
 ################################################################################
-
-# number of Tagger elements
-Tagger.Elements: 352
 
 # Time calibration
 #Tagger.Time.Histo.Fit.Name: CaLib_Tagger_Time_Tot
@@ -88,23 +93,16 @@ CB.TimeWalk.Fit.Delay: 0
 # TAPS calibration configuration                                               #
 ################################################################################
 
-# number of TAPS elements
-TAPS.Elements: 384
-#TAPS.Elements: 438
-
 # LG pedestal calibration
 TAPS.Ped.LG.ADCList: /usr/users/werthm/AcquRoot/acqu/acqu/data/Dec_07/TAPS/BaF2.dat
-TAPS.Ped.LG.Histo.Fit.Xaxis.Range: 80 160
 TAPS.Ped.LG.Histo.Overview.Yaxis.Range: 80 150
 
 # SG pedestal calibration
 TAPS.Ped.SG.ADCList: /usr/users/werthm/AcquRoot/acqu/acqu/data/Dec_07/TAPS/BaF2.dat
-TAPS.Ped.SG.Histo.Fit.Xaxis.Range: 0 200
 TAPS.Ped.SG.Histo.Overview.Yaxis.Range: 80 150
 
 # Veto pedestal calibration
 TAPS.Ped.Veto.ADCList: /usr/users/werthm/AcquRoot/acqu/acqu/data/Dec_07/TAPS/Veto.dat
-TAPS.Ped.Veto.Histo.Fit.Xaxis.Range: 80 160
 TAPS.Ped.Veto.Histo.Overview.Yaxis.Range: 80 150
 
 # LG energy calibration
@@ -190,9 +188,6 @@ PID.Time.TDCGain: 0.11771
 ################################################################################
 # Veto calibration configuration                                               #
 ################################################################################
-
-# number of Veto elements
-Veto.Elements: 384
 
 # Correlation
 Veto.Correlation.Neighbours: /usr/users/werthm/AcquRoot/acqu/acqu/data/Dec_07/TAPS/BaF2.dat
