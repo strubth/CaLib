@@ -85,7 +85,7 @@ public:
     TCCalibTAPSPedVeto() 
         : TCCalibPed("TAPS.Ped.Veto", "Veto pedestal calibration",
                      kCALIB_VETO_E0,
-                     TCConfig::kMaxVeto) { }
+                     TCReadConfig::GetReader()->GetConfigInt("Veto.Elements")) { }
     virtual ~TCCalibTAPSPedVeto() { }
     
     ClassDef(TCCalibTAPSPedVeto, 0) // Veto pedestal calibration class
