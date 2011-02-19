@@ -20,9 +20,9 @@ void Display()
     gSystem->Load("libCaLib.so");
     
     // configuration
-    const Int_t nSet = 13;
-    const Int_t nPar = 24;
-    CalibData_t data = kCALIB_PID_PHI;
+    const Int_t nSet = 3;
+    const Int_t nPar = 384;
+    CalibData_t data = kCALIB_VETO_E0;
     const Char_t calibration[] = "LD2_May_09";
 
     // data array

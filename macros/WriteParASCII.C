@@ -21,8 +21,8 @@ void WriteParASCII()
     
     // configuration
     const Char_t inputFile[] = "par.dat";
-    CalibData_t data = kCALIB_PID_PHI;
-    const Char_t calibration[] = "LD2_Feb_09";
+    CalibData_t data = kCALIB_VETO_E0;
+    const Char_t calibration[] = "LD2_May_09";
     Int_t set = 0;
 
     // par array
