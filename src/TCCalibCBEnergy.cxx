@@ -107,7 +107,7 @@ void TCCalibCBEnergy::Fit(Int_t elem)
     fFitHisto = (TH1D*) h2->ProjectionX(tmp, elem+1, elem+1, "e");
     
     // check for sufficient statistics
-    if (fFitHisto->GetEntries())
+    if (fFitHisto->GetEntries() > 1000)
     {
         // delete old function
         if (fFitFunc) delete fFitFunc;
@@ -177,7 +177,7 @@ void TCCalibCBEnergy::Calculate(Int_t elem)
     Bool_t unchanged = kFALSE;
 
     // check if fit was performed
-    if (fFitHisto->GetEntries())
+    if (fFitHisto->GetEntries() > 1000)
     {
         // check if line position was modified by hand
         if (fLine->GetX1() != fPi0Pos) fPi0Pos = fLine->GetX1();
