@@ -141,7 +141,6 @@ void TCCalibTime::Fit(Int_t elem)
     
     // init variables
     Double_t factor = 2.5;
-    Double_t peakval = 0;
     Double_t range = 3.8;
 
     // check for sufficient statistics
@@ -156,12 +155,13 @@ void TCCalibTime::Fit(Int_t elem)
 	fFitFunc->SetLineColor(2);
 	
 	// get important parameter positions
-	Double_t maxPos = fFitHisto->GetXaxis()->GetBinCenter(fFitHisto->GetMaximumBin());
+	Double_t fMean = fFitHisto->GetXaxis()->GetBinCenter(fFitHisto->GetMaximumBin());
 	Double_t max = fFitHisto->GetBinContent(fFitHisto->GetMaximumBin());
 
 	// configure fitting function
-	fFitFunc->SetParameters(1, 0.1, max, maxPos, 8);
-	fFitFunc->SetParLimits(3, maxPos - 2, maxPos + 2);
+	fFitFunc->SetParameters(1, 0.1, max, fMean, 8);
+	fFitFunc->SetParLimits(2, 0.1, max*10);
+	fFitFunc->SetParLimits(3, fMean - 2, fMean + 2);
 	fFitFunc->SetParLimits(4, 0, 20);                  
     
         // special configuration for certain classes
@@ -175,24 +175,18 @@ void TCCalibTime::Fit(Int_t elem)
         }
         if (this->InheritsFrom("TCCalibTAPSTime"))
         {
-	    fFitFunc->SetParLimits(4, 0.1, 2);                  
+	    fFitFunc->SetParLimits(4, 0.001, 1);                  
+            range = 3;
         }
 
-        // estimate peak position
-        peakval = fFitHisto->GetBinCenter(fFitHisto->GetMaximumBin());
-
-        // temporary
-        fMean = peakval;
-
         // first iteration
-	fFitFunc->SetRange(peakval - range, peakval + range);
-	//fFitFunc->SetParameters(fFitHisto->GetMaximum(), peakval, 7);
+	fFitFunc->SetRange(fMean - range, fMean + range);
 	fFitHisto->Fit(fFitFunc, "RBQ0");
+	fMean = fFitFunc->GetParameter(3);
 
         // second iteration
-	peakval = fFitFunc->GetParameter(3);
         Double_t sigma = fFitFunc->GetParameter(4);
-        fFitFunc->SetRange(peakval -factor*sigma, peakval +factor*sigma);
+        fFitFunc->SetRange(fMean -factor*sigma, fMean +factor*sigma);
         fFitHisto->Fit(fFitFunc, "RBQ0");
 
         // final results

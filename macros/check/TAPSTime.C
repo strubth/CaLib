@@ -26,17 +26,11 @@ void Fit(TH1* h, Double_t* outPos, Double_t* outFWHM)
     
     // estimate peak position
     Double_t fPi0Pos = h->GetBinCenter(h->GetMaximumBin());
-    if (fPi0Pos < 100 || fPi0Pos > 160) fPi0Pos = 135;
 
-    // estimate background
-    Double_t bgPar0, bgPar1;
-    TCUtils::FindBackground(h, fPi0Pos, 50, 50, &bgPar0, &bgPar1);
-    
     // configure fitting function
-    func->SetRange(fPi0Pos - 20, fPi0Pos + 20);
+    func->SetRange(fPi0Pos - 0.8, fPi0Pos + 0.8);
     func->SetLineColor(2);
-    func->SetParameters( 3.8e+2, -1.90, 150, fPi0Pos, 8.9);
-    func->SetParLimits(4, 3, 40);  
+    func->SetParameters( 0.1, 0.1, h->GetMaximum(), 0, 0.1);
     Int_t fitres = h->Fit(func, "RB0Q");
     
     // get position and FWHM
@@ -59,14 +53,14 @@ void Fit(TH1* h, Double_t* outPos, Double_t* outFWHM)
     line->SetY2(h->GetMaximum());
 
     // draw 
-    h->GetXaxis()->SetRangeUser(50, 200);
+    h->GetXaxis()->SetRangeUser(-3, 3);
     h->Draw();
     func->Draw("same");
     line->Draw("same");
 }
 
 //______________________________________________________________________________
-void CBEnergy()
+void TAPSTime()
 {
     // Main method.
     
@@ -77,7 +71,7 @@ void CBEnergy()
     
     // general configuration
     CalibData_t data = kCALIB_CB_E1;
-    const Char_t* hName = "CaLib_CB_IM_Neut";
+    const Char_t* hName = "CaLib_TAPS_Time_Neut";
 
     // configuration (December 2007)
     const Char_t calibration[] = "LD2_Dec_07";
