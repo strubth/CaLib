@@ -16,6 +16,8 @@
 #ifndef TCMYSQLMANAGER_H
 #define TCMYSQLMANAGER_H
 
+#include <cstdlib>
+
 #include "TSQLServer.h"
 #include "TSQLResult.h"
 #include "TSQLRow.h"

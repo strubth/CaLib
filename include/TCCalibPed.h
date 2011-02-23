@@ -16,6 +16,8 @@
 #ifndef TCCALIBPED_H
 #define TCCALIBPED_H
 
+#include <cstdlib>
+
 #include "TCanvas.h"
 #include "TH2.h"
 #include "TLine.h"

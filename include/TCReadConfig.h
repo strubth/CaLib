@@ -17,6 +17,7 @@
 #define TCREADCONFIG_H
 
 #include <fstream>
+#include <cstdlib>
 
 #include "TSystem.h"
 #include "TString.h"

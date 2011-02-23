@@ -75,17 +75,17 @@ public:
         }
         
         // read start marker
-        fread(fStartMarker, sizeof(Char_t), sizeof(fStartMarker)/sizeof(Char_t), file);
+        size_t rs = fread(fStartMarker, sizeof(Char_t), sizeof(fStartMarker)/sizeof(Char_t), file);
         
         // read time
-        fread(fTime, sizeof(Char_t), sizeof(fTime)/sizeof(Char_t), file);
+        rs = fread(fTime, sizeof(Char_t), sizeof(fTime)/sizeof(Char_t), file);
         RemoveLineBreak(fTime, sizeof(fTime)/sizeof(Char_t));
         
         // skip tab
         fseek(file, sizeof(Char_t), SEEK_CUR);
 
         // read description (minus 1 byte)
-        fread(fDescription, sizeof(Char_t), sizeof(fDescription)/sizeof(Char_t)-1, file);
+        rs = fread(fDescription, sizeof(Char_t), sizeof(fDescription)/sizeof(Char_t)-1, file);
         RemoveLineBreak(fDescription, sizeof(fDescription)/sizeof(Char_t));
         
         // trim description
@@ -94,7 +94,7 @@ public:
         strcpy(fDescription, s.Data());
 
         // read run note
-        fread(fRunNote, sizeof(Char_t), sizeof(fRunNote)/sizeof(Char_t), file);
+        rs = fread(fRunNote, sizeof(Char_t), sizeof(fRunNote)/sizeof(Char_t), file);
         RemoveLineBreak(fRunNote, sizeof(fRunNote)/sizeof(Char_t));
         
         // trim run note
@@ -103,10 +103,10 @@ public:
         strcpy(fRunNote, s.Data());
         
         // read output file
-        fread(fOutFile, sizeof(Char_t), sizeof(fOutFile)/sizeof(Char_t), file);
+        rs = fread(fOutFile, sizeof(Char_t), sizeof(fOutFile)/sizeof(Char_t), file);
         
         // read run number
-        fread(&fRun, sizeof(UShort_t), 1, file);
+        rs = fread(&fRun, sizeof(UShort_t), 1, file);
         
         // close the file
         fclose(file);
