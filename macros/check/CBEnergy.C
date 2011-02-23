@@ -8,7 +8,7 @@
 //                                                                      //
 // CBEnergy.C                                                           //
 //                                                                      //
-// Make run sets depending on the stability in time of a calibration.   //
+// Check calibration of runsets.                                        //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
@@ -89,129 +89,42 @@ void CBEnergy()
     gSystem->Load("libCaLib.so");
     
     // general configuration
-    Bool_t watch = kFALSE;
     CalibData_t data = kCALIB_CB_E1;
     const Char_t* hName = "CaLib_CB_IM_Neut";
-    Double_t yMin = 110;
-    Double_t yMax = 160;
 
     // configuration (December 2007)
     const Char_t calibration[] = "LD2_Dec_07";
-    const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/Dec_07/AR/out/prev";
 
     // configuration (February 2009)
     //const Char_t calibration[] = "LD2_Feb_09";
-    //const Char_t* fLoc = "/usr/panther_scratch0/werthm/A2/Feb_09/AR/out/ADC";
     
     // configuration (May 2009)
     //const Char_t calibration[] = "LD2_May_09";
-    //const Char_t* fLoc = "/usr/panther_scratch0/werthm/A2/May_09/AR/out/ADC";
-
-    // create histogram
-    gHOverview = new TH1F("Overview", "Overview", 40000, 0, 40000);
-    TCanvas* cOverview = new TCanvas();
-    gHOverview->GetYaxis()->SetRangeUser(yMin, yMax);
-    gHOverview->Draw("E1");
-    
-    // create line
-    gLine = new TLine();
-    gLine->SetLineColor(kBlue);
-    gLine->SetLineWidth(2);
-
-    // init fitting function
-    gFitFunc = 0;
-    
-    // create fitting canvas
-    gCFit = new TCanvas();
     
     // get number of sets
     Int_t nSets = TCMySQLManager::GetManager()->GetNsets(data, calibration);
-    
-    // total number of runs
-    Int_t nTotRuns = 0;
 
-    // first and last runs
-    Int_t first_run, last_run;
+    // create canvas
+    Int_t n = TMath::Sqrt(nSets);
+    TCanvas* cOverview = new TCanvas();
+    cOverview->Divide(n, nSets / n);
 
     // loop over sets
     for (Int_t i = 0; i < nSets; i++)
-    {
-        // get runs of set
-        Int_t nRuns;
-        Int_t* runs = TCMySQLManager::GetManager()->GetRunsOfSet(data, calibration, i, &nRuns);
-    
-        // loop over runs
-        for (Int_t j = 0; j < nRuns; j++)
-        {
-            // save first and last runs
-            if (i == 0 && j == 0) first_run = runs[j];
-            if (i == nSets-1 && j == nRuns-1) last_run = runs[j];
-
-            // clean-up
-            if (gH) delete gH;
-            if (gH2) delete gH2;
-            if (gFile) delete gFile;
-            gH = 0;
-            gH2 = 0;
-            gFile = 0;
-
-            // load ROOT file
-            sprintf(tmp, "%s/ARHistograms_CB_%d.root", fLoc, runs[j]);
-            gFile = new TFile(tmp);
-
-            // check file
-            if (!gFile) continue;
-            if (gFile->IsZombie()) continue;
-
-            // load histogram
-            gH2 = (TH2*) gFile->Get(hName);
-            if (!gH2) continue;
-            if (!gH2->GetEntries()) continue;
-
-            // project histogram
-            sprintf(tmp, "Proj_%d", runs[j]);
-            gH = gH2->ProjectionX(tmp);
-
-            // fit the histogram
-            Fit(runs[j]);
-            
-            // update canvases and sleep
-            if (watch)
-            {
-                cOverview->Update();
-                gCFit->Update();
-                gSystem->Sleep(100);
-            }
-     
-            // count run
-            nTotRuns++;
-        }
-
-        // clean-up
-        delete runs;
-
-        // draw runset markers
-        cOverview->cd();
+    { 
+        // create file manager
+        TCFileManager m(data, calibration, 1, &i);
         
-        // get first run of set
-        Int_t frun = TCMySQLManager::GetManager()->GetFirstRunOfSet(data, calibration, i);
-
-        // draw line
-        TLine* aLine = new TLine(frun, yMin, frun, yMax);
-        aLine->SetLineColor(kBlue);
-        aLine->SetLineWidth(2);
-        aLine->Draw("same");
+        // get histo
+        TH1* h = m.GetHistogram(hName);
+    
+        // draw histo
+        cOverview->cd(i+1);
+        h->Draw();
     }
     
-    // adjust axis
-    gHOverview->GetXaxis()->SetRangeUser(first_run-10, last_run+10);
-
     TFile* fout = new TFile("runset_overview.root", "recreate");
     cOverview->Write();
     delete fout;
-
-    printf("%d runs analyzed.\n", nTotRuns);
-
-    gSystem->Exit(0);
 }
 
