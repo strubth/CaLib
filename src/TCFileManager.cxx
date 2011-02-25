@@ -20,10 +20,12 @@ ClassImp(TCFileManager)
 
 //______________________________________________________________________________
 TCFileManager::TCFileManager(CalibData_t data, const Char_t* calibration, 
-                             Int_t nSet, Int_t* set)
+                             Int_t nSet, Int_t* set, const Char_t* filePat)
 {
     // Constructor using the calibration data 'data', the calibration identifier
     // 'calibration' and the 'nSet' sets in the array 'set'.
+    // If filePat is non-zero use this file pattern instead of the one written
+    // in the configuration file.
     
     // init members
     fCalibData = data;
@@ -35,21 +37,25 @@ TCFileManager::TCFileManager(CalibData_t data, const Char_t* calibration,
     fFiles->SetOwner(kTRUE);
 
     // read input file pattern
-    if (TString* f = TCReadConfig::GetReader()->GetConfig("File.Input.Rootfiles"))
-    {
-        fInputFilePatt = *f;
-        
-        // check file pattern
-        if (!fInputFilePatt.Contains("RUN"))
-        {
-            Error("TCFileManager", "Error in file pattern configuration!");
-            return;
-        }
-    }
+    if (filePat) fInputFilePatt = filePat;
     else
     {
-        Error("TCFileManager", "Could not load input file pattern from configuration!");
-        return;
+        if (TString* f = TCReadConfig::GetReader()->GetConfig("File.Input.Rootfiles"))
+        {
+            fInputFilePatt = *f;
+            
+            // check file pattern
+            if (!fInputFilePatt.Contains("RUN"))
+            {
+                Error("TCFileManager", "Error in file pattern configuration!");
+                return;
+            }
+        }
+        else
+        {
+            Error("TCFileManager", "Could not load input file pattern from configuration!");
+            return;
+        }
     }
 
     // build the list of files

@@ -40,7 +40,7 @@ public:
     TCFileManager() : fInputFilePatt(0), fFiles(0), 
                       fCalibData(kCALIB_EMPTY), fCalibration(), fNset(0), fSet(0) { }
     TCFileManager(CalibData_t data, const Char_t* calibration, 
-                  Int_t nSet, Int_t* set);
+                  Int_t nSet, Int_t* set, const Char_t* filePat = 0);
     virtual ~TCFileManager();
 
     TH1* GetHistogram(const Char_t* name);
