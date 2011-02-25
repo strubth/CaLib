@@ -658,7 +658,7 @@ Bool_t TCMySQLManager::WriteParameters(CalibData_t data, const Char_t* calibrati
     for (Int_t j = 0; j < length; j++)
     {
         // append parameter to query
-        query.Append(TString::Format("par_%03d = %lf", j, par[j]));
+        query.Append(TString::Format("par_%03d = %.17g", j, par[j]));
         if (j != length - 1) query.Append(",");
     }
     
@@ -1349,7 +1349,7 @@ Bool_t TCMySQLManager::AddSet(CalibData_t data, const Char_t* calibration, const
     for (Int_t j = 0; j < length; j++)
     {
         // append parameter to query
-        ins_query.Append(TString::Format("par_%03d = %lf", j, par[j]));
+        ins_query.Append(TString::Format("par_%03d = %.17g", j, par[j]));
         if (j != length - 1) ins_query.Append(",");
     }
 
