@@ -6,7 +6,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// Time.C                                                               //
+// TAPSTime.C                                                           //
 //                                                                      //
 // Check calibration of runsets.                                        //
 //                                                                      //
@@ -28,8 +28,7 @@ void Fit(TH1* h, Double_t* outPos, Double_t* outFWHM)
     Double_t fPi0Pos = h->GetBinCenter(h->GetMaximumBin());
 
     // configure fitting function
-    //func->SetRange(fPi0Pos - 0.8, fPi0Pos + 0.8);
-    func->SetRange(fPi0Pos - 10, fPi0Pos + 10);
+    func->SetRange(fPi0Pos - 0.8, fPi0Pos + 0.8);
     func->SetLineColor(2);
     func->SetParameters( 0.1, 0.1, h->GetMaximum(), 0, 0.1);
     Int_t fitres = h->Fit(func, "RB0Q");
@@ -47,15 +46,14 @@ void Fit(TH1* h, Double_t* outPos, Double_t* outFWHM)
     line->SetY2(h->GetMaximum());
 
     // draw 
-    //h->GetXaxis()->SetRangeUser(-3, 3);
-    h->GetXaxis()->SetRangeUser(-20, 20);
+    h->GetXaxis()->SetRangeUser(-3, 3);
     h->Draw();
     func->Draw("same");
     line->Draw("same");
 }
 
 //______________________________________________________________________________
-void Time()
+void TAPSTime()
 {
     // Main method.
     
@@ -64,22 +62,21 @@ void Time()
     // load CaLib
     gSystem->Load("libCaLib.so");
     
-    // TAPS time general configuration
-    //CalibData_t data = kCALIB_TAPS_T0;
-    //const Char_t* hName = "CaLib_TAPS_Time_Neut";
-
-    // CB time general configuration
-    CalibData_t data = kCALIB_CB_T0;
-    const Char_t* hName = "CaLib_CB_Time_Neut";
+    // general configuration
+    CalibData_t data = kCALIB_TAPS_T0;
+    const Char_t* hName = "CaLib_TAPS_Time_Neut";
 
     // configuration (December 2007)
     const Char_t calibration[] = "LD2_Dec_07";
+    const Char_t filePat[] = "/Users/fulgur/Desktop/calib/Dec_07/ARHistograms_CB_RUN.root";
 
     // configuration (February 2009)
     //const Char_t calibration[] = "LD2_Feb_09";
+    //const Char_t filePat[] = "/Users/fulgur/Desktop/calib/Feb_09/ARHistograms_CB_RUN.root";
     
     // configuration (May 2009)
     //const Char_t calibration[] = "LD2_May_09";
+    //const Char_t filePat[] = "/Users/fulgur/Desktop/calib/May_09/ARHistograms_CB_RUN.root";
     
     // get number of sets
     Int_t nSets = TCMySQLManager::GetManager()->GetNsets(data, calibration);
@@ -90,14 +87,17 @@ void Time()
     cOverview->Divide(n, nSets / n);
     
     // create arrays
-    Double_t* pos = new Double_t[nSets];
-    Double_t* fwhm = new Double_t[nSets];
+    Double_t* pos = new Double_t[nSets+1];
+    Double_t* fwhm = new Double_t[nSets+1];
+    
+    // total sum histogram
+    TH1* hTot;
 
     // loop over sets
     for (Int_t i = 0; i < nSets; i++)
     { 
         // create file manager
-        TCFileManager m(data, calibration, 1, &i);
+        TCFileManager m(data, calibration, 1, &i, filePat);
         
         // get histo
         TH2* h2 = (TH2*) m.GetHistogram(hName);
@@ -106,17 +106,22 @@ void Time()
         sprintf(tmp, "Proj_%d", i);
         TH1* h = (TH1*) h2->ProjectionX(tmp);
         
+        // add to total histogram
+        if (i == 0) hTot = (TH1*) h->Clone();
+        else hTot->Add(h);
+ 
         // fit histo
         cOverview->cd(i+1);
         Fit(h, &pos[i], &fwhm[i]);
     }
+    
+    // show total histogram
+    TCanvas* cTot = new TCanvas();
+    Fit(hTot, &pos[nSets], &fwhm[nSets]);
 
     // show results
     for (Int_t i = 0; i < nSets; i++)
         printf("Set %02d:   Pos: %.2f ps   FWHM: %.2f ps\n", i, 1000*pos[i], 1000*fwhm[i]);
-    
-    TFile* fout = new TFile("runset_overview.root", "recreate");
-    cOverview->Write();
-    delete fout;
+    printf("Total :   Pos: %.2f ps   FWHM: %.2f ps\n", 1000*pos[nSets], 1000*fwhm[nSets]);
 }
 
