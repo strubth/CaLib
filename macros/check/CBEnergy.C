@@ -28,14 +28,10 @@ void Fit(TH1* h, Double_t* outPos, Double_t* outFWHM)
     Double_t fPi0Pos = h->GetBinCenter(h->GetMaximumBin());
     if (fPi0Pos < 100 || fPi0Pos > 160) fPi0Pos = 135;
 
-    // estimate background
-    Double_t bgPar0, bgPar1;
-    TCUtils::FindBackground(h, fPi0Pos, 50, 50, &bgPar0, &bgPar1);
-    
     // configure fitting function
     func->SetRange(fPi0Pos - 20, fPi0Pos + 20);
     func->SetLineColor(2);
-    func->SetParameters( 3.8e+2, -1.90, 150, fPi0Pos, 8.9);
+    func->SetParameters( 3.8e+2, 0.1, h->GetMaximum(), fPi0Pos, 7);
     func->SetParLimits(4, 3, 40);  
     Int_t fitres = h->Fit(func, "RB0Q");
     
@@ -43,13 +39,6 @@ void Fit(TH1* h, Double_t* outPos, Double_t* outFWHM)
     fPi0Pos = func->GetParameter(3);
     *outPos = fPi0Pos;
     *outFWHM = 2.35*func->GetParameter(4);
-
-    // check failed fits
-    if (fitres) 
-    {
-        printf("Run %d: fit failed\n", run);
-        return;
-    }
 
     // indicator line
     TLine* line = new TLine();
@@ -80,13 +69,16 @@ void CBEnergy()
     const Char_t* hName = "CaLib_CB_IM_Neut";
 
     // configuration (December 2007)
-    const Char_t calibration[] = "LD2_Dec_07";
+    //const Char_t calibration[] = "LD2_Dec_07";
+    //const Char_t filePat[] = "/Users/fulgur/Desktop/calib/Dec_07/ARHistograms_CB_RUN.root";
 
     // configuration (February 2009)
     //const Char_t calibration[] = "LD2_Feb_09";
-    
+    //const Char_t filePat[] = "/Users/fulgur/Desktop/calib/Feb_09/ARHistograms_CB_RUN.root";
+
     // configuration (May 2009)
-    //const Char_t calibration[] = "LD2_May_09";
+    const Char_t calibration[] = "LD2_May_09";
+    const Char_t filePat[] = "/Users/fulgur/Desktop/calib/May_09/ARHistograms_CB_RUN.root";
     
     // get number of sets
     Int_t nSets = TCMySQLManager::GetManager()->GetNsets(data, calibration);
@@ -97,14 +89,17 @@ void CBEnergy()
     cOverview->Divide(n, nSets / n);
     
     // create arrays
-    Double_t* pos = new Double_t[nSets];
-    Double_t* fwhm = new Double_t[nSets];
+    Double_t* pos = new Double_t[nSets+1];
+    Double_t* fwhm = new Double_t[nSets+1];
+    
+    // total sum histogram
+    TH1* hTot;
 
     // loop over sets
     for (Int_t i = 0; i < nSets; i++)
     { 
         // create file manager
-        TCFileManager m(data, calibration, 1, &i);
+        TCFileManager m(data, calibration, 1, &i, filePat);
         
         // get histo
         TH2* h2 = (TH2*) m.GetHistogram(hName);
@@ -113,17 +108,27 @@ void CBEnergy()
         sprintf(tmp, "Proj_%d", i);
         TH1* h = (TH1*) h2->ProjectionX(tmp);
         
+        // add to total histogram
+        if (i == 0) hTot = (TH1*) h->Clone();
+        else hTot->Add(h);
+
         // fit histo
         cOverview->cd(i+1);
         Fit(h, &pos[i], &fwhm[i]);
     }
 
+    // show total histogram
+    TCanvas* cTot = new TCanvas();
+    Fit(hTot, &pos[nSets], &fwhm[nSets]);
+
     // show results
     for (Int_t i = 0; i < nSets; i++)
-        printf("Set %02d:   Pos: %.2f    FWHM: %.2f\n", i, pos[i], fwhm[i]);
+        printf("Set %02d:   Pos: %.2f MeV   FWHM: %.2f MeV\n", i, pos[i], fwhm[i]);
+    printf("Total :   Pos: %.2f MeV   FWHM: %.2f MeV\n", pos[nSets], fwhm[nSets]);
     
     TFile* fout = new TFile("runset_overview.root", "recreate");
     cOverview->Write();
+    cTot->Write();
     delete fout;
 }
 

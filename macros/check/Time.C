@@ -6,7 +6,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// CBEnergy.C                                                           //
+// Time.C                                                               //
 //                                                                      //
 // Check calibration of runsets.                                        //
 //                                                                      //
@@ -28,7 +28,8 @@ void Fit(TH1* h, Double_t* outPos, Double_t* outFWHM)
     Double_t fPi0Pos = h->GetBinCenter(h->GetMaximumBin());
 
     // configure fitting function
-    func->SetRange(fPi0Pos - 0.8, fPi0Pos + 0.8);
+    //func->SetRange(fPi0Pos - 0.8, fPi0Pos + 0.8);
+    func->SetRange(fPi0Pos - 10, fPi0Pos + 10);
     func->SetLineColor(2);
     func->SetParameters( 0.1, 0.1, h->GetMaximum(), 0, 0.1);
     Int_t fitres = h->Fit(func, "RB0Q");
@@ -38,13 +39,6 @@ void Fit(TH1* h, Double_t* outPos, Double_t* outFWHM)
     *outPos = fPi0Pos;
     *outFWHM = 2.35*func->GetParameter(4);
 
-    // check failed fits
-    if (fitres) 
-    {
-        printf("Run %d: fit failed\n", run);
-        return;
-    }
-
     // indicator line
     TLine* line = new TLine();
     line->SetX1(fPi0Pos);
@@ -53,14 +47,15 @@ void Fit(TH1* h, Double_t* outPos, Double_t* outFWHM)
     line->SetY2(h->GetMaximum());
 
     // draw 
-    h->GetXaxis()->SetRangeUser(-3, 3);
+    //h->GetXaxis()->SetRangeUser(-3, 3);
+    h->GetXaxis()->SetRangeUser(-20, 20);
     h->Draw();
     func->Draw("same");
     line->Draw("same");
 }
 
 //______________________________________________________________________________
-void TAPSTime()
+void Time()
 {
     // Main method.
     
@@ -69,9 +64,13 @@ void TAPSTime()
     // load CaLib
     gSystem->Load("libCaLib.so");
     
-    // general configuration
-    CalibData_t data = kCALIB_CB_E1;
-    const Char_t* hName = "CaLib_TAPS_Time_Neut";
+    // TAPS time general configuration
+    //CalibData_t data = kCALIB_TAPS_T0;
+    //const Char_t* hName = "CaLib_TAPS_Time_Neut";
+
+    // CB time general configuration
+    CalibData_t data = kCALIB_CB_T0;
+    const Char_t* hName = "CaLib_CB_Time_Neut";
 
     // configuration (December 2007)
     const Char_t calibration[] = "LD2_Dec_07";
@@ -114,7 +113,7 @@ void TAPSTime()
 
     // show results
     for (Int_t i = 0; i < nSets; i++)
-        printf("Set %02d:   Pos: %.2f    FWHM: %.2f\n", i, pos[i], fwhm[i]);
+        printf("Set %02d:   Pos: %.2f ps   FWHM: %.2f ps\n", i, 1000*pos[i], 1000*fwhm[i]);
     
     TFile* fout = new TFile("runset_overview.root", "recreate");
     cOverview->Write();

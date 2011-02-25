@@ -121,9 +121,8 @@ ButtonWindow::ButtonWindow()
     fTB_Prev->SetToolTipText("Switch to previous crystal", 200);
     fTB_Prev->Connect("Pressed()", "ButtonWindow", this, "DoPrev()");
 
-    fNE_Elem = new TGNumberEntry(horizontal_2, (Int_t) 1, 3, -1,(TGNumberFormat::EStyle) 0,
-                      (TGNumberFormat::EAttribute) 0,(TGNumberFormat::ELimit) 1, 1, 720);
-    fNE_Elem->SetIntNumber(1);
+    fNE_Elem = new TGNumberEntry(horizontal_2, 0, 3, -1, TGNumberFormat::kNESInteger,
+                      TGNumberFormat::kNEAAnyNumber, TGNumberFormat::kNELLimitMinMax, 0, 719);
     fNE_Elem->Resize(160, 50);
     horizontal_2->AddFrame(fNE_Elem, new TGLayoutHints(kLHintsLeft | kLHintsExpandY));
 
