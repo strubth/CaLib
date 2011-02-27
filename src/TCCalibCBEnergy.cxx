@@ -119,10 +119,6 @@ void TCCalibCBEnergy::Fit(Int_t elem)
         fPi0Pos = fFitHisto->GetBinCenter(fFitHisto->GetMaximumBin());
         if (fPi0Pos < 100 || fPi0Pos > 160) fPi0Pos = 135;
 
-        // estimate background
-        Double_t bgPar0, bgPar1;
-        TCUtils::FindBackground(fFitHisto, fPi0Pos, 50, 50, &bgPar0, &bgPar1);
-        
         // configure fitting function
         fFitFunc->SetRange(fPi0Pos - 20, fPi0Pos + 20);
         fFitFunc->SetLineColor(2);

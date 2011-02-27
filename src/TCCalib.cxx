@@ -30,8 +30,8 @@ TCCalib::~TCCalib()
     if (fFitHisto) delete fFitHisto;
     if (fFitFunc) delete fFitFunc;
     if (fOverviewHisto) delete fOverviewHisto;
-    if (fCanvasFit) delete fCanvasFit;
-    if (fCanvasResult) delete fCanvasResult;
+    //if (fCanvasFit) delete fCanvasFit;            // comment this to prevent crash
+    //if (fCanvasResult) delete fCanvasResult;      // comment this to prevent crash
     if (fTimer) delete fTimer;
 }
 
@@ -103,7 +103,7 @@ void TCCalib::Start(const Char_t* calibration, Int_t nSet, Int_t* set)
                         "EventHandler(Int_t, Int_t, Int_t, TObject*)");
 
     // draw the result canvas
-    fCanvasResult = new TCanvas("Result", "Result", 630, 0, 900, 400);
+    fCanvasResult = new TCanvas("Result", "Result", gClient->GetDisplayWidth() - 900, 0, 900, 400);
     
     // init sub-class
     Init();

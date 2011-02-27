@@ -26,6 +26,7 @@
 #include "TSystem.h"
 #include "TTimeStamp.h"
 #include "TStyle.h"
+#include "TGClient.h"
 
 #include "TCMySQLManager.h"
 #include "TCReadConfig.h"

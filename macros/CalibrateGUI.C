@@ -1,7 +1,7 @@
 // SVN Info: $Id$
 
 /*************************************************************************
- * Author: Irakli Keshelashvili, Dominik Werthmueller
+ * Author: Dominik Werthmueller, Irakli Keshelashvili
  *************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
@@ -38,12 +38,15 @@ private:
     TGComboBox* fCBox_Calibration;
     TGComboBox* fCBox_Module;
     TGListBox *fLB_RunSet;
-    TGNumberEntry *fNE_Elem;
     TGNumberEntry *fNE_Delay;
+    TGRadioButton* fRadio_All;
+    TGRadioButton* fRadio_Even;
+    TGRadioButton* fRadio_Odd;
 
 public:
     ButtonWindow();
 
+    void ResizeFrame(TGFrame* f);
     void Goto();
     void DoNext();
     void DoPrev();
@@ -59,12 +62,16 @@ ButtonWindow::ButtonWindow()
     // Main test window.
     SetWindowName("CaLib Control Panel");
     
-    TGButtonGroup *horizontal0 = new TGButtonGroup(this, "Calibration configuration", kHorizontalFrame);
-    horizontal0->SetTitlePos(TGGroupFrame::kLeft);
-
-    fCBox_Calibration = new TGComboBox(horizontal0, "Choose calibration");
-    fCBox_Calibration->Resize(100, 30);
-    horizontal0->AddFrame(fCBox_Calibration, new TGLayoutHints(kLHintsExpandX));
+    // ---------------------------------------------------------------------------------
+    TGGroupFrame* config_frame = new TGGroupFrame(this, "Calibration and set configuration", kHorizontalFrame);
+    config_frame->SetTitlePos(TGGroupFrame::kLeft);
+    
+    TGVerticalFrame* ver_frame_1 = new TGVerticalFrame(config_frame);
+    
+    // calibration selection
+    fCBox_Calibration = new TGComboBox(ver_frame_1, "Choose calibration");
+    fCBox_Calibration->Resize(220, 25);
+    ver_frame_1->AddFrame(fCBox_Calibration, new TGLayoutHints(kLHintsLeft, 0, 5, 10, 0));
       
     // fill calibrations
     gCalibrations = TCMySQLManager::GetManager()->GetAllCalibrations();
@@ -76,16 +83,11 @@ ButtonWindow::ButtonWindow()
     
     fCBox_Calibration->Connect("Selected(Int_t)", "ButtonWindow", this, "EnableModuleSelection(Int_t)");
 
-    AddFrame(horizontal0, new TGLayoutHints(kLHintsExpandX, 5, 5, 5, 5));
-
-    // ---------------------------------------------------------------------------------
-    TGButtonGroup *horizontal = new TGButtonGroup(this, "Main configuration", kHorizontalFrame);
-    horizontal->SetTitlePos(TGGroupFrame::kLeft);
-
-    fCBox_Module = new TGComboBox(horizontal, "Choose calibration module");
-    fCBox_Module->Resize(100, 30);
-    horizontal->AddFrame(fCBox_Module, new TGLayoutHints(kLHintsExpandX));
-      
+    // calibration module selection
+    fCBox_Module = new TGComboBox(ver_frame_1, "Choose calibration module");
+    fCBox_Module->Resize(220, 25);
+    ver_frame_1->AddFrame(fCBox_Module, new TGLayoutHints(kLHintsLeft, 0, 5, 10, 0));
+  
     // fill modules
     for (Int_t i = 0; i < gCaLibModules->GetSize(); i++)
     {
@@ -94,107 +96,112 @@ ButtonWindow::ButtonWindow()
     }
 
     fCBox_Module->Connect("Selected(Int_t)", "ButtonWindow", this, "ReadRunsets(Int_t)");
-
-    fLB_RunSet = new TGListBox(horizontal);
+    
+    config_frame->AddFrame(ver_frame_1, new TGLayoutHints(kLHintsFillX));
+    
+    TGVerticalFrame* ver_frame_2 = new TGVerticalFrame(config_frame);
+    
+    // runset selection
+    fLB_RunSet = new TGListBox(ver_frame_2);
     fLB_RunSet->SetMultipleSelections(kTRUE);
-    fLB_RunSet->Resize(200, 100);
-    horizontal->AddFrame(fLB_RunSet, new TGLayoutHints(kLHintsLeft | kLHintsExpandY));
-
-    fTB_Init = new TGTextButton(horizontal, "Start module");
-    fTB_Init->SetTextJustify(36);
-    fTB_Init->Resize(80, 50);
-    fTB_Init->ChangeOptions(fTB_Init->GetOptions() | kFixedSize);
-    fTB_Init->Connect("Pressed()", "ButtonWindow", this, "StartModule()");
-    horizontal->AddFrame(fTB_Init, new TGLayoutHints(kLHintsRight));
-
-
-    AddFrame(horizontal, new TGLayoutHints(kLHintsExpandX, 5, 5, 5, 5));
+    fLB_RunSet->Resize(120, 60);
+    ver_frame_2->AddFrame(fLB_RunSet, new TGLayoutHints(kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 5, 0, 10, 0));
+    
+    config_frame->AddFrame(ver_frame_2, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY));
+    AddFrame(config_frame, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, 5, 5, 5, 5));
 
     // ---------------------------------------------------------------------------------
-    TGButtonGroup *horizontal_2 = new TGButtonGroup(this, "Manual navigation", kHorizontalFrame);
-    horizontal_2->SetTitlePos(TGGroupFrame::kLeft);
+    
+    // control buttons
+    TGGroupFrame* control_frame = new TGGroupFrame(this, "Calibration control", kHorizontalFrame);
+    control_frame->SetTitlePos(TGGroupFrame::kLeft);
+    
+    fTB_Init = new TGTextButton(control_frame, "Start module");
+    ResizeFrame(fTB_Init);
+    fTB_Init->Connect("Clicked()", "ButtonWindow", this, "StartModule()");
+    control_frame->AddFrame(fTB_Init, new TGLayoutHints(kLHintsExpandX, 0, 0, 10, 0));
 
-    fTB_Prev = new TGTextButton(horizontal_2,"Prev.");
-    fTB_Prev->SetTextJustify(36);
-    fTB_Prev->Resize(80, 50);
-    fTB_Prev->ChangeOptions(fTB_Prev->GetOptions() | kFixedSize);
-    fTB_Prev->SetToolTipText("Switch to previous crystal", 200);
-    fTB_Prev->Connect("Pressed()", "ButtonWindow", this, "DoPrev()");
+    fTB_Write = new TGTextButton(control_frame, "Write to DB");
+    ResizeFrame(fTB_Write);
+    fTB_Write->Connect("Clicked()", "ButtonWindow", this, "DoWrite()");
+    control_frame->AddFrame(fTB_Write, new TGLayoutHints(kLHintsExpandX, 0, 0, 10, 0));
 
-    fNE_Elem = new TGNumberEntry(horizontal_2, 0, 3, -1, TGNumberFormat::kNESInteger,
-                      TGNumberFormat::kNEAAnyNumber, TGNumberFormat::kNELLimitMinMax, 0, 719);
-    fNE_Elem->Resize(160, 50);
-    horizontal_2->AddFrame(fNE_Elem, new TGLayoutHints(kLHintsLeft | kLHintsExpandY));
+    fTB_Print = new TGTextButton(control_frame, "Print values");
+    ResizeFrame(fTB_Print);
+    fTB_Print->Connect("Clicked()", "ButtonWindow", this, "Print()");
+    control_frame->AddFrame(fTB_Print, new TGLayoutHints(kLHintsExpandX, 0, 0, 10, 0));
 
-    fTB_Goto = new TGTextButton(horizontal_2, "Go to");
-    fTB_Goto->SetTextJustify(36);
-    fTB_Goto->Resize(80,50);
+    fTB_PrintChanges = new TGTextButton(control_frame, "Print changes");
+    ResizeFrame(fTB_PrintChanges);
+    fTB_PrintChanges->Connect("Clicked()", "ButtonWindow", this, "PrintChanges()");
+    control_frame->AddFrame(fTB_PrintChanges, new TGLayoutHints(kLHintsExpandX, 0, 0, 10, 0));
 
-    fTB_Goto->ChangeOptions(fTB_Goto->GetOptions() | kFixedSize);
-    fTB_Goto->SetToolTipText("Go to crystal", 200);
+    fTB_Quit = new TGTextButton(control_frame, "Quit");
+    ResizeFrame(fTB_Quit);
+    fTB_Quit->Connect("Clicked()", "ButtonWindow", this, "Quit()");
+    control_frame->AddFrame(fTB_Quit, new TGLayoutHints(kLHintsExpandX, 0, 0, 10, 0));
+    
+    AddFrame(control_frame, new TGLayoutHints(kLHintsExpandX, 5, 5, 5, 5));
+
+    // ---------------------------------------------------------------------------------
+    
+    TGHorizontalFrame* nav_main_frame = new TGHorizontalFrame(this);
+    
+    // manual navigation
+    TGGroupFrame* nav_man_frame = new TGGroupFrame(nav_main_frame, "Manual navigation", kHorizontalFrame);
+    nav_man_frame->SetTitlePos(TGGroupFrame::kLeft);
+
+    fTB_Prev = new TGTextButton(nav_man_frame, "Previous");
+    ResizeFrame(fTB_Prev);
+    fTB_Prev->SetToolTipText("Go to previous element", 200);
+    fTB_Prev->Connect("Clicked()", "ButtonWindow", this, "DoPrev()");
+    nav_man_frame->AddFrame(fTB_Prev, new TGLayoutHints(kLHintsLeft, 0, 0, 10, 0));
+    
+    fTB_Next = new TGTextButton(nav_man_frame, "   Next   ");
+    ResizeFrame(fTB_Next);
+    fTB_Next->SetToolTipText("Go to next element", 200);
+    fTB_Next->Connect("Clicked()", "ButtonWindow", this, "DoNext()");
+    nav_man_frame->AddFrame(fTB_Next, new TGLayoutHints(kLHintsLeft, 0, 20, 10, 0));
+
+    fTB_Goto = new TGTextButton(nav_man_frame, "Go to");
+    ResizeFrame(fTB_Goto);
+    fTB_Goto->SetToolTipText("Go to specified element", 200);
     fTB_Goto->Connect("Released()", "ButtonWindow", this, "Goto()");
+    nav_man_frame->AddFrame(fTB_Goto, new TGLayoutHints(kLHintsLeft, 0, 0, 10, 0));
+    
+    fNE_Elem = new TGNumberEntry(nav_man_frame, 0, 3, -1, TGNumberFormat::kNESInteger,
+                      TGNumberFormat::kNEAAnyNumber, TGNumberFormat::kNELLimitMinMax, 0, 719);
+    ResizeFrame(fNE_Elem);
+    nav_man_frame->AddFrame(fNE_Elem, new TGLayoutHints(kLHintsLeft, 0, 0, 10, 0));
+    
+    nav_main_frame->AddFrame(nav_man_frame, new TGLayoutHints(kLHintsExpandX, 0, 0, 0, 0));
 
-    fTB_Next = new TGTextButton(horizontal_2,"Next");
-    fTB_Next->SetTextJustify(36);
-    fTB_Next->SetMargins(0,0,0,0);
-    fTB_Next->Resize(80, 50);
-    fTB_Next->ChangeOptions(fTB_Next->GetOptions() | kFixedSize);
-    fTB_Next->SetToolTipText("Switch to next crystal", 200);
+    // automatic navigation
+    TGGroupFrame* nav_auto_frame = new TGGroupFrame(nav_main_frame, "Automatic navigation", kHorizontalFrame);
+    nav_auto_frame->SetTitlePos(TGGroupFrame::kLeft);
 
-    fTB_Next->Connect("Pressed()", "ButtonWindow", this, "DoNext()");
-
-    AddFrame(horizontal_2, new TGLayoutHints(kLHintsExpandX, 5,5,5,5));
-       
-    // ---------------------------------------------------------------------------------
-    TGButtonGroup *horizontal_3 = new TGButtonGroup(this, "Automatic navigation", kHorizontalFrame);
-    horizontal_3->SetTitlePos(TGGroupFrame::kLeft);
-
-    fNE_Delay = new TGNumberEntry(horizontal_3, 0.1, 3, -1, TGNumberFormat::kNESRealTwo,
+    fNE_Delay = new TGNumberEntry(nav_auto_frame, 0.1, 3, -1, TGNumberFormat::kNESRealTwo,
                                   TGNumberFormat::kNEAAnyNumber, TGNumberFormat::kNELLimitMinMax, 0.01, 5);
-    fNE_Delay->Resize(160, 50);
-    horizontal_3->AddFrame(fNE_Delay, new TGLayoutHints(kLHintsLeft | kLHintsExpandY));
+    ResizeFrame(fNE_Delay);
+    nav_auto_frame->AddFrame(fNE_Delay, new TGLayoutHints(kLHintsLeft, 0, 5, 10, 0));
 
-    fTB_DoAll = new TGTextButton(horizontal_3,"Start");
-    fTB_DoAll->SetTextJustify(36);
-    fTB_DoAll->Resize(80, 50);
-    fTB_DoAll->ChangeOptions(fTB_DoAll->GetOptions() | kFixedSize);
-    fTB_DoAll->SetToolTipText("Continue automatically", 200);
-    fTB_DoAll->Connect("Pressed()", "ButtonWindow", this, "DoAll()");
+    fTB_DoAll = new TGTextButton(nav_auto_frame, "Start");
+    ResizeFrame(fTB_DoAll);
+    fTB_DoAll->SetToolTipText("Process automatically", 200);
+    fTB_DoAll->Connect("Clicked()", "ButtonWindow", this, "DoAll()");
+    nav_auto_frame->AddFrame(fTB_DoAll, new TGLayoutHints(kLHintsLeft, 0, 0, 10, 0));
 
-    fTB_Stop = new TGTextButton(horizontal_3, "Stop");
-    fTB_Stop->SetTextJustify(36);
-    fTB_Stop->Resize(80, 50);
-    fTB_Stop->ChangeOptions(fTB_Stop->GetOptions() | kFixedSize);
+    fTB_Stop = new TGTextButton(nav_auto_frame, "Stop");
+    ResizeFrame(fTB_Stop);
     fTB_Stop->SetToolTipText("Stop processing", 200);
-    fTB_Stop->Connect("Pressed()", "ButtonWindow", this, "Stop()");
+    fTB_Stop->Connect("Clicked()", "ButtonWindow", this, "Stop()");
+    nav_auto_frame->AddFrame(fTB_Stop, new TGLayoutHints(kLHintsLeft, 0, 0, 10, 0));
 
-    AddFrame(horizontal_3, new TGLayoutHints(kLHintsExpandX, 5,5,5,5));
+    nav_main_frame->AddFrame(nav_auto_frame, new TGLayoutHints(kLHintsLeft, 5, 0, 0, 0));
 
-    // ---------------------------------------------------------------------------------
-    TGButtonGroup *horizontal_4 = new TGButtonGroup(this, "Calibration control", kHorizontalFrame);
-    horizontal_4->SetTitlePos(TGGroupFrame::kLeft);
-
-    fTB_Write = new TGTextButton(horizontal_4, "Write");
-    fTB_Write->Resize(80,50);
-    fTB_Write->ChangeOptions(fTB_Write->GetOptions() | kFixedSize);
-    fTB_Write->Connect("Pressed()", "ButtonWindow", this, "DoWrite()");
-
-    fTB_Print = new TGTextButton(horizontal_4,"Print");
-    fTB_Print->Resize(80,50);
-    fTB_Print->ChangeOptions(fTB_Print->GetOptions() | kFixedSize);
-    fTB_Print->Connect("Pressed()", "ButtonWindow", this, "Print()");
-
-    fTB_PrintChanges = new TGTextButton(horizontal_4,"Changes");
-    fTB_PrintChanges->Resize(80,50);
-    fTB_PrintChanges->ChangeOptions(fTB_Print->GetOptions() | kFixedSize);
-    fTB_PrintChanges->Connect("Pressed()", "ButtonWindow", this, "PrintChanges()");
-
-    fTB_Quit = new TGTextButton(horizontal_4, "Quit");
-    fTB_Quit->Resize(80,50);
-    fTB_Quit->ChangeOptions(fTB_Quit->GetOptions() | kFixedSize );
-    fTB_Quit->Connect("Pressed()", "ButtonWindow", this, "Quit()");
-
-    AddFrame(horizontal_4, new TGLayoutHints(kLHintsExpandX, 5,5,5,5));
+    AddFrame(nav_main_frame, new TGLayoutHints(kLHintsExpandX, 5, 5, 0, 5));
+     
+    // window configuration
     Connect("CloseWindow()", "ButtonWindow", this, "Quit()");
     DontCallClose();
     
@@ -203,10 +210,22 @@ ButtonWindow::ButtonWindow()
 
     // Initialize the layout algorithm
     Resize(GetDefaultSize());
-
-    SetWMSizeHints( 600, 400, 800, 700, 0 ,0);
+    
+    // show window
     MapRaised();
-    Move(500, 500);
+
+    // move window
+    Move(gClient->GetDisplayWidth() - GetDefaultWidth(), 
+         gClient->GetDisplayHeight() - GetDefaultHeight() - 30);
+}
+
+//______________________________________________________________________________
+void ButtonWindow::ResizeFrame(TGFrame* f)
+{
+    // Resize the frame 'f'.
+
+    f->Resize(70, 40);
+    f->ChangeOptions(f->GetOptions() | kFixedSize );
 }
 
 //______________________________________________________________________________
@@ -336,12 +355,15 @@ void ButtonWindow::ReadRunsets(Int_t i)
     for (Int_t i = 0; i < nsets; i++)
     {
         // get the first and last runs
+        Char_t ctime[256];    
         Int_t first_run = TCMySQLManager::GetManager()->GetFirstRunOfSet(data, calibration->GetString().Data(), i);
         Int_t last_run = TCMySQLManager::GetManager()->GetLastRunOfSet(data, calibration->GetString().Data(), i);
-    
+        TCMySQLManager::GetManager()->GetChangeTimeOfSet(data, calibration->GetString().Data(), i, ctime);
+        ctime[strlen(ctime)-3] = '\0';
+
         // add list entry
         Char_t tmp[256];
-        sprintf(tmp, "Set %d (Run %d to %d)", i, first_run, last_run);
+        sprintf(tmp, "Set %d (Run %d to %d) of %s", i, first_run, last_run, ctime);
         fLB_RunSet->AddEntry(tmp, i);
     }
     
@@ -376,8 +398,14 @@ void ButtonWindow::StartModule()
     // get the selected calibration
     TObjString* calibration = (TObjString*) gCalibrations->At(fCBox_Calibration->GetSelected());
     
+    // get element type
+    Element_t elem;
+    if (fRadio_All->GetState() == kButtonDown) elem = kELEMENT_ALL;
+    else if (fRadio_Even->GetState() == kButtonDown) elem = kELEMENT_EVEN;
+    else if (fRadio_Odd->GetState() == kButtonDown) elem = kELEMENT_ODD;
+
     // start the module
-    ((TCCalib*)gCurrentModule)->Start(calibration->GetString().Data(), nSet, set);
+    ((TCCalib*)gCurrentModule)->Start(calibration->GetString().Data(), nSet, set, elem);
 }
 
 //______________________________________________________________________________
