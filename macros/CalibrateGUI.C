@@ -398,14 +398,8 @@ void ButtonWindow::StartModule()
     // get the selected calibration
     TObjString* calibration = (TObjString*) gCalibrations->At(fCBox_Calibration->GetSelected());
     
-    // get element type
-    Element_t elem;
-    if (fRadio_All->GetState() == kButtonDown) elem = kELEMENT_ALL;
-    else if (fRadio_Even->GetState() == kButtonDown) elem = kELEMENT_EVEN;
-    else if (fRadio_Odd->GetState() == kButtonDown) elem = kELEMENT_ODD;
-
     // start the module
-    ((TCCalib*)gCurrentModule)->Start(calibration->GetString().Data(), nSet, set, elem);
+    ((TCCalib*)gCurrentModule)->Start(calibration->GetString().Data(), nSet, set);
 }
 
 //______________________________________________________________________________
