@@ -239,15 +239,9 @@ void TCCalibTime::Calculate(Int_t elem)
         if (fLine->GetX1() != fMean) fMean = fLine->GetX1();
 
         // calculate the new offset
-        Double_t off = 0;
-        if (this->InheritsFrom("TCCalibCBRiseTime")) off = fMean;
-        else off = fMean / fTimeGain[elem];
+        if (this->InheritsFrom("TCCalibCBRiseTime")) fNewVal[elem] = fOldVal[elem] + fMean;
+        fNewVal[elem] = fOldVal[elem] + fMean / fTimeGain[elem];
         
-        // correct summing (Kahan summation algorithm) to avoid loss of accuracy
-        fNewVal[elem] = fOldVal[elem] + fMean;
-        Double_t c = (fNewVal[elem] - fOldVal[elem]) - fMean;
-        fNewVal[elem] += c;
-
         // update overview histogram
         fOverviewHisto->SetBinContent(elem + 1, fMean);
         fOverviewHisto->SetBinError(elem + 1, 0.0000001);
