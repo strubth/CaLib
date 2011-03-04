@@ -47,8 +47,8 @@ endif
 # -------------------------------- Compile options --------------------------------
 
 CCCOMP      = g++
-CXXFLAGS    = -g -Wall -fPIC $(ROOTCFLAGS) -I./$(I)
-LDFLAGS     = -g $(ROOTLDFLAGS)
+CXXFLAGS    = -g -O2 -Wall -fPIC $(ROOTCFLAGS) -I./$(I)
+LDFLAGS     = -g -O2 $(ROOTLDFLAGS)
 
 # ------------------------------------ targets ------------------------------------
 
