@@ -112,7 +112,7 @@ void TCCalibCBEnergy::Fit(Int_t elem)
         // delete old function
         if (fFitFunc) delete fFitFunc;
         sprintf(tmp, "fEnergy_%i", elem);
-        fFitFunc = new TF1(tmp, "pol1+gaus(2)");
+        fFitFunc = new TF1(tmp, "gaus(0)+pol2(3)");
         fFitFunc->SetLineColor(2);
         
         // estimate peak position
@@ -120,14 +120,14 @@ void TCCalibCBEnergy::Fit(Int_t elem)
         if (fPi0Pos < 100 || fPi0Pos > 160) fPi0Pos = 135;
 
         // configure fitting function
-        fFitFunc->SetRange(fPi0Pos - 20, fPi0Pos + 20);
+        fFitFunc->SetRange(fPi0Pos - 50, fPi0Pos + 50);
         fFitFunc->SetLineColor(2);
-        fFitFunc->SetParameters( 3.8e+2, -1.90, 150, fPi0Pos, 8.9);
-        fFitFunc->SetParLimits(4, 3, 40);  
+        fFitFunc->SetParameters(fFitHisto->GetMaximum(), fPi0Pos, 8, 0.1, 0.1, 0.1);
+        fFitFunc->SetParLimits(2, 3, 20);  
         fFitHisto->Fit(fFitFunc, "RB0Q");
 
         // final results
-        fPi0Pos = fFitFunc->GetParameter(3); 
+        fPi0Pos = fFitFunc->GetParameter(1); 
 
         // draw mean indicator line
         fLine->SetY1(0);
