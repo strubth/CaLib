@@ -35,6 +35,29 @@ void TCUtils::FindBackground(TH1* h, Double_t peak, Double_t low, Double_t high,
 }
 
 //______________________________________________________________________________
+Double_t TCUtils::Pi0Func(Double_t* x, Double_t* par)
+{
+    // Fitting function for the Pi0 peak in the invariant mass histogram.
+    //
+    // par[0] : N
+    // par[1] : E_peak
+    // par[2] : Gamma
+    // par[3] : lambda
+    // par[4] : log argument
+    // par[5] : pol par 0
+    // par[6] : pol par 1
+    // par[7] : pol par 2
+    // par[8] : pol par 3
+
+    Double_t eDiff = x[0] - par[1];
+    Double_t G = TMath::Exp(-4. * TMath::Log(par[4]) * eDiff * eDiff / par[2] / par[2]);
+    Double_t out = par[5] + par[6]*x[0] + par[7]*x[0]*x[0] + par[8]*x[0]*x[0]*x[0];
+
+    if (x[0] >= par[1]) return out + par[0] * G;                                  // above peak position 
+    else return out + par[0] * (G + TMath::Exp(eDiff / par[3]) * (1. - G));       // below peak position -> tail
+}
+
+//______________________________________________________________________________
 Double_t TCUtils::GetHistogramMinimum(TH1* h)
 {
     // Return the non-zero minimum bin content of the histogram 'h'.

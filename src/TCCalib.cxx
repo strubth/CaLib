@@ -290,7 +290,7 @@ void TCCalib::SaveCanvas(TCanvas* c, const Char_t* name)
         TTimeStamp t;
         t.GetDate(kFALSE, 0, &year, &month, &day);
         t.GetTime(kFALSE, 0, &hour, &min);
-        sprintf(date, "%d-%d-%d_%d:%d", year, month, day, hour, min);
+        sprintf(date, "%d-%02d-%02d_%02d.%02d", year, month, day, hour, min);
 
         // save canvas (only for first set)
         sprintf(tmp, "%s/%s/%s_Set_%d_%s.png", 

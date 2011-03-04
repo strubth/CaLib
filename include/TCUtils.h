@@ -17,6 +17,7 @@
 #define TCUTILS_H
 
 #include "TH2.h"
+#include "TMath.h"
 
 #include "TCReadConfig.h"
 
@@ -25,6 +26,7 @@ namespace TCUtils
 {
     void FindBackground(TH1* h, Double_t peak, Double_t low, Double_t high,
                         Double_t* outPar0, Double_t* outPar1);
+    Double_t Pi0Func(Double_t* x, Double_t* par);
     Double_t GetHistogramMinimum(TH1* h);
     Double_t GetHistogramMinimumPosition(TH1* h);
     void FormatHistogram(TH1* h, const Char_t* ident);

@@ -120,10 +120,11 @@ void TCCalibCBEnergy::Fit(Int_t elem)
         if (fPi0Pos < 100 || fPi0Pos > 160) fPi0Pos = 135;
 
         // configure fitting function
-        fFitFunc->SetRange(fPi0Pos - 50, fPi0Pos + 50);
+        fFitFunc->SetRange(fPi0Pos - 50, fPi0Pos + 80);
         fFitFunc->SetLineColor(2);
-        fFitFunc->SetParameters(fFitHisto->GetMaximum(), fPi0Pos, 8, 0.1, 0.1, 0.1);
-        fFitFunc->SetParLimits(2, 3, 20);  
+        fFitFunc->SetParameters(fFitHisto->GetMaximum(), fPi0Pos, 8, 1, 1, 1, 0.1);
+        fFitFunc->SetParLimits(1, 130, 140);  
+        fFitFunc->SetParLimits(2, 3, 15);  
         fFitHisto->Fit(fFitFunc, "RB0Q");
 
         // final results
@@ -179,8 +180,15 @@ void TCCalibCBEnergy::Calculate(Int_t elem)
         if (fLine->GetX1() != fPi0Pos) fPi0Pos = fLine->GetX1();
         
         // calculate the new offset
-        fNewVal[elem] = fOldVal[elem] * (TCConfig::kPi0Mass / fPi0Pos);
-    
+        fNewVal[elem] = fOldVal[elem] * (TCConfig::kPi0Mass * TCConfig::kPi0Mass / fPi0Pos / fPi0Pos);
+        
+        // slow down convergence when near correct value
+        if (TMath::Abs(TCConfig::kPi0Mass - fPi0Pos) < 1)
+        {
+            Double_t diff = fNewVal[elem] - fOldVal[elem];
+            fNewVal[elem] = fOldVal[elem] + diff*0.2;
+        }
+
         // if new value is negative take old
         if (fNewVal[elem] < 0) 
         {
