@@ -58,6 +58,10 @@ void TCCalib::Start(const Char_t* calibration, Int_t nSet, Int_t* set)
     fCanvasFit = 0;
     fCanvasResult = 0;
     
+    fAvr = 0;
+    fAvrDiff = 0;
+    fNcalc = 0;
+
     // create timer
     fTimer = new TTimer(100);
     fTimer->Connect("Timeout()", "TCCalib", this, "Next()");

@@ -142,7 +142,14 @@ void TCCalibTime::Fit(Int_t elem)
     // init variables
     Double_t factor = 2.5;
     Double_t range = 3.8;
-
+    
+    // draw histogram
+    fFitHisto->SetFillColor(35);
+    fCanvasFit->cd(2);
+    sprintf(tmp, "%s.Histo.Fit", GetName());
+    TCUtils::FormatHistogram(fFitHisto, tmp);
+    fFitHisto->Draw("hist");
+ 
     // check for sufficient statistics
     if (fFitHisto->GetEntries())
     {
@@ -197,21 +204,14 @@ void TCCalibTime::Fit(Int_t elem)
         fLine->SetY2(fFitHisto->GetMaximum() + 20);
         fLine->SetX1(fMean);
         fLine->SetX2(fMean);
+   
+        // draw fitting function
+        if (fFitFunc) fFitFunc->Draw("same");
+    
+        // draw indicator line
+        fLine->Draw();
     }
 
-    // draw histogram
-    fFitHisto->SetFillColor(35);
-    fCanvasFit->cd(2);
-    sprintf(tmp, "%s.Histo.Fit", GetName());
-    TCUtils::FormatHistogram(fFitHisto, tmp);
-    fFitHisto->Draw("hist");
-    
-    // draw fitting function
-    if (fFitFunc) fFitFunc->Draw("same");
-    
-    // draw indicator line
-    fLine->Draw();
-    
     // update canvas
     fCanvasFit->Update();
     
@@ -245,6 +245,11 @@ void TCCalibTime::Calculate(Int_t elem)
         // update overview histogram
         fOverviewHisto->SetBinContent(elem + 1, fMean);
         fOverviewHisto->SetBinError(elem + 1, 0.0000001);
+        
+        // update average calculation
+        fAvr += fMean;
+        fAvrDiff += TMath::Abs(fMean);
+        fNcalc++;
     }
     else
     {   
@@ -269,5 +274,14 @@ void TCCalibTime::Calculate(Int_t elem)
         if (TCUtils::IsCBHole(elem)) printf(" (hole)");
     }
     printf("\n");
-}   
+
+    // show average
+    if (elem == fNelem-1)
+    {
+        fAvr /= (Double_t)fNcalc;
+        fAvrDiff /= (Double_t)fNcalc;
+        printf("Average center          : %.3f ns\n", fAvr);
+        printf("Average difference to 0 : %.3f ns\n", fAvrDiff);
+    }
+}
 

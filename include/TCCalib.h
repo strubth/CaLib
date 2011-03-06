@@ -46,13 +46,16 @@ protected:
     Int_t fCurrentElem;         // number of current element
     Double_t* fOldVal;          //[fNelem] old calibration value array
     Double_t* fNewVal;          //[fNelem] new calibration value array
-    
+    Double_t fAvr;              // average value
+    Double_t fAvrDiff;          // average difference to aimed value
+    Int_t fNcalc;               // number of calculated elements
+
     TH1* fMainHisto;            // main histogram 
     TH1* fFitHisto;             // fitting histogram
     TF1* fFitFunc;              // fitting function
 
     TH1* fOverviewHisto;        // overview result histogram
-
+    
     TCanvas* fCanvasFit;        // canvas containing the fits
     TCanvas* fCanvasResult;     // canvas containing the results
     
@@ -71,6 +74,7 @@ public:
                 fSet(0), fHistoName(), 
                 fNelem(0), fCurrentElem(0),
                 fOldVal(0), fNewVal(0),
+                fAvr(0), fAvrDiff(0), fNcalc(0),
                 fMainHisto(0), fFitHisto(0), fFitFunc(0),
                 fOverviewHisto(0),
                 fCanvasFit(0), fCanvasResult(0), 
@@ -83,6 +87,7 @@ public:
           fSet(0), fHistoName(), 
           fNelem(nElem), fCurrentElem(0),
           fOldVal(0), fNewVal(0),
+          fAvr(0), fAvrDiff(0), fNcalc(0),
           fMainHisto(0), fFitHisto(0), fFitFunc(0),
           fOverviewHisto(0),
           fCanvasFit(0), fCanvasResult(0), 

@@ -106,13 +106,19 @@ void TCCalibCBEnergy::Fit(Int_t elem)
     if (fFitHisto) delete fFitHisto;
     fFitHisto = (TH1D*) h2->ProjectionX(tmp, elem+1, elem+1, "e");
     
+    // draw histogram
+    fFitHisto->SetFillColor(35);
+    fCanvasFit->cd(2);
+    TCUtils::FormatHistogram(fFitHisto, "CB.Energy.Histo.Fit");
+    fFitHisto->Draw("hist");
+     
     // check for sufficient statistics
     if (fFitHisto->GetEntries() > 1000)
     {
         // delete old function
         if (fFitFunc) delete fFitFunc;
         sprintf(tmp, "fEnergy_%i", elem);
-        fFitFunc = new TF1(tmp, "gaus(0)+pol2(3)");
+        fFitFunc = new TF1(tmp, "gaus(0)+pol3(3)");
         fFitFunc->SetLineColor(2);
         
         // estimate peak position
@@ -125,7 +131,10 @@ void TCCalibCBEnergy::Fit(Int_t elem)
         fFitFunc->SetParameters(fFitHisto->GetMaximum(), fPi0Pos, 8, 1, 1, 1, 0.1);
         fFitFunc->SetParLimits(1, 130, 140);  
         fFitFunc->SetParLimits(2, 3, 15);  
-        fFitHisto->Fit(fFitFunc, "RB0Q");
+        
+        // fit
+        for (Int_t i = 0; i < 10; i++)
+            if (!fFitHisto->Fit(fFitFunc, "RBQ0")) break;
 
         // final results
         fPi0Pos = fFitFunc->GetParameter(1); 
@@ -140,23 +149,17 @@ void TCCalibCBEnergy::Fit(Int_t elem)
         // set indicator line
         fLine->SetX1(fPi0Pos);
         fLine->SetX2(fPi0Pos);
+   
+        // draw fitting function
+        if (fFitFunc) fFitFunc->Draw("same");
+    
+        // draw indicator line
+        fLine->Draw();
     }
-
-    // draw histogram
-    fFitHisto->SetFillColor(35);
-    fCanvasFit->cd(2);
-    TCUtils::FormatHistogram(fFitHisto, "CB.Energy.Histo.Fit");
-    fFitHisto->Draw("hist");
-    
-    // draw fitting function
-    if (fFitFunc) fFitFunc->Draw("same");
-    
-    // draw indicator line
-    fLine->Draw();
     
     // update canvas
     fCanvasFit->Update();
-    
+
     // update overview
     if (elem % 20 == 0)
     {
@@ -180,15 +183,8 @@ void TCCalibCBEnergy::Calculate(Int_t elem)
         if (fLine->GetX1() != fPi0Pos) fPi0Pos = fLine->GetX1();
         
         // calculate the new offset
-        fNewVal[elem] = fOldVal[elem] * (TCConfig::kPi0Mass * TCConfig::kPi0Mass / fPi0Pos / fPi0Pos);
+        fNewVal[elem] = fOldVal[elem] * TCConfig::kPi0Mass / fPi0Pos;
         
-        // slow down convergence when near correct value
-        if (TMath::Abs(TCConfig::kPi0Mass - fPi0Pos) < 1)
-        {
-            Double_t diff = fNewVal[elem] - fOldVal[elem];
-            fNewVal[elem] = fOldVal[elem] + diff*0.2;
-        }
-
         // if new value is negative take old
         if (fNewVal[elem] < 0) 
         {
@@ -199,6 +195,11 @@ void TCCalibCBEnergy::Calculate(Int_t elem)
         // update overview histogram
         fOverviewHisto->SetBinContent(elem+1, fPi0Pos);
         fOverviewHisto->SetBinError(elem+1, 0.0000001);
+    
+        // update average calculation
+        fAvr += fPi0Pos;
+        fAvrDiff += TMath::Abs(fPi0Pos - TCConfig::kPi0Mass);
+        fNcalc++;
     }
     else
     {   
@@ -215,5 +216,14 @@ void TCCalibCBEnergy::Calculate(Int_t elem)
     if (unchanged) printf("    -> unchanged");
     if (TCUtils::IsCBHole(elem)) printf(" (hole)");
     printf("\n");
+
+    // show average
+    if (elem == fNelem-1)
+    {
+        fAvr /= (Double_t)fNcalc;
+        fAvrDiff /= (Double_t)fNcalc;
+        printf("Average pi0 position           : %.3f MeV\n", fAvr);
+        printf("Average difference to pi0 mass : %.3f MeV\n", fAvrDiff);
+    }
 }   
 
