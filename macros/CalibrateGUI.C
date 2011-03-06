@@ -27,18 +27,19 @@ class ButtonWindow : public TGMainFrame
 {
 
 private:
-    TGTextButton *fTB_Init;
-    TGTextButton *fTB_Prev;
-    TGTextButton *fTB_Next;
-    TGTextButton *fTB_Print;
-    TGTextButton *fTB_PrintChanges;
-    TGTextButton *fTB_Goto;
-    TGTextButton *fTB_DoAll;
-    TGTextButton *fTB_Quit;
+    TGTextButton* fTB_Init;
+    TGTextButton* fTB_Prev;
+    TGTextButton* fTB_Next;
+    TGTextButton* fTB_Print;
+    TGTextButton* fTB_PrintChanges;
+    TGTextButton* fTB_Goto;
+    TGTextButton* fTB_DoAll;
+    TGTextButton* fTB_Quit;
     TGComboBox* fCBox_Calibration;
     TGComboBox* fCBox_Module;
-    TGListBox *fLB_RunSet;
-    TGNumberEntry *fNE_Delay;
+    TGListBox* fLB_RunSet;
+    TGNumberEntry* fNE_Delay;
+    TGNumberEntry* fNE_Elem;
     TGRadioButton* fRadio_All;
     TGRadioButton* fRadio_Even;
     TGRadioButton* fRadio_Odd;
