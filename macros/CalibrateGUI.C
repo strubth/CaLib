@@ -142,7 +142,7 @@ ButtonWindow::ButtonWindow()
     fTB_Quit->Connect("Clicked()", "ButtonWindow", this, "Quit()");
     control_frame->AddFrame(fTB_Quit, new TGLayoutHints(kLHintsExpandX, 0, 0, 10, 0));
     
-    AddFrame(control_frame, new TGLayoutHints(kLHintsExpandX, 5, 5, 5, 5));
+    AddFrame(control_frame, new TGLayoutHints(kLHintsExpandX, 5, 5, 0, 5));
 
     // ---------------------------------------------------------------------------------
     
