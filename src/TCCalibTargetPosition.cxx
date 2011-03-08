@@ -198,6 +198,9 @@ void TCCalibTargetPosition::Calculate(Int_t elem)
             // update overview histogram
             fOverviewHisto->SetBinContent(elem+1, sigma);
             fOverviewHisto->SetBinError(elem+1, sigma_err);
+        
+            // user information
+            printf("Position: %6.2f ns   FWHM: %.2f MeV\n", fOverviewHisto->GetXaxis()->GetBinCenter(elem+1), sigma*2.35);
         }
     }
 
