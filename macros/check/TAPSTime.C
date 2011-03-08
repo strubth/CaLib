@@ -91,7 +91,7 @@ void TAPSTime()
     Double_t* fwhm = new Double_t[nSets+1];
     
     // total sum histogram
-    TH1* hTot;
+    TH1* hTot = 0;
 
     // loop over sets
     for (Int_t i = 0; i < nSets; i++)
@@ -102,12 +102,15 @@ void TAPSTime()
         // get histo
         TH2* h2 = (TH2*) m.GetHistogram(hName);
         
+        // skip empty histo
+        if (!h2) continue;
+
         // project histo
         sprintf(tmp, "Proj_%d", i);
         TH1* h = (TH1*) h2->ProjectionX(tmp);
         
         // add to total histogram
-        if (i == 0) hTot = (TH1*) h->Clone();
+        if (!hTot) hTot = (TH1*) h->Clone();
         else hTot->Add(h);
  
         // fit histo
