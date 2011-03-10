@@ -6,7 +6,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// CBTime.C                                                             //
+// VetoTime.C                                                           //
 //                                                                      //
 // Check calibration of runsets.                                        //
 //                                                                      //
@@ -21,22 +21,22 @@ void Fit(TH1* h, Double_t* outPos, Double_t* outFWHM)
     Char_t tmp[256];
 
     // delete old function
-    TF1* func = new TF1(tmp, "pol1+gaus(2)");
+    TF1* func = new TF1(tmp, "gaus");
     func->SetLineColor(2);
     
     // estimate peak position
     Double_t fPi0Pos = h->GetBinCenter(h->GetMaximumBin());
 
     // configure fitting function
-    func->SetRange(fPi0Pos - 15, fPi0Pos + 15);
+    func->SetRange(fPi0Pos - 3, fPi0Pos + 3);
     func->SetLineColor(2);
-    func->SetParameters( 0.1, 0.1, h->GetMaximum(), 0, 0.1);
+    func->SetParameters( h->GetMaximum(), 0, 1);
     Int_t fitres = h->Fit(func, "RB0Q");
     
     // get position and FWHM
-    fPi0Pos = func->GetParameter(3);
+    fPi0Pos = func->GetParameter(1);
     *outPos = fPi0Pos;
-    *outFWHM = 2.35*func->GetParameter(4);
+    *outFWHM = 2.35*func->GetParameter(2);
 
     // indicator line
     TLine* line = new TLine();
@@ -53,7 +53,7 @@ void Fit(TH1* h, Double_t* outPos, Double_t* outFWHM)
 }
 
 //______________________________________________________________________________
-void CBTime()
+void VetoTime()
 {
     // Main method.
     
@@ -63,8 +63,8 @@ void CBTime()
     gSystem->Load("libCaLib.so");
     
     // general configuration
-    CalibData_t data = kCALIB_CB_T0;
-    const Char_t* hName = "CaLib_CB_Time_Neut";
+    CalibData_t data = kCALIB_VETO_T0;
+    const Char_t* hName = "CaLib_Veto_Time";
 
     // configuration (December 2007)
     //const Char_t calibration[] = "LD2_Dec_07";

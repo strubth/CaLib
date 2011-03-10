@@ -6,7 +6,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// CBEnergy.C                                                           //
+// TAPSEnergy.C                                                         //
 //                                                                      //
 // Make run sets depending on the stability in time of a calibration.   //
 //                                                                      //
@@ -32,26 +32,23 @@ void Fit(Int_t run)
     // delete old function
     if (gFitFunc) delete gFitFunc;
     sprintf(tmp, "fEnergy_%i", run);
-    gFitFunc = new TF1(tmp, "pol1+gaus(2)");
+    gFitFunc = new TF1(tmp, "gaus(0)+pol3(3)");
     gFitFunc->SetLineColor(2);
-    
-    // estimate peak position
-    Double_t fPi0Pos = gH->GetBinCenter(gH->GetMaximumBin());
-    if (fPi0Pos < 100 || fPi0Pos > 160) fPi0Pos = 135;
-
-    // estimate background
-    Double_t bgPar0, bgPar1;
-    TCUtils::FindBackground(gH, fPi0Pos, 50, 50, &bgPar0, &bgPar1);
     
     // configure fitting function
-    gFitFunc->SetRange(fPi0Pos - 60, fPi0Pos + 80);
+    gFitFunc->SetRange(80, 180);
     gFitFunc->SetLineColor(2);
-    gFitFunc->SetParameters( 3.8e+2, -1.90, 150, fPi0Pos, 8.9);
-    gFitFunc->SetParLimits(4, 3, 40);  
-    Int_t fitres = gH->Fit(gFitFunc, "RB0Q");
+    gFitFunc->SetParameters(gH->GetMaximum(), 135, 10, 1, 1, 1, 0.1);
+    gFitFunc->SetParLimits(0, 0, 10000);  
+    gFitFunc->SetParLimits(1, 120, 140);  
+    gFitFunc->SetParLimits(2, 5, 10);
+    Int_t fitres;
     
+    for (Int_t i = 0; i < 10; i++)
+        if (!gH->Fit(gFitFunc, "RBQ0")) break;
+  
     // get position
-    fPi0Pos = gFitFunc->GetParameter(3);
+    fPi0Pos = gFitFunc->GetParameter(1);
 
     // check failed fits
     if (fitres) 
@@ -68,7 +65,7 @@ void Fit(Int_t run)
 
     // draw 
     gCFit->cd();
-    gH->GetXaxis()->SetRangeUser(0, 200);
+    gH->GetXaxis()->SetRangeUser(70, 200);
     gH->Draw();
     gFitFunc->Draw("same");
     gLine->Draw("same");
@@ -79,7 +76,7 @@ void Fit(Int_t run)
 }
 
 //______________________________________________________________________________
-void CBEnergy()
+void TAPSEnergy()
 {
     // Main method.
     
@@ -89,9 +86,10 @@ void CBEnergy()
     gSystem->Load("libCaLib.so");
     
     // general configuration
-    Bool_t watch = kFALSE;
-    CalibData_t data = kCALIB_CB_E1;
-    const Char_t* hName = "CaLib_CB_IM_Neut";
+    Bool_t watch = kTRUE;
+    CalibData_t data = kCALIB_TAPS_LG_E1;
+    const Char_t* hName = "CaLib_TAPS_IM_Neut_1CB_1TAPS";
+    //const Char_t* hName = "CaLib_TAPS_IM_Neut_2TAPS";
     Double_t yMin = 110;
     Double_t yMax = 160;
 
@@ -101,11 +99,12 @@ void CBEnergy()
 
     // configuration (February 2009)
     const Char_t calibration[] = "LD2_Feb_09";
-    const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/Feb_09/AR/out";
+    //const Char_t* fLoc = "/usr/panther_scratch0/werthm/A2/Feb_09/AR/out/ADC";
+    const Char_t* fLoc = "/usr/cheetah_scratch0/kaeser/CaLib/Feb_09";
     
     // configuration (May 2009)
     //const Char_t calibration[] = "LD2_May_09";
-    //const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/May_09/AR/out";
+    //const Char_t* fLoc = "/usr/cheetah_scratch0/oberle/CaLib/May_09";
 
     // create histogram
     gHOverview = new TH1F("Overview", "Overview", 40000, 0, 40000);
@@ -180,7 +179,7 @@ void CBEnergy()
             {
                 cOverview->Update();
                 gCFit->Update();
-                gSystem->Sleep(100);
+                gSystem->Sleep(50);
             }
      
             // count run
