@@ -106,9 +106,9 @@ TAPS.Ped.Veto.ADCList: /usr/users/werthm/AcquRoot/acqu/acqu/data/Dec_07/TAPS/Vet
 TAPS.Ped.Veto.Histo.Overview.Yaxis.Range: 80 150
 
 # LG energy calibration
-#TAPS.Energy.LG.Histo.Fit.Name: CaLib_TAPS_IM
-#TAPS.Energy.LG.Histo.Fit.Name: CaLib_TAPS_IM_Neut_2Cl
-TAPS.Energy.LG.Histo.Fit.Name: CaLib_TAPS_IM_Neut
+#TAPS.Energy.LG.Histo.Fit.Name: CaLib_TAPS_IM_Neut
+#TAPS.Energy.LG.Histo.Fit.Name: CaLib_TAPS_IM_Neut_2TAPS
+TAPS.Energy.LG.Histo.Fit.Name: CaLib_TAPS_IM_Neut_1CB_1TAPS
 TAPS.Energy.LG.Histo.Fit.Xaxis.Range: 0 300
 TAPS.Energy.LG.Histo.Overview.Yaxis.Range: 120 140
 
