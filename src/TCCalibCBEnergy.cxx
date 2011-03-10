@@ -138,15 +138,13 @@ void TCCalibCBEnergy::Fit(Int_t elem)
 
         // final results
         fPi0Pos = fFitFunc->GetParameter(1); 
-
-        // draw mean indicator line
-        fLine->SetY1(0);
-        fLine->SetY2(fFitHisto->GetMaximum() + 20);
         
         // check if mass is in normal range
         if (fPi0Pos < 80 || fPi0Pos > 200) fPi0Pos = 135;
-        
+ 
         // set indicator line
+        fLine->SetY1(0);
+        fLine->SetY2(fFitHisto->GetMaximum() + 20);
         fLine->SetX1(fPi0Pos);
         fLine->SetX2(fPi0Pos);
    

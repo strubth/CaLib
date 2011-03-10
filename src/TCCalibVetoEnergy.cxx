@@ -272,7 +272,7 @@ void TCCalibVetoEnergy::Calculate(Int_t elem)
         // check if line position was modified by hand
         if (fLine->GetX1() != fPeak) fPeak = fLine->GetX1();
         
-        // calculate the new offset
+        // calculate the new gain
         fNewVal[elem] = fOldVal[elem] * (fPeakMC / fPeak);
     
         // if new value is negative take old

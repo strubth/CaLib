@@ -107,6 +107,12 @@ void TCCalibTAPSEnergyLG::Fit(Int_t elem)
     if (fFitHisto) delete fFitHisto;
     fFitHisto = (TH1D*) h2->ProjectionX(tmp, elem+1, elem+1, "e");
     
+    // draw histogram
+    fFitHisto->SetFillColor(35);
+    fCanvasFit->cd(2);
+    TCUtils::FormatHistogram(fFitHisto, "TAPS.Energy.LG.Histo.Fit");
+    fFitHisto->Draw("hist");
+     
     // check for sufficient statistics
     if (fFitHisto->GetEntries())
     {
@@ -117,54 +123,40 @@ void TCCalibTAPSEnergyLG::Fit(Int_t elem)
 	// the fit function
 	fFitFunc = new TF1("fFitFunc", "gaus(0)+pol3(3)", 0, 1000);
 
-	// get important parameter position
-	Double_t maxPos = fFitHisto->GetXaxis()->GetBinCenter(fFitHisto->GetMaximumBin());
-	Double_t max = fFitHisto->GetBinContent(fFitHisto->GetMaximumBin());
-
-	// configure fitting function
-	fFitFunc->SetParameters(max, maxPos, 15, 1, 1, 1, 0.1);
-	fFitFunc->SetParLimits(0, 0, 1000);
-	fFitFunc->SetParLimits(1, 125, 145);
-	fFitFunc->SetParLimits(2, 5, 25);
-	fFitFunc->SetRange(60, 180);
-	fFitFunc->SetLineColor(2);
-	fFitHisto->Fit(fFitFunc, "RBQ0");
-
         // estimate peak position
         fPi0Pos = fFitHisto->GetBinCenter(fFitHisto->GetMaximumBin());
         if (fPi0Pos < 100 || fPi0Pos > 160) fPi0Pos = 135;
+	
+	// configure fitting function
+	fFitFunc->SetParameters(fFitHisto->GetMaximum(), fPi0Pos, 10, 1, 1, 1, 0.1);
+	fFitFunc->SetParLimits(1, 125, 145);
+	fFitFunc->SetParLimits(2, 5, 20);
+	fFitFunc->SetRange(80, 200);
+	fFitFunc->SetLineColor(2);
 
-        // estimate background
-        Double_t bgPar0, bgPar1;
-        TCUtils::FindBackground(fFitHisto, fPi0Pos, 50, 50, &bgPar0, &bgPar1);
-        	
-        // draw mean indicator line
-        fLine->SetY1(0);
-        fLine->SetY2(fFitHisto->GetMaximum() + 20);
+        // fit
+        for (Int_t i = 0; i < 10; i++)
+            if (!fFitHisto->Fit(fFitFunc, "RBQ0")) break;
+        
+        // final results
+        fPi0Pos = fFitFunc->GetParameter(1); 
         
         // check if mass is in normal range
         if (fPi0Pos < 80 || fPi0Pos > 200) fPi0Pos = 135;
-
-	// final results
-        fPi0Pos = fFitFunc->GetParameter(1); 
-        
+         
         // set indicator line
+        fLine->SetY1(0);
+        fLine->SetY2(fFitHisto->GetMaximum() + 20);
         fLine->SetX1(fPi0Pos);
         fLine->SetX2(fPi0Pos);
+   
+        // draw fitting function
+        if (fFitFunc) fFitFunc->Draw("same");
+    
+        // draw indicator line
+        fLine->Draw();
     }
 
-    // draw histogram
-    fFitHisto->SetFillColor(35);
-    fCanvasFit->cd(2);
-    TCUtils::FormatHistogram(fFitHisto, "TAPS.Energy.LG.Histo.Fit");
-    fFitHisto->Draw("hist");
-    
-    // draw fitting function
-    if (fFitFunc) fFitFunc->Draw("same");
-    
-    // draw indicator line
-    fLine->Draw();
-    
     // update canvas
     fCanvasFit->Update();
     
@@ -191,7 +183,7 @@ void TCCalibTAPSEnergyLG::Calculate(Int_t elem)
         if (fLine->GetX1() != fPi0Pos) fPi0Pos = fLine->GetX1();
         
         // calculate the new offset
-        fNewVal[elem] = fOldVal[elem] * (TCConfig::kPi0Mass / fPi0Pos);
+        fNewVal[elem] = fOldVal[elem] * TCConfig::kPi0Mass * TCConfig::kPi0Mass / fPi0Pos / fPi0Pos;
     
         // if new value is negative take old
         if (fNewVal[elem] < 0) 
@@ -203,6 +195,11 @@ void TCCalibTAPSEnergyLG::Calculate(Int_t elem)
         // update overview histogram
         fOverviewHisto->SetBinContent(elem+1, fPi0Pos);
         fOverviewHisto->SetBinError(elem+1, 0.0000001);
+        
+        // update average calculation
+        fAvr += fPi0Pos;
+        fAvrDiff += TMath::Abs(fPi0Pos - TCConfig::kPi0Mass);
+        fNcalc++;
     }
     else
     {   
@@ -218,5 +215,14 @@ void TCCalibTAPSEnergyLG::Calculate(Int_t elem)
            TCUtils::GetDiffPercent(fOldVal[elem], fNewVal[elem]));
     if (unchanged) printf("    -> unchanged");
     printf("\n");
-}   
+   
+    // show average
+    if (elem == fNelem-1)
+    {
+        fAvr /= (Double_t)fNcalc;
+        fAvrDiff /= (Double_t)fNcalc;
+        printf("Average pi0 position           : %.3f MeV\n", fAvr);
+        printf("Average difference to pi0 mass : %.3f MeV\n", fAvrDiff);
+    }
+} 
 

@@ -184,6 +184,11 @@ void TCCalibTime::Fit(Int_t elem)
         {
 	    fFitFunc->SetParLimits(4, 0.001, 1);                  
             range = 3;
+            factor = 1.5;
+        }
+        if (this->InheritsFrom("TCCalibPIDTime"))
+        {
+            factor = 1.5;
         }
 
         // first iteration
