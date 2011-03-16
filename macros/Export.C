@@ -32,15 +32,15 @@ void Export()
 
     // export CaLib data
     sprintf(tmp, "backup_Dec_07_%s.root", tstamp);
-    TCMySQLManager::GetManager()->Export(tmp, 0, 0, "LD2_Dec_07");
+    TCMySQLManager::GetManager()->Export(tmp, 0, -1, "LD2_Dec_07");
     
     // export CaLib data
     sprintf(tmp, "backup_Feb_09_%s.root", tstamp);
-    TCMySQLManager::GetManager()->Export(tmp, 0, 0, "LD2_Feb_09");
+    TCMySQLManager::GetManager()->Export(tmp, 0, -1, "LD2_Feb_09");
 
     // export CaLib data
     sprintf(tmp, "backup_May_09_%s.root", tstamp);
-    TCMySQLManager::GetManager()->Export(tmp, 0, 0, "LD2_May_09");
+    TCMySQLManager::GetManager()->Export(tmp, 0, -1, "LD2_May_09");
     
     gSystem->Exit(0);
 }
