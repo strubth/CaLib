@@ -94,15 +94,16 @@ void TAPSTime()
     // configuration (December 2007)
     //const Char_t calibration[] = "LD2_Dec_07";
     //const Char_t* fLoc = "/Users/fulgur/Desktop/calib/Dec_07";
+    //const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/Dec_07/AR/out";
 
     // configuration (February 2009)
     const Char_t calibration[] = "LD2_Feb_09";
-    //const Char_t* fLoc = "/usr/panther_scratch0/werthm/A2/Feb_09/AR/out/ADC";
-    const Char_t* fLoc = "/Users/fulgur/Desktop/calib/Feb_09";
+    const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/Feb_09/AR/out";
+    //const Char_t* fLoc = "/Users/fulgur/Desktop/calib/Feb_09";
     
     // configuration (May 2009)
     //const Char_t calibration[] = "LD2_May_09";
-    //const Char_t* fLoc = "/Users/fulgur/Desktop/calib/May_09";
+    //const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/May_09/AR/out";
 
     // create histogram
     gHOverview = new TH1F("Overview", "Overview", 40000, 0, 40000);
@@ -167,7 +168,8 @@ void TAPSTime()
 
             // project histogram
             sprintf(tmp, "Proj_%d", runs[j]);
-            gH = gH2->ProjectionX(tmp, 13, 80);
+            //gH = gH2->ProjectionX(tmp, 1, 1);
+            gH = gH2->ProjectionX(tmp, 13, 15);
 
             // fit the histogram
             Fit(runs[j]);

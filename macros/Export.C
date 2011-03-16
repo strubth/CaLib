@@ -28,7 +28,7 @@ void Export()
     TTimeStamp t;
     t.GetDate(kFALSE, 0, &year, &month, &day);
     t.GetTime(kFALSE, 0, &hour, &min);
-    sprintf(tstamp, "%d-%02d-%02d_%02d:%02d", year, month, day, hour, min);
+    sprintf(tstamp, "%d-%02d-%02d_%02d.%02d", year, month, day, hour, min);
 
     // export CaLib data
     sprintf(tmp, "backup_Dec_07_%s.root", tstamp);
