@@ -134,6 +134,7 @@ TAPS.QuadEnergy.Histo.Overview.Eta.Yaxis.Range: 510 580
 # Time calibration
 #TAPS.Time.Histo.Fit.Name: CaLib_TAPS_Time
 TAPS.Time.Histo.Fit.Name: CaLib_TAPS_Time_Neut
+#TAPS.Time.Histo.Fit.Name: CaLib_TAPS_Time_Neut_IM_Cut
 TAPS.Time.Histo.Fit.Xaxis.Range: -5 5
 TAPS.Time.Histo.Overview.Yaxis.Range: -1 1
 

@@ -346,8 +346,8 @@ void TCCalibCBQuadEnergy::Calculate(Int_t elem)
         
         // calculate quadratic correction factors
         Double_t mean_E_ratio = fEtaMeanE / fPi0MeanE;
-        Double_t pion_im_ratio = TCConfig::kPi0Mass * TCConfig::kPi0Mass / fPi0Pos / fPi0Pos;
-        Double_t eta_im_ratio = TCConfig::kEtaMass * TCConfig::kEtaMass / fEtaPos / fEtaPos;
+        Double_t pion_im_ratio = TCConfig::kPi0Mass / fPi0Pos;
+        Double_t eta_im_ratio = TCConfig::kEtaMass / fEtaPos;
         fPar0[elem] = (eta_im_ratio - mean_E_ratio*pion_im_ratio) / (1. - mean_E_ratio);
         fPar1[elem] = (pion_im_ratio - fPar0[elem]) / fPi0MeanE;
         
