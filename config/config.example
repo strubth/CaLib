@@ -43,8 +43,8 @@ Target.Position.Histo.Overview.Yaxis.Range: 0 20
 ################################################################################
 
 # Time calibration
-#Tagger.Time.Histo.Fit.Name: CaLib_Tagger_Time_Tot
-Tagger.Time.Histo.Fit.Name: CaLib_Tagger_Time_Tot_Neut
+#Tagger.Time.Histo.Fit.Name: CaLib_Tagger_Time
+Tagger.Time.Histo.Fit.Name: CaLib_Tagger_Time_Neut
 Tagger.Time.Histo.Fit.Xaxis.Range:  -10 20 
 Tagger.Time.Histo.Overview.Yaxis.Range: 2 7
 
