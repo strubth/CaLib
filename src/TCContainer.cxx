@@ -78,31 +78,34 @@ TCCalibration* TCContainer::AddCalibration(const Char_t* calibration)
 }
 
 //______________________________________________________________________________
-void TCContainer::SaveAs(const Char_t* filename)
+Bool_t TCContainer::SaveAs(const Char_t* filename, Bool_t silence)
 {
     // Save this container to the ROOT file 'filename'.
+    // Return kFALSE if an error occured, otherwise kTRUE.
 
     // try to open the ROOT file
     TFile* f = new TFile(filename, "CREATE");
     if (!f)
     {
-        Error("SaveAs", "Could not create file '%s'!", filename);
-        return;
+        if (!silence) Error("SaveAs", "Could not create file '%s'!", filename);
+        return kFALSE;
     }
     if (f->IsZombie())
     {
-        Error("SaveAs", "Could not create file '%s'!", filename);
-        return;
+        if (!silence) Error("SaveAs", "Could not create file '%s'!", filename);
+        return kFALSE;
     }
 
     // save me
     this->Write();
     
     // user information
-    Info("SaveAs", "CaLib data was saved to '%s'", filename);
+    if (!silence) Info("SaveAs", "CaLib data was saved to '%s'", filename);
 
     // close file
     delete f;
+
+    return kTRUE;
 }
 
 //______________________________________________________________________________

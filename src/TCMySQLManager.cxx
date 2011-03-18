@@ -848,6 +848,43 @@ Bool_t TCMySQLManager::ChangeRunBeamPolDeg(Int_t first_run, Int_t last_run, Doub
 }
 
 //______________________________________________________________________________
+Bool_t TCMySQLManager::ContainsCalibration(const Char_t* calibration)
+{
+    // Check if the calibration 'calibration' exists in the database.
+    
+    // loop over calibration data
+    for (Int_t i = kCALIB_EMPTY+1; i < TCConfig::kCalibNData; i++)
+    {
+        // get list of calibrations
+        TList* list = GetAllCalibrations((CalibData_t)i);
+    
+        // no calibrations
+        if (!list) continue;
+    
+        // check if calibration exists
+        TIter next(list);
+        Bool_t found = kFALSE;
+        TObjString* s;
+        while ((s = (TObjString*)next()))
+        {
+            if (!strcmp(calibration, s->GetString().Data()))
+            {
+                found = kTRUE;
+                break;
+            }
+        }
+    
+        // clean-up
+        delete list;
+
+        // check if calibration was found
+        if (found) return kTRUE;
+    }
+
+    return kFALSE;
+}
+
+//______________________________________________________________________________
 Bool_t TCMySQLManager::ChangeCalibrationName(const Char_t* calibration, const Char_t* newCalibration)
 {
     // Change the calibration identifer 'calibration' in all calibration sets
@@ -855,34 +892,8 @@ Bool_t TCMySQLManager::ChangeCalibrationName(const Char_t* calibration, const Ch
     
     Char_t query[256];
     
-    // get list of calibrations
-    TList* list = GetAllCalibrations();
-    
-    // no calibrations
-    if (!list)
-    {
-        if (!fSilence) Error("ChangeCalibrationName", "No calibrations found in database!");
-        return kFALSE;
-    }
-    
-    // check if calibration exists
-    TIter next(list);
-    Bool_t found = kFALSE;
-    TObjString* s;
-    while ((s = (TObjString*)next()))
-    {
-        if (!strcmp(calibration, s->GetString().Data()))
-        {
-            found = kTRUE;
-            break;
-        }
-    }
-
-    // clean-up
-    delete list;
-
     // check if calibration was not found
-    if (!found)
+    if (!ContainsCalibration(calibration))
     {
         if (!fSilence) Error("ChangeCalibrationName", "Calibration '%s' was not found in database!",
                              calibration);
@@ -920,74 +931,61 @@ Bool_t TCMySQLManager::ChangeCalibrationName(const Char_t* calibration, const Ch
 }
 
 //______________________________________________________________________________
-Bool_t TCMySQLManager::RemoveCalibration(const Char_t* calibration)
+Bool_t TCMySQLManager::RemoveCalibration(const Char_t* calibration, CalibData_t data)
 {
-    // Remove all calibrations with the calibration identifer 'calibration'.
+    // Remove the calibration data 'data' of the calibration 'calibration'.
     
     Char_t query[256];
     
-    // get list of calibrations
-    TList* list = GetAllCalibrations();
-    
-    // no calibrations
-    if (!list)
+    // check if calibration was not found
+    if (!ContainsCalibration(calibration))
     {
-        if (!fSilence) Error("RemoveCalibration", "No calibrations found in database!");
+        if (!fSilence) Error("RemoveCalibration", "Calibration '%s' of calibration '%s' was not found in database!",
+                             TCConfig::kCalibDataNames[(Int_t)data], calibration);
         return kFALSE;
     }
-    
-    // check if calibration exists
-    TIter next(list);
-    Bool_t found = kFALSE;
-    TObjString* s;
-    while ((s = (TObjString*)next()))
+
+    // create the query
+    sprintf(query,
+            "DELETE from %s "
+            "WHERE calibration = '%s'",
+            TCConfig::kCalibDataTableNames[(Int_t)data], calibration);
+
+    // read from database
+    TSQLResult* res = SendQuery(query);
+        
+    // check result
+    if (!res)
     {
-        if (!strcmp(calibration, s->GetString().Data()))
-        {
-            found = kTRUE;
-            break;
-        }
+        if (!fSilence) Error("RemoveCalibration", "Could not remove calibration '%s' of calibration '%s'!",
+                             TCConfig::kCalibDataNames[(Int_t)data], calibration);
+        return kFALSE;
     }
 
     // clean-up
-    delete list;
+    delete res;
+    
+    if (!fSilence) Info("RemoveCalibration", "Removed calibration '%s' of calibration '%s'!",
+                        TCConfig::kCalibDataNames[(Int_t)data], calibration);
+ 
+    return kTRUE;
+}
 
-    // check if calibration was not found
-    if (!found)
-    {
-        if (!fSilence) Error("RemoveCalibration", "Calibration '%s' was not found in database!",
-                             calibration);
-        return kFALSE;
-    }
+//______________________________________________________________________________
+Int_t TCMySQLManager::RemoveAllCalibrations(const Char_t* calibration)
+{
+    // Remove all calibrations with the calibration identifer 'calibration'.
+
+    Int_t nCalib = 0;
 
     // loop over calibration data
     for (Int_t i = kCALIB_EMPTY+1; i < TCConfig::kCalibNData; i++)
     {
-        // create the query
-        sprintf(query,
-                "DELETE from %s "
-                "WHERE calibration = '%s'",
-                TCConfig::kCalibDataTableNames[i], calibration);
-
-        // read from database
-        TSQLResult* res = SendQuery(query);
-        
-        // check result
-        if (!res)
-        {
-            if (!fSilence) Error("RemoveCalibration", "Could not remove calibration '%s'!",
-                                 calibration);
-            return kFALSE;
-        }
-
-        // clean-up
-        delete res;
+        // remove calibration
+        if (RemoveCalibration(calibration, (CalibData_t)i)) nCalib++;
     }
-    
-    if (!fSilence) Info("RemoveCalibration", "Removed calibration '%s'!",
-                        calibration);
- 
-    return kTRUE;
+
+    return nCalib;
 }
 
 //______________________________________________________________________________
@@ -1248,13 +1246,14 @@ TList* TCMySQLManager::GetAllTargets()
 }
 
 //______________________________________________________________________________
-TList* TCMySQLManager::GetAllCalibrations()
+TList* TCMySQLManager::GetAllCalibrations(CalibData_t data)
 {
-    // Return a list of TStrings containing all calibration identifiers in the database.
+    // Return a list of TStrings containing all calibration identifiers in the database
+    // for the calibration data 'data'.
     // If no calibrations were found 0 is returned.
     // NOTE: The list must be destroyed by the caller.
 
-    return SearchDistinctEntries("calibration", TCConfig::kCalibDataTableNames[1]);
+    return SearchDistinctEntries("calibration", TCConfig::kCalibDataTableNames[data]);
 }
 
 //______________________________________________________________________________
@@ -1738,12 +1737,13 @@ Bool_t TCMySQLManager::MergeSets(CalibType_t type, const Char_t* calibration,
 }
 
 //______________________________________________________________________________
-void TCMySQLManager::DumpRuns(TCContainer* container, Int_t first_run, Int_t last_run)
+Int_t TCMySQLManager::DumpRuns(TCContainer* container, Int_t first_run, Int_t last_run)
 {
     // Dump the run information from run 'first_run' to run 'last_run' to 
     // the CaLib container 'container'.
     // If first_run and last_run is zero all available runs will be dumped.
-    
+    // Return the number of dumped runs.
+
     Char_t query[256];
     Char_t tmp[256];
 
@@ -1830,17 +1830,20 @@ void TCMySQLManager::DumpRuns(TCContainer* container, Int_t first_run, Int_t las
     
     // clean-up
     delete res;
+
+    return nruns;
 }
 
 //______________________________________________________________________________
-void TCMySQLManager::DumpCalibrations(TCContainer* container, const Char_t* calibration, 
-                                      CalibData_t data)
+Int_t TCMySQLManager::DumpCalibrations(TCContainer* container, const Char_t* calibration, 
+                                       CalibData_t data)
 {
     // Dump calibrations of the calibration data 'data' with the calibration 
     // identifier 'calibration' to the CaLib container 'container'.
-    
-    Char_t tmp[256];
+    // Return the number of dumped calibrations.
 
+    Char_t tmp[256];
+    
     // get number of parameters
     Int_t nPar = TCConfig::kCalibDataTableLengths[(Int_t)data];
 
@@ -1849,6 +1852,14 @@ void TCMySQLManager::DumpCalibrations(TCContainer* container, const Char_t* cali
 
     // get the number of sets
     Int_t nSet = GetNsets(data, calibration);
+    
+    // check calibration
+    if (!nSet)
+    {
+        if (!fSilence) Error("DumpCalibrations", "No sets of '%s' of the calibration '%s' found!",    
+                             TCConfig::kCalibDataNames[(Int_t)data], calibration);
+        return 0;
+    }
 
     // loop over sets
     for (Int_t i = 0; i < nSet; i++)
@@ -1879,29 +1890,37 @@ void TCMySQLManager::DumpCalibrations(TCContainer* container, const Char_t* cali
     }
 
     // user information
-    if (!fSilence) Info("DumpAllCalibrations", "Dumped %d sets of '%s' of the calibration '%s'",
+    if (!fSilence) Info("DumpCalibrations", "Dumped %d sets of '%s' of the calibration '%s'",
                         nSet, TCConfig::kCalibDataNames[(Int_t)data], calibration);
+
+    return nSet;
 }
 
 //______________________________________________________________________________
-void TCMySQLManager::DumpAllCalibrations(TCContainer* container, const Char_t* calibration)
+Int_t TCMySQLManager::DumpAllCalibrations(TCContainer* container, const Char_t* calibration)
 {
     // Dump all calibrations with the calibration identifier 'calibration' to
     // the CaLib container 'container'.
+    // Return the number of dumped calibrations.
     
+    Int_t nDump = 0;
+
     // loop over calibration data
     for (Int_t i = kCALIB_EMPTY+1; i < TCConfig::kCalibNData; i++)
     {
         // dump calibrations
-        DumpCalibrations(container, calibration, (CalibData_t)i);
+        if (Int_t nd = DumpCalibrations(container, calibration, (CalibData_t)i)) nDump += nd;
     }
+
+    return nDump;
 }
 
 //______________________________________________________________________________
-void TCMySQLManager::ImportRuns(TCContainer* container)
+Int_t TCMySQLManager::ImportRuns(TCContainer* container)
 {
     // Import all runs from the CaLib container 'container' to the database.
-    
+    // Return the number of imported runs.
+
     // get number of runs
     Int_t nRun = container->GetNRuns();
 
@@ -1957,14 +1976,19 @@ void TCMySQLManager::ImportRuns(TCContainer* container)
 
     // user information
     if (!fSilence) Info("ImportRuns", "Added %d runs to the database", nRunAdded);
+    
+    return nRunAdded;
 }
 
 //______________________________________________________________________________
-void TCMySQLManager::ImportCalibrations(TCContainer* container, const Char_t* newCalibName)
+Int_t TCMySQLManager::ImportCalibrations(TCContainer* container, const Char_t* newCalibName, 
+                                         CalibData_t data)
 {
     // Import all calibrations from the CaLib container 'container' to the database.
     // If 'newCalibName' is non-zero rename the calibration to 'newCalibName'
-    
+    // If 'data' is not equal to kCALIB_EMPTY import only calibrations of the data 'data'.
+    // Return the number of imported calibrations.
+
     // get number of calibrations
     Int_t nCalib = container->GetNCalibrations();
 
@@ -1975,6 +1999,9 @@ void TCMySQLManager::ImportCalibrations(TCContainer* container, const Char_t* ne
         // get the calibration
         TCCalibration* c = container->GetCalibration(i);
         
+        // skip unwanted calibration data
+        if (data != kCALIB_EMPTY && c->GetCalibData() != data) continue;
+
         // add the set with new calibration identifer or the same
         const Char_t* calibration;
         if (newCalibName) calibration = newCalibName;
@@ -1984,8 +2011,8 @@ void TCMySQLManager::ImportCalibrations(TCContainer* container, const Char_t* ne
         if (AddSet(c->GetCalibData(), calibration, c->GetDescription(), 
                    c->GetFirstRun(), c->GetLastRun(), c->GetParameters(), c->GetNParameters()))
         {
-            if (!fSilence)  Info("ImportCalibrations", "Added calibration '%s' of '%s' to the database",
-                                 calibration, TCConfig::kCalibDataNames[(Int_t)c->GetCalibData()]);
+            if (!fSilence) Info("ImportCalibrations", "Added calibration '%s' of '%s' to the database",
+                                calibration, TCConfig::kCalibDataNames[(Int_t)c->GetCalibData()]);
             nCalibAdded++;
         }
         else
@@ -1997,6 +2024,8 @@ void TCMySQLManager::ImportCalibrations(TCContainer* container, const Char_t* ne
 
     // user information
     if (!fSilence) Info("ImportCalibrations", "Added %d calibrations to the database", nCalibAdded);
+
+    return nCalibAdded;
 }
 
 //______________________________________________________________________________
@@ -2005,34 +2034,93 @@ void TCMySQLManager::Export(const Char_t* filename, Int_t first_run, Int_t last_
 {
     // Export run and/or calibration data to the ROOT file 'filename'
     //
-    // If 'first_run' is non-zero AND 'last_run' is non-zero run information from run
+    // If 'first_run' is non-zero and 'last_run' is non-zero run information from run
     // 'first_run' to run 'last_run' is exported.
+    // If 'first_run' is zero and 'last_run' is zero all run information is exported.
+    // If 'first_run' is -1 or 'last_run' is -1 no run information is exported.
     //
     // If 'calibration' is non-zero the calibration with the identifier 'calibration'
     // is exported.
 
     // create new container
-    TCContainer* container = new TCContainer("CaLib_Dump");
+    TCContainer* container = new TCContainer(TCConfig::kCaLibDumpName);
     
     // dump runs to container
-    if (first_run && last_run) 
+    if (first_run != -1 && last_run != -1) 
     {
         DumpRuns(container, first_run, last_run);
-        if (!fSilence) Info("Export", "Dumped %d runs to '%s'", container->GetNRuns(), filename);
+        if (!fSilence) 
+        {
+            if (container->GetNRuns())
+                Info("Export", "Dumped %d runs to '%s'", container->GetNRuns(), filename);
+            else
+                Error("Export", "No runs were dumped to '%s'!", filename);
+        }
     }
 
     // dump runs to container
     if (calibration)
     {
         DumpAllCalibrations(container, calibration);
-        if (!fSilence) Info("Export", "Dumped %d calibrations to '%s'", container->GetNCalibrations(), filename);
+        if (!fSilence) 
+        {
+            if (container->GetNCalibrations())
+                Info("Export", "Dumped %d calibrations to '%s'", container->GetNCalibrations(), filename);
+            else
+                Error("Export", "No calibrations were dumped to '%s'!", filename);
+        }
     }
 
     // save container to ROOT file
-    container->SaveAs(filename);
+    container->SaveAs(filename, fSilence);
     
     // clean-up
     delete container;
+}
+
+//______________________________________________________________________________
+TCContainer* TCMySQLManager::LoadContainer(const Char_t* filename)
+{
+    // Load the CaLib container from the ROOT file 'filename'.
+    // Return the container if found, otherwise 0.
+    // NOTE: The container has to be destroyed by the caller.
+
+    // try to open the ROOT file
+    TFile* f = new TFile(filename);
+    if (!f)
+    {
+        if (!fSilence) Error("LoadContainer", "Could not open the ROOT file '%s'!", filename);
+        return 0;
+    }
+    if (f->IsZombie())
+    {
+        if (!fSilence) Error("LoadContainer", "Could not open the ROOT file '%s'!", filename);
+        return 0;
+    }
+
+    // to load the CaLib container
+    TCContainer* c_orig = (TCContainer*) f->Get(TCConfig::kCaLibDumpName);
+    if (!c_orig)
+    {
+        if (!fSilence) Error("LoadContainer", "No CaLib container found in ROOT file '%s'!", filename);
+        delete f;
+        return 0;
+    }
+    
+    // clone the container
+    TCContainer* c = (TCContainer*) c_orig->Clone();
+
+    // check container format
+    if (c->GetVersion() != TCConfig::kContainerFormatVersion)
+    {
+        if (!fSilence) Error("LoadContainer", "Cannot load CaLib container format version %d", c->GetVersion());
+        return 0;
+    }
+    
+    // clean-up
+    delete f;
+
+    return c;
 }
 
 //______________________________________________________________________________
@@ -2044,33 +2132,12 @@ void TCMySQLManager::Import(const Char_t* filename, Bool_t runs, Bool_t calibrat
     // If 'runs' is kTRUE all run information is imported.
     // If 'calibrations' is kTRUE all calibration information is imported.
     // If 'newCalibName' is non-zero rename the calibration to 'newCalibName'
-
-    // try to open the ROOT file
-    TFile* f = new TFile(filename);
-    if (!f)
-    {
-        if (!fSilence) Error("Import", "Could not open the ROOT file '%s'!", filename);
-        return;
-    }
-    if (f->IsZombie())
-    {
-        if (!fSilence) Error("Import", "Could not open the ROOT file '%s'!", filename);
-        return;
-    }
-
-    // to load the CaLib container
-    TCContainer* c = (TCContainer*) f->Get("CaLib_Dump");
+    
+    // try to load the container
+    TCContainer* c = LoadContainer(filename);
     if (!c)
     {
-        if (!fSilence) Error("Import", "No CaLib container found in ROOT file '%s'!", filename);
-        delete f;
-        return;
-    }
-
-    // check container format
-    if (c->GetVersion() != TCConfig::kContainerFormatVersion)
-    {
-        if (!fSilence) Error("Import", "Cannot load CaLib container format version %d", c->GetVersion());
+        if (!fSilence) Error("Import", "CaLib container could not be loaded from '%s'", filename);
         return;
     }
 
@@ -2143,6 +2210,6 @@ void TCMySQLManager::Import(const Char_t* filename, Bool_t runs, Bool_t calibrat
     }
 
     // clean-up
-    delete f;
+    delete c;
 }
 

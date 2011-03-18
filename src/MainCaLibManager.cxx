@@ -46,15 +46,18 @@ void MainMenu();
 void RunEditor();
 void CalibEditor();
 void PrintStatusMessage(const Char_t* message);
-void SelectCalibration();
+void SelectCalibration(const Char_t* mMsg = 0);
 void SelectCalibrationData();
 void SelectCalibrationType();
+void Administration();
+
 
 //______________________________________________________________________________
 void Finish(Int_t sig)
 {   
     // Exit the program.
-
+    
+    fclose(stderr);
     endwin();
     exit(0);
 }
@@ -84,7 +87,11 @@ void DrawHeader(const Char_t* title = "CaLib Manager")
     }
 
     // draw title
-    sprintf(tmp, "%s using CaLib %s", title, TCConfig::kCaLibVersion);
+    sprintf(tmp, "%s using %s@%s with CaLib %s", 
+            title, 
+            TCMySQLManager::GetManager()->GetDBName(),
+            TCMySQLManager::GetManager()->GetDBHost(),
+            TCConfig::kCaLibVersion);
     mvprintw(1, (gNcol-strlen(tmp)) / 2, "%s", tmp);
     
     // turn off bold
@@ -934,7 +941,7 @@ void ChangeRunEntry(const Char_t* title, const Char_t* name, RunEntry_t entry)
 }
 
 //______________________________________________________________________________
-void SelectCalibration()
+void SelectCalibration(const Char_t* mMsg)
 {
     // Show the calibration selection.
     
@@ -954,7 +961,7 @@ void SelectCalibration()
 
     // menu configuration
     const Char_t mTitle[] = "CALIBRATION SELECTION";
-    const Char_t mMsg[] = "Select a calibration";
+    const Char_t mMsgStd[] = "Select a calibration";
     const Int_t mN = nCalib;
     Char_t* mEntries[mN];
     for (Int_t i = 0; i < mN; i++) mEntries[i] = new Char_t[256];
@@ -970,7 +977,9 @@ void SelectCalibration()
     delete c;
 
     // show menu
-    Int_t choice = ShowMenu(mTitle, mMsg, mN, (const Char_t**)mEntries, 0);
+    Int_t choice = 0;
+    if (mMsg) choice = ShowMenu(mTitle, mMsg, mN, (const Char_t**)mEntries, 0);
+    else choice = ShowMenu(mTitle, mMsgStd, mN, (const Char_t**)mEntries, 0);
 
     // save selected calibration
     strcpy(gCalibration, mEntries[choice]);
@@ -1011,6 +1020,423 @@ void SelectCalibrationData()
     
     // save selected calibration type
     gCalibrationData = (CalibData_t)(choice+1);
+}
+
+//______________________________________________________________________________
+void ExportRuns()
+{
+    // Export runs.
+    
+    Int_t first_run = 0;
+    Int_t last_run = 0;
+    Char_t filename[256];
+    Char_t answer[16];
+
+    // clear the screen
+    clear();
+    
+    // echo input 
+    echo();
+    
+    // draw header
+    DrawHeader();
+    
+    // draw title
+    attron(A_UNDERLINE);
+    mvprintw(4, 2, "EXPORT RUNS");
+    attroff(A_UNDERLINE);
+  
+    // ask first run, last run and file name
+    mvprintw(6, 2, "First run (enter 0 to select all)          : ");
+    scanw("%d", &first_run);
+    mvprintw(7, 2, "Last run  (enter 0 to select all)          : ");
+    scanw("%d", &last_run);
+    mvprintw(8, 2, "Name of output file                        : ");
+    scanw((Char_t*)"%s", filename);
+
+    // ask confirmation
+    if (!first_run && !last_run)
+        mvprintw(10, 2, "Saving all runs to '%s'", filename);
+    else
+        mvprintw(10, 2, "Saving runs %d to %d to '%s'", first_run, last_run, filename);
+    mvprintw(12, 6, "Are you sure to continue? (yes/no) : ");
+    scanw((Char_t*)"%s", answer);
+    if (strcmp(answer, "yes")) 
+    {
+        mvprintw(14, 2, "Aborted.");
+    }
+    else
+    {
+        // create new container
+        TCContainer* container = new TCContainer(TCConfig::kCaLibDumpName);
+    
+        // dump runs to container
+        Int_t nRun = TCMySQLManager::GetManager()->DumpRuns(container, first_run, last_run);
+
+        // save container to ROOT file
+        Bool_t ret = container->SaveAs(filename, kTRUE);
+    
+        // clean-up
+        delete container;
+
+        // check return value
+        if (ret)
+            mvprintw(14, 2, "Saved %d runs to '%s'", nRun, filename);
+        else
+            mvprintw(14, 2, "Could not save %d runs to '%s'!", nRun, filename);
+    }
+    
+    // user information
+    PrintStatusMessage("Hit ESC or 'q' to exit");
+  
+    // wait for input
+    for (;;)
+    {
+        // get key
+        Int_t c = getch();
+        
+        // leave loop
+        if (c == KEY_ESC || c == 'q') break;
+    }
+ 
+    // don't echo input 
+    noecho();
+    
+    // go back
+    Administration();
+}
+
+//______________________________________________________________________________
+void ExportCalibration()
+{
+    // Export calibration.
+    
+    Char_t filename[256];
+    Char_t answer[16];
+    
+    // select a calibration
+    SelectCalibration();
+ 
+    // clear the screen
+    clear();
+    
+    // echo input 
+    echo();
+    
+    // draw header
+    DrawHeader();
+    
+    // draw title
+    attron(A_UNDERLINE);
+    mvprintw(4, 2, "EXPORT CALIBRATION");
+    attroff(A_UNDERLINE);
+  
+    // ask first run, last run and file name
+    mvprintw(6, 2, "Calibration to export                      : %s", gCalibration);
+    mvprintw(7, 2, "Name of output file                        : ");
+    scanw((Char_t*)"%s", filename);
+
+    // ask confirmation
+    mvprintw(9, 2, "Saving the calibration '%s' to '%s'", gCalibration, filename);
+    mvprintw(11, 6, "Are you sure to continue? (yes/no) : ");
+    scanw((Char_t*)"%s", answer);
+    if (strcmp(answer, "yes")) 
+    {
+        mvprintw(13, 2, "Aborted.");
+    }
+    else
+    {
+        // create new container
+        TCContainer* container = new TCContainer(TCConfig::kCaLibDumpName);
+    
+        // dump calibration to container
+        Int_t nCalib = TCMySQLManager::GetManager()->DumpAllCalibrations(container, gCalibration);
+
+        // save container to ROOT file
+        Bool_t ret = container->SaveAs(filename, kTRUE);
+    
+        // clean-up
+        delete container;
+
+        // check return value
+        if (ret)
+            mvprintw(13, 2, "Saved %d calibrations to '%s'", nCalib, filename);
+        else
+            mvprintw(13, 2, "Could not save %d calibrations to '%s'!", nCalib, filename);
+    }
+    
+    // user information
+    PrintStatusMessage("Hit ESC or 'q' to exit");
+  
+    // wait for input
+    for (;;)
+    {
+        // get key
+        Int_t c = getch();
+        
+        // leave loop
+        if (c == KEY_ESC || c == 'q') break;
+    }
+ 
+    // don't echo input 
+    noecho();
+    
+    // go back
+    Administration();
+}
+
+//______________________________________________________________________________
+void ImportRuns()
+{
+    // Import runs.
+    
+    Char_t filename[256];
+    Char_t answer[16];
+
+    // clear the screen
+    clear();
+    
+    // echo input 
+    echo();
+    
+    // draw header
+    DrawHeader();
+    
+    // draw title
+    attron(A_UNDERLINE);
+    mvprintw(4, 2, "IMPORT RUNS");
+    attroff(A_UNDERLINE);
+  
+    // ask file name
+    mvprintw(6, 2, "Name of input file                         : ");
+    scanw((Char_t*)"%s", filename);
+
+    // ask confirmation
+    mvprintw(8, 2, "Importing all runs from '%s'", filename);
+    mvprintw(10, 6, "Are you sure to continue? (yes/no) : ");
+    scanw((Char_t*)"%s", answer);
+    if (strcmp(answer, "yes")) 
+    {
+        mvprintw(12, 2, "Aborted.");
+    }
+    else
+    {
+        // try to load the container
+        TCContainer* c = TCMySQLManager::GetManager()->LoadContainer(filename);
+        if (!c)
+        {
+            mvprintw(12, 2, "No CaLib container found in file '%s'!", filename);
+            goto error_import_run;
+        }
+
+        // import runs
+        Int_t nRun = TCMySQLManager::GetManager()->ImportRuns(c);
+
+        // check return value
+        if (nRun)
+            mvprintw(12, 2, "Imported %d runs from '%s'", nRun, filename);
+        else
+            mvprintw(12, 2, "No run was imported from '%s'!", filename);
+    
+        // clean-up
+        delete c;
+    }
+    
+    // ugly goto label
+    error_import_run:
+
+    // user information
+    PrintStatusMessage("Hit ESC or 'q' to exit");
+  
+    // wait for input
+    for (;;)
+    {
+        // get key
+        Int_t c = getch();
+        
+        // leave loop
+        if (c == KEY_ESC || c == 'q') break;
+    }
+ 
+    // don't echo input 
+    noecho();
+    
+    // go back
+    Administration();
+}
+
+//______________________________________________________________________________
+void ImportCalibration()
+{
+    // Import calibration.
+    
+    Char_t tmp[256];
+    Char_t filename[256];
+    Char_t answer[16];
+    Bool_t importAll = kFALSE;
+    Bool_t calibExists = kFALSE;
+    Int_t nCalib;
+    const Char_t* calibName;
+
+    // menu configuration
+    const Char_t mTitle[] = "IMPORT CALIBRATION";
+    const Char_t mMsg[] = "Configure importing";
+    const Int_t mN = 3;
+    const Char_t* mEntries[] = { "Import complete calibration",
+                                 "Import single calibration",
+                                 "Go back" };
+    
+    // show menu
+    Int_t choice = ShowMenu(mTitle, mMsg, mN, mEntries, 0);
+
+    // decide what do to
+    switch (choice)
+    {
+        case 0:
+            importAll = kTRUE;
+            break;
+        case 1:
+            SelectCalibrationType();
+            sprintf(tmp, "Select the calibration the imported '%s' is added to", 
+                    TCConfig::kCalibTypeNames[gCalibrationType]);
+            SelectCalibration(tmp);
+            break;
+        case 2:
+            Administration();
+    }
+ 
+    // clear the screen
+    clear();
+    
+    // echo input 
+    echo();
+    
+    // draw header
+    DrawHeader();
+    
+    // draw title
+    attron(A_UNDERLINE);
+    mvprintw(4, 2, "IMPORT CALIBRATION");
+    attroff(A_UNDERLINE);
+    
+    // ask file name
+    mvprintw(6, 2, "Name of input file                         : ");
+    scanw((Char_t*)"%s", filename);
+    
+    // try to load the container
+    TCContainer* c = TCMySQLManager::GetManager()->LoadContainer(filename);
+    if (!c)
+    {
+        mvprintw(8, 2, "No CaLib container found in file '%s'!", filename);
+        goto error_import_calib;
+    }
+    
+    // get number of calibrations
+    nCalib = c->GetNCalibrations();
+    if (!nCalib)
+    {
+        mvprintw(8, 2, "No calibrations found in file '%s'!", filename);
+        goto error_import_calib;
+    }
+
+    // check if calibration exists
+    calibName = c->GetCalibration(0)->GetCalibration();
+    if (TCMySQLManager::GetManager()->ContainsCalibration(calibName))
+        calibExists = kTRUE;
+
+    // ask confirmation 
+    if (importAll)
+    {
+        // calibration exits or not
+        if (calibExists)
+        {
+            mvprintw(8, 2, "Calibration '%s' exists already in database - it will be overwritten!", 
+                     calibName);
+        }
+        else
+        {
+            mvprintw(8, 2, "Importing %d calibrations of '%s' from '%s'", 
+                     nCalib, calibName, filename);
+        }
+    }
+    else
+    {
+        mvprintw(8, 2, "'%s' from '%s' will be added to calibration '%s' replacing the existing data!", 
+                 TCConfig::kCalibTypeNames[gCalibrationType], filename, gCalibration);
+    }
+    mvprintw(10, 6, "Are you sure to continue? (yes/no) : ");
+    scanw((Char_t*)"%s", answer);
+    if (strcmp(answer, "yes")) 
+    {
+        mvprintw(12, 2, "Aborted.");
+    }
+    else
+    {
+        // all calibrations
+        if (importAll)
+        {
+            // delete old calibration before importing
+            if (calibExists) TCMySQLManager::GetManager()->RemoveAllCalibrations(calibName);
+        
+            // import new calibration
+            Int_t nAdded = TCMySQLManager::GetManager()->ImportCalibrations(c);
+            
+            // check return value
+            if (nAdded)
+                mvprintw(12, 2, "Imported %d calibrations of '%s' from '%s'", nAdded, calibName, filename);
+            else
+                mvprintw(12, 2, "No calibration was imported from '%s'!", filename);
+        }
+        else
+        {   
+            Int_t nAdded = 0;
+
+            // loop over calibration data for this calibration type
+            for (Int_t i = 0; i < TCConfig::kCalibTypeNData[(Int_t)gCalibrationType]; i++)
+            {
+                // get calibration data
+                CalibData_t data = TCConfig::kCalibTypeData[(Int_t)gCalibrationType][i];
+                
+                // delete old calibration before importing
+                TCMySQLManager::GetManager()->RemoveCalibration(gCalibration, data);
+
+                // import new calibration
+                nAdded += TCMySQLManager::GetManager()->ImportCalibrations(c, gCalibration, data);
+            }
+            
+            // check return value
+            if (nAdded)
+                mvprintw(12, 2, "Imported %d calibrations of '%s' from '%s' and added them to '%s'", 
+                         nAdded, TCConfig::kCalibTypeNames[gCalibrationType], filename, gCalibration);
+            else
+                mvprintw(12, 2, "No calibration was imported from '%s'!", filename);
+        }
+
+        // clean-up
+        delete c;
+    }
+
+    // ugly goto label
+    error_import_calib:
+
+    // user information
+    PrintStatusMessage("Hit ESC or 'q' to exit");
+
+    // wait for input
+    for (;;)
+    {
+        // get key
+        Int_t c = getch();
+        
+        // leave loop
+        if (c == KEY_ESC || c == 'q') break;
+    }
+ 
+    // don't echo input 
+    noecho();
+    
+    // go back
+    Administration();
 }
 
 //______________________________________________________________________________
@@ -1122,7 +1548,7 @@ void DeleteCalibration()
     else
     {
         // delete calibration
-        Bool_t ret = TCMySQLManager::GetManager()->RemoveCalibration(gCalibration);
+        Bool_t ret = TCMySQLManager::GetManager()->RemoveAllCalibrations(gCalibration);
 
         // check return value
         if (ret)
@@ -1223,6 +1649,35 @@ void CalibEditor()
 }
 
 //______________________________________________________________________________
+void Administration()
+{
+    // Show the administration menu.
+    
+    // menu configuration
+    const Char_t mTitle[] = "ADMINISTRATION";
+    const Char_t mMsg[] = "Select an administration operation";
+    const Int_t mN = 5;
+    const Char_t* mEntries[] = { "Export runs",
+                                 "Export calibration",
+                                 "Import runs",
+                                 "Import calibration",
+                                 "Go back" };
+    
+    // show menu
+    Int_t choice = ShowMenu(mTitle, mMsg, mN, mEntries, 0);
+
+    // decide what do to
+    switch (choice)
+    {
+        case 0: ExportRuns();
+        case 1: ExportCalibration();
+        case 2: ImportRuns();
+        case 3: ImportCalibration();
+        case 4: MainMenu();
+    }
+}
+
+//______________________________________________________________________________
 void About()
 {
     // Show the about screen.
@@ -1272,9 +1727,10 @@ void MainMenu()
     // menu configuration
     const Char_t mTitle[] = "MAIN MENU";
     const Char_t mMsg[] = "Select an operation";
-    const Int_t mN = 4;
+    const Int_t mN = 5;
     const Char_t* mEntries[] = { "Run editor",
                                  "Calibration editor",
+                                 "Administration",
                                  "About",
                                  "Exit" };
     
@@ -1286,8 +1742,9 @@ void MainMenu()
     {
         case 0: RunEditor();
         case 1: CalibEditor();
-        case 2: About();
-        case 3: Finish(0);
+        case 2: Administration();
+        case 3: About();
+        case 4: Finish(0);
     }
 }
 
@@ -1298,6 +1755,9 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     // set-up signal for CTRL-C
     signal(SIGINT, Finish);
+
+    // redirect standard error
+    freopen("calib_manager.log", "w", stderr);
 
     // init ncurses
     initscr();
@@ -1334,7 +1794,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     }
 
     // set MySQL manager to silence mode
-    TCMySQLManager::GetManager()->SetSilenceMode(kTRUE);
+    //TCMySQLManager::GetManager()->SetSilenceMode(kTRUE);
     
     // show main menu
     MainMenu();

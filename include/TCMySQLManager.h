@@ -66,9 +66,6 @@ private:
     Bool_t MergeSets(CalibData_t data, const Char_t* calibration, 
                      Int_t set1, Int_t set2);
 
-    void ImportRuns(TCContainer* container);
-    void ImportCalibrations(TCContainer* container, const Char_t* newCalibName);
-
 public:
     TCMySQLManager();
     virtual ~TCMySQLManager();
@@ -76,9 +73,14 @@ public:
     void SetSilenceMode(Bool_t s) { fSilence = s; }
     Bool_t IsConnected();
     
-    TList* GetAllCalibrations();
+    const Char_t* GetDBName() const { return fDB ? fDB->GetDB() : 0; }
+    const Char_t* GetDBHost() const { return fDB ? fDB->GetHost() : 0; }
+
+    TList* GetAllCalibrations(CalibData_t data = kCALIB_TARGET_POS);
     TList* GetAllTargets();
     
+    Bool_t ContainsCalibration(const Char_t* calibration);
+
     Int_t GetNsets(CalibData_t data, const Char_t* calibration);
     Int_t GetFirstRunOfSet(CalibData_t data, const Char_t* calibration, Int_t set);
     Int_t GetLastRunOfSet(CalibData_t data, const Char_t* calibration, Int_t set);
@@ -105,7 +107,8 @@ public:
     Bool_t ChangeRunBeamPolDeg(Int_t first_run, Int_t last_run, Double_t beam_pol_deg);
     
     Bool_t ChangeCalibrationName(const Char_t* calibration, const Char_t* newCalibration);
-    Bool_t RemoveCalibration(const Char_t* calibration);
+    Bool_t RemoveCalibration(const Char_t* calibration, CalibData_t data);
+    Int_t RemoveAllCalibrations(const Char_t* calibration);
 
     Bool_t AddSet(CalibType_t type, const Char_t* calibration, const Char_t* desc,
                   Int_t first_run, Int_t last_run, Double_t par);
@@ -122,11 +125,17 @@ public:
     
     void InitDatabase();
     
-    void DumpRuns(TCContainer* container, Int_t first_run = 0, Int_t last_run = 0);
-    void DumpAllCalibrations(TCContainer* container, const Char_t* calibration);
-    void DumpCalibrations(TCContainer* container, const Char_t* calibration, 
-                          CalibData_t data);
+    TCContainer* LoadContainer(const Char_t* filename);
     
+    Int_t DumpRuns(TCContainer* container, Int_t first_run = 0, Int_t last_run = 0);
+    Int_t DumpAllCalibrations(TCContainer* container, const Char_t* calibration);
+    Int_t DumpCalibrations(TCContainer* container, const Char_t* calibration, 
+                           CalibData_t data);
+    
+    Int_t ImportRuns(TCContainer* container);
+    Int_t ImportCalibrations(TCContainer* container, const Char_t* newCalibName = 0,
+                             CalibData_t data = kCALIB_EMPTY);
+ 
     void Export(const Char_t* filename, Int_t first_run, Int_t last_run, 
                 const Char_t* calibration);
     void Import(const Char_t* filename, Bool_t runs, Bool_t calibrations,

@@ -199,7 +199,7 @@ public:
 
     TCRun* AddRun(Int_t run);
     TCCalibration* AddCalibration(const Char_t* calibration);
-    void SaveAs(const Char_t* filename);
+    Bool_t SaveAs(const Char_t* filename, Bool_t silence = kFALSE);
  
     void Print();
     void ShowRuns();
