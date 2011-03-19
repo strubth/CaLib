@@ -145,7 +145,12 @@ public:
     {
         // return a pointer to the static instance of this class
         if (!fgMySQLManager) fgMySQLManager = new TCMySQLManager();
-        return fgMySQLManager;
+        if (!fgMySQLManager->IsConnected())
+        {
+            Error("GetManager", "No connection to the database!");
+            return 0;
+        }
+        else return fgMySQLManager;
     }
     
     ClassDef(TCMySQLManager, 0) // Communication with MySQL Server

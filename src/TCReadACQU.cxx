@@ -61,6 +61,9 @@ void TCReadACQU::ReadFiles()
         return;
     }
 
+    // sort files
+    list->Sort();
+
     // loop over directory content
     TIter next(list);
     TSystemFile* f;
@@ -68,7 +71,7 @@ void TCReadACQU::ReadFiles()
     {
         // look for ACQU raw files
         TString str(f->GetName());
-        if (str.BeginsWith("CB_") && str.EndsWith(".dat"))
+        if (str.BeginsWith("CB_") && (str.EndsWith(".dat") || str.EndsWith(".dat.gz")))
         {
             // user information
             Info("ReadFiles", "Reading '%s/%s'", fPath, f->GetName());

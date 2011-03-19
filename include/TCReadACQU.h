@@ -16,6 +16,8 @@
 #ifndef TCREADACQU_H
 #define TCREADACQU_H
 
+#include <zlib.h>
+
 #include "TList.h"
 #include "TError.h"
 #include "TSystem.h"
@@ -67,7 +69,7 @@ public:
         strcpy(fFileName, fname);
 
         // try to open the file
-        FILE* file = fopen(fFileName, "r");
+        void* file = gzopen(fFileName, "r");
         if (!file)
         {
             Error("Read", "Could not open '%s'", fFileName);
@@ -75,17 +77,17 @@ public:
         }
         
         // read start marker
-        size_t rs = fread(fStartMarker, sizeof(Char_t), sizeof(fStartMarker)/sizeof(Char_t), file);
+        gzread(file, fStartMarker, sizeof(fStartMarker));
         
         // read time
-        rs = fread(fTime, sizeof(Char_t), sizeof(fTime)/sizeof(Char_t), file);
+        gzread(file, fTime, sizeof(fTime));
         RemoveLineBreak(fTime, sizeof(fTime)/sizeof(Char_t));
         
         // skip tab
-        fseek(file, sizeof(Char_t), SEEK_CUR);
+        gzseek(file, sizeof(Char_t), SEEK_CUR);
 
         // read description (minus 1 byte)
-        rs = fread(fDescription, sizeof(Char_t), sizeof(fDescription)/sizeof(Char_t)-1, file);
+        gzread(file, fDescription, sizeof(fDescription)-1);
         RemoveLineBreak(fDescription, sizeof(fDescription)/sizeof(Char_t));
         
         // trim description
@@ -94,7 +96,7 @@ public:
         strcpy(fDescription, s.Data());
 
         // read run note
-        rs = fread(fRunNote, sizeof(Char_t), sizeof(fRunNote)/sizeof(Char_t), file);
+        gzread(file, fRunNote, sizeof(fRunNote));
         RemoveLineBreak(fRunNote, sizeof(fRunNote)/sizeof(Char_t));
         
         // trim run note
@@ -103,13 +105,13 @@ public:
         strcpy(fRunNote, s.Data());
         
         // read output file
-        rs = fread(fOutFile, sizeof(Char_t), sizeof(fOutFile)/sizeof(Char_t), file);
+        gzread(file, fOutFile, sizeof(fOutFile));
         
         // read run number
-        rs = fread(&fRun, sizeof(UShort_t), 1, file);
+        gzread(file, &fRun, sizeof(UShort_t));
         
         // close the file
-        fclose(file);
+        gzclose(file);
         
         // set file size
         FileStat_t fileinfo;

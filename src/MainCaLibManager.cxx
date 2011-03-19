@@ -40,6 +40,7 @@ Int_t gNcol;
 Char_t gCalibration[256];
 CalibType_t gCalibrationType;
 CalibData_t gCalibrationData;
+Char_t gFinishMessage[256];
 
 // function prototypes
 void MainMenu();
@@ -51,7 +52,6 @@ void SelectCalibrationData();
 void SelectCalibrationType();
 void Administration();
 
-
 //______________________________________________________________________________
 void Finish(Int_t sig)
 {   
@@ -59,6 +59,7 @@ void Finish(Int_t sig)
     
     fclose(stderr);
     endwin();
+    if (strcmp(gFinishMessage, "")) printf("%s\n", gFinishMessage);
     exit(0);
 }
 
@@ -951,9 +952,8 @@ void SelectCalibration(const Char_t* mMsg)
     // check if there are some calibrations
     if (!c)
     {
-        endwin();
-        printf("No calibrations found!\n");
-        exit(-1);
+        strcpy(gFinishMessage, "No calibrations found!");
+        Finish(-1);
     }
 
     // get number of calibrations
@@ -1752,12 +1752,20 @@ void MainMenu()
 Int_t main(Int_t argc, Char_t* argv[])
 {
     // Main method.
+    
+    // init finish message
+    gFinishMessage[0] = '\0';
 
     // set-up signal for CTRL-C
     signal(SIGINT, Finish);
 
     // redirect standard error
-    freopen("calib_manager.log", "w", stderr);
+    FILE* f = freopen("calib_manager.log", "w", stderr);
+    if (!f)
+    {
+        strcpy(gFinishMessage, "Cannot write log file to current directory!");
+        Finish(-1);
+    }
 
     // init ncurses
     initscr();
@@ -1780,17 +1788,15 @@ Int_t main(Int_t argc, Char_t* argv[])
     // check dimensions
     if (gNrow < 42 || gNcol < 120)
     {
-        endwin();
-        printf("Cannot run in a terminal smaller than 42 rows and 120 columns!\n");
-        exit(-1);
+        strcpy(gFinishMessage, "Cannot run in a terminal smaller than 42 rows and 120 columns!");
+        Finish(-1);
     }
     
     // check connection to database
-    if (!TCMySQLManager::GetManager()->IsConnected())
+    if (!TCMySQLManager::GetManager())
     {
-        endwin();
-        printf("No connection to CaLib database!\n");
-        exit(-1);
+        strcpy(gFinishMessage, "No connection to CaLib database!");
+        Finish(-1);
     }
 
     // set MySQL manager to silence mode
