@@ -45,7 +45,7 @@ void Fit(Int_t run)
     Int_t fitres;
     
     for (Int_t i = 0; i < 10; i++)
-        if (!gH->Fit(gFitFunc, "RBQ0")) break;
+        if (!(fitres = gH->Fit(gFitFunc, "RBQ0"))) break;
   
     // get position
     fPi0Pos = gFitFunc->GetParameter(1);

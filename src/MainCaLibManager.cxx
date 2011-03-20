@@ -1048,9 +1048,9 @@ void ExportRuns()
   
     // ask first run, last run and file name
     mvprintw(6, 2, "First run (enter 0 to select all)          : ");
-    scanw("%d", &first_run);
+    scanw((Char_t*)"%d", &first_run);
     mvprintw(7, 2, "Last run  (enter 0 to select all)          : ");
-    scanw("%d", &last_run);
+    scanw((Char_t*)"%d", &last_run);
     mvprintw(8, 2, "Name of output file                        : ");
     scanw((Char_t*)"%s", filename);
 

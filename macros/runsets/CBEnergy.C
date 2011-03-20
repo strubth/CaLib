@@ -23,7 +23,7 @@ TLine* gLine;
 
 
 //______________________________________________________________________________
-void Fit(Int_t run)
+void Fit(Int_t run, Bool_t fitEta)
 {
     // Perform fit.
     
@@ -36,19 +36,30 @@ void Fit(Int_t run)
     gFitFunc->SetLineColor(2);
     
     // configure fitting function
-    gFitFunc->SetRange(100, 180);
-    gFitFunc->SetLineColor(2);
-    gFitFunc->SetParameters(gH->GetMaximum(), 135, 10, 1, 1, 1, 0.1);
-    gFitFunc->SetParLimits(0, 0, 10000);  
-    gFitFunc->SetParLimits(1, 120, 140);  
-    gFitFunc->SetParLimits(2, 5, 10);
-    Int_t fitres;
+    if (fitEta)
+    {
+        gFitFunc->SetRange(470, 630);
+        gFitFunc->SetParameters(gH->GetMaximum(), 547, 15, 1, 1, 1, 0.1);
+        gFitFunc->SetParLimits(0, 0, gH->GetMaximum());  
+        gFitFunc->SetParLimits(1, 530, 580);  
+        gFitFunc->SetParLimits(2, 8, 20);
+        gFitFunc->FixParameter(6, 0);
+    }
+    else
+    {
+        gFitFunc->SetRange(100, 180);
+        gFitFunc->SetParameters(gH->GetMaximum(), 135, 10, 1, 1, 1, 0.1);
+        gFitFunc->SetParLimits(0, 0, gH->GetMaximum()*10);  
+        gFitFunc->SetParLimits(1, 115, 145);  
+        gFitFunc->SetParLimits(2, 5, 12);
+    }
     
+    Int_t fitres;
     for (Int_t i = 0; i < 10; i++)
-        if (!gH->Fit(gFitFunc, "RBQ0")) break;
+        if (!(fitres = gH->Fit(gFitFunc, "RB0Q"))) break;
   
     // get position
-    fPi0Pos = gFitFunc->GetParameter(1);
+    pos = gFitFunc->GetParameter(1);
 
     // check failed fits
     if (fitres) 
@@ -56,22 +67,30 @@ void Fit(Int_t run)
         printf("Run %d: fit failed\n", run);
         return;
     }
+    else
+    {
+        if (fitEta) printf("Run %d: Eta : %.2f   FWHM : %.2f\n", run, pos, 2.35*gFitFunc->GetParameter(2));
+        else printf("Run %d: Pi0 : %.2f   FWHM : %.2f\n", run, pos, 2.35*gFitFunc->GetParameter(2));
+    }
+
+    if (pos < 130) printf("\n");
 
     // indicator line
-    gLine->SetX1(fPi0Pos);
-    gLine->SetX2(fPi0Pos);
+    gLine->SetX1(pos);
+    gLine->SetX2(pos);
     gLine->SetY1(0);
     gLine->SetY2(gH->GetMaximum());
 
     // draw 
     gCFit->cd();
-    gH->GetXaxis()->SetRangeUser(70, 200);
+    if (fitEta) gH->GetXaxis()->SetRangeUser(400, 700);
+    else gH->GetXaxis()->SetRangeUser(70, 200);
     gH->Draw();
     gFitFunc->Draw("same");
     gLine->Draw("same");
 
     // fill overview histogram
-    gHOverview->SetBinContent(run+1, fPi0Pos);
+    gHOverview->SetBinContent(run+1, pos);
     gHOverview->SetBinError(run+1, 0.0001);
 }
 
@@ -93,16 +112,16 @@ void CBEnergy()
     Double_t yMax = 160;
 
     // configuration (December 2007)
-    //const Char_t calibration[] = "LD2_Dec_07";
-    //const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/Dec_07/AR/out";
+    const Char_t calibration[] = "LD2_Dec_07";
+    const Char_t* fLoc = "/Users/fulgur/Desktop/calib/Dec_07";
 
     // configuration (February 2009)
-    const Char_t calibration[] = "LD2_Feb_09";
-    const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/Feb_09/AR/out";
+    //const Char_t calibration[] = "LD2_Feb_09";
+    //const Char_t* fLoc = "/Users/fulgur/Desktop/calib/Feb_09";
     
     // configuration (May 2009)
     //const Char_t calibration[] = "LD2_May_09";
-    //const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/May_09/AR/out";
+    //const Char_t* fLoc = "/Users/fulgur/Desktop/calib/May_09";
 
     // create histogram
     gHOverview = new TH1F("Overview", "Overview", 40000, 0, 40000);
@@ -170,7 +189,8 @@ void CBEnergy()
             gH = gH2->ProjectionX(tmp);
 
             // fit the histogram
-            Fit(runs[j]);
+            Fit(runs[j], kFALSE);
+            //Fit(runs[j], kTRUE);
             
             // update canvases and sleep
             if (watch)
@@ -178,6 +198,7 @@ void CBEnergy()
                 cOverview->Update();
                 gCFit->Update();
                 gSystem->Sleep(100);
+                //if (runs[j] > 13595) Char_t gg = getchar();
             }
      
             // count run
