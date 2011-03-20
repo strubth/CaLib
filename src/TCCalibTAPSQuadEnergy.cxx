@@ -358,9 +358,9 @@ void TCCalibTAPSQuadEnergy::Calculate(Int_t elem)
     }
 
     // user information
-    printf("Element: %03d    Pi0: %12.8f    "
-           "Eta: %12.8f    Par0: %12.8f    Par1: %12.8f",
-           elem, fPi0Pos, fEtaPos, fPar0[elem], fPar1[elem]);
+    printf("Element: %03d    Pi0 Pos.: %6.2f    Pi0 ME: %6.2f    "
+           "Eta Pos.: %6.2f    Eta ME: %6.2f    Par0: %12.8f    Par1: %e",
+           elem, fPi0Pos, fPi0MeanE, fEtaPos, fEtaMeanE, fPar0[elem], fPar1[elem]);
     if (no_corr) printf("    -> no correction");
     printf("\n");
 }   

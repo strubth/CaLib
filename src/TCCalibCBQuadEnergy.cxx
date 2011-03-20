@@ -223,7 +223,7 @@ void TCCalibCBQuadEnergy::Fit(Int_t elem)
         
         // create pi0 fitting function
         sprintf(tmp, "fEta_%i", elem);
-        fFitFunc1b = new TF1(tmp, "gaus(0)+pol2(3)", 450, 650);
+        fFitFunc1b = new TF1(tmp, "gaus(0)+pol3(3)", 450, 650);
         fFitFunc1b->SetLineColor(2);
          
 	// get x-axis range
@@ -243,17 +243,19 @@ void TCCalibCBQuadEnergy::Fit(Int_t elem)
         fFitFunc->SetParLimits(2, 0, 40);
 
 	// eta
-        fFitFunc1b->SetParameters(fFitHisto1b->GetMaximum(), fMaxEta, 15, 1, 1, 0.1);
-        fFitFunc1b->SetParLimits(0, 0, 1e6);
-        fFitFunc1b->SetParLimits(1, 500, 570);
-        fFitFunc1b->SetParLimits(2, 0, 50);//0, 50
-	fFitFunc1b->SetParLimits(3, 0, 100);
-        fFitFunc1b->SetParLimits(4, -1, 0);
-        fFitFunc1b->SetParLimits(5, -1, 0);//0, 50
+        fFitFunc1b->SetParameters(fFitHisto1b->GetMaximum(), fMaxEta, 15, 1, 1, 1, 0.1);
+        fFitFunc1b->SetParLimits(0, 1, fFitHisto1b->GetMaximum()+1);
+        fFitFunc1b->SetParLimits(1, 520, 580);
+        fFitFunc1b->SetParLimits(2, 1, 50);
+	//fFitFunc1b->SetParLimits(3, 0, 100);
+        //fFitFunc1b->SetParLimits(4, -1, 0);
+        //fFitFunc1b->SetParLimits(5, -1, 0);//0, 50
 	
         // fit peaks
-        fFitHisto->Fit(fFitFunc, "RBQ0");
-        fFitHisto1b->Fit(fFitFunc1b, "RBQ0");
+        for (Int_t i = 0; i < 10; i++)
+            if (!fFitHisto->Fit(fFitFunc, "RBQ0")) break;
+        for (Int_t i = 0; i < 10; i++)
+            if (!fFitHisto1b->Fit(fFitFunc1b, "RBQ0")) break;
         
         // get results
         fPi0Pos = fFitFunc->GetParameter(1);
@@ -373,9 +375,9 @@ void TCCalibCBQuadEnergy::Calculate(Int_t elem)
     }
 
     // user information
-    printf("Element: %03d    Pi0: %12.8f    "
-           "Eta: %12.8f    Par0: %12.8f    Par1: %12.8f",
-           elem, fPi0Pos, fEtaPos, fPar0[elem], fPar1[elem]);
+    printf("Element: %03d    Pi0 Pos.: %6.2f    Pi0 ME: %6.2f    "
+           "Eta Pos.: %6.2f    Eta ME: %6.2f    Par0: %12.8f    Par1: %e",
+           elem, fPi0Pos, fPi0MeanE, fEtaPos, fEtaMeanE, fPar0[elem], fPar1[elem]);
     if (no_corr) printf("    -> no correction");
     if (TCUtils::IsCBHole(elem)) printf(" (hole)");
     printf("\n");
