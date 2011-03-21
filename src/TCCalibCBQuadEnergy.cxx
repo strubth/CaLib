@@ -29,6 +29,8 @@ TCCalibCBQuadEnergy::TCCalibCBQuadEnergy()
     fPar1 = 0;
     fMainHisto2 = 0;
     fMainHisto3 = 0;
+    fMainHisto2BG = 0;
+    fMainHisto3BG = 0;
     fFitHisto1b = 0;
     fFitHisto2 = 0;
     fFitHisto3 = 0;
@@ -54,6 +56,8 @@ TCCalibCBQuadEnergy::~TCCalibCBQuadEnergy()
     if (fPar1) delete [] fPar1;
     if (fMainHisto2) delete fMainHisto2;
     if (fMainHisto3) delete fMainHisto3;
+    if (fMainHisto2BG) delete fMainHisto2BG;
+    if (fMainHisto3BG) delete fMainHisto3BG;
     if (fFitHisto1b) delete fFitHisto1b;
     if (fFitHisto2) delete fFitHisto2;
     if (fFitHisto3) delete fFitHisto3;
@@ -71,6 +75,8 @@ void TCCalibCBQuadEnergy::Init()
 {
     // Init the module.
     
+    Char_t tmp[256];
+
     // init members
     fPar0 = new Double_t[fNelem];
     fPar1 = new Double_t[fNelem];
@@ -139,7 +145,8 @@ void TCCalibCBQuadEnergy::Init()
     }
     
     // get the pi0 mean energy histogram
-    fMainHisto2 = (TH2*) f.GetHistogram(hMeanPi0Name.Data());
+    sprintf(tmp, "%s_Prompt", hMeanPi0Name.Data());
+    fMainHisto2 = (TH2*) f.GetHistogram(tmp);
     if (!fMainHisto2)
     {
         Error("Init", "Pi0 mean energy histogram does not exist!\n");
@@ -147,13 +154,32 @@ void TCCalibCBQuadEnergy::Init()
     }
     
     // get the eta mean energy histogram
-    fMainHisto3 = (TH2*) f.GetHistogram(hMeanEtaName.Data());
+    sprintf(tmp, "%s_Prompt", hMeanEtaName.Data());
+    fMainHisto3 = (TH2*) f.GetHistogram(tmp);
     if (!fMainHisto3)
     {
         Error("Init", "Eta mean energy histogram does not exist!\n");
         return;
     }
     
+    // get the pi0 mean energy histogram (background)
+    sprintf(tmp, "%s_BG", hMeanPi0Name.Data());
+    fMainHisto2BG = (TH2*) f.GetHistogram(tmp);
+    if (!fMainHisto2BG)
+    {
+        Error("Init", "Pi0 mean energy (background) histogram does not exist!\n");
+        return;
+    }
+    
+    // get the eta mean energy histogram (background)
+    sprintf(tmp, "%s_BG", hMeanEtaName.Data());
+    fMainHisto3BG = (TH2*) f.GetHistogram(tmp);
+    if (!fMainHisto3BG)
+    {
+        Error("Init", "Eta mean energy (background) histogram does not exist!\n");
+        return;
+    }
+     
     // create the pi0 overview histogram
     fPi0PosHisto = new TH1F("Pi0 position overview", ";Element;#pi^{0} peak position [MeV]", fNelem, 0, fNelem);
     fPi0PosHisto->SetMarkerStyle(2);
@@ -208,6 +234,18 @@ void TCCalibCBQuadEnergy::Fit(Int_t elem)
     if (fFitHisto3) delete fFitHisto3;
     fFitHisto3 = h2->ProjectionX(tmp, elem+1, elem+1, "e");
     TCUtils::FormatHistogram(fFitHisto3, "CB.QuadEnergy.Histo.Fit.Eta.MeanE");
+    
+    // get pi0 mean energy projection (background)
+    sprintf(tmp, "ProjHistoMeanPi0BG_%d", elem);
+    h2 = (TH2*) fMainHisto2BG;
+    TH1* hMeanEPi0BG = h2->ProjectionX(tmp, elem+1, elem+1, "e");
+    TCUtils::FormatHistogram(hMeanEPi0BG, "CB.QuadEnergy.Histo.Fit.Pi0.MeanE");
+
+    // get eta mean energy projection (background)
+    sprintf(tmp, "ProjHistoMeanEtaBG_%d", elem);
+    h2 = (TH2*) fMainHisto3BG;
+    TH1* hMeanEEtaBG = h2->ProjectionX(tmp, elem+1, elem+1, "e");
+    TCUtils::FormatHistogram(hMeanEEtaBG, "CB.QuadEnergy.Histo.Fit.Eta.MeanE");
 
     // check for sufficient statistics
     if (fFitHisto->GetEntries())
@@ -319,6 +357,10 @@ void TCCalibCBQuadEnergy::Fit(Int_t elem)
     // update canvas
     fCanvasFit->Update();
     
+    // clean-up
+    delete hMeanEPi0BG;
+    delete hMeanEEtaBG;
+
     // update overview
     if (elem % 20 == 0)
     {

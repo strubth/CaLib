@@ -190,6 +190,11 @@ void TCCalibTime::Fit(Int_t elem)
         {
             factor = 1.5;
         }
+        if (this->InheritsFrom("TCCalibTaggerTime"))
+        {
+            range = 5;
+            factor = 10;
+        }
 
         // first iteration
 	fFitFunc->SetRange(fMean - range, fMean + range);
@@ -199,7 +204,8 @@ void TCCalibTime::Fit(Int_t elem)
         // second iteration
         Double_t sigma = fFitFunc->GetParameter(4);
         fFitFunc->SetRange(fMean -factor*sigma, fMean +factor*sigma);
-        fFitHisto->Fit(fFitFunc, "RBQ0");
+        for (Int_t i = 0; i < 10; i++)
+            if(!fFitHisto->Fit(fFitFunc, "RBQ0")) break;
 
         // final results
         fMean = fFitFunc->GetParameter(3); 

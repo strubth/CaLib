@@ -663,7 +663,7 @@ Bool_t TCMySQLManager::WriteParameters(CalibData_t data, const Char_t* calibrati
     }
     
     // finish query
-    query.Append(TString::Format("WHERE calibration = '%s' AND first_run = %d",
+    query.Append(TString::Format(" WHERE calibration = '%s' AND first_run = %d",
                                  calibration, first_run));
  
     // write data to database
