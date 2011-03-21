@@ -33,6 +33,8 @@ private:
     Double_t* fPar1;                        // correction parameter 1
     TH2* fMainHisto2;                       // histogram with mean photon energy of pi0
     TH2* fMainHisto3;                       // histogram with mean photon energy of eta
+    TH2* fMainHisto2BG;                     // histogram with mean photon energy of pi0 (background)
+    TH2* fMainHisto3BG;                     // histogram with mean photon energy of eta (background)
     TH1* fFitHisto1b;                       // fitting histogram
     TH1* fFitHisto2;                        // fitting histogram
     TH1* fFitHisto3;                        // fitting histogram
