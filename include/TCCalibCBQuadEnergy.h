@@ -39,6 +39,8 @@ private:
     TH1* fFitHisto2;                        // fitting histogram
     TH1* fFitHisto3;                        // fitting histogram
     TF1* fFitFunc1b;                        // additional fitting function
+    TF1* fFitFuncBG;                        // pi0 background function
+    TF1* fFitFunc1bBG;                      // eta background function
     Double_t fPi0Pos;                       // pi0 position
     Double_t fEtaPos;                       // eta position
     Double_t fPi0MeanE;                     // pi0 mean energy
@@ -49,10 +51,19 @@ private:
     TLine* fLineMeanEEta;                   // eta mean photon energy indicator line
     TH1* fPi0PosHisto;                      // histogram of pi0 positions
     TH1* fEtaPosHisto;                      // histogram of eta positions
+    Double_t fPi0Prompt[2];                 // pi0 prompt range
+    Double_t fPi0BG1[2];                    // pi0 background 1 range
+    Double_t fPi0BG2[2];                    // pi0 background 2 range
+    Double_t fEtaPrompt[2];                 // eta prompt range
+    Double_t fEtaBG1[2];                    // eta background 1 range
+    Double_t fEtaBG2[2];                    // eta background 2 range
+    Bool_t fIsFitPi0;                       // pi0/eta fitting toggle
 
     virtual void Init();
     virtual void Fit(Int_t elem);
     virtual void Calculate(Int_t elem);
+
+    Double_t BGFunc(Double_t* x, Double_t* par);
 
 public:
     TCCalibCBQuadEnergy();
