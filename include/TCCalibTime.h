@@ -39,10 +39,10 @@ private:
 public:
     TCCalibTime() : TCCalib(), fTimeGain(0), fMean(0), fLine(0) { }
     TCCalibTime(const Char_t* name, const Char_t* title, CalibData_t data,
-               Int_t nElem);
+                Int_t nElem);
     virtual ~TCCalibTime();
 
-    ClassDef(TCCalibTime, 0) // Base time time calibration class
+    ClassDef(TCCalibTime, 0) // Base time calibration class
 };
 
 

@@ -54,6 +54,8 @@
 #pragma link C++ class TCCalib+;
 #pragma link C++ class TCCalibPed+;
 #pragma link C++ class TCCalibTime+;
+#pragma link C++ class TCCalibEnergy+;
+#pragma link C++ class TCCalibQuadEnergy+;
 
 // misc calibration classes
 #pragma link C++ class TCCalibTargetPosition+;

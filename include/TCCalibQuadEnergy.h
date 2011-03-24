@@ -6,15 +6,15 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// TCCalibCBQuadEnergy                                                  //
+// TCCalibQuadEnergy                                                    //
 //                                                                      //
-// Calibration module for the CB quadratic energy correction.           //
+// Base quadratic energy correction module class.                       //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef TCCALIBCBQUADENERGY_H
-#define TCCALIBCBQUADENERGY_H
+#ifndef TCCALIBQUADENERGY_H
+#define TCCALIBQUADENERGY_H
 
 #include "TCanvas.h"
 #include "TH2.h"
@@ -25,7 +25,7 @@
 #include "TCFileManager.h"
 
 
-class TCCalibCBQuadEnergy : public TCCalib
+class TCCalibQuadEnergy : public TCCalib
 {
 
 private:
@@ -33,14 +33,10 @@ private:
     Double_t* fPar1;                        // correction parameter 1
     TH2* fMainHisto2;                       // histogram with mean photon energy of pi0
     TH2* fMainHisto3;                       // histogram with mean photon energy of eta
-    TH2* fMainHisto2BG;                     // histogram with mean photon energy of pi0 (background)
-    TH2* fMainHisto3BG;                     // histogram with mean photon energy of eta (background)
     TH1* fFitHisto1b;                       // fitting histogram
     TH1* fFitHisto2;                        // fitting histogram
     TH1* fFitHisto3;                        // fitting histogram
     TF1* fFitFunc1b;                        // additional fitting function
-    TF1* fFitFuncBG;                        // pi0 background function
-    TF1* fFitFunc1bBG;                      // eta background function
     Double_t fPi0Pos;                       // pi0 position
     Double_t fEtaPos;                       // eta position
     Double_t fPi0MeanE;                     // pi0 mean energy
@@ -51,28 +47,55 @@ private:
     TLine* fLineMeanEEta;                   // eta mean photon energy indicator line
     TH1* fPi0PosHisto;                      // histogram of pi0 positions
     TH1* fEtaPosHisto;                      // histogram of eta positions
-    Double_t fPi0Prompt[2];                 // pi0 prompt range
-    Double_t fPi0BG1[2];                    // pi0 background 1 range
-    Double_t fPi0BG2[2];                    // pi0 background 2 range
-    Double_t fEtaPrompt[2];                 // eta prompt range
-    Double_t fEtaBG1[2];                    // eta background 1 range
-    Double_t fEtaBG2[2];                    // eta background 2 range
-    Bool_t fIsFitPi0;                       // pi0/eta fitting toggle
 
     virtual void Init();
     virtual void Fit(Int_t elem);
     virtual void Calculate(Int_t elem);
 
-    Double_t BGFunc(Double_t* x, Double_t* par);
-
 public:
-    TCCalibCBQuadEnergy();
-    virtual ~TCCalibCBQuadEnergy();
+    TCCalibQuadEnergy() : TCCalib(), fPar0(0), fPar1(0),
+                          fMainHisto2(0), fMainHisto3(0), 
+                          fFitHisto1b(0), fFitHisto2(0), fFitHisto3(0),
+                          fFitFunc1b(0),
+                          fPi0Pos(0), fEtaPos(0), fPi0MeanE(0), fEtaMeanE(0),
+                          fLinePi0(0), fLineEta(0), fLineMeanEPi0(0), fLineMeanEEta(0),
+                          fPi0PosHisto(0), fEtaPosHisto(0) { }
+    TCCalibQuadEnergy(const Char_t* name, const Char_t* title, CalibData_t data,
+                      Int_t nElem);
+    virtual ~TCCalibQuadEnergy();
     
     virtual void Write();
     virtual void PrintValues();
 
+    ClassDef(TCCalibQuadEnergy, 0) // Base quadratic energy correction class
+};
+
+
+class TCCalibCBQuadEnergy : public TCCalibQuadEnergy
+{
+    
+public:
+    TCCalibCBQuadEnergy()
+        : TCCalibQuadEnergy("CB.QuadEnergy", "CB quadratic energy correction", 
+                            kCALIB_CB_EQUAD0, 
+                            TCConfig::kMaxCB) { }
+    virtual ~TCCalibCBQuadEnergy() { }
+
     ClassDef(TCCalibCBQuadEnergy, 0) // CB quadratic energy correction
+};
+
+
+class TCCalibTAPSQuadEnergy : public TCCalibQuadEnergy
+{
+    
+public:
+    TCCalibTAPSQuadEnergy()
+        : TCCalibQuadEnergy("TAPS.QuadEnergy", "TAPS quadratic energy correction", 
+                            kCALIB_TAPS_EQUAD0, 
+                            TCConfig::kMaxTAPSThetaBins) { }
+    virtual ~TCCalibTAPSQuadEnergy() { }
+
+    ClassDef(TCCalibTAPSQuadEnergy, 0) // TAPS quadratic energy correction
 };
 
 #endif

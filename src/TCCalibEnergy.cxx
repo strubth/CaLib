@@ -6,24 +6,24 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// TCCalibTAPSEnergyLG                                                  //
+// TCCalibEnergy                                                        //
 //                                                                      //
-// Calibration module for the TAPS LG energy.                           //
+// Base energy calibration module class.                                //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#include "TCCalibTAPSEnergyLG.h"
+#include "TCCalibEnergy.h"
 
-ClassImp(TCCalibTAPSEnergyLG)
+ClassImp(TCCalibEnergy)
 
 
 //______________________________________________________________________________
-TCCalibTAPSEnergyLG::TCCalibTAPSEnergyLG()
-    : TCCalib("TAPS.Energy.LG", "TAPS LG energy calibration", kCALIB_TAPS_LG_E1,
-              TCReadConfig::GetReader()->GetConfigInt("TAPS.Elements"))
+TCCalibEnergy::TCCalibEnergy(const Char_t* name, const Char_t* title, CalibData_t data,
+                             Int_t nElem)
+    : TCCalib(name, title, data, nElem)
 {
-    // Empty constructor.
+    // Constructor.
     
     // init members
     fPi0Pos = 0;
@@ -32,7 +32,7 @@ TCCalibTAPSEnergyLG::TCCalibTAPSEnergyLG()
 }
 
 //______________________________________________________________________________
-TCCalibTAPSEnergyLG::~TCCalibTAPSEnergyLG()
+TCCalibEnergy::~TCCalibEnergy()
 {
     // Destructor. 
     
@@ -40,10 +40,12 @@ TCCalibTAPSEnergyLG::~TCCalibTAPSEnergyLG()
 }
 
 //______________________________________________________________________________
-void TCCalibTAPSEnergyLG::Init()
+void TCCalibEnergy::Init()
 {
     // Init the module.
     
+    Char_t tmp[256];
+
     // init members
     fPi0Pos = 0;
     fLine = new TLine();
@@ -53,12 +55,13 @@ void TCCalibTAPSEnergyLG::Init()
     fLine->SetLineWidth(3);
  
     // get histogram name
-    if (!TCReadConfig::GetReader()->GetConfig("TAPS.Energy.LG.Histo.Fit.Name"))
+    sprintf(tmp, "%s.Histo.Fit.Name", GetName());
+    if (!TCReadConfig::GetReader()->GetConfig(tmp))
     {
         Error("Init", "Histogram name was not found in configuration!");
         return;
     }
-    else fHistoName = *TCReadConfig::GetReader()->GetConfig("TAPS.Energy.LG.Histo.Fit.Name");
+    else fHistoName = *TCReadConfig::GetReader()->GetConfig(tmp);
     
     // read old parameters (only from first set)
     TCMySQLManager::GetManager()->ReadParameters(fData, fCalibration.Data(), fSet[0], fOldVal, fNelem);
@@ -85,17 +88,19 @@ void TCCalibTAPSEnergyLG::Init()
     // draw main histogram
     fCanvasFit->Divide(1, 2, 0.001, 0.001);
     fCanvasFit->cd(1)->SetLogz();
-    TCUtils::FormatHistogram(fMainHisto, "TAPS.Energy.LG.Histo.Fit");
+    sprintf(tmp, "%s.Histo.Fit", GetName());
+    TCUtils::FormatHistogram(fMainHisto, tmp);
     fMainHisto->Draw("colz");
 
     // draw the overview histogram
     fCanvasResult->cd();
-    TCUtils::FormatHistogram(fOverviewHisto, "TAPS.Energy.LG.Histo.Overview");
+    sprintf(tmp, "%s.Histo.Overview", GetName());
+    TCUtils::FormatHistogram(fOverviewHisto, tmp);
     fOverviewHisto->Draw("P");
 }
 
 //______________________________________________________________________________
-void TCCalibTAPSEnergyLG::Fit(Int_t elem)
+void TCCalibEnergy::Fit(Int_t elem)
 {
     // Perform the fit of the element 'elem'.
     
@@ -110,40 +115,49 @@ void TCCalibTAPSEnergyLG::Fit(Int_t elem)
     // draw histogram
     fFitHisto->SetFillColor(35);
     fCanvasFit->cd(2);
-    TCUtils::FormatHistogram(fFitHisto, "TAPS.Energy.LG.Histo.Fit");
+    sprintf(tmp, "%s.Histo.Fit", GetName());
+    TCUtils::FormatHistogram(fFitHisto, tmp);
     fFitHisto->Draw("hist");
      
     // check for sufficient statistics
-    if (fFitHisto->GetEntries())
+    if (fFitHisto->GetEntries() > 1000)
     {
         // delete old function
         if (fFitFunc) delete fFitFunc;
         sprintf(tmp, "fEnergy_%i", elem);
-	
-	// the fit function
-	fFitFunc = new TF1("fFitFunc", "gaus(0)+pol3(3)", 0, 1000);
-
+        fFitFunc = new TF1(tmp, "gaus(0)+pol3(3)");
+        fFitFunc->SetLineColor(2);
+        
         // estimate peak position
         fPi0Pos = fFitHisto->GetBinCenter(fFitHisto->GetMaximumBin());
         if (fPi0Pos < 100 || fPi0Pos > 160) fPi0Pos = 135;
-	
-	// configure fitting function
-	fFitFunc->SetParameters(fFitHisto->GetMaximum(), fPi0Pos, 10, 1, 1, 1, 0.1);
-	fFitFunc->SetParLimits(1, 125, 145);
-	fFitFunc->SetParLimits(2, 5, 20);
-	fFitFunc->SetRange(80, 200);
-	fFitFunc->SetLineColor(2);
+
+        // configure fitting function
+        if (this->InheritsFrom("TCCalibCBEnergy"))
+        {
+            fFitFunc->SetRange(fPi0Pos - 50, fPi0Pos + 80);
+            fFitFunc->SetParameters(fFitHisto->GetMaximum(), fPi0Pos, 8, 1, 1, 1, 0.1);
+            fFitFunc->SetParLimits(1, 130, 140);  
+            fFitFunc->SetParLimits(2, 3, 15);  
+        }
+        else if (this->InheritsFrom("TCCalibTAPSEnergyLG"))
+        {
+	    fFitFunc->SetRange(80, 200);
+       	    fFitFunc->SetParameters(fFitHisto->GetMaximum(), fPi0Pos, 10, 1, 1, 1, 0.1);
+	    fFitFunc->SetParLimits(1, 125, 145);
+	    fFitFunc->SetParLimits(2, 5, 20);
+        }
 
         // fit
         for (Int_t i = 0; i < 10; i++)
             if (!fFitHisto->Fit(fFitFunc, "RBQ0")) break;
-        
+
         // final results
         fPi0Pos = fFitFunc->GetParameter(1); 
         
         // check if mass is in normal range
         if (fPi0Pos < 80 || fPi0Pos > 200) fPi0Pos = 135;
-         
+ 
         // set indicator line
         fLine->SetY1(0);
         fLine->SetY2(fFitHisto->GetMaximum() + 20);
@@ -156,10 +170,10 @@ void TCCalibTAPSEnergyLG::Fit(Int_t elem)
         // draw indicator line
         fLine->Draw();
     }
-
+    
     // update canvas
     fCanvasFit->Update();
-    
+
     // update overview
     if (elem % 20 == 0)
     {
@@ -170,21 +184,21 @@ void TCCalibTAPSEnergyLG::Fit(Int_t elem)
 }
 
 //______________________________________________________________________________
-void TCCalibTAPSEnergyLG::Calculate(Int_t elem)
+void TCCalibEnergy::Calculate(Int_t elem)
 {
     // Calculate the new value of the element 'elem'.
     
     Bool_t unchanged = kFALSE;
 
     // check if fit was performed
-    if (fFitHisto->GetEntries())
+    if (fFitHisto->GetEntries() > 1000)
     {
         // check if line position was modified by hand
         if (fLine->GetX1() != fPi0Pos) fPi0Pos = fLine->GetX1();
         
         // calculate the new offset
         fNewVal[elem] = fOldVal[elem] * TCConfig::kPi0Mass * TCConfig::kPi0Mass / fPi0Pos / fPi0Pos;
-    
+        
         // if new value is negative take old
         if (fNewVal[elem] < 0) 
         {
@@ -195,7 +209,7 @@ void TCCalibTAPSEnergyLG::Calculate(Int_t elem)
         // update overview histogram
         fOverviewHisto->SetBinContent(elem+1, fPi0Pos);
         fOverviewHisto->SetBinError(elem+1, 0.0000001);
-        
+    
         // update average calculation
         fAvr += fPi0Pos;
         fAvrDiff += TMath::Abs(fPi0Pos - TCConfig::kPi0Mass);
@@ -214,8 +228,12 @@ void TCCalibTAPSEnergyLG::Calculate(Int_t elem)
            elem, fPi0Pos, fOldVal[elem], fNewVal[elem],
            TCUtils::GetDiffPercent(fOldVal[elem], fNewVal[elem]));
     if (unchanged) printf("    -> unchanged");
+    if (this->InheritsFrom("TCCalibCBEnergy"))
+    {
+        if (TCUtils::IsCBHole(elem)) printf(" (hole)");
+    }
     printf("\n");
-   
+
     // show average
     if (elem == fNelem-1)
     {
@@ -224,5 +242,5 @@ void TCCalibTAPSEnergyLG::Calculate(Int_t elem)
         printf("Average pi0 position           : %.3f MeV\n", fAvr);
         printf("Average difference to pi0 mass : %.3f MeV\n", fAvrDiff);
     }
-} 
+}   
 
