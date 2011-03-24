@@ -425,10 +425,12 @@ void CreateModuleList()
         // get TCCalib* classes
         if (c.BeginsWith("TCCalib"))
         {
-            // skip non-module classes
+            // skip non-module (base) classes
             if (c == "TCCalib") continue;
             if (c == "TCCalibPed") continue;
             if (c == "TCCalibTime") continue;
+            if (c == "TCCalibEnergy") continue;
+            if (c == "TCCalibQuadEnergy") continue;
             if (c == "TCCalibTAPSLED") continue;
 
             // add module to list if it is really a module
