@@ -39,8 +39,8 @@ void Fit(Int_t run)
     gFitFunc->SetRange(80, 180);
     gFitFunc->SetLineColor(2);
     gFitFunc->SetParameters(gH->GetMaximum(), 135, 10, 1, 1, 1, 0.1);
-    gFitFunc->SetParLimits(0, 0, 10000);  
-    gFitFunc->SetParLimits(1, 120, 140);  
+    gFitFunc->SetParLimits(0, 0, 5000);  
+    gFitFunc->SetParLimits(1, 110, 130);  
     gFitFunc->SetParLimits(2, 5, 10);
     Int_t fitres;
     
@@ -86,7 +86,7 @@ void TAPSEnergy()
     gSystem->Load("libCaLib.so");
     
     // general configuration
-    Bool_t watch = kTRUE;
+    Bool_t watch = kFALSE;
     CalibData_t data = kCALIB_TAPS_LG_E1;
     const Char_t* hName = "CaLib_TAPS_IM_Neut_1CB_1TAPS";
     //const Char_t* hName = "CaLib_TAPS_IM_Neut_2TAPS";
@@ -94,17 +94,18 @@ void TAPSEnergy()
     Double_t yMax = 160;
 
     // configuration (December 2007)
-    //const Char_t calibration[] = "LD2_Dec_07";
-    //const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/Dec_07/AR/out";
+    const Char_t calibration[] = "LD2_Dec_07";
+    const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/Dec_07/AR/out";
 
     // configuration (February 2009)
-    const Char_t calibration[] = "LD2_Feb_09";
-    //const Char_t* fLoc = "/usr/panther_scratch0/werthm/A2/Feb_09/AR/out/ADC";
-    const Char_t* fLoc = "/usr/cheetah_scratch0/kaeser/CaLib/Feb_09";
+    //const Char_t calibration[] = "LD2_Feb_09";
+    //const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/Feb_09/AR/out";
+    //const Char_t* fLoc = "/usr/cheetah_scratch0/kaeser/CaLib/Feb_09";
     
     // configuration (May 2009)
     //const Char_t calibration[] = "LD2_May_09";
     //const Char_t* fLoc = "/usr/cheetah_scratch0/oberle/CaLib/May_09";
+    //const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/May_09/AR/out";
 
     // create histogram
     gHOverview = new TH1F("Overview", "Overview", 40000, 0, 40000);

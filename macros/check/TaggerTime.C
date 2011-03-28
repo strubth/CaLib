@@ -6,7 +6,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// TAPSTime.C                                                           //
+// TaggerTime.C                                                         //
 //                                                                      //
 // Check calibration of runsets.                                        //
 //                                                                      //
@@ -28,7 +28,7 @@ void Fit(TH1* h, Double_t* outPos, Double_t* outFWHM)
     Double_t fPi0Pos = h->GetBinCenter(h->GetMaximumBin());
 
     // configure fitting function
-    func->SetRange(fPi0Pos - 0.8, fPi0Pos + 0.8);
+    func->SetRange(-1, 1);
     func->SetLineColor(2);
     func->SetParameters( 0.1, 0.1, h->GetMaximum(), 0, 0.1);
     Int_t fitres = h->Fit(func, "RB0Q");
@@ -53,7 +53,7 @@ void Fit(TH1* h, Double_t* outPos, Double_t* outFWHM)
 }
 
 //______________________________________________________________________________
-void TAPSTime()
+void TaggerTime()
 {
     // Main method.
     
@@ -63,13 +63,14 @@ void TAPSTime()
     gSystem->Load("libCaLib.so");
     
     // general configuration
-    CalibData_t data = kCALIB_TAPS_T0;
-    const Char_t* hName = "CaLib_TAPS_Time_Neut";
+    CalibData_t data = kCALIB_TAGG_T0;
+    const Char_t* hName = "CaLib_Tagger_Time_Pi0";
 
     // configuration (December 2007)
     const Char_t calibration[] = "LD2_Dec_07";
     //const Char_t filePat[] = "/Users/fulgur/Desktop/calib/Dec_07/ARHistograms_CB_RUN.root";
-    const Char_t filePat[] = "/usr/puma_scratch0/werthm/A2/Dec_07/AR/out/ARHistograms_CB_RUN.root";
+    //const Char_t filePat[] = "/usr/puma_scratch0/werthm/A2/Dec_07/AR/out/tagger_time/ARHistograms_CB_RUN.root";
+    const Char_t filePat[] = "/usr/cheetah_scratch0/kaeser/CaLib/Dec_07/ARHistograms_CB_RUN.root";
 
     // configuration (February 2009)
     //const Char_t calibration[] = "LD2_Feb_09";
@@ -129,7 +130,7 @@ void TAPSTime()
 
     // show results
     for (Int_t i = 0; i < nSets; i++)
-        printf("Set %02d:   Pos: %.2f ps   FWHM: %.2f ps\n", i, 1000*pos[i], 1000*fwhm[i]);
-    printf("Total :   Pos: %.2f ps   FWHM: %.2f ps\n", 1000*pos[nSets], 1000*fwhm[nSets]);
+        printf("Set %02d:   Pos: %6.2f ps   FWHM: %.2f ps\n", i, 1000*pos[i], 1000*fwhm[i]);
+    printf("Total :   Pos: %6.2f ps   FWHM: %.2f ps\n", 1000*pos[nSets], 1000*fwhm[nSets]);
 }
 

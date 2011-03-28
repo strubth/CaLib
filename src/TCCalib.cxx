@@ -148,9 +148,10 @@ void TCCalib::EventHandler(Int_t event, Int_t ox, Int_t oy, TObject* selected)
 }
 
 //______________________________________________________________________________
-void TCCalib::ProcessElement(Int_t elem)
+void TCCalib::ProcessElement(Int_t elem, Bool_t ignorePrev)
 {
-    // Process the element 'elem'.
+    // Process the element 'elem'. If 'ignorePrev' is kTRUE the calculation
+    // of the previous element will not be performed.
 
     // check if element is in range
     if (elem < 0 || elem >= fNelem)
@@ -171,7 +172,7 @@ void TCCalib::ProcessElement(Int_t elem)
     }
     
     // calculate previous element
-    if (elem != fCurrentElem) Calculate(fCurrentElem);
+    if (elem != fCurrentElem && !ignorePrev) Calculate(fCurrentElem);
 
     // set current element
     fCurrentElem = elem;
@@ -213,6 +214,15 @@ void TCCalib::Next()
     // Process the next element.
     
     ProcessElement(fCurrentElem + 1);
+}
+
+//______________________________________________________________________________
+void TCCalib::Ignore()
+{
+    // Process the next element while skipping the calculation of the previous
+    // element.
+    
+    ProcessElement(fCurrentElem + 1, kTRUE);
 }
 
 //______________________________________________________________________________

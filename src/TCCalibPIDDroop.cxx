@@ -160,15 +160,15 @@ void TCCalibPIDDroop::FitSlices(TH3* h, Int_t elem)
         fFitFunc->SetLineColor(2);
         
         // prepare fitting function
-        Double_t range = 6000/start+40;
-        Double_t peak_range = 10;
+        Double_t range = 20/start+0.;
+        Double_t peak_range = 0.2;
         fFitFunc->SetRange(peak - range, peak + range);
         fFitFunc->SetParameter(2, fFitHisto->GetXaxis()->FindBin(peak));
         fFitFunc->SetParLimits(2, 0, 100000);
         fFitFunc->SetParameter(3, peak);
         fFitFunc->SetParLimits(3, peak - peak_range, peak + peak_range);
-        fFitFunc->SetParameter(4, 30);
-        fFitFunc->SetParLimits(4, 20, 150);
+        fFitFunc->SetParameter(4, 1);
+        fFitFunc->SetParLimits(4, 0.1, 10);
          
         // perform first fit
         fFitHisto->Fit(fFitFunc, "RB0Q");

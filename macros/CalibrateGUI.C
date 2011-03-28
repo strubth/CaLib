@@ -30,6 +30,7 @@ private:
     TGTextButton* fTB_Init;
     TGTextButton* fTB_Prev;
     TGTextButton* fTB_Next;
+    TGTextButton* fTB_Ignore;
     TGTextButton* fTB_Print;
     TGTextButton* fTB_PrintChanges;
     TGTextButton* fTB_Goto;
@@ -50,6 +51,7 @@ public:
     void ResizeFrame(TGFrame* f);
     void Goto();
     void DoNext();
+    void DoIgnore();
     void DoPrev();
     void DoAll();
     void DoModulSelection(Int_t);
@@ -71,7 +73,7 @@ ButtonWindow::ButtonWindow()
     
     // calibration selection
     fCBox_Calibration = new TGComboBox(ver_frame_1, "Choose calibration");
-    fCBox_Calibration->Resize(220, 25);
+    fCBox_Calibration->Resize(260, 25);
     ver_frame_1->AddFrame(fCBox_Calibration, new TGLayoutHints(kLHintsLeft, 0, 5, 10, 0));
       
     // fill calibrations
@@ -86,7 +88,7 @@ ButtonWindow::ButtonWindow()
 
     // calibration module selection
     fCBox_Module = new TGComboBox(ver_frame_1, "Choose calibration module");
-    fCBox_Module->Resize(220, 25);
+    fCBox_Module->Resize(260, 25);
     ver_frame_1->AddFrame(fCBox_Module, new TGLayoutHints(kLHintsLeft, 0, 5, 10, 0));
   
     // fill modules
@@ -162,7 +164,13 @@ ButtonWindow::ButtonWindow()
     ResizeFrame(fTB_Next);
     fTB_Next->SetToolTipText("Go to next element", 200);
     fTB_Next->Connect("Clicked()", "ButtonWindow", this, "DoNext()");
-    nav_man_frame->AddFrame(fTB_Next, new TGLayoutHints(kLHintsLeft, 0, 20, 10, 0));
+    nav_man_frame->AddFrame(fTB_Next, new TGLayoutHints(kLHintsLeft, 0, 0, 10, 0));
+    
+    fTB_Ignore = new TGTextButton(nav_man_frame, "   Ignore   ");
+    ResizeFrame(fTB_Ignore);
+    fTB_Ignore->SetToolTipText("Go to next element and ignore current one", 200);
+    fTB_Ignore->Connect("Clicked()", "ButtonWindow", this, "DoIgnore()");
+    nav_man_frame->AddFrame(fTB_Ignore, new TGLayoutHints(kLHintsLeft, 0, 20, 10, 0));
 
     fTB_Goto = new TGTextButton(nav_man_frame, "Go to");
     ResizeFrame(fTB_Goto);
@@ -257,6 +265,15 @@ void ButtonWindow::DoNext()
     
     if (gCurrentModule)
         ((TCCalib*)gCurrentModule)->Next();
+}
+
+//______________________________________________________________________________
+void ButtonWindow::DoIgnore()
+{
+    // Go to the next element in the current module and ignore current one.
+    
+    if (gCurrentModule)
+        ((TCCalib*)gCurrentModule)->Ignore();
 }
 
 //______________________________________________________________________________

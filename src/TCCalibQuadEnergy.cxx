@@ -453,5 +453,8 @@ void TCCalibQuadEnergy::Write()
             TCMySQLManager::GetManager()->WriteParameters(kCALIB_TAPS_EQUAD1, fCalibration.Data(), fSet[i], fPar1, fNelem);
         }
     }
+
+    // save overview canvas
+    SaveCanvas(fCanvasResult, "Overview");
 }
 

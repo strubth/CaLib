@@ -100,9 +100,10 @@ public:
 
     void Start(const Char_t* calibration, Int_t nSet, Int_t* set);
     void ProcessAll(Int_t msecDelay = 0);
-    void ProcessElement(Int_t elem);
+    void ProcessElement(Int_t elem, Bool_t ignorePrev = kFALSE);
     void Previous();
     void Next();
+    void Ignore();
     void StopProcessing();
     
     CalibData_t GetCalibData() const { return fData; }
