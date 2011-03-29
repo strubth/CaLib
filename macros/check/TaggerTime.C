@@ -67,10 +67,10 @@ void TaggerTime()
     const Char_t* hName = "CaLib_Tagger_Time_Pi0";
 
     // configuration (December 2007)
-    const Char_t calibration[] = "LD2_Dec_07";
+    //const Char_t calibration[] = "LD2_Dec_07";
     //const Char_t filePat[] = "/Users/fulgur/Desktop/calib/Dec_07/ARHistograms_CB_RUN.root";
-    //const Char_t filePat[] = "/usr/puma_scratch0/werthm/A2/Dec_07/AR/out/tagger_time/ARHistograms_CB_RUN.root";
-    const Char_t filePat[] = "/usr/cheetah_scratch0/kaeser/CaLib/Dec_07/ARHistograms_CB_RUN.root";
+    //const Char_t filePat[] = "/usr/puma_scratch0/werthm/A2/Dec_07/AR/out/ARHistograms_CB_RUN.root";
+    //const Char_t filePat[] = "/usr/cheetah_scratch0/kaeser/CaLib/Dec_07/ARHistograms_CB_RUN.root";
 
     // configuration (February 2009)
     //const Char_t calibration[] = "LD2_Feb_09";
@@ -79,10 +79,10 @@ void TaggerTime()
     //const Char_t filePat[] = "/usr/puma_scratch0/werthm/A2/Feb_09/AR/out/ARHistograms_CB_RUN.root";
     
     // configuration (May 2009)
-    //const Char_t calibration[] = "LD2_May_09";
+    const Char_t calibration[] = "LD2_May_09";
     //const Char_t filePat[] = "/usr/cheetah_scratch0/oberle/CaLib/May_09/ARHistograms_CB_RUN.root";
     //const Char_t filePat[] = "/Users/fulgur/Desktop/calib/May_09/ARHistograms_CB_RUN.root";
-    //const Char_t filePat[] = "/usr/puma_scratch0/werthm/A2/May_09/AR/out/ARHistograms_CB_RUN.root";
+    const Char_t filePat[] = "/usr/puma_scratch0/werthm/A2/May_09/AR/out/ARHistograms_CB_RUN.root";
     
     // get number of sets
     Int_t nSets = TCMySQLManager::GetManager()->GetNsets(data, calibration);

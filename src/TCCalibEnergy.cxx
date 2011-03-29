@@ -120,7 +120,7 @@ void TCCalibEnergy::Fit(Int_t elem)
     fFitHisto->Draw("hist");
      
     // check for sufficient statistics
-    if (fFitHisto->GetEntries() > 1000)
+    if (fFitHisto->GetEntries() > 500)
     {
         // delete old function
         if (fFitFunc) delete fFitFunc;
@@ -144,8 +144,10 @@ void TCCalibEnergy::Fit(Int_t elem)
         {
 	    fFitFunc->SetRange(80, 200);
        	    fFitFunc->SetParameters(fFitHisto->GetMaximum(), fPi0Pos, 10, 1, 1, 1, 0.1);
-	    fFitFunc->SetParLimits(1, 125, 145);
-	    fFitFunc->SetParLimits(2, 5, 20);
+	    fFitFunc->SetParLimits(1, 1, 2000);
+	    fFitFunc->SetParLimits(1, 115, 140);
+	    fFitFunc->SetParLimits(2, 5, 15);
+            fFitFunc->FixParameter(6, 0);
         }
 
         // fit
@@ -191,7 +193,7 @@ void TCCalibEnergy::Calculate(Int_t elem)
     Bool_t unchanged = kFALSE;
 
     // check if fit was performed
-    if (fFitHisto->GetEntries() > 1000)
+    if (fFitHisto->GetEntries() > 500)
     {
         // check if line position was modified by hand
         if (fLine->GetX1() != fPi0Pos) fPi0Pos = fLine->GetX1();

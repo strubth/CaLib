@@ -122,7 +122,8 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
     }
     
     // draw main histogram
-    fCanvasFit->cd(1);
+    if (fMainHisto->GetEntries() > 0) fCanvasFit->cd(1)->SetLogz(1);
+    else fCanvasFit->cd(1)->SetLogz(0);
     TCUtils::FormatHistogram(fMainHisto, "CB.TimeWalk.Histo.Fit");
     fMainHisto->Draw("colz");
     fCanvasFit->Update();
@@ -138,7 +139,7 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
 
         // prepare stuff for adding
         Int_t added = 0;
-        Double_t added_e[100];
+        Double_t added_e[300];
         
         // get bins for fitting range
         Int_t startBin = h2->GetXaxis()->FindBin(lowLimit);
@@ -168,7 +169,7 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
             }
 
             // check if projection has enough entries
-            if (fTimeProj->GetEntries() < 100)
+            if (fTimeProj->GetEntries() < 100 && i < endBin)
             {
                 // start adding mode
                 if (!added)
@@ -271,11 +272,11 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
 	fFitFunc->SetParameters(3.55e+01, 6.77e+01, 2.43e-01, 1.66e-01);
 	fFitFunc->SetParLimits(0, 30, 80);
 	fFitFunc->SetParLimits(1, 30, 90);
-	fFitFunc->SetParLimits(2, -2, 1);
+	fFitFunc->SetParLimits(2, 0, 10);
 	fFitFunc->SetParLimits(3, 0, 1);
 	
         // perform fit
-        fEnergyProj->Fit(fFitFunc, "RB0Q");
+        if (fEnergyProj->Fit(fFitFunc, "RB0Q")) printf("Fit failed!\n");
     
         // read parameters
         fPar0[elem] = fFitFunc->GetParameter(0);
