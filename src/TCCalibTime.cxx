@@ -194,6 +194,7 @@ void TCCalibTime::Fit(Int_t elem)
         {
             range = 5;
             factor = 10;
+	    fFitFunc->SetParLimits(4, 0.01, 2);                  
         }
 
         // first iteration
