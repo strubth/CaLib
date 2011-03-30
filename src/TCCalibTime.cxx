@@ -190,6 +190,10 @@ void TCCalibTime::Fit(Int_t elem)
         {
             factor = 1.5;
         }
+        if (this->InheritsFrom("TCCalibCBRiseTime"))
+        {
+            factor = 1.5;
+        }
         if (this->InheritsFrom("TCCalibTaggerTime"))
         {
             range = 5;
