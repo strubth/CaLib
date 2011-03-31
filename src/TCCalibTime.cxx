@@ -174,7 +174,8 @@ void TCCalibTime::Fit(Int_t elem)
         // special configuration for certain classes
          if (!this->InheritsFrom("TCCalibTaggerTime") && 
              !this->InheritsFrom("TCCalibTAPSTime")   && 
-             !this->InheritsFrom("TCCalibVetoTime"))
+             !this->InheritsFrom("TCCalibVetoTime")   &&
+             !this->InheritsFrom("TCCalibCBRiseTime"))
         {   
             // only gaussian
             fFitFunc->FixParameter(0, 0);
@@ -192,7 +193,7 @@ void TCCalibTime::Fit(Int_t elem)
         }
         if (this->InheritsFrom("TCCalibCBRiseTime"))
         {
-            factor = 0.7;
+            factor = 10;
         }
         if (this->InheritsFrom("TCCalibTaggerTime"))
         {
