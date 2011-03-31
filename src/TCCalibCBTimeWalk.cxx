@@ -270,13 +270,14 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
         // prepare fitting function
         fFitFunc->SetLineColor(2);
 	fFitFunc->SetParameters(3.55e+01, 6.77e+01, 2.43e-01, 1.66e-01);
-	fFitFunc->SetParLimits(0, 30, 80);
-	fFitFunc->SetParLimits(1, 30, 90);
-	fFitFunc->SetParLimits(2, 0, 10);
+	//fFitFunc->SetParLimits(0, 30, 80);
+	fFitFunc->SetParLimits(1, 30, 120);
+	fFitFunc->SetParLimits(2, 1e-4, 10);
 	fFitFunc->SetParLimits(3, 0, 1);
 	
         // perform fit
-        if (fEnergyProj->Fit(fFitFunc, "RB0Q")) printf("Fit failed!\n");
+        for (Int_t i = 0; i < 10; i++)
+            if (!fEnergyProj->Fit(fFitFunc, "RB0Q")) break;
     
         // read parameters
         fPar0[elem] = fFitFunc->GetParameter(0);

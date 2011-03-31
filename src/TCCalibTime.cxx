@@ -192,7 +192,7 @@ void TCCalibTime::Fit(Int_t elem)
         }
         if (this->InheritsFrom("TCCalibCBRiseTime"))
         {
-            factor = 1.5;
+            factor = 0.7;
         }
         if (this->InheritsFrom("TCCalibTaggerTime"))
         {
@@ -256,7 +256,7 @@ void TCCalibTime::Calculate(Int_t elem)
 
         // calculate the new offset
         if (this->InheritsFrom("TCCalibCBRiseTime")) fNewVal[elem] = fOldVal[elem] + fMean;
-        fNewVal[elem] = fOldVal[elem] + fMean / fTimeGain[elem];
+        else fNewVal[elem] = fOldVal[elem] + fMean / fTimeGain[elem];
         
         // update overview histogram
         fOverviewHisto->SetBinContent(elem + 1, fMean);

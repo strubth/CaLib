@@ -71,11 +71,12 @@ void TAPSEnergy()
 
     // configuration (December 2007)
     const Char_t calibration[] = "LD2_Dec_07";
-    const Char_t filePat[] = "/usr/puma_scratch0/werthm/A2/Dec_07/AR/out/backup/ARHistograms_CB_RUN.root";
+    const Char_t filePat[] = "/usr/puma_scratch0/werthm/A2/Dec_07/AR/out/ARHistograms_CB_RUN.root";
 
     // configuration (February 2009)
     //const Char_t calibration[] = "LD2_Feb_09";
     //const Char_t filePat[] = "/usr/puma_scratch0/werthm/A2/Feb_09/AR/out/ARHistograms_CB_RUN.root";
+    //const Char_t filePat[] = "/usr/cheetah_scratch0/kaeser/CaLib/Feb_09/ARHistograms_CB_RUN.root";
 
     // configuration (May 2009)
     //const Char_t calibration[] = "LD2_May_09";
