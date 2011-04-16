@@ -14,13 +14,13 @@
 
 
 //______________________________________________________________________________
-void InspectDump()
+void InspectDump(const Char_t* filename)
 {
     // load CaLib
     gSystem->Load("libCaLib.so");
  
     // load CaLib container
-    TFile f("dump.root");
+    TFile f(filename);
     TCContainer* c = (TCContainer*) f.Get("CaLib_Dump");
     
     // show run information

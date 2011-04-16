@@ -166,8 +166,7 @@ public:
         printf("Last run         : %d\n", fLastRun);
         printf("Change time      : %s\n", fChangeTime);
         printf("Number of par.   : %d\n", fNpar);
-        printf("Parameters       : ");
-        for (Int_t i = 0; i < fNpar; i++) printf("%lf ", fPar[i]);
+        for (Int_t i = 0; i < fNpar; i++) printf("Par_%03d          : %.17g\n", i, fPar[i]);
         printf("\n");
         printf("\n");
     }
