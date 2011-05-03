@@ -92,7 +92,7 @@ public:
     TCCalibTAPSQuadEnergy()
         : TCCalibQuadEnergy("TAPS.QuadEnergy", "TAPS quadratic energy correction", 
                             kCALIB_TAPS_EQUAD0, 
-                            TCConfig::kMaxTAPSThetaBins) { }
+                            TCReadConfig::GetReader()->GetConfigInt("TAPS.Elements")) { }
     virtual ~TCCalibTAPSQuadEnergy() { }
 
     ClassDef(TCCalibTAPSQuadEnergy, 0) // TAPS quadratic energy correction

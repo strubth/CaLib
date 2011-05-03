@@ -20,13 +20,13 @@ void Fit(TH1* h, Double_t* outPos, Double_t* outFWHM)
     
     Char_t tmp[256];
 
-    Double_t x1 = 50;
-    Double_t x2 = 230;
+    Double_t x1 = 100;
+    Double_t x2 = 200;
 
-    TF1* func = new TF1("func", "gaus(0)+pol5(3)", x1, x2);
-    func->SetParameters(h->GetMaximum(), 135, 8, 1, 1, 0.1, 0.1);
+    TF1* func = new TF1("func", "gaus(0)+pol3(3)", x1, x2);
+    func->SetParameters(h->GetMaximum(), 141, 8, 1, 1, 0.1, 0.1);
     func->SetLineColor(kBlue);
-    func->SetParLimits(1, 130, 140);
+    func->SetParLimits(1, 130, 145);
     func->SetParLimits(2, 1, 15);
     h->Fit(func, "RBQO");
     
@@ -46,6 +46,8 @@ void Fit(TH1* h, Double_t* outPos, Double_t* outFWHM)
     TF1* fBG = new TF1("funcBG", "pol5", x1, x2);
     for (Int_t i = 0; i < 6; i++) fBG->SetParameter(i, func->GetParameter(3+i));
     fBG->SetLineColor(kRed);
+
+    gPad->SetLogy();
 
     // draw 
     h->GetXaxis()->SetRangeUser(0, 300);
@@ -67,20 +69,25 @@ void TAPSEnergy()
     
     // general configuration
     CalibData_t data = kCALIB_TAPS_LG_E1;
-    const Char_t* hName = "CaLib_TAPS_IM_Neut";
+    //const Char_t* hName = "CaLib_TAPS_IM_Neut";
+    //const Char_t* hName = "CaLib_TAPS_IM_Neut_1CB_1TAPS";
+    const Char_t* hName = "CaLib_TAPS_IM_Neut_2TAPS";
 
     // configuration (December 2007)
-    const Char_t calibration[] = "LD2_Dec_07";
-    const Char_t filePat[] = "/usr/puma_scratch0/werthm/A2/Dec_07/AR/out/ARHistograms_CB_RUN.root";
+    //const Char_t calibration[] = "LD2_Dec_07";
+    //const Char_t filePat[] = "/usr/puma_scratch0/werthm/A2/Dec_07/AR/out/ARHistograms_CB_RUN.root";
+    //const Char_t filePat[] = "/Users/fulgur/Desktop/calib/Dec_07/ARHistograms_CB_RUN.root";
 
     // configuration (February 2009)
-    //const Char_t calibration[] = "LD2_Feb_09";
+    const Char_t calibration[] = "LD2_Feb_09";
     //const Char_t filePat[] = "/usr/puma_scratch0/werthm/A2/Feb_09/AR/out/ARHistograms_CB_RUN.root";
-    //const Char_t filePat[] = "/usr/cheetah_scratch0/kaeser/CaLib/Feb_09/ARHistograms_CB_RUN.root";
+    const Char_t filePat[] = "/Users/fulgur/Desktop/calib/Feb_09/ARHistograms_CB_RUN.root";
 
     // configuration (May 2009)
     //const Char_t calibration[] = "LD2_May_09";
     //const Char_t filePat[] = "/usr/puma_scratch0/werthm/A2/May_09/AR/out/ARHistograms_CB_RUN.root";
+    //const Char_t filePat[] = "/Users/fulgur/Desktop/calib/May_09/ARHistograms_CB_RUN.root";
+    //const Char_t filePat[] = "/Users/fulgur/Desktop/calib/May_09/ARHistograms_CB_RUN.root";
     
     // get number of sets
     Int_t nSets = TCMySQLManager::GetManager()->GetNsets(data, calibration);
