@@ -782,6 +782,35 @@ void TCMySQLManager::AddRunFiles(const Char_t* path, const Char_t* target)
 }
 
 //______________________________________________________________________________
+void TCMySQLManager::AddRun(Int_t run, const Char_t* target, const Char_t* desc)
+{
+    // Add a run to the run database using the run number 'run', the target
+    // identifier 'target' and the description 'desc'.
+
+    // prepare the insert query
+    TString ins_query = TString::Format("INSERT INTO %s SET "
+                                        "run = %d, "
+                                        "description = '%s', "
+                                        "target = '%s'",
+                                        TCConfig::kCalibMainTableName, 
+                                        run,
+                                        desc,
+                                        target);
+
+    // try to write data to database
+    TSQLResult* res = SendQuery(ins_query.Data());
+    if (res == 0)
+    {
+        if (!fSilence) Warning("AddRun", "Run %d could not be added to the database!", run);
+    }
+    else
+    {
+        if (!fSilence) Info("AddRun", "Run %d ('%s') for target '%s' was added to the database", 
+                            run, desc, target);
+    }
+}
+
+//______________________________________________________________________________
 Bool_t TCMySQLManager::ChangeRunPath(Int_t first_run, Int_t last_run, const Char_t* path)
 {
     // Change the path of all runs between 'first_run' and 'last_run' to 'path'.

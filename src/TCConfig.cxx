@@ -27,9 +27,6 @@ namespace TCConfig
     const Int_t kMaxVeto      = 510;
     const Int_t kMaxTAGGER    = 352;
     
-    // maximum theta bins for TAPS quadratic energy correction
-    const Int_t kMaxTAPSThetaBins =  30;
-    
     // number of calibration data
     const Int_t kCalibNData = 33;
    
@@ -145,7 +142,8 @@ namespace TCConfig
     };
     
     // number of calibration types
-    const Int_t kCalibNType = 22;
+    // NOTE: This has to be synchronized with the enum ECalibType
+    const Int_t kCalibNType = 21;
     
     // type names
     // NOTE: This has to be synchronized with the enum ECalibType
@@ -169,8 +167,7 @@ namespace TCConfig
         // TAPS data
         "TAPS time",
         "TAPS LG pedestal", 
-        "TAPS LG energy",
-        "TAPS SG pedestal", 
+        "TAPS LG gain",
         "TAPS SG energy", 
         "TAPS quadratic energy correction",
         "TAPS LED1 threshold", 
@@ -212,8 +209,7 @@ namespace TCConfig
         2,
         1, 
         1,
-        1, 
-        1, 
+        2, 
         2,
         1, 
         1,
@@ -254,8 +250,7 @@ namespace TCConfig
         { kCALIB_TAPS_T0, kCALIB_TAPS_T1, kCALIB_EMPTY, kCALIB_EMPTY },
         { kCALIB_TAPS_LG_E0, kCALIB_EMPTY, kCALIB_EMPTY, kCALIB_EMPTY }, 
         { kCALIB_TAPS_LG_E1, kCALIB_EMPTY, kCALIB_EMPTY, kCALIB_EMPTY },
-        { kCALIB_TAPS_SG_E0, kCALIB_EMPTY, kCALIB_EMPTY, kCALIB_EMPTY }, 
-        { kCALIB_TAPS_SG_E1, kCALIB_EMPTY, kCALIB_EMPTY, kCALIB_EMPTY }, 
+        { kCALIB_TAPS_SG_E0, kCALIB_TAPS_SG_E1, kCALIB_EMPTY, kCALIB_EMPTY }, 
         { kCALIB_TAPS_EQUAD0, kCALIB_TAPS_EQUAD1, kCALIB_EMPTY, kCALIB_EMPTY },
         { kCALIB_TAPS_LED1, kCALIB_EMPTY, kCALIB_EMPTY, kCALIB_EMPTY }, 
         { kCALIB_TAPS_LED2, kCALIB_EMPTY, kCALIB_EMPTY, kCALIB_EMPTY },
@@ -284,12 +279,12 @@ namespace TCConfig
                     "time DATETIME,"
                     "description VARCHAR(256),"
                     "run_note VARCHAR(256),"
-                    "size BIGINT,"
+                    "size BIGINT DEFAULT 0,"
                     "target VARCHAR(20),"
                     "target_pol VARCHAR(128),"
-                    "target_pol_deg DOUBLE,"
+                    "target_pol_deg DOUBLE DEFAULT 0,"
                     "beam_pol VARCHAR(128),"
-                    "beam_pol_deg DOUBLE,"
+                    "beam_pol_deg DOUBLE DEFAULT 0,"
                     "changed TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP"
                     "                  ON UPDATE CURRENT_TIMESTAMP,"
                     "PRIMARY KEY (run) ";
@@ -307,7 +302,7 @@ namespace TCConfig
     const Char_t* kCalibDataTableSettings = ",PRIMARY KEY (calibration, first_run) ";
     
     // version numbers
-    const Char_t kCaLibVersion[] = "0.1.1";
+    const Char_t kCaLibVersion[] = "0.1.2";
     const Int_t kContainerFormatVersion = 1;
     extern const Char_t kCaLibDumpName[] = "CaLib_Dump";
 

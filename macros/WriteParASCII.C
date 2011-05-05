@@ -20,10 +20,10 @@ void WriteParASCII()
     gSystem->Load("libCaLib.so");
     
     // configuration
-    const Char_t inputFile[] = "par.dat";
-    CalibData_t data = kCALIB_CB_E1;
-    const Char_t calibration[] = "LD2_Feb_09";
-    Int_t set = 6;
+    const Char_t inputFile[] = "gain.dat";
+    CalibData_t data = kCALIB_TAPS_SG_E1;
+    const Char_t calibration[] = "LD2_Dec_07";
+    Int_t set = 0;
 
     // par array
     Double_t par[720];

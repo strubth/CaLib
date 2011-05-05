@@ -82,8 +82,7 @@ enum ECalibType
     // TAPS data
     kCALIB_TYPE_TAPS_TIME, 
     kCALIB_TYPE_TAPS_LG_PED,
-    kCALIB_TYPE_TAPS_LG_ENERGY,
-    kCALIB_TYPE_TAPS_SG_PED, 
+    kCALIB_TYPE_TAPS_LG_GAIN,
     kCALIB_TYPE_TAPS_SG_ENERGY, 
     kCALIB_TYPE_TAPS_EQUAD,
     kCALIB_TYPE_TAPS_LED1, kCALIB_TYPE_TAPS_LED2,
@@ -125,9 +124,6 @@ namespace TCConfig
     extern const Int_t kMaxPID;
     extern const Int_t kMaxVeto;
     extern const Int_t kMaxTAGGER;
-    
-    // maximum theta bins for TAPS quadratic energy correction
-    extern const Int_t kMaxTAPSThetaBins;
     
     // database format definitions
     extern const Int_t kCalibNData;
