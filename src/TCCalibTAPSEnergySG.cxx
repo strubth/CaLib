@@ -278,32 +278,39 @@ void TCCalibTAPSEnergySG::Fit(Int_t elem)
         fLine2->SetY2(fFitHisto2->GetMaximum() + 20);
         fLine2->SetX1(fPhi2);
         fLine2->SetX2(fPhi2);
-     }
+        
+        // set log axis
+        fCanvasFit->cd(1)->SetLogz();
 
-    // draw histogram
-    fFitHisto->SetFillColor(35);
-    fCanvasFit->cd(2);
-    TCUtils::FormatHistogram(fFitHisto, "TAPS.Energy.SG.Histo.Fit");
-    fFitHisto->Draw("hist");
-    
-    // draw fitting function
-    if (fFitFunc) fFitFunc->Draw("same");
-    
-    // draw indicator line
-    fLine1->Draw();
-    
-    // draw histogram
-    fFitHisto2->SetFillColor(35);
-    fCanvasFit->cd(3);
-    TCUtils::FormatHistogram(fFitHisto2, "TAPS.Energy.SG.Histo.Fit");
-    fFitHisto2->Draw("hist");
-    
-    // draw fitting function
-    if (fFitFunc2) fFitFunc2->Draw("same");
-    
-    // draw indicator line
-    fLine2->Draw();
-     
+        // draw histogram
+        fFitHisto->SetFillColor(35);
+        fCanvasFit->cd(2);
+        TCUtils::FormatHistogram(fFitHisto, "TAPS.Energy.SG.Histo.Fit");
+        fFitHisto->Draw("hist");
+        
+        // draw fitting function
+        if (fFitFunc) fFitFunc->Draw("same");
+        
+        // draw indicator line
+        fLine1->Draw();
+        
+        // draw histogram
+        fFitHisto2->SetFillColor(35);
+        fCanvasFit->cd(3);
+        TCUtils::FormatHistogram(fFitHisto2, "TAPS.Energy.SG.Histo.Fit");
+        fFitHisto2->Draw("hist");
+        
+        // draw fitting function
+        if (fFitFunc2) fFitFunc2->Draw("same");
+        
+        // draw indicator line
+        fLine2->Draw();
+    }
+    else
+    {
+        fCanvasFit->cd(1)->SetLogz(kFALSE);
+    }
+
     // update canvas
     fCanvasFit->Update();
     
@@ -399,5 +406,8 @@ void TCCalibTAPSEnergySG::Write()
         TCMySQLManager::GetManager()->WriteParameters(kCALIB_TAPS_SG_E0, fCalibration.Data(), fSet[i], fPedNew, fNelem);
         TCMySQLManager::GetManager()->WriteParameters(kCALIB_TAPS_SG_E1, fCalibration.Data(), fSet[i], fGainNew, fNelem);
     }
+   
+    // save overview canvas
+    SaveCanvas(fCanvasResult, "Overview");
 }
 
