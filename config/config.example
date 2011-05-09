@@ -113,10 +113,11 @@ TAPS.Energy.LG.Histo.Fit.Xaxis.Range: 0 300
 TAPS.Energy.LG.Histo.Overview.Yaxis.Range: 120 140
 
 # SG energy calibration
-TAPS.Energy.SG.Histo.Fit.Name: CaLib_TAPS_PSAR_PSAA
-TAPS.Energy.SG.Histo.Fit.Xaxis.Range: 32 50
-TAPS.Energy.SG.Photon.Energy.Range: 400 600
-TAPS.Energy.SG.Histo.Overview.Yaxis.Range: 38 48
+TAPS.Energy.SG.Histo.Fit.Name: CaLib_TAPS_PSAR_PSAA_SM
+TAPS.Energy.SG.Histo.Fit.Xaxis.Range: 20 70
+TAPS.Energy.SG.Photon.Energy.Range.1: 0 50 
+TAPS.Energy.SG.Photon.Energy.Range.2: 500 600
+TAPS.Energy.SG.Histo.Overview.Yaxis.Range: 40 48
 
 # Quadratic energy correction
 TAPS.QuadEnergy.Histo.Fit.Name: CaLib_TAPS_Quad_IM
