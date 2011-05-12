@@ -6,92 +6,90 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// AddBeamtime.C                                                        //
+// AddCalibMC.C                                                         //
 //                                                                      //
-// Add a beamtime including raw data files and initial calibrations     //
-// from AcquRoot configuration files to a CaLib database.               //
+// Add a MC calibration including a dummy run number and initial        //
+// calibrations from AcquRoot configuration files to a CaLib database.  //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
 //______________________________________________________________________________
-void AddBeamtime()
+void AddCalibMC()
 {
     // load CaLib
     gSystem->Load("libCaLib.so");
  
     // macro configuration: just change here for your beamtime and leave
     // the other parts of the code unchanged
-    const Char_t rawfilePath[]      = "/kernph/data/A2/LD2/May_09";
     const Char_t target[]           = "LD2";
-    const Int_t firstRun            = 22626;
-    const Int_t lastRun             = 23728;
-    const Char_t calibName[]        = "LD2_May_09";
-    const Char_t calibDesc[]        = "Standard calibration for May 2009 beamtime";
-    const Char_t calibFileTagger[]  = "/usr/users/werthm/AcquRoot/acqu/acqu/data/May_09/Tagger/FP.dat";
-    const Char_t calibFileCB[]      = "/usr/users/werthm/AcquRoot/acqu/acqu/data/May_09/CB/NaI.dat";
-    const Char_t calibFileTAPS[]    = "/usr/users/werthm/AcquRoot/acqu/acqu/data/May_09/TAPS/BaF2_PWO.dat";
-    const Char_t calibFilePID[]     = "/usr/users/werthm/AcquRoot/acqu/acqu/data/May_09/PID/PID.dat";
-    const Char_t calibFileVeto[]    = "/usr/users/werthm/AcquRoot/acqu/acqu/data/May_09/TAPS/Veto.dat";
+    const Int_t dummyRun            = 999000;
+    const Char_t calibName[]        = "LD2_MC_Dec_07";
+    const Char_t calibDesc[]        = "MC calibration for December 2007 beamtime";
+    const Char_t calibFileTagger[]  = "/usr/users/werthm/AcquRoot/acqu/acqu/data/MC_Dec_07/LadderMC.dat";
+    const Char_t calibFileCB[]      = "/usr/users/werthm/AcquRoot/acqu/acqu/data/MC_Dec_07/NaI_MC.dat";
+    const Char_t calibFileTAPS[]    = "/usr/users/werthm/AcquRoot/acqu/acqu/data/MC_Dec_07/BaF2_MC_07.dat";
+    const Char_t calibFilePID[]     = "/usr/users/werthm/AcquRoot/acqu/acqu/data/MC_Dec_07/PID2_MC.dat";
+    const Char_t calibFileVeto[]    = "/usr/users/werthm/AcquRoot/acqu/acqu/data/MC_Dec_07/Veto_MC.dat";
 
     // add raw files to the database
-    TCMySQLManager::GetManager()->AddRunFiles(rawfilePath, target);
+    TCMySQLManager::GetManager()->AddRun(dummyRun, target, calibDesc);
     
     // add target position calibration
     TCMySQLManager::GetManager()->AddSet(kCALIB_TYPE_TARGET_POS, calibName, calibDesc,
-                                         firstRun, lastRun, 0);
- 
+                                         dummyRun, dummyRun, 0);
+    
     // read AcquRoot calibration of tagger
     TCMySQLManager::GetManager()->AddCalibAR(kDETECTOR_TAGG, calibFileTagger,
                                              calibName, calibDesc,
-                                             firstRun, lastRun);
-     
+                                             dummyRun, dummyRun);
+    
     // read AcquRoot calibration of CB
     TCMySQLManager::GetManager()->AddCalibAR(kDETECTOR_CB, calibFileCB,
                                              calibName, calibDesc,
-                                             firstRun, lastRun);
+                                             dummyRun, dummyRun);
     
     // init CB time walk calibration
     TCMySQLManager::GetManager()->AddSet(kCALIB_TYPE_CB_WALK, calibName, calibDesc,
-                                         firstRun, lastRun, 0);
+                                         dummyRun, dummyRun, 0);
      
     // init CB quadratic energy correction
     TCMySQLManager::GetManager()->AddSet(kCALIB_TYPE_CB_EQUAD, calibName, calibDesc,
-                                         firstRun, lastRun, 0);
+                                         dummyRun, dummyRun, 0);
     
     // init CB LED calibration
     TCMySQLManager::GetManager()->AddSet(kCALIB_TYPE_CB_LED, calibName, calibDesc,
-                                         firstRun, lastRun, 0);
-  
+                                         dummyRun, dummyRun, 0);
+    
     // read AcquRoot calibration of TAPS
     TCMySQLManager::GetManager()->AddCalibAR(kDETECTOR_TAPS, calibFileTAPS,
                                              calibName, calibDesc,
-                                             firstRun, lastRun);
+                                             dummyRun, dummyRun);
     
     // init TAPS quadratic energy correction
     TCMySQLManager::GetManager()->AddSet(kCALIB_TYPE_TAPS_EQUAD, calibName, calibDesc,
-                                         firstRun, lastRun, 0);
+                                         dummyRun, dummyRun, 0);
  
     // init TAPS LED calibration
     TCMySQLManager::GetManager()->AddSet(kCALIB_TYPE_TAPS_LED1, calibName, calibDesc,
-                                         firstRun, lastRun, 0);
+                                         dummyRun, dummyRun, 0);
     TCMySQLManager::GetManager()->AddSet(kCALIB_TYPE_TAPS_LED2, calibName, calibDesc,
-                                         firstRun, lastRun, 0);
- 
+                                         dummyRun, dummyRun, 0);
+
     // read AcquRoot calibration of PID
     TCMySQLManager::GetManager()->AddCalibAR(kDETECTOR_PID, calibFilePID,
                                              calibName, calibDesc,
-                                             firstRun, lastRun);
+                                             dummyRun, dummyRun);
     
     // init PID droop correction
     TCMySQLManager::GetManager()->AddSet(kCALIB_TYPE_PID_DROOP, calibName, calibDesc,
-                                         firstRun, lastRun, 0);
-     
+                                         dummyRun, dummyRun, 0);
+    
     // read AcquRoot calibration of Veto 
     TCMySQLManager::GetManager()->AddCalibAR(kDETECTOR_VETO, calibFileVeto,
                                              calibName, calibDesc,
-                                             firstRun, lastRun);
-     
+                                             dummyRun, dummyRun);
+    
     gSystem->Exit(0);
 }
 

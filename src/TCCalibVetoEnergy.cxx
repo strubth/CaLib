@@ -139,6 +139,7 @@ void TCCalibVetoEnergy::Init()
     // perform fitting for the MC histogram
     FitSlice(fMCHisto, -1);
     fCanvasFit->Update();
+    gSystem->Sleep(1000);
 
     // user information
     Info("Init", "Fitting of MC data finished");
@@ -171,7 +172,8 @@ void TCCalibVetoEnergy::FitSlice(TH2* h, Int_t elem)
         
     // estimate peak position
     TSpectrum s;
-    s.Search(fFitHisto, 5, "goff nobackground", 0.03);
+    if (h == fMCHisto) s.Search(fFitHisto, 5, "goff nobackground", 0.03);
+    else s.Search(fFitHisto, 5, "goff nobackground", 0.05);
     fPeak = TMath::MaxElement(s.GetNPeaks(), s.GetPositionX());
         
     // prepare fitting function

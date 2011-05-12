@@ -28,7 +28,7 @@ namespace TCConfig
     const Int_t kMaxTAGGER    = 352;
     
     // number of calibration data
-    const Int_t kCalibNData = 33;
+    const Int_t kCalibNData = 34;
    
     // data names
     // NOTE: This has to be synchronized with the enum ECalibData
@@ -48,6 +48,7 @@ namespace TCConfig
         "CB time walk par0", "CB time walk par1", "CB time walk par2", "CB time walk par3",
         "CB ADC gain", 
         "CB quadratic energy corr. par0", "CB quadratic energy corr. par1",
+        "CB LED threshold",
 
         // TAPS data
         "TAPS time offset", "TAPS TDC gain", 
@@ -85,6 +86,7 @@ namespace TCConfig
         "cb_walk0", "cb_walk1", "cb_walk2", "cb_walk3",
         "cb_e1", 
         "cb_equad0", "cb_equad1",
+        "cb_led",
 
         // TAPS data
         "taps_t0", "taps_t1", 
@@ -122,6 +124,7 @@ namespace TCConfig
         kMaxCB, kMaxCB, kMaxCB, kMaxCB,
         kMaxCB, 
         kMaxCB, kMaxCB,
+        kMaxCB,
 
         // TAPS data
         kMaxTAPS, kMaxTAPS, 
@@ -143,7 +146,7 @@ namespace TCConfig
     
     // number of calibration types
     // NOTE: This has to be synchronized with the enum ECalibType
-    const Int_t kCalibNType = 21;
+    const Int_t kCalibNType = 22;
     
     // type names
     // NOTE: This has to be synchronized with the enum ECalibType
@@ -163,6 +166,7 @@ namespace TCConfig
         "CB time walk",
         "CB energy", 
         "CB quadratic energy correction",
+        "CB LED threshold",
 
         // TAPS data
         "TAPS time",
@@ -204,6 +208,7 @@ namespace TCConfig
         4,
         1, 
         2,
+        1,
 
         // TAPS data
         2,
@@ -245,6 +250,7 @@ namespace TCConfig
         { kCALIB_CB_WALK0, kCALIB_CB_WALK1, kCALIB_CB_WALK2, kCALIB_CB_WALK3 },
         { kCALIB_CB_E1, kCALIB_EMPTY, kCALIB_EMPTY, kCALIB_EMPTY }, 
         { kCALIB_CB_EQUAD0, kCALIB_CB_EQUAD1, kCALIB_EMPTY, kCALIB_EMPTY },
+        { kCALIB_CB_LED, kCALIB_EMPTY, kCALIB_EMPTY, kCALIB_EMPTY },
 
         // TAPS data
         { kCALIB_TAPS_T0, kCALIB_TAPS_T1, kCALIB_EMPTY, kCALIB_EMPTY },
@@ -302,7 +308,7 @@ namespace TCConfig
     const Char_t* kCalibDataTableSettings = ",PRIMARY KEY (calibration, first_run) ";
     
     // version numbers
-    const Char_t kCaLibVersion[] = "0.1.2";
+    const Char_t kCaLibVersion[] = "0.1.3";
     const Int_t kContainerFormatVersion = 1;
     extern const Char_t kCaLibDumpName[] = "CaLib_Dump";
 

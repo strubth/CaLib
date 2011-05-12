@@ -1786,7 +1786,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     getmaxyx(stdscr, gNrow, gNcol);
  
     // check dimensions
-    if (gNrow < 42 || gNcol < 120)
+    if (gNrow < 43 || gNcol < 120)
     {
         strcpy(gFinishMessage, "Cannot run in a terminal smaller than 42 rows and 120 columns!");
         Finish(-1);

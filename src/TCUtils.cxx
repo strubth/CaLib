@@ -35,6 +35,63 @@ void TCUtils::FindBackground(TH1* h, Double_t peak, Double_t low, Double_t high,
 }
 
 //______________________________________________________________________________
+TH1* TCUtils::DeriveHistogram(TH1* inH)
+{
+    // Return the derivative of the histogram 'inH'.
+
+    Char_t tmp[256];
+    
+    // get the number of bins
+    Int_t nBins = inH->GetNbinsX();
+
+    // create new histogram
+    sprintf(tmp, "%s_Derivative", inH->GetName());
+    TH1* h = new TH1D(tmp, tmp, nBins, inH->GetXaxis()->GetXmin(), inH->GetXaxis()->GetXmax());
+    
+    // loop over bins
+    for (Int_t i = 1; i <= nBins-1; i++)
+    {   
+        // x-difference
+        Double_t xdiff = inH->GetBinCenter(i+1) - inH->GetBinCenter(i);
+
+        // y-difference
+        Double_t ydiff = inH->GetBinContent(i+1) - inH->GetBinContent(i);
+        
+        // fill derived histogram
+        h->SetBinContent(i, ydiff / xdiff);
+    }
+
+    return h;
+}
+
+//______________________________________________________________________________
+void TCUtils::ZeroBins(TH1* inH, Double_t th)
+{
+    // Set all bins of the histogram 'inH' that are lower than the value 'th' to zero.
+    
+    // get number of bins
+    Int_t nbinsX = inH->GetNbinsX();
+    Int_t nbinsY = inH->GetNbinsY();
+    Int_t nbinsZ = inH->GetNbinsZ();
+
+    // loop over bins
+    // z bins
+    for (Int_t i = 0; i <= nbinsZ+1; i++)
+    {
+        // y bins
+        for (Int_t j = 0; j <= nbinsY+1; j++)
+        {
+            // x bins
+            for (Int_t k = 0; k <= nbinsX+1; k++)
+            {
+                // set content to zero if negative
+                if (inH->GetBinContent(k, j, i) < th) inH->SetBinContent(k, j, i, 0);
+            }
+        }
+    }
+}
+
+//______________________________________________________________________________
 Double_t TCUtils::Pi0Func(Double_t* x, Double_t* par)
 {
     // Fitting function for the Pi0 peak in the invariant mass histogram.

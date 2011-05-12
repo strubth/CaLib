@@ -181,6 +181,7 @@ void TCCalibTAPSEnergySG::Fit(Int_t elem)
         Int_t binMin = h2->GetYaxis()->FindBin(lowLimit1);
         Int_t binMax = h2->GetYaxis()->FindBin(highLimit1);
         fFitHisto = (TH1D*) h2->ProjectionX(tmp, binMin, binMax, "e");
+        TCUtils::FormatHistogram(fFitHisto, "TAPS.Energy.SG.Histo.Fit");
        
         // delete old function
         if (fFitFunc) delete fFitFunc;
@@ -235,6 +236,7 @@ void TCCalibTAPSEnergySG::Fit(Int_t elem)
         binMin = h2->GetYaxis()->FindBin(lowLimit2);
         binMax = h2->GetYaxis()->FindBin(highLimit2);
         fFitHisto2 = (TH1D*) h2->ProjectionX(tmp, binMin, binMax, "e");
+        TCUtils::FormatHistogram(fFitHisto2, "TAPS.Energy.SG.Histo.Fit");
         
         // delete old function
         if (fFitFunc2) delete fFitFunc2;
@@ -285,7 +287,6 @@ void TCCalibTAPSEnergySG::Fit(Int_t elem)
         // draw histogram
         fFitHisto->SetFillColor(35);
         fCanvasFit->cd(2);
-        TCUtils::FormatHistogram(fFitHisto, "TAPS.Energy.SG.Histo.Fit");
         fFitHisto->Draw("hist");
         
         // draw fitting function
@@ -297,7 +298,6 @@ void TCCalibTAPSEnergySG::Fit(Int_t elem)
         // draw histogram
         fFitHisto2->SetFillColor(35);
         fCanvasFit->cd(3);
-        TCUtils::FormatHistogram(fFitHisto2, "TAPS.Energy.SG.Histo.Fit");
         fFitHisto2->Draw("hist");
         
         // draw fitting function

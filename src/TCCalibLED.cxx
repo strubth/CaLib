@@ -6,42 +6,46 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// TCCalibTAPSLED                                                       //
+// TCCalibLED                                                           //
 //                                                                      //
-// Calibration module for the TAPS LED.                                 //
+// Calibration module for LED thresholds.                               //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#include "TCCalibTAPSLED.h"
+#include "TCCalibLED.h"
 
-ClassImp(TCCalibTAPSLED)
+ClassImp(TCCalibLED)
 
 
 //______________________________________________________________________________
-TCCalibTAPSLED::TCCalibTAPSLED(const Char_t* name, const Char_t* title, CalibData_t data,
-                               Int_t nElem)
+TCCalibLED::TCCalibLED(const Char_t* name, const Char_t* title, CalibData_t data,
+                       Int_t nElem)
     : TCCalib(name, title, data, nElem)
 {
     // Empty constructor.
 
     // init members
     fMainHisto2 = 0;
+    fDeriv = 0;
     fThr = 0;
     fLine = 0;
+    fLine2 = 0;
 }
 
 //______________________________________________________________________________
-TCCalibTAPSLED::~TCCalibTAPSLED()
+TCCalibLED::~TCCalibLED()
 {
     // Destructor. 
     
     if (fMainHisto2) delete fMainHisto2;
+    if (fDeriv) delete fDeriv;
     if (fLine) delete fLine;
+    if (fLine2) delete fLine2;
 }
 
 //______________________________________________________________________________
-void TCCalibTAPSLED::Init()
+void TCCalibLED::Init()
 {
     // Init the module.
     
@@ -49,12 +53,18 @@ void TCCalibTAPSLED::Init()
 
     // init members
     fMainHisto2 = 0;
+    fDeriv = 0;
     fThr = 0;
     fLine = new TLine();
+    fLine2 = new TLine();
 
     // configure line
     fLine->SetLineColor(4);
     fLine->SetLineWidth(3);
+
+    // configure line
+    fLine2->SetLineColor(4);
+    fLine2->SetLineWidth(3);
 
     // get histogram name
     sprintf(tmp, "%s.Histo.Fit.Name", GetName());
@@ -67,14 +77,18 @@ void TCCalibTAPSLED::Init()
     
     // get normalization histogram name
     TString normHistoName;
-    sprintf(tmp, "%s.Histo.Norm.Name", GetName());
-    if (!TCReadConfig::GetReader()->GetConfig(tmp))
+    if (this->InheritsFrom("TCCalibTAPSLED1") ||
+        this->InheritsFrom("TCCalibTAPSLED2"))
     {
-        Error("Init", "Histogram name was not found in configuration!");
-        return;
+        sprintf(tmp, "%s.Histo.Norm.Name", GetName());
+        if (!TCReadConfig::GetReader()->GetConfig(tmp))
+        {
+            Error("Init", "Histogram name was not found in configuration!");
+            return;
+        }
+        else normHistoName = *TCReadConfig::GetReader()->GetConfig(tmp);
     }
-    else normHistoName = *TCReadConfig::GetReader()->GetConfig(tmp);
-    
+
     // read old parameters (only from first set)
     TCMySQLManager::GetManager()->ReadParameters(fData, fCalibration.Data(), fSet[0], fOldVal, fNelem);
     
@@ -93,13 +107,17 @@ void TCCalibTAPSLED::Init()
     }
     
     // get the main normalization histogram
-    fMainHisto2 = (TH2*) f.GetHistogram(normHistoName.Data());
-    if (!fMainHisto2)
+    if (this->InheritsFrom("TCCalibTAPSLED1") ||
+        this->InheritsFrom("TCCalibTAPSLED2"))
     {
-        Error("Init", "Normalization histogram does not exist!\n");
-        return;
+        fMainHisto2 = (TH2*) f.GetHistogram(normHistoName.Data());
+        if (!fMainHisto2)
+        {
+            Error("Init", "Normalization histogram does not exist!\n");
+            return;
+        }
     }
-   
+
     // create the overview histogram
     fOverviewHisto = new TH1F("Overview", ";Element;LED threshold [MeV]", fNelem, 0, fNelem);
     fOverviewHisto->SetMarkerStyle(2);
@@ -108,10 +126,8 @@ void TCCalibTAPSLED::Init()
     // draw main histogram
     fCanvasFit->Divide(1, 2, 0.001, 0.001);
     sprintf(tmp, "%s.Histo.Fit", GetName());
-    fCanvasFit->cd(1);
     TCUtils::FormatHistogram(fMainHisto, tmp);
-    TCUtils::FormatHistogram(fMainHisto2, tmp);
-    fMainHisto->Draw("colz");
+    if (fMainHisto2) TCUtils::FormatHistogram(fMainHisto2, tmp);
 
     // draw the overview histogram
     fCanvasResult->cd();
@@ -121,17 +137,12 @@ void TCCalibTAPSLED::Init()
 }
 
 //______________________________________________________________________________
-void TCCalibTAPSLED::Fit(Int_t elem)
+void TCCalibLED::Fit(Int_t elem)
 {
     // Perform the fit of the element 'elem'.
     
     Char_t tmp[256];
     
-    // get configuration
-    Double_t threshold;
-    sprintf(tmp, "%s.Threshold.Level", GetName());
-    threshold = TCReadConfig::GetReader()->GetConfigDouble(tmp);
-     
     // create histogram projection for this element
     sprintf(tmp, "ProjHisto_%i", elem);
     TH2* h2 = (TH2*) fMainHisto;
@@ -139,32 +150,72 @@ void TCCalibTAPSLED::Fit(Int_t elem)
     fFitHisto = (TH1D*) h2->ProjectionX(tmp, elem+1, elem+1, "e");
     
     // create projection of the normalization histogram
-    TH1* hNorm = (TH1D*) fMainHisto2->ProjectionX(tmp, elem+1, elem+1, "e");
-    fFitHisto->Divide(hNorm);
-    delete hNorm;
+    if (fMainHisto2)
+    {
+        TH1* hNorm = (TH1D*) fMainHisto2->ProjectionX(tmp, elem+1, elem+1, "e");
+        fFitHisto->Divide(hNorm);
+        delete hNorm;
+    }
 
     // check for sufficient statistics
     if (fFitHisto->GetEntries())
     {
-        // determine threshold
-        fThr =  FindThreshold(fFitHisto, threshold);
+        // derive historam
+        if (fDeriv) delete fDeriv;
+        fDeriv = TCUtils::DeriveHistogram(fFitHisto);
+        TCUtils::ZeroBins(fDeriv);
+
+        // get maximum
+        fThr = fDeriv->GetBinCenter(fDeriv->GetMaximumBin());
+
+        // create fitting function
+        if (fFitFunc) delete fFitFunc;
+        sprintf(tmp, "Fitfunc_%d", elem);
+        fFitFunc = new TF1(tmp, "gaus", fThr-8, fThr+8);
+        fFitFunc->SetLineColor(kRed);
+        fFitFunc->SetParameters(fDeriv->GetMaximum(), fThr, 1);
+
+        // fit
+        fDeriv->Fit(fFitFunc, "RBQ0");
+        fThr = fFitFunc->GetParameter(1);
+        
+        // correct bad position
+        if (fThr < fDeriv->GetXaxis()->GetXmin() || fThr > fDeriv->GetXaxis()->GetXmax()) 
+            fThr = 0.5 * (fDeriv->GetXaxis()->GetXmin() + fDeriv->GetXaxis()->GetXmax());
 
         // draw mean indicator line
         fLine->SetY1(0);
         fLine->SetY2(fFitHisto->GetMaximum() + 20);
         fLine->SetX1(fThr);
         fLine->SetX2(fThr);
+
+        // draw mean indicator line
+        fLine2->SetY1(0);
+        fLine2->SetY2(fFitHisto->GetMaximum() + 20);
+        fLine2->SetX1(fThr);
+        fLine2->SetX2(fThr);
+        
+        // draw histogram
+        fFitHisto->SetFillColor(35);
+        fCanvasFit->cd(1);
+        fFitHisto->GetXaxis()->SetRangeUser(fThr-20, fThr+20);
+        fFitHisto->Draw("hist");
+         
+        // draw indicator line
+        fLine->Draw();
+        
+        // draw histogram
+        fCanvasFit->cd(2);
+        fDeriv->GetXaxis()->SetRangeUser(fThr-20, fThr+20);
+        fDeriv->Draw("hist");
+
+        // draw function
+        fFitFunc->Draw("same");
+
+        // draw indicator line
+        fLine->Draw();
     }
 
-    // draw histogram
-    fFitHisto->SetFillColor(35);
-    fCanvasFit->cd(2);
-    sprintf(tmp, "%s.Histo.Fit", GetName());
-    fFitHisto->Draw("hist");
-    
-    // draw indicator line
-    fLine->Draw();
-    
     // update canvas
     fCanvasFit->Update();
     
@@ -179,7 +230,7 @@ void TCCalibTAPSLED::Fit(Int_t elem)
 }
 
 //______________________________________________________________________________
-void TCCalibTAPSLED::Calculate(Int_t elem)
+void TCCalibLED::Calculate(Int_t elem)
 {
     // Calculate the new value of the element 'elem'.
     
@@ -213,28 +264,4 @@ void TCCalibTAPSLED::Calculate(Int_t elem)
     if (unchanged) printf("    -> unchanged");
     printf("\n");
 }   
-
-//______________________________________________________________________________
-Double_t TCCalibTAPSLED::FindThreshold(TH1* h, Double_t level)
-{
-    // Find the position where the bin content of h changes from
-    // < 'level' to > 'level'.
-
-    Double_t pos;
-    Double_t posUnder = 0;
-    Double_t content;
-
-    // loop over all bins
-    for (Int_t i = 0; i < h->GetNbinsX(); i++)
-    {
-        pos = h->GetBinCenter(i);
-        content = h->GetBinContent(i);
-     
-        if (content > level) return (pos + posUnder) / 2.;   
-        else posUnder = pos;
-    }
-    
-    // return 0 if position was not found
-    return 0;
-}
 

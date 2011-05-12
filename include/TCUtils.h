@@ -26,6 +26,8 @@ namespace TCUtils
 {
     void FindBackground(TH1* h, Double_t peak, Double_t low, Double_t high,
                         Double_t* outPar0, Double_t* outPar1);
+    TH1* DeriveHistogram(TH1* inH);
+    void ZeroBins(TH1* inH, Double_t th = 0);
     Double_t Pi0Func(Double_t* x, Double_t* par);
     Double_t GetHistogramMinimum(TH1* h);
     Double_t GetHistogramMinimumPosition(TH1* h);

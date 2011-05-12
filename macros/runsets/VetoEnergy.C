@@ -56,15 +56,18 @@ void CheckEnergy(const Char_t* loc)
     TF1* func = new TF1("func", "gaus(0)+pol1(3)", -1000 , 1000);
 
     // loop over runs
-    for (Int_t i = 0; i < nRuns; i++)
+    const Int_t nAdd = 20;
+    for (Int_t i = 0; i < nRuns-nAdd; i=i+nAdd)
     {   
         // get the file
-        TFile* f = (TFile*) gFiles->At(i);
+        TFile* f[nAdd];
+        for (Int_t j = 0; j < nAdd; j++) 
+            f[j] = (TFile*) gFiles->At(i+j);
 
         // extract run number
         Int_t runNumber;
         sprintf(t, "%s/ARHistograms_CB_%%d.root", loc);
-        sscanf(f->GetName(), t, &runNumber);
+        sscanf(f[0]->GetName(), t, &runNumber);
         runNumbersD[i] = (Double_t)runNumber;
 
         printf("Processing run %d (%d/%d)\n", runNumber, i+1, nRuns);
@@ -78,11 +81,25 @@ void CheckEnergy(const Char_t* loc)
             sprintf(t, "%03d", j);
             fROOTout->cd(t);
             sprintf(t, "CaLib_Veto_dE_E_%03d", j);
-            TH2* h2 = (TH2*) f->Get(t);
-            if (!h2) continue;
-            sprintf(t, "%d_%d", i, j);
-            TH1* h = h2->ProjectionY(t, h2->GetYaxis()->FindBin(5.), h2->GetYaxis()->FindBin(100.));
-            h->Rebin(2);
+            TH2* h2[nAdd];
+            TH1* h = 0;
+            for (Int_t k = 0; k < nAdd; k++)
+            {
+                h2[k] = 0;
+                h2[k] = (TH2*) f[k]->Get(t);
+                if (h2[k])
+                {
+                    sprintf(t, "%d_%d_%d", i, j, k);
+                    TH1* hProj = h2[k]->ProjectionY(t, h2[k]->GetXaxis()->FindBin(0.), h2[k]->GetXaxis()->FindBin(50.));
+                    hProj->Rebin(2);
+                    if (h == 0) h = hProj;
+                    else 
+                    {
+                        h->Add(hProj);
+                        delete hProj;
+                    }
+                }
+            }
             
             sprintf(t, "Run_%d", runNumber);
             TCanvas* c = new TCanvas(t, t);
@@ -118,8 +135,8 @@ void CheckEnergy(const Char_t* loc)
 
             c->Write(c->GetName(), TObject::kOverwrite);
     
-            delete h;
-            delete h2;
+            if (h) delete h;
+            for (Int_t k = 0; k < nAdd; k++) if (h2[k]) delete h2[k];
             delete c;
             if (tline) delete tline;
         }
@@ -169,17 +186,17 @@ void VetoEnergy()
     CalibData_t data = kCALIB_VETO_E1;
 
     // configuration (December 2007)
-    const Char_t calibration[] = "LD2_Dec_07";
-    //const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/Dec_07/AR/out/tagger_time";
-    const Char_t* fLoc = "/Users/fulgur/Desktop/calib/Dec_07";
+    //const Char_t calibration[] = "LD2_Dec_07";
+    //const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/Dec_07/AR/out";
+    //const Char_t* fLoc = "/Users/fulgur/Desktop/calib/Dec_07";
 
     // configuration (February 2009)
     //const Char_t calibration[] = "LD2_Feb_09";
     //const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/Feb_09/AR/out/ADC";
     
     // configuration (May 2009)
-    //const Char_t calibration[] = "LD2_May_09";
-    //const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/May_09/AR/out/ADC";
+    const Char_t calibration[] = "LD2_May_09";
+    const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/May_09/AR/out";
 
     // get number of sets
     Int_t nSets = TCMySQLManager::GetManager()->GetNsets(data, calibration);
