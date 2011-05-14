@@ -87,6 +87,7 @@
 #pragma link C++ class TCCalibPIDPhi+;
 #pragma link C++ class TCCalibPIDDroop+;
 #pragma link C++ class TCCalibPIDEnergy+;
+#pragma link C++ class TCCalibPIDEnergyTrad+;
 #pragma link C++ class TCCalibPIDTime+;
 
 // Veto calibration classes
