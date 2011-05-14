@@ -37,7 +37,7 @@ Configuration
 =============
 
 All the configuration is done in $CALIB/config/config.cfg.  
-$CALIB/config/config.example contains comments and basic settings that should
+$CALIB/config/example.cfg contains comments and basic settings that should
 help to understand the configuration. Rename this example file to config.cfg
 and modify it according to your setup.
 
