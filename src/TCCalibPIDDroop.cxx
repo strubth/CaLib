@@ -102,6 +102,50 @@ void TCCalibPIDDroop::Init()
 }
 
 //______________________________________________________________________________
+Double_t TCCalibPIDDroop::FitHisto()
+{
+    // Fit the 'fFitHisto' and return the position of the proton peak.
+
+    // look for peaks
+    TSpectrum s;
+    s.Search(fFitHisto, 10, "goff nobackground", 0.03);
+    Double_t peakPion = TMath::MinElement(s.GetNPeaks(), s.GetPositionX());
+    Double_t peak = 0;
+    Double_t diff = 1e3;
+    for (Int_t i = 0; i < s.GetNPeaks(); i++)
+    {
+        if (TMath::Abs(s.GetPositionX()[i] - 3) < diff)
+        {
+            diff = TMath::Abs(s.GetPositionX()[i] - 3);
+            peak = s.GetPositionX()[i];
+        }
+    }
+    
+    // create fitting function
+    if (fFitFunc) delete fFitFunc;
+    fFitFunc = new TF1("Fitfunc", "expo(0)+landau(2)+gaus(5)", 0.3*peakPion, peak+3);
+    fFitFunc->SetLineColor(2);
+    
+    // prepare fitting function
+    fFitFunc->SetParameters(9.25568, -3.76050e-01, 
+                            5e+03, peakPion, 2.62472e-01, 
+                            6e+03, peak, 5.82477);
+    fFitFunc->SetParLimits(2, 0, 1e6);
+    fFitFunc->SetParLimits(3, 0.85*peakPion, 1.15*peakPion);
+    fFitFunc->SetParLimits(6, 0.85*peak, 1.15*peak);
+    fFitFunc->SetParLimits(5, 0, 1e5);
+    fFitFunc->SetParLimits(4, 0.1, 5);
+    fFitFunc->SetParLimits(7, 0.1, 10);
+  
+    // perform first fit
+    for (Int_t i = 0; i < 10; i++)
+        if (!fFitHisto->Fit(fFitFunc, "RB0Q")) break;
+
+    // return peak
+    return fFitFunc->GetParameter(6);
+}
+
+//______________________________________________________________________________
 void TCCalibPIDDroop::FitSlices(TH3* h, Int_t elem)
 {
     // Fit the theta slices of the dE vs E histogram 'h'.
@@ -110,7 +154,9 @@ void TCCalibPIDDroop::FitSlices(TH3* h, Int_t elem)
 
     // get configuration
     Double_t lowLimit, highLimit;
+    Double_t lowEnergy, highEnergy;
     TCReadConfig::GetReader()->GetConfigDoubleDouble("PID.Droop.Fit.Range", &lowLimit, &highLimit);
+    TCReadConfig::GetReader()->GetConfigDoubleDouble("PID.Droop.Fit.Energy.Range", &lowEnergy, &highEnergy);
     Double_t interval = TCReadConfig::GetReader()->GetConfigDouble("PID.Droop.Fit.Interval");
     
     // count points
@@ -120,7 +166,52 @@ void TCCalibPIDDroop::FitSlices(TH3* h, Int_t elem)
     if (!fPeak) fPeak = new Double_t[fNpeak];
     if (!fTheta) fTheta = new Double_t[fNpeak];
     
+    //
+    // get global proton position
+    //
+    
+    // create 2D projection
+    if (fProj2D) delete fProj2D;
+    fProj2D = (TH2D*) h->Project3D("Proj2DTot_yxe");
+    sprintf(tmp, "%02d total", elem);
+    fProj2D->SetTitle(tmp);
+
+    // create 1D projection
+    if (fFitHisto) delete fFitHisto;
+    Int_t firstBin = fProj2D->GetXaxis()->FindBin(lowEnergy);
+    Int_t lastBin = fProj2D->GetXaxis()->FindBin(highEnergy);
+    fFitHisto = (TH1D*) fProj2D->ProjectionY("ProjTot", firstBin, lastBin, "e");
+    sprintf(tmp, "%02d total %.f < E < %.f", elem, lowEnergy, highEnergy);
+    fFitHisto->SetTitle(tmp);
+        
+    // fit histo
+    Double_t peakTotal = FitHisto();
+    
+    // format line
+    fLine->SetY1(0);
+    fLine->SetY2(fFitHisto->GetMaximum() + 20);
+    fLine->SetX1(peakTotal);
+    fLine->SetX2(peakTotal);
+  
+    // plot projection fit  
+    if (fDelay > 0)
+    {
+        fCanvasFit->cd(1);
+        TCUtils::FormatHistogram(fProj2D, "PID.Droop.Histo.Fit");
+        fProj2D->Draw("colz");
+        fCanvasFit->cd(2);
+        fFitHisto->GetXaxis()->SetRangeUser(0, peakTotal+3);
+        fFitHisto->Draw("hist");
+        fFitFunc->Draw("same");
+        fLine->Draw();
+        fCanvasFit->Update();
+        gSystem->Sleep(fDelay);
+    }
+
+
+    //
     // loop over theta slices
+    //
     Double_t start = lowLimit;
     Int_t nfit = 0;
     while (start < highLimit)
@@ -135,9 +226,6 @@ void TCCalibPIDDroop::FitSlices(TH3* h, Int_t elem)
         sprintf(tmp, "%02d dE vs E : %.f < #theta < %.f", elem, start, start + interval);
         fProj2D->SetTitle(tmp);
 
-        Double_t lowEnergy = 90;
-        Double_t highEnergy = 100;
-
         // create 1D projection
         if (fFitHisto) delete fFitHisto;
         sprintf(tmp, "Proj_%d", (Int_t)start);
@@ -147,41 +235,9 @@ void TCCalibPIDDroop::FitSlices(TH3* h, Int_t elem)
         sprintf(tmp, "%02d dE : %.f < #theta < %.f, %.f < E < %.f", elem, start, start + interval,
                                                              lowEnergy, highEnergy);
         fFitHisto->SetTitle(tmp);
-        
-        // estimate peak position
-        TSpectrum s;
-        s.Search(fFitHisto, 10, "goff nobackground", 0.05);
-        Double_t peak = TMath::MaxElement(s.GetNPeaks(), s.GetPositionX());
-     
-        // create fitting function
-        if (fFitFunc) delete fFitFunc;
-        sprintf(tmp, "fGauss_%d", (Int_t)start);
-        fFitFunc = new TF1(tmp, "expo(0)+gaus(2)");
-        fFitFunc->SetLineColor(2);
-        
-        // prepare fitting function
-        Double_t range = 20/start+0.;
-        Double_t peak_range = 0.2;
-        fFitFunc->SetRange(peak - range, peak + range);
-        fFitFunc->SetParameter(2, fFitHisto->GetXaxis()->FindBin(peak));
-        fFitFunc->SetParLimits(2, 0, 100000);
-        fFitFunc->SetParameter(3, peak);
-        fFitFunc->SetParLimits(3, peak - peak_range, peak + peak_range);
-        fFitFunc->SetParameter(4, 1);
-        fFitFunc->SetParLimits(4, 0.1, 10);
-         
-        // perform first fit
-        fFitHisto->Fit(fFitFunc, "RB0Q");
-
-        // adjust fitting range
-        Double_t sigma = fFitFunc->GetParameter(4);
-        fFitFunc->SetRange(peak - 3*sigma, peak + range+3.5*sigma);
-
-        // perform second fit
-        fFitHisto->Fit(fFitFunc, "RB0Q");
-        
-        // get peak
-        peak = fFitFunc->GetParameter(3);
+            
+        // fit histo
+        Double_t peak = FitHisto();
 
         // format line
         fLine->SetY1(0);
@@ -190,7 +246,7 @@ void TCCalibPIDDroop::FitSlices(TH3* h, Int_t elem)
         fLine->SetX2(peak);
         
         // save peak and theta position
-        fPeak[nfit] = peak;
+        fPeak[nfit] = peak / peakTotal;
         fTheta[nfit] = start + interval / 2.;
 
         // plot projection fit  
@@ -200,7 +256,7 @@ void TCCalibPIDDroop::FitSlices(TH3* h, Int_t elem)
             TCUtils::FormatHistogram(fProj2D, "PID.Droop.Histo.Fit");
             fProj2D->Draw("colz");
             fCanvasFit->cd(2);
-            fFitHisto->GetXaxis()->SetRangeUser(peak*0.4, peak*1.6);
+            fFitHisto->GetXaxis()->SetRangeUser(0, peak+3);
             fFitHisto->Draw("hist");
             fFitFunc->Draw("same");
             fLine->Draw();
@@ -249,7 +305,7 @@ void TCCalibPIDDroop::Fit(Int_t elem)
         fLinPlot->SetName(tmp);
         fLinPlot->SetTitle(tmp);
         fLinPlot->GetXaxis()->SetTitle("Cluster theta angle [deg]");
-        fLinPlot->GetYaxis()->SetTitle("Data peak position [Channel]");
+        fLinPlot->GetYaxis()->SetTitle("#theta bin proton peak / total proton peak pos.");
         fLinPlot->SetMarkerStyle(2);
         fLinPlot->SetMarkerSize(2);
         fLinPlot->SetMarkerColor(kBlue);

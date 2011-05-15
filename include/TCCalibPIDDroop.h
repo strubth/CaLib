@@ -48,6 +48,7 @@ private:
     virtual void Fit(Int_t elem);
     virtual void Calculate(Int_t elem);
     
+    Double_t FitHisto();
     void FitSlices(TH3* h, Int_t elem);
 
 public:

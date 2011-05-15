@@ -25,8 +25,6 @@ TCCalibPIDEnergyTrad::TCCalibPIDEnergyTrad()
     // Empty constructor.
 
     // init members
-    fFitHisto2 = 0;
-    fFitFunc2 = 0;
     fFileManager = 0;
     fPed = 0;
     fGain = 0;
@@ -34,6 +32,8 @@ TCCalibPIDEnergyTrad::TCCalibPIDEnergyTrad()
     fProtonMC = 0;
     fPionData = 0;
     fProtonData = 0;
+    fPionPos = 0;
+    fProtonPos = 0;
     fLine = 0;
     fLine2 = 0;
     fDelay = 0;
@@ -46,11 +46,11 @@ TCCalibPIDEnergyTrad::~TCCalibPIDEnergyTrad()
 {
     // Destructor. 
  
-    if (fFitHisto2) delete fFitHisto2;
-    if (fFitFunc2) delete fFitFunc2;
     if (fFileManager) delete fFileManager;
     if (fPed) delete [] fPed;
     if (fGain) delete [] fGain;
+    if (fPionPos) delete fPionPos;
+    if (fProtonPos) delete fProtonPos;
     if (fLine) delete fLine;
     if (fLine2) delete fLine2;
     if (fMCHisto) delete fMCHisto;
@@ -63,8 +63,6 @@ void TCCalibPIDEnergyTrad::Init()
     // Init the module.
     
     // init members
-    fFitHisto2 = 0;
-    fFitFunc2 = 0;
     fFileManager = new TCFileManager(fData, fCalibration.Data(), fNset, fSet);
     fPed = new Double_t[fNelem];
     fGain = new Double_t[fNelem];
@@ -79,9 +77,9 @@ void TCCalibPIDEnergyTrad::Init()
     fMCFile = 0;
 
     // configure line
-    fLine->SetLineColor(4);
+    fLine->SetLineColor(kBlue);
     fLine->SetLineWidth(3);
-    fLine2->SetLineColor(4);
+    fLine2->SetLineColor(kGreen);
     fLine2->SetLineWidth(3);
 
     // get histogram name
@@ -118,7 +116,7 @@ void TCCalibPIDEnergyTrad::Init()
     TCMySQLManager::GetManager()->ReadParameters(kCALIB_PID_E1, fCalibration.Data(), fSet[0], fGain, fNelem);
 
     // draw main histogram
-    fCanvasFit->Divide(1, 3, 0.001, 0.001);
+    fCanvasFit->Divide(1, 2, 0.001, 0.001);
     fCanvasFit->cd(1)->SetLogz();
 
     // open the MC file
@@ -146,6 +144,23 @@ void TCCalibPIDEnergyTrad::Init()
     fCanvasFit->cd(1);
     fMCHisto->Draw("colz");
     
+    // create the pion position overview histogram
+    fPionPos = new TH1F("Pion position overview", ";Element;pion peak position [MeV]", fNelem, 0, fNelem);
+    fPionPos->SetMarkerStyle(2);
+    fPionPos->SetMarkerColor(4);
+    
+    // create the proton position overview histogram
+    fProtonPos = new TH1F("Proton position overview", ";Element;proton peak position [MeV]", fNelem, 0, fNelem);
+    fProtonPos->SetMarkerStyle(2);
+    fProtonPos->SetMarkerColor(4);
+    
+    // draw the overview histograms
+    fCanvasResult->Divide(1, 2, 0.001, 0.001);
+    fCanvasResult->cd(1);
+    fPionPos->Draw("P");
+    fCanvasResult->cd(2);
+    fProtonPos->Draw("P");
+ 
     // user information
     Info("Init", "Fitting MC data");
 
@@ -153,7 +168,7 @@ void TCCalibPIDEnergyTrad::Init()
     TCUtils::FormatHistogram(fMCHisto, "PID.Energy.Trad.Histo.Fit");
     FitSlice(fMCHisto);
     fCanvasFit->Update();
-    gSystem->Sleep(5);
+    gSystem->Sleep(5000);
 
     // user information
     Info("Init", "Fitting of MC data finished");
@@ -172,30 +187,51 @@ void TCCalibPIDEnergyTrad::FitSlice(TH2* h)
     Int_t firstBin = h->GetXaxis()->FindBin(lowLimit);
     Int_t lastBin = h->GetXaxis()->FindBin(highLimit);
      
-    // 
-    // Pion fit
-    //
-
     // create projection
-    sprintf(tmp, "%s_Proj_1", h->GetName());
+    sprintf(tmp, "%s_Proj", h->GetName());
     if (fFitHisto) delete fFitHisto;
     fFitHisto = (TH1D*) h->ProjectionY(tmp, firstBin, lastBin, "e");
     
-   
-    //
-    // proton fit
-    //
-    
-    // create projection
-    sprintf(tmp, "%s_Proj_2", h->GetName());
-    if (fFitHisto2) delete fFitHisto2;
-    fFitHisto2 = (TH1D*) h->ProjectionY(tmp, firstBin, lastBin, "e");
-        
     // look for peaks
     TSpectrum s;
     s.Search(fFitHisto, 10, "goff nobackground", 0.05);
     fPionData = TMath::MinElement(s.GetNPeaks(), s.GetPositionX());
     fProtonData = TMath::MaxElement(s.GetNPeaks(), s.GetPositionX());
+    
+    // create fitting function
+    if (fFitFunc) delete fFitFunc;
+    sprintf(tmp, "fFunc_%s", h->GetName());
+    fFitFunc = new TF1(tmp, "expo(0)+landau(2)+gaus(5)", 0.2*fPionData, fProtonData+5);
+    fFitFunc->SetLineColor(2);
+    
+    // prepare fitting function
+    fFitFunc->SetParameters(9.25568, -3.76050e-01, 
+                            5e+03, fPionData, 2.62472e-01, 
+                            6e+03, fProtonData, 5.82477);
+    fFitFunc->SetParLimits(2, 0, 1e6);
+    fFitFunc->SetParLimits(3, 0.85*fPionData, 1.15*fPionData);
+    fFitFunc->SetParLimits(6, 0.85*fProtonData, 1.15*fProtonData);
+    fFitFunc->SetParLimits(5, 0, 1e5);
+    fFitFunc->SetParLimits(4, 0.1, 5);
+    fFitFunc->SetParLimits(7, 0.1, 10);
+    
+    // fit
+    for (Int_t i = 0; i < 10; i++)
+        if (!fFitHisto->Fit(fFitFunc, "RB0Q")) break;
+    
+    // reset range for second fit
+    Double_t start;
+    if (h == fMCHisto) start = 0.05;
+    else start = fFitFunc->GetParameter(3) - 2.5*fFitFunc->GetParameter(4);
+    fFitFunc->SetRange(start, fFitFunc->GetParameter(6) + 4*fFitFunc->GetParameter(7));
+    
+    // second fit
+    for (Int_t i = 0; i < 10; i++)
+        if (!fFitHisto->Fit(fFitFunc, "RB0Q")) break;
+ 
+    // get positions
+    fPionData = fFitFunc->GetParameter(3);
+    fProtonData = fFitFunc->GetParameter(6);
     
     // format line
     fLine->SetY1(0);
@@ -205,20 +241,16 @@ void TCCalibPIDEnergyTrad::FitSlice(TH2* h)
     
     // format line
     fLine2->SetY1(0);
-    fLine2->SetY2(fFitHisto2->GetMaximum() + 20);
+    fLine2->SetY2(fFitHisto->GetMaximum() + 20);
     fLine2->SetX1(fProtonData);
     fLine2->SetX2(fProtonData);
            
     // plot histogram and line
     fCanvasFit->cd(2);
-    fFitHisto->GetXaxis()->SetRangeUser(fPionData-2, fPionData+2);
+    fFitHisto->GetXaxis()->SetRangeUser(0, fFitFunc->GetParameter(6) + 4*fFitFunc->GetParameter(7));
     fFitHisto->Draw("hist");
+    fFitFunc->Draw("same");
     fLine->Draw();
-    
-    // plot histogram and line
-    fCanvasFit->cd(3);
-    fFitHisto2->GetXaxis()->SetRangeUser(fProtonData-3, fProtonData+3);
-    fFitHisto2->Draw("hist");
     fLine2->Draw();
     
     // save MC data
@@ -252,7 +284,6 @@ void TCCalibPIDEnergyTrad::Fit(Int_t elem)
     // create 2D projection
     if (fMainHisto) delete fMainHisto;
     sprintf(tmp, "%02d_yxe", elem);
-    h3->GetZaxis()->SetRangeUser(85, 95);
     fMainHisto = (TH2D*) h3->Project3D(tmp);
     fMainHisto->SetTitle(tmp);
     delete h3;
@@ -268,9 +299,14 @@ void TCCalibPIDEnergyTrad::Fit(Int_t elem)
     {   
         // fit the energy slices
         FitSlice((TH2*)fMainHisto);
-
-
-    } // if: sufficient statistics
+    } 
+    
+    // update overview
+    fCanvasResult->cd(1);
+    fPionPos->Draw("E1");
+    fCanvasResult->cd(2);
+    fProtonPos->Draw("E1");
+    fCanvasResult->Update();
 }
 
 //______________________________________________________________________________
@@ -296,6 +332,12 @@ void TCCalibPIDEnergyTrad::Calculate(Int_t elem)
 
         // calculate gain
         fGain[elem] = 0.01 * diffMC / diffData;
+    
+        // update overview histograms
+        fPionPos->SetBinContent(elem+1, fPionData);
+        fPionPos->SetBinError(elem+1, 0.0000001);
+        fProtonPos->SetBinContent(elem+1, fProtonData);
+        fProtonPos->SetBinError(elem+1, 0.0000001);
     }
     else
     {
@@ -335,5 +377,8 @@ void TCCalibPIDEnergyTrad::Write()
         TCMySQLManager::GetManager()->WriteParameters(kCALIB_PID_E0, fCalibration.Data(), fSet[i], fPed, fNelem);
         TCMySQLManager::GetManager()->WriteParameters(kCALIB_PID_E1, fCalibration.Data(), fSet[i], fGain, fNelem);
     }
+    
+    // save overview canvas
+    SaveCanvas(fCanvasResult, "Overview");
 }
 

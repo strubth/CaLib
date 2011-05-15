@@ -33,14 +33,13 @@ private:
     TH1* fDeriv;                        // derived histogram
     Double_t fThr;                      // threshold value
     TLine* fLine;                       // mean indicator line
-    TLine* fLine2;                      // mean indicator line
 
     virtual void Init();
     virtual void Fit(Int_t elem);
     virtual void Calculate(Int_t elem);
     
 public:
-    TCCalibLED() : TCCalib(), fMainHisto2(0), fDeriv(0), fThr(0), fLine(0), fLine2(0) { }
+    TCCalibLED() : TCCalib(), fMainHisto2(0), fDeriv(0), fThr(0), fLine(0) { }
     TCCalibLED(const Char_t* name, const Char_t* title, CalibData_t data,
                Int_t nElem);
     virtual ~TCCalibLED();

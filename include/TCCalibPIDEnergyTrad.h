@@ -32,8 +32,6 @@ class TCCalibPIDEnergyTrad : public TCCalib
 {
 
 private:
-    TH1* fFitHisto2;                    // second fitting histogram
-    TF1* fFitFunc2;                     // second fitting function
     TCFileManager* fFileManager;        // file manager
     Double_t* fPed;                     // pedestal values
     Double_t* fGain;                    // gain values
@@ -41,6 +39,8 @@ private:
     Double_t fProtonMC;                 // proton position in simulation
     Double_t fPionData;                 // pion position in data
     Double_t fProtonData;               // proton position in data
+    TH1* fPionPos;                      // pion peak position histogram
+    TH1* fProtonPos;                    // proton peak position histogram
     TLine* fLine;                       // mean indicator line
     TLine* fLine2;                       // mean indicator line
     Int_t fDelay;                       // projection fit display delay

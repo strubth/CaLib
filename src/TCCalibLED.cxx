@@ -30,7 +30,6 @@ TCCalibLED::TCCalibLED(const Char_t* name, const Char_t* title, CalibData_t data
     fDeriv = 0;
     fThr = 0;
     fLine = 0;
-    fLine2 = 0;
 }
 
 //______________________________________________________________________________
@@ -41,7 +40,6 @@ TCCalibLED::~TCCalibLED()
     if (fMainHisto2) delete fMainHisto2;
     if (fDeriv) delete fDeriv;
     if (fLine) delete fLine;
-    if (fLine2) delete fLine2;
 }
 
 //______________________________________________________________________________
@@ -56,15 +54,10 @@ void TCCalibLED::Init()
     fDeriv = 0;
     fThr = 0;
     fLine = new TLine();
-    fLine2 = new TLine();
 
     // configure line
     fLine->SetLineColor(4);
     fLine->SetLineWidth(3);
-
-    // configure line
-    fLine2->SetLineColor(4);
-    fLine2->SetLineWidth(3);
 
     // get histogram name
     sprintf(tmp, "%s.Histo.Fit.Name", GetName());
@@ -77,17 +70,9 @@ void TCCalibLED::Init()
     
     // get normalization histogram name
     TString normHistoName;
-    if (this->InheritsFrom("TCCalibTAPSLED1") ||
-        this->InheritsFrom("TCCalibTAPSLED2"))
-    {
-        sprintf(tmp, "%s.Histo.Norm.Name", GetName());
-        if (!TCReadConfig::GetReader()->GetConfig(tmp))
-        {
-            Error("Init", "Histogram name was not found in configuration!");
-            return;
-        }
-        else normHistoName = *TCReadConfig::GetReader()->GetConfig(tmp);
-    }
+    sprintf(tmp, "%s.Histo.Norm.Name", GetName());
+    if (TCReadConfig::GetReader()->GetConfig(tmp))
+        normHistoName = *TCReadConfig::GetReader()->GetConfig(tmp);
 
     // read old parameters (only from first set)
     TCMySQLManager::GetManager()->ReadParameters(fData, fCalibration.Data(), fSet[0], fOldVal, fNelem);
@@ -107,8 +92,7 @@ void TCCalibLED::Init()
     }
     
     // get the main normalization histogram
-    if (this->InheritsFrom("TCCalibTAPSLED1") ||
-        this->InheritsFrom("TCCalibTAPSLED2"))
+    if (normHistoName != "")
     {
         fMainHisto2 = (TH2*) f.GetHistogram(normHistoName.Data());
         if (!fMainHisto2)
@@ -160,28 +144,71 @@ void TCCalibLED::Fit(Int_t elem)
     // check for sufficient statistics
     if (fFitHisto->GetEntries())
     {
-        // derive historam
-        if (fDeriv) delete fDeriv;
-        fDeriv = TCUtils::DeriveHistogram(fFitHisto);
-        TCUtils::ZeroBins(fDeriv);
+        // check if normalization histogram is there
+        if (fMainHisto2)
+        {
+            // 
+            // ratio method
+            //
+            
+            Double_t posUnder = 0;
+            fThr = 0;
 
-        // get maximum
-        fThr = fDeriv->GetBinCenter(fDeriv->GetMaximumBin());
+            // loop over all bins
+            for (Int_t i = 0; i < fFitHisto->GetNbinsX(); i++)
+            {
+                Double_t pos = fFitHisto->GetBinCenter(i);
+                Double_t content = fFitHisto->GetBinContent(i);
+                
+                // check if ratio is nearly 1
+                if (content > 0.99) 
+                {
+                    fThr = (pos + posUnder) / 2.;   
+                    break;
+                }
+                else posUnder = pos;
+            }
+        }
+        else
+        {
+            // 
+            // derivation method
+            //
 
-        // create fitting function
-        if (fFitFunc) delete fFitFunc;
-        sprintf(tmp, "Fitfunc_%d", elem);
-        fFitFunc = new TF1(tmp, "gaus", fThr-8, fThr+8);
-        fFitFunc->SetLineColor(kRed);
-        fFitFunc->SetParameters(fDeriv->GetMaximum(), fThr, 1);
+            // derive historam
+            if (fDeriv) delete fDeriv;
+            fDeriv = TCUtils::DeriveHistogram(fFitHisto);
+            TCUtils::ZeroBins(fDeriv);
 
-        // fit
-        fDeriv->Fit(fFitFunc, "RBQ0");
-        fThr = fFitFunc->GetParameter(1);
-        
-        // correct bad position
-        if (fThr < fDeriv->GetXaxis()->GetXmin() || fThr > fDeriv->GetXaxis()->GetXmax()) 
-            fThr = 0.5 * (fDeriv->GetXaxis()->GetXmin() + fDeriv->GetXaxis()->GetXmax());
+            // get maximum
+            fThr = fDeriv->GetBinCenter(fDeriv->GetMaximumBin());
+
+            // create fitting function
+            if (fFitFunc) delete fFitFunc;
+            sprintf(tmp, "Fitfunc_%d", elem);
+            fFitFunc = new TF1(tmp, "gaus", fThr-8, fThr+8);
+            fFitFunc->SetLineColor(kRed);
+            fFitFunc->SetParameters(fDeriv->GetMaximum(), fThr, 1);
+
+            // fit
+            fDeriv->Fit(fFitFunc, "RBQ0");
+            fThr = fFitFunc->GetParameter(1);
+            
+            // correct bad position
+            if (fThr < fDeriv->GetXaxis()->GetXmin() || fThr > fDeriv->GetXaxis()->GetXmax()) 
+                fThr = 0.5 * (fDeriv->GetXaxis()->GetXmin() + fDeriv->GetXaxis()->GetXmax());
+
+            // draw histogram
+            fCanvasFit->cd(2);
+            fDeriv->GetXaxis()->SetRangeUser(fThr-20, fThr+20);
+            fDeriv->Draw("hist");
+
+            // draw function
+            fFitFunc->Draw("same");
+
+            // draw indicator line
+            fLine->Draw();
+        }
 
         // draw mean indicator line
         fLine->SetY1(0);
@@ -189,29 +216,12 @@ void TCCalibLED::Fit(Int_t elem)
         fLine->SetX1(fThr);
         fLine->SetX2(fThr);
 
-        // draw mean indicator line
-        fLine2->SetY1(0);
-        fLine2->SetY2(fFitHisto->GetMaximum() + 20);
-        fLine2->SetX1(fThr);
-        fLine2->SetX2(fThr);
-        
         // draw histogram
         fFitHisto->SetFillColor(35);
         fCanvasFit->cd(1);
-        fFitHisto->GetXaxis()->SetRangeUser(fThr-20, fThr+20);
+        //fFitHisto->GetXaxis()->SetRangeUser(fThr-20, fThr+20);
         fFitHisto->Draw("hist");
          
-        // draw indicator line
-        fLine->Draw();
-        
-        // draw histogram
-        fCanvasFit->cd(2);
-        fDeriv->GetXaxis()->SetRangeUser(fThr-20, fThr+20);
-        fDeriv->Draw("hist");
-
-        // draw function
-        fFitFunc->Draw("same");
-
         // draw indicator line
         fLine->Draw();
     }
@@ -234,10 +244,10 @@ void TCCalibLED::Calculate(Int_t elem)
 {
     // Calculate the new value of the element 'elem'.
     
-    Bool_t unchanged = kFALSE;
+    Bool_t empty = kFALSE;
 
     // check if fit was performed
-    if (fMainHisto->GetEntries())
+    if (fFitHisto->GetEntries())
     {
         // check if line position was modified by hand
         if (fLine->GetX1() != fThr) fThr = fLine->GetX1();
@@ -251,17 +261,17 @@ void TCCalibLED::Calculate(Int_t elem)
     }
     else
     {   
-        // do not change old value
-        fNewVal[elem] = fOldVal[elem];
-        unchanged = kTRUE;
+        // set large threshold
+        fNewVal[elem] = 9999;
+        empty = kTRUE;
     }
 
     // user information
     printf("Element: %03d    "
-           "old threshold: %12.8f    new threshold: %12.8f    diff: %6.2f %%",
+           "old threshold: %14.8f    new threshold: %14.8f    diff: %6.2f %%",
            elem, fOldVal[elem], fNewVal[elem],
            TCUtils::GetDiffPercent(fOldVal[elem], fNewVal[elem]));
-    if (unchanged) printf("    -> unchanged");
+    if (empty) printf("    -> empty");
     printf("\n");
 }   
 
