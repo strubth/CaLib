@@ -20,15 +20,12 @@ ClassImp(TCCalibPIDDroop)
 
 //______________________________________________________________________________
 TCCalibPIDDroop::TCCalibPIDDroop()
-    : TCCalib("PID.Droop", "PID droop correction", kCALIB_PID_DROOP0, TCConfig::kMaxPID)
+    : TCCalib("PID.Droop", "PID droop correction", kCALIB_PID_E0, TCConfig::kMaxPID)
 {
     // Empty constructor.
 
     // init members
-    fPar0 = 0;
-    fPar1 = 0;
-    fPar2 = 0;
-    fPar3 = 0;
+    fOutFile = 0;
     fFileManager = 0;
     fProj2D = 0;
     fLinPlot = 0;
@@ -44,10 +41,6 @@ TCCalibPIDDroop::~TCCalibPIDDroop()
 {
     // Destructor. 
     
-    if (fPar0) delete [] fPar0;
-    if (fPar1) delete [] fPar1;
-    if (fPar2) delete [] fPar2;
-    if (fPar3) delete [] fPar3;
     if (fFileManager) delete fFileManager;
     if (fProj2D) delete fProj2D;
     if (fLinPlot) delete fLinPlot;
@@ -61,11 +54,9 @@ void TCCalibPIDDroop::Init()
 {
     // Init the module.
     
+    Char_t tmp[256];
+
     // init members
-    fPar0 = new Double_t[fNelem];
-    fPar1 = new Double_t[fNelem];
-    fPar2 = new Double_t[fNelem];
-    fPar3 = new Double_t[fNelem];
     fFileManager = new TCFileManager(fData, fCalibration.Data(), fNset, fSet);
     fProj2D = 0;
     fLinPlot = 0;
@@ -74,11 +65,24 @@ void TCCalibPIDDroop::Init()
     fTheta = 0;
     fLine = new TLine();
     fDelay = 0;
+    
+    // try to open the output file
+    sprintf(tmp, "PID_Droop_Corr_%s.root", fCalibration.Data());
+    fOutFile = new TFile(tmp, "create");
+    if (fOutFile->IsZombie())
+    {
+        Error("Init", "Could not create output file '%s'!", tmp);
+        return;
+    }
+    else
+    {
+        Info("Init", "Opening output file '%s'", tmp);
+    }
 
     // configure line
     fLine->SetLineColor(4);
     fLine->SetLineWidth(3);
-
+    
     // get histogram name
     if (!TCReadConfig::GetReader()->GetConfig("PID.Droop.Histo.Fit.Name"))
     {
@@ -89,12 +93,6 @@ void TCCalibPIDDroop::Init()
     
     // get projection fit display delay
     fDelay = TCReadConfig::GetReader()->GetConfigInt("PID.Droop.Fit.Delay");
-
-    // read old parameters (only from first set)
-    TCMySQLManager::GetManager()->ReadParameters(kCALIB_PID_DROOP0, fCalibration.Data(), fSet[0], fPar0, fNelem);
-    TCMySQLManager::GetManager()->ReadParameters(kCALIB_PID_DROOP1, fCalibration.Data(), fSet[0], fPar1, fNelem);
-    TCMySQLManager::GetManager()->ReadParameters(kCALIB_PID_DROOP2, fCalibration.Data(), fSet[0], fPar2, fNelem);
-    TCMySQLManager::GetManager()->ReadParameters(kCALIB_PID_DROOP3, fCalibration.Data(), fSet[0], fPar3, fNelem);
 
     // draw main histogram
     fCanvasFit->Divide(1, 2, 0.001, 0.001);
@@ -301,30 +299,18 @@ void TCCalibPIDDroop::Fit(Int_t elem)
         // create linear plot
         if (fLinPlot) delete fLinPlot;
         fLinPlot = new TGraph(fNpeak, fTheta, fPeak);
-        sprintf(tmp, "Element %d", elem);
+        sprintf(tmp, "Droop_Corr_%d", elem);
         fLinPlot->SetName(tmp);
         fLinPlot->SetTitle(tmp);
-        fLinPlot->GetXaxis()->SetTitle("Cluster theta angle [deg]");
+        fLinPlot->GetXaxis()->SetTitle("CB Cluster theta angle [deg]");
         fLinPlot->GetYaxis()->SetTitle("#theta bin proton peak / total proton peak pos.");
-        fLinPlot->SetMarkerStyle(2);
-        fLinPlot->SetMarkerSize(2);
+        fLinPlot->SetMarkerStyle(20);
+        fLinPlot->SetMarkerSize(1);
         fLinPlot->SetMarkerColor(kBlue);
         
-        // create linear fitting function
-        if (fFitFunc) delete fFitFunc;
-        sprintf(tmp, "Func_%d", elem);
-        fFitFunc = new TF1(tmp, "pol3");
-        fFitFunc->SetLineColor(kRed);
-        
-        // fit linear plot
-        fFitFunc->SetRange(0.9*TMath::MinElement(fNpeak, fTheta), 
-                           1.1*TMath::MaxElement(fNpeak, fTheta));
-        fLinPlot->Fit(fFitFunc, "RB0Q");
-
         // plot linear plot
         fCanvasResult->cd();
         fLinPlot->Draw("ap");
-        fFitFunc->Draw("same");
         fCanvasResult->Update();
 
     } // if: sufficient statistics
@@ -335,65 +321,44 @@ void TCCalibPIDDroop::Calculate(Int_t elem)
 {
     // Calculate the new value of the element 'elem'.
     
-    Bool_t noval = kFALSE;
+    // check if output file exits
+    if (!fOutFile)
+    {
+        Error("Calculate", "Cannot save droop correction to output file!");
+        return;
+    }
 
     // check if fit was performed
     if (fMainHisto->GetEntries())
     {
-        // set parameters
-        fPar0[elem] = fFitFunc->GetParameter(0);
-        fPar1[elem] = fFitFunc->GetParameter(1);
-        fPar2[elem] = fFitFunc->GetParameter(2);
-        fPar3[elem] = fFitFunc->GetParameter(3);
-    }
-    else
-    {
-        fPar0[elem] = 0.;
-        fPar1[elem] = 1.;
-        fPar2[elem] = 0.;
-        fPar3[elem] = 0.;
-        noval = kTRUE;
+        // save TGraph to output file
+        fOutFile->cd();
+        fLinPlot->Write();
+        Info("Calculate", "Droop correction of element %d was written to '%s'", elem, fOutFile->GetName());
     }
 
-    // user information
-    printf("Element: %03d    Par0: %12.8f    "
-           "Par1: %12.8f    Par2: %12.8f    Par3: %12.8f",
-           elem, fPar0[elem], fPar1[elem], fPar2[elem], fPar3[elem]);
-    if (noval) printf("    -> no fit");
-    printf("\n");
-    
-    // save canvas
-    Char_t tmp[256];
-    sprintf(tmp, "Elem_%d", elem);
-    SaveCanvas(fCanvasResult, tmp);
+    // close file when finished
+    if (elem == fNelem-1)
+    {
+        Info("Calculate", "Closing output file '%s'", fOutFile->GetName());
+        delete fOutFile;
+        fOutFile = 0;
+    }
 }   
 
 //______________________________________________________________________________
 void TCCalibPIDDroop::PrintValues()
 {
-    // Print out the old and new values for all elements.
+    // Disable this method.
 
-    //// loop over elements
-    for (Int_t i = 0; i < fNelem; i++)
-    {
-        printf("Element: %03d    Par0: %12.8f    "
-               "Par1: %12.8f    Par2: %12.8f    Par3: %12.8f\n",
-               i, fPar0[i], fPar1[i], fPar2[i], fPar3[i]);
-     }
+    Info("PrintValues", "Not implemented in this module");
 }
 
 //______________________________________________________________________________
 void TCCalibPIDDroop::Write()
 {
-    // Write the obtained calibration values to the database.
-    
-    // write values to database
-    for (Int_t i = 0; i < fNset; i++)
-    {
-        TCMySQLManager::GetManager()->WriteParameters(kCALIB_PID_DROOP0, fCalibration.Data(), fSet[i], fPar0, fNelem);
-        TCMySQLManager::GetManager()->WriteParameters(kCALIB_PID_DROOP1, fCalibration.Data(), fSet[i], fPar1, fNelem);
-        TCMySQLManager::GetManager()->WriteParameters(kCALIB_PID_DROOP2, fCalibration.Data(), fSet[i], fPar2, fNelem);
-        TCMySQLManager::GetManager()->WriteParameters(kCALIB_PID_DROOP3, fCalibration.Data(), fSet[i], fPar3, fNelem);
-    }
+    // Disable this method.
+
+    Info("Write", "Not implemented in this module");
 }
 

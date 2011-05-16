@@ -31,10 +31,7 @@ class TCCalibPIDDroop : public TCCalib
 {
 
 private:
-    Double_t* fPar0;                    // droop correction parameter 0
-    Double_t* fPar1;                    // droop correction parameter 1
-    Double_t* fPar2;                    // droop correction parameter 2
-    Double_t* fPar3;                    // droop correction parameter 3
+    TFile* fOutFile;                    // output file
     TCFileManager* fFileManager;        // file manager
     TH2* fProj2D;                       // dE vs E projection
     TGraph* fLinPlot;                   // linear fitting histogram
