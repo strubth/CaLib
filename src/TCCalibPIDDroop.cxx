@@ -30,6 +30,7 @@ TCCalibPIDDroop::TCCalibPIDDroop()
     fProj2D = 0;
     fLinPlot = 0;
     fNpeak = 0;
+    fNpoint = 0;
     fPeak = 0;
     fTheta = 0;
     fLine = 0;
@@ -41,6 +42,13 @@ TCCalibPIDDroop::~TCCalibPIDDroop()
 {
     // Destructor. 
     
+    // close the output file
+    if (fOutFile)
+    {
+        Info("Calculate", "Closing output file '%s'", fOutFile->GetName());
+        delete fOutFile;
+    }
+
     if (fFileManager) delete fFileManager;
     if (fProj2D) delete fProj2D;
     if (fLinPlot) delete fLinPlot;
@@ -61,6 +69,7 @@ void TCCalibPIDDroop::Init()
     fProj2D = 0;
     fLinPlot = 0;
     fNpeak = 0;
+    fNpoint = 0;
     fPeak = 0;
     fTheta = 0;
     fLine = new TLine();
@@ -100,13 +109,14 @@ void TCCalibPIDDroop::Init()
 }
 
 //______________________________________________________________________________
-Double_t TCCalibPIDDroop::FitHisto()
+Bool_t TCCalibPIDDroop::FitHisto(Double_t* outPeak)
 {
-    // Fit the 'fFitHisto' and return the position of the proton peak.
+    // Fit the 'fFitHisto' and write the position of the proton peak to 'outPeak'.
+    // Return kTRUE on success, otherwise kFALSE.
 
     // look for peaks
     TSpectrum s;
-    s.Search(fFitHisto, 10, "goff nobackground", 0.03);
+    s.Search(fFitHisto, 10, "goff nobackground", 0.01);
     Double_t peakPion = TMath::MinElement(s.GetNPeaks(), s.GetPositionX());
     Double_t peak = 0;
     Double_t diff = 1e3;
@@ -121,26 +131,33 @@ Double_t TCCalibPIDDroop::FitHisto()
     
     // create fitting function
     if (fFitFunc) delete fFitFunc;
-    fFitFunc = new TF1("Fitfunc", "expo(0)+landau(2)+gaus(5)", 0.3*peakPion, peak+3);
+    fFitFunc = new TF1("Fitfunc", "expo(0)+landau(2)+gaus(5)", 0.1*peakPion, peak+4);
     fFitFunc->SetLineColor(2);
     
     // prepare fitting function
     fFitFunc->SetParameters(9.25568, -3.76050e-01, 
                             5e+03, peakPion, 2.62472e-01, 
-                            6e+03, peak, 5.82477);
+                            6e+03, peak, 0.4);
     fFitFunc->SetParLimits(2, 0, 1e6);
-    fFitFunc->SetParLimits(3, 0.85*peakPion, 1.15*peakPion);
-    fFitFunc->SetParLimits(6, 0.85*peak, 1.15*peak);
+    fFitFunc->SetParLimits(3, 0.9*peakPion, 1.1*peakPion);
+    fFitFunc->SetParLimits(6, 2, 5);
     fFitFunc->SetParLimits(5, 0, 1e5);
-    fFitFunc->SetParLimits(4, 0.1, 5);
-    fFitFunc->SetParLimits(7, 0.1, 10);
+    fFitFunc->SetParLimits(4, 0.1, 1);
+    fFitFunc->SetParLimits(7, 0.3, 5);
   
     // perform first fit
-    for (Int_t i = 0; i < 10; i++)
-        if (!fFitHisto->Fit(fFitFunc, "RB0Q")) break;
+    Int_t fitRes;
+    for (Int_t i = 0; i < 20; i++)
+        if (!(fitRes = fFitHisto->Fit(fFitFunc, "RB0Q"))) break;
 
-    // return peak
-    return fFitFunc->GetParameter(6);
+    // save peak
+    if (outPeak) *outPeak = fFitFunc->GetParameter(6);
+
+    // reject bad fits
+    if (fFitFunc->GetParameter(7) / fFitFunc->GetParameter(5) > 1 || fitRes) 
+        return kFALSE;
+
+    return kTRUE;
 }
 
 //______________________________________________________________________________
@@ -159,7 +176,8 @@ void TCCalibPIDDroop::FitSlices(TH3* h, Int_t elem)
     
     // count points
     fNpeak = (highLimit - lowLimit) / interval;
-    
+    fNpoint = 0;
+
     // prepare arrays
     if (!fPeak) fPeak = new Double_t[fNpeak];
     if (!fTheta) fTheta = new Double_t[fNpeak];
@@ -183,7 +201,8 @@ void TCCalibPIDDroop::FitSlices(TH3* h, Int_t elem)
     fFitHisto->SetTitle(tmp);
         
     // fit histo
-    Double_t peakTotal = FitHisto();
+    Double_t peakTotal;
+    FitHisto(&peakTotal);
     
     // format line
     fLine->SetY1(0);
@@ -194,16 +213,16 @@ void TCCalibPIDDroop::FitSlices(TH3* h, Int_t elem)
     // plot projection fit  
     if (fDelay > 0)
     {
-        fCanvasFit->cd(1);
         TCUtils::FormatHistogram(fProj2D, "PID.Droop.Histo.Fit");
+        fCanvasFit->cd(1);
         fProj2D->Draw("colz");
-        fCanvasFit->cd(2);
         fFitHisto->GetXaxis()->SetRangeUser(0, peakTotal+3);
+        fCanvasFit->cd(2);
         fFitHisto->Draw("hist");
         fFitFunc->Draw("same");
         fLine->Draw();
         fCanvasFit->Update();
-        gSystem->Sleep(fDelay);
+        gSystem->Sleep(2000);
     }
 
 
@@ -211,7 +230,6 @@ void TCCalibPIDDroop::FitSlices(TH3* h, Int_t elem)
     // loop over theta slices
     //
     Double_t start = lowLimit;
-    Int_t nfit = 0;
     while (start < highLimit)
     {
         // set theta axis range
@@ -235,38 +253,48 @@ void TCCalibPIDDroop::FitSlices(TH3* h, Int_t elem)
         fFitHisto->SetTitle(tmp);
             
         // fit histo
-        Double_t peak = FitHisto();
-
-        // format line
-        fLine->SetY1(0);
-        fLine->SetY2(fFitHisto->GetMaximum() + 20);
-        fLine->SetX1(peak);
-        fLine->SetX2(peak);
+        Double_t peak;
+        Bool_t fitRes = FitHisto(&peak);
         
-        // save peak and theta position
-        fPeak[nfit] = peak / peakTotal;
-        fTheta[nfit] = start + interval / 2.;
-
+        // on success
+        if (fitRes)
+        {
+            // format line
+            fLine->SetY1(0);
+            fLine->SetY2(fFitHisto->GetMaximum() + 20);
+            fLine->SetX1(peak);
+            fLine->SetX2(peak);
+            
+            // save peak and theta position
+            fPeak[fNpoint] = peak / peakTotal;
+            fTheta[fNpoint] = start + interval / 2.;
+            
+            // count point
+            fNpoint++;
+        }
+        
         // plot projection fit  
         if (fDelay > 0)
         {
-            fCanvasFit->cd(1);
             TCUtils::FormatHistogram(fProj2D, "PID.Droop.Histo.Fit");
+            fCanvasFit->cd(1);
             fProj2D->Draw("colz");
+            fFitHisto->GetXaxis()->SetRangeUser(0, peak+4);
             fCanvasFit->cd(2);
-            fFitHisto->GetXaxis()->SetRangeUser(0, peak+3);
             fFitHisto->Draw("hist");
-            fFitFunc->Draw("same");
-            fLine->Draw();
+            if (fitRes) 
+            {
+                fFitFunc->Draw("same");
+                fLine->Draw();
+            }
             fCanvasFit->Update();
             gSystem->Sleep(fDelay);
         }
-
+       
         // increment loop variables
         start += interval;
-        nfit++;
-        
-    } // while: loop over energy slices
+     
+     } // while: loop over energy slices
 }
 
 //______________________________________________________________________________
@@ -298,8 +326,8 @@ void TCCalibPIDDroop::Fit(Int_t elem)
 
         // create linear plot
         if (fLinPlot) delete fLinPlot;
-        fLinPlot = new TGraph(fNpeak, fTheta, fPeak);
-        sprintf(tmp, "Droop_Corr_%d", elem);
+        fLinPlot = new TGraph(fNpoint, fTheta, fPeak);
+        sprintf(tmp, "Droop_Corr_%02d", elem);
         fLinPlot->SetName(tmp);
         fLinPlot->SetTitle(tmp);
         fLinPlot->GetXaxis()->SetTitle("CB Cluster theta angle [deg]");
@@ -319,32 +347,9 @@ void TCCalibPIDDroop::Fit(Int_t elem)
 //______________________________________________________________________________
 void TCCalibPIDDroop::Calculate(Int_t elem)
 {
-    // Calculate the new value of the element 'elem'.
+    // Nothing to do here.
     
-    // check if output file exits
-    if (!fOutFile)
-    {
-        Error("Calculate", "Cannot save droop correction to output file!");
-        return;
-    }
-
-    // check if fit was performed
-    if (fMainHisto->GetEntries())
-    {
-        // save TGraph to output file
-        fOutFile->cd();
-        fLinPlot->Write();
-        Info("Calculate", "Droop correction of element %d was written to '%s'", elem, fOutFile->GetName());
-    }
-
-    // close file when finished
-    if (elem == fNelem-1)
-    {
-        Info("Calculate", "Closing output file '%s'", fOutFile->GetName());
-        delete fOutFile;
-        fOutFile = 0;
-    }
-}   
+}
 
 //______________________________________________________________________________
 void TCCalibPIDDroop::PrintValues()
@@ -358,7 +363,17 @@ void TCCalibPIDDroop::PrintValues()
 void TCCalibPIDDroop::Write()
 {
     // Disable this method.
-
-    Info("Write", "Not implemented in this module");
+    
+    // check if output file exits
+    if (!fOutFile)
+    {
+        Error("Write", "Cannot save droop correction to output file!");
+        return;
+    }
+    
+    // save TGraph to output file
+    fOutFile->cd();
+    fLinPlot->Write();
+    Info("Write", "Droop correction '%s' was written to '%s'", fLinPlot->GetName(), fOutFile->GetName());
 }
 

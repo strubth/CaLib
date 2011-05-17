@@ -36,6 +36,7 @@ private:
     TH2* fProj2D;                       // dE vs E projection
     TGraph* fLinPlot;                   // linear fitting histogram
     Int_t fNpeak;                       // number of proton peaks
+    Int_t fNpoint;                      // number of points in graph
     Double_t* fPeak;                    //[fNpeak] proton peak positions
     Double_t* fTheta;                   //[fNpeak] theta positions
     TLine* fLine;                       // mean indicator line
@@ -45,7 +46,7 @@ private:
     virtual void Fit(Int_t elem);
     virtual void Calculate(Int_t elem);
     
-    Double_t FitHisto();
+    Bool_t FitHisto(Double_t* outPeak);
     void FitSlices(TH3* h, Int_t elem);
 
 public:
