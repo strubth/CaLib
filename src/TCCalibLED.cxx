@@ -144,71 +144,39 @@ void TCCalibLED::Fit(Int_t elem)
     // check for sufficient statistics
     if (fFitHisto->GetEntries())
     {
-        // check if normalization histogram is there
-        if (fMainHisto2)
-        {
-            // 
-            // ratio method
-            //
-            
-            Double_t posUnder = 0;
-            fThr = 0;
+        // derive historam
+        if (fDeriv) delete fDeriv;
+        fDeriv = TCUtils::DeriveHistogram(fFitHisto);
+        TCUtils::ZeroBins(fDeriv);
 
-            // loop over all bins
-            for (Int_t i = 0; i < fFitHisto->GetNbinsX(); i++)
-            {
-                Double_t pos = fFitHisto->GetBinCenter(i);
-                Double_t content = fFitHisto->GetBinContent(i);
-                
-                // check if ratio is nearly 1
-                if (content > 0.99) 
-                {
-                    fThr = (pos + posUnder) / 2.;   
-                    break;
-                }
-                else posUnder = pos;
-            }
-        }
-        else
-        {
-            // 
-            // derivation method
-            //
+        // get maximum
+        fThr = fDeriv->GetBinCenter(fDeriv->GetMaximumBin());
 
-            // derive historam
-            if (fDeriv) delete fDeriv;
-            fDeriv = TCUtils::DeriveHistogram(fFitHisto);
-            TCUtils::ZeroBins(fDeriv);
+        // create fitting function
+        if (fFitFunc) delete fFitFunc;
+        sprintf(tmp, "Fitfunc_%d", elem);
+        fFitFunc = new TF1(tmp, "gaus", fThr-8, fThr+8);
+        fFitFunc->SetLineColor(kRed);
+        fFitFunc->SetParameters(fDeriv->GetMaximum(), fThr, 1);
 
-            // get maximum
-            fThr = fDeriv->GetBinCenter(fDeriv->GetMaximumBin());
+        // fit
+        fDeriv->Fit(fFitFunc, "RBQ0");
+        fThr = fFitFunc->GetParameter(1);
+        
+        // correct bad position
+        if (fThr < fDeriv->GetXaxis()->GetXmin() || fThr > fDeriv->GetXaxis()->GetXmax()) 
+            fThr = 0.5 * (fDeriv->GetXaxis()->GetXmin() + fDeriv->GetXaxis()->GetXmax());
 
-            // create fitting function
-            if (fFitFunc) delete fFitFunc;
-            sprintf(tmp, "Fitfunc_%d", elem);
-            fFitFunc = new TF1(tmp, "gaus", fThr-8, fThr+8);
-            fFitFunc->SetLineColor(kRed);
-            fFitFunc->SetParameters(fDeriv->GetMaximum(), fThr, 1);
+        // draw histogram
+        fCanvasFit->cd(2);
+        fDeriv->GetXaxis()->SetRangeUser(fThr-20, fThr+20);
+        fDeriv->Draw("hist");
 
-            // fit
-            fDeriv->Fit(fFitFunc, "RBQ0");
-            fThr = fFitFunc->GetParameter(1);
-            
-            // correct bad position
-            if (fThr < fDeriv->GetXaxis()->GetXmin() || fThr > fDeriv->GetXaxis()->GetXmax()) 
-                fThr = 0.5 * (fDeriv->GetXaxis()->GetXmin() + fDeriv->GetXaxis()->GetXmax());
+        // draw function
+        fFitFunc->Draw("same");
 
-            // draw histogram
-            fCanvasFit->cd(2);
-            fDeriv->GetXaxis()->SetRangeUser(fThr-20, fThr+20);
-            fDeriv->Draw("hist");
-
-            // draw function
-            fFitFunc->Draw("same");
-
-            // draw indicator line
-            fLine->Draw();
-        }
+        // draw indicator line
+        fLine->Draw();
 
         // draw mean indicator line
         fLine->SetY1(0);
