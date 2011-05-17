@@ -27,9 +27,6 @@ enum ECalibData
     // empty element
     kCALIB_EMPTY = 0,
     
-    // target position
-    kCALIB_TARGET_POS,
-
     // tagger data
     kCALIB_TAGG_T0,
 
@@ -51,7 +48,6 @@ enum ECalibData
     kCALIB_PID_PHI, 
     kCALIB_PID_T0, 
     kCALIB_PID_E0, kCALIB_PID_E1, 
-    kCALIB_PID_DROOP0, kCALIB_PID_DROOP1, kCALIB_PID_DROOP2, kCALIB_PID_DROOP3,
 
     // Veto data
     kCALIB_VETO_T0, kCALIB_VETO_T1, 
@@ -68,9 +64,6 @@ enum ECalibType
     // empty element
     kCALIB_TYPE_EMPTY = 0,
     
-    // target position
-    kCALIB_TYPE_TARGET_POS,
-
     // tagger data
     kCALIB_TYPE_TAGG_TIME,
 
@@ -93,7 +86,6 @@ enum ECalibType
     kCALIB_TYPE_PID_PHI, 
     kCALIB_TYPE_PID_T0, 
     kCALIB_TYPE_PID_ENERGY, 
-    kCALIB_TYPE_PID_DROOP,
 
     // Veto data
     kCALIB_TYPE_VETO_TIME, 

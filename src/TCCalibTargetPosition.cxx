@@ -20,7 +20,7 @@ ClassImp(TCCalibTargetPosition)
 
 //______________________________________________________________________________
 TCCalibTargetPosition::TCCalibTargetPosition()
-    : TCCalib("Target.Position", "Target position calibration", kCALIB_TARGET_POS,
+    : TCCalib("Target.Position", "Target position calibration", kCALIB_CB_E1,
               TCReadConfig::GetReader()->GetConfigInt("Target.Position.Bins"))
 {
     // Empty constructor.
@@ -60,11 +60,8 @@ void TCCalibTargetPosition::Init()
     }
     else fHistoName = *TCReadConfig::GetReader()->GetConfig("Target.Position.Histo.Fit.Name");
     
-    // read old parameters (only from first set)
-    TCMySQLManager::GetManager()->ReadParameters(fData, fCalibration.Data(), fSet[0], fOldVal, TCConfig::kMaxTargPos);
-    
     // copy to new parameters
-    fNewVal[0] = fOldVal[0];
+    fNewVal[0] = 0;
 
     // sum up all files contained in this runset
     TCFileManager f(fData, fCalibration.Data(), fNset, fSet);
@@ -257,12 +254,8 @@ void TCCalibTargetPosition::Calculate(Int_t elem)
 //______________________________________________________________________________
 void TCCalibTargetPosition::Write()
 {
-    // Write the obtained calibration values to the database.
+    // Save the overview plot.
     
-    // write values to database
-    for (Int_t i = 0; i < fNset; i++)
-        TCMySQLManager::GetManager()->WriteParameters(fData, fCalibration.Data(), fSet[i], fNewVal, TCConfig::kMaxTargPos);
-        
     // save overview picture
     SaveCanvas(fCanvasResult, "Overview");
 }
@@ -272,10 +265,8 @@ void TCCalibTargetPosition::PrintValues()
 {
     // Print out the old and new values for all elements.
 
-    // loop over elements
     printf("\n");
-    printf("old target position: %12.8f    new target position: %12.8f    "
-           "diff: %6.2f %%\n", fOldVal[0], fNewVal[0], TCUtils::GetDiffPercent(fOldVal[0], fNewVal[0]));
+    printf("target position: %12.8f\n", fNewVal[0]);
     printf("\n");
 }
 

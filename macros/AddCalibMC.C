@@ -35,10 +35,6 @@ void AddCalibMC()
     // add raw files to the database
     TCMySQLManager::GetManager()->AddRun(dummyRun, target, calibDesc);
     
-    // add target position calibration
-    TCMySQLManager::GetManager()->AddSet(kCALIB_TYPE_TARGET_POS, calibName, calibDesc,
-                                         dummyRun, dummyRun, 0);
-    
     // read AcquRoot calibration of tagger
     TCMySQLManager::GetManager()->AddCalibAR(kDETECTOR_TAGG, calibFileTagger,
                                              calibName, calibDesc,
@@ -80,10 +76,6 @@ void AddCalibMC()
     TCMySQLManager::GetManager()->AddCalibAR(kDETECTOR_PID, calibFilePID,
                                              calibName, calibDesc,
                                              dummyRun, dummyRun);
-    
-    // init PID droop correction
-    TCMySQLManager::GetManager()->AddSet(kCALIB_TYPE_PID_DROOP, calibName, calibDesc,
-                                         dummyRun, dummyRun, 0);
     
     // read AcquRoot calibration of Veto 
     TCMySQLManager::GetManager()->AddCalibAR(kDETECTOR_VETO, calibFileVeto,

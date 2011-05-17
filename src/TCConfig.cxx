@@ -28,7 +28,7 @@ namespace TCConfig
     const Int_t kMaxTAGGER    = 352;
     
     // number of calibration data
-    const Int_t kCalibNData = 34;
+    const Int_t kCalibNData = 29;
    
     // data names
     // NOTE: This has to be synchronized with the enum ECalibData
@@ -37,9 +37,6 @@ namespace TCConfig
         // empty element
         "empty",
         
-        // target position
-        "Target Position",
-
         // tagger data
         "Tagger time offset",
 
@@ -61,7 +58,6 @@ namespace TCConfig
         "PID azimuthal angle", 
         "PID time offset", 
         "PID ADC pedestal", "PID ADC gain", 
-        "PID droop corr. par0", "PID droop corr. par1", "PID droop corr. par2", "PID droop corr. par3",
 
         // Veto data
         "Veto time offset", "Veto TDC gain", 
@@ -75,9 +71,6 @@ namespace TCConfig
         // empty element
         "empty",
         
-        // target position
-        "target_pos",
-
         // tagger data
         "tagg_t0",
 
@@ -99,7 +92,6 @@ namespace TCConfig
         "pid_phi", 
         "pid_t0", 
         "pid_e0", "pid_e1", 
-        "pid_droop0", "pid_droop1", "pid_droop2", "pid_droop3",
 
         // Veto data
         "veto_t0", "veto_t1",
@@ -113,9 +105,6 @@ namespace TCConfig
         // empty element
         0,
         
-        // target position
-        kMaxTargPos,
-
         // tagger data
         kMaxTAGGER,
 
@@ -137,7 +126,6 @@ namespace TCConfig
         kMaxPID, 
         kMaxPID, 
         kMaxPID, kMaxPID, 
-        kMaxPID, kMaxPID, kMaxPID, kMaxPID,
 
         // Veto data
         kMaxVeto, kMaxVeto, 
@@ -146,7 +134,7 @@ namespace TCConfig
     
     // number of calibration types
     // NOTE: This has to be synchronized with the enum ECalibType
-    const Int_t kCalibNType = 22;
+    const Int_t kCalibNType = 20;
     
     // type names
     // NOTE: This has to be synchronized with the enum ECalibType
@@ -155,9 +143,6 @@ namespace TCConfig
         // empty element
         "empty",
         
-        // target position
-        "Target Position",
-
         // tagger data
         "Tagger time",
 
@@ -181,7 +166,6 @@ namespace TCConfig
         "PID azimuthal angle", 
         "PID time", 
         "PID energy", 
-        "PID droop correction",
 
         // Veto data
         "Veto time", 
@@ -197,9 +181,6 @@ namespace TCConfig
         // empty element
         1,
         
-        // target position
-        1,
-
         // tagger data
         1,
 
@@ -223,7 +204,6 @@ namespace TCConfig
         1, 
         1, 
         2, 
-        4,
 
         // Veto data
         2, 
@@ -239,9 +219,6 @@ namespace TCConfig
         // empty element
         { kCALIB_EMPTY, kCALIB_EMPTY, kCALIB_EMPTY, kCALIB_EMPTY },
         
-        // target position
-        { kCALIB_TARGET_POS, kCALIB_EMPTY, kCALIB_EMPTY, kCALIB_EMPTY },
-
         // tagger data
         { kCALIB_TAGG_T0, kCALIB_EMPTY, kCALIB_EMPTY, kCALIB_EMPTY },
 
@@ -265,7 +242,6 @@ namespace TCConfig
         { kCALIB_PID_PHI, kCALIB_EMPTY, kCALIB_EMPTY, kCALIB_EMPTY }, 
         { kCALIB_PID_T0, kCALIB_EMPTY, kCALIB_EMPTY, kCALIB_EMPTY }, 
         { kCALIB_PID_E0, kCALIB_PID_E1, kCALIB_EMPTY, kCALIB_EMPTY }, 
-        { kCALIB_PID_DROOP0, kCALIB_PID_DROOP1, kCALIB_PID_DROOP2, kCALIB_PID_DROOP3 },
 
         // Veto data
         { kCALIB_VETO_T0, kCALIB_VETO_T1, kCALIB_EMPTY, kCALIB_EMPTY }, 
@@ -308,8 +284,8 @@ namespace TCConfig
     const Char_t* kCalibDataTableSettings = ",PRIMARY KEY (calibration, first_run) ";
     
     // version numbers
-    const Char_t kCaLibVersion[] = "0.1.3";
-    const Int_t kContainerFormatVersion = 1;
+    const Char_t kCaLibVersion[] = "0.1.4";
+    const Int_t kContainerFormatVersion = 2;
     extern const Char_t kCaLibDumpName[] = "CaLib_Dump";
 
     // constants

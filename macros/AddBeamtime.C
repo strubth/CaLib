@@ -37,10 +37,6 @@ void AddBeamtime()
     // add raw files to the database
     TCMySQLManager::GetManager()->AddRunFiles(rawfilePath, target);
     
-    // add target position calibration
-    TCMySQLManager::GetManager()->AddSet(kCALIB_TYPE_TARGET_POS, calibName, calibDesc,
-                                         firstRun, lastRun, 0);
- 
     // read AcquRoot calibration of tagger
     TCMySQLManager::GetManager()->AddCalibAR(kDETECTOR_TAGG, calibFileTagger,
                                              calibName, calibDesc,
@@ -83,10 +79,6 @@ void AddBeamtime()
                                              calibName, calibDesc,
                                              firstRun, lastRun);
     
-    // init PID droop correction
-    TCMySQLManager::GetManager()->AddSet(kCALIB_TYPE_PID_DROOP, calibName, calibDesc,
-                                         firstRun, lastRun, 0);
-     
     // read AcquRoot calibration of Veto 
     TCMySQLManager::GetManager()->AddCalibAR(kDETECTOR_VETO, calibFileVeto,
                                              calibName, calibDesc,

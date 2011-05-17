@@ -76,7 +76,7 @@ public:
     const Char_t* GetDBName() const { return fDB ? fDB->GetDB() : 0; }
     const Char_t* GetDBHost() const { return fDB ? fDB->GetHost() : 0; }
 
-    TList* GetAllCalibrations(CalibData_t data = kCALIB_TARGET_POS);
+    TList* GetAllCalibrations(CalibData_t data = kCALIB_TAGG_T0);
     TList* GetAllTargets();
     
     Bool_t ContainsCalibration(const Char_t* calibration);
