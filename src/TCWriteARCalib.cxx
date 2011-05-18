@@ -65,7 +65,7 @@ void TCWriteARCalib::Write(const Char_t* calibFile,
         case kDETECTOR_TAGG:
         {
             // read time offset
-            if (m->ReadParametersRun(kCALIB_TAGG_T0, calibration, run, par, nDet))
+            if (m->ReadParametersRun("Data.Tagger.T0", calibration, run, par, nDet))
                 for (Int_t i = 0; i < nDet; i++) r->GetElement(i)->SetOffset(par[i]);
 
             break;
@@ -74,29 +74,29 @@ void TCWriteARCalib::Write(const Char_t* calibFile,
         case kDETECTOR_CB:
         {
             // read time offset
-            if (m->ReadParametersRun(kCALIB_CB_T0, calibration, run, par, nDet))
+            if (m->ReadParametersRun("Data.CB.T0", calibration, run, par, nDet))
                 for (Int_t i = 0; i < nDet; i++) r->GetElement(i)->SetOffset(par[i]);
 
             // read ADC gain
-            if (m->ReadParametersRun(kCALIB_CB_E1, calibration, run, par, nDet))
+            if (m->ReadParametersRun("Data.CB.E1", calibration, run, par, nDet))
                 for (Int_t i = 0; i < nDet; i++) r->GetElement(i)->SetADCGain(par[i]);
             
             if (nDetTW)
             {
                 // read time walk parameter 0
-                if (m->ReadParametersRun(kCALIB_CB_WALK0, calibration, run, par, nDetTW))
+                if (m->ReadParametersRun("Data.CB.Walk.Par0", calibration, run, par, nDetTW))
                     for (Int_t i = 0; i < nDetTW; i++) r->GetTimeWalk(i)->SetPar0(par[i]);
 
                 // read time walk parameter 1
-                if (m->ReadParametersRun(kCALIB_CB_WALK1, calibration, run, par, nDetTW))
+                if (m->ReadParametersRun("Data.CB.Walk.Par1", calibration, run, par, nDetTW))
                     for (Int_t i = 0; i < nDetTW; i++) r->GetTimeWalk(i)->SetPar1(par[i]);
 
                 // read time walk parameter 2
-                if (m->ReadParametersRun(kCALIB_CB_WALK2, calibration, run, par, nDetTW))
+                if (m->ReadParametersRun("Data.CB.Walk.Par2", calibration, run, par, nDetTW))
                     for (Int_t i = 0; i < nDetTW; i++) r->GetTimeWalk(i)->SetPar2(par[i]);
 
                 // read time walk parameter 3
-                if (m->ReadParametersRun(kCALIB_CB_WALK3, calibration, run, par, nDetTW))
+                if (m->ReadParametersRun("Data.CB.Walk.Par3", calibration, run, par, nDetTW))
                     for (Int_t i = 0; i < nDetTW; i++) r->GetTimeWalk(i)->SetPar3(par[i]);
             }
 
@@ -105,29 +105,29 @@ void TCWriteARCalib::Write(const Char_t* calibFile,
         case kDETECTOR_TAPS:
         {
             // read time offset
-            if (m->ReadParametersRun(kCALIB_TAPS_T0, calibration, run, par, nDet))
+            if (m->ReadParametersRun("Data.TAPS.T0", calibration, run, par, nDet))
                 for (Int_t i = 0; i < nDet; i++) r->GetElement(i)->SetOffset(par[i]);
 
             // read TDC gain
-            if (m->ReadParametersRun(kCALIB_TAPS_T1, calibration, run, par, nDet))
+            if (m->ReadParametersRun("Data.TAPS.T1", calibration, run, par, nDet))
                 for (Int_t i = 0; i < nDet; i++) r->GetElement(i)->SetTDCGain(par[i]);
 
             // read ADC pedestal
-            if (m->ReadParametersRun(kCALIB_TAPS_LG_E0, calibration, run, par, nDet))
+            if (m->ReadParametersRun("Data.TAPS.LG.E0", calibration, run, par, nDet))
                 for (Int_t i = 0; i < nDet; i++) r->GetElement(i)->SetPedestal(par[i]);
 
             // read ADC gain
-            if (m->ReadParametersRun(kCALIB_TAPS_LG_E1, calibration, run, par, nDet))
+            if (m->ReadParametersRun("Data.TAPS.LG.E1", calibration, run, par, nDet))
                 for (Int_t i = 0; i < nDet; i++) r->GetElement(i)->SetADCGain(par[i]);
             
             if (nDetSG)
             {
                 // read SG ADC pedestal
-                if (m->ReadParametersRun(kCALIB_TAPS_SG_E0, calibration, run, par, nDetSG))
+                if (m->ReadParametersRun("Data.TAPS.SG.E0", calibration, run, par, nDetSG))
                     for (Int_t i = 0; i < nDetSG; i++) rSG->GetElement(i)->SetPedestal(par[i]);
 
                 // read SG ADC gain
-                if (m->ReadParametersRun(kCALIB_TAPS_SG_E1, calibration, run, par, nDetSG))
+                if (m->ReadParametersRun("Data.TAPS.SG.E1", calibration, run, par, nDetSG))
                     for (Int_t i = 0; i < nDetSG; i++) rSG->GetElement(i)->SetADCGain(par[i]);
             }
 
@@ -136,19 +136,19 @@ void TCWriteARCalib::Write(const Char_t* calibFile,
         case kDETECTOR_PID:
         {
             // read phi angle
-            if (m->ReadParametersRun(kCALIB_PID_PHI, calibration, run, par, nDet))
+            if (m->ReadParametersRun("Data.PID.Phi", calibration, run, par, nDet))
                 for (Int_t i = 0; i < nDet; i++) r->GetElement(i)->SetZ(par[i]);
 
             // read time offset
-            if (m->ReadParametersRun(kCALIB_PID_T0, calibration, run, par, nDet))
+            if (m->ReadParametersRun("Data.PID.T0", calibration, run, par, nDet))
                 for (Int_t i = 0; i < nDet; i++) r->GetElement(i)->SetOffset(par[i]);
 
             // read ADC pedestal
-            if (m->ReadParametersRun(kCALIB_PID_E0, calibration, run, par, nDet))
+            if (m->ReadParametersRun("Data.PID.E0", calibration, run, par, nDet))
                 for (Int_t i = 0; i < nDet; i++) r->GetElement(i)->SetPedestal(par[i]);
 
             // read ADC gain
-            if (m->ReadParametersRun(kCALIB_PID_E1, calibration, run, par, nDet))
+            if (m->ReadParametersRun("Data.PID.E1", calibration, run, par, nDet))
                 for (Int_t i = 0; i < nDet; i++) r->GetElement(i)->SetADCGain(par[i]);
 
             break;
@@ -156,19 +156,19 @@ void TCWriteARCalib::Write(const Char_t* calibFile,
         case kDETECTOR_VETO:
         {
             // read time offset
-            if (m->ReadParametersRun(kCALIB_VETO_T0, calibration, run, par, nDet))
+            if (m->ReadParametersRun("Data.Veto.T0", calibration, run, par, nDet))
                 for (Int_t i = 0; i < nDet; i++) r->GetElement(i)->SetOffset(par[i]);
 
             // read TDC gain
-            if (m->ReadParametersRun(kCALIB_VETO_T1, calibration, run, par, nDet))
+            if (m->ReadParametersRun("Data.Veto.T1", calibration, run, par, nDet))
                 for (Int_t i = 0; i < nDet; i++) r->GetElement(i)->SetTDCGain(par[i]);
             
             // read ADC pedestal
-            if (m->ReadParametersRun(kCALIB_VETO_E0, calibration, run, par, nDet))
+            if (m->ReadParametersRun("Data.Veto.E0", calibration, run, par, nDet))
                 for (Int_t i = 0; i < nDet; i++) r->GetElement(i)->SetPedestal(par[i]);
 
             // read ADC gain
-            if (m->ReadParametersRun(kCALIB_VETO_E1, calibration, run, par, nDet))
+            if (m->ReadParametersRun("Data.Veto.E1", calibration, run, par, nDet))
                 for (Int_t i = 0; i < nDet; i++) r->GetElement(i)->SetADCGain(par[i]);
 
             break;

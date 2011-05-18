@@ -48,15 +48,15 @@ void AddBeamtime()
                                              firstRun, lastRun);
     
     // init CB time walk calibration
-    TCMySQLManager::GetManager()->AddSet(kCALIB_TYPE_CB_WALK, calibName, calibDesc,
+    TCMySQLManager::GetManager()->AddSet("Type.CB.Time.Walk", calibName, calibDesc,
                                          firstRun, lastRun, 0);
      
     // init CB quadratic energy correction
-    TCMySQLManager::GetManager()->AddSet(kCALIB_TYPE_CB_EQUAD, calibName, calibDesc,
+    TCMySQLManager::GetManager()->AddSet("Type.CB.Energy.Quad", calibName, calibDesc,
                                          firstRun, lastRun, 0);
     
     // init CB LED calibration
-    TCMySQLManager::GetManager()->AddSet(kCALIB_TYPE_CB_LED, calibName, calibDesc,
+    TCMySQLManager::GetManager()->AddSet("Type.CB.LED", calibName, calibDesc,
                                          firstRun, lastRun, 0);
   
     // read AcquRoot calibration of TAPS
@@ -65,13 +65,13 @@ void AddBeamtime()
                                              firstRun, lastRun);
     
     // init TAPS quadratic energy correction
-    TCMySQLManager::GetManager()->AddSet(kCALIB_TYPE_TAPS_EQUAD, calibName, calibDesc,
+    TCMySQLManager::GetManager()->AddSet("Type.TAPS.Energy.Quad", calibName, calibDesc,
                                          firstRun, lastRun, 0);
  
     // init TAPS LED calibration
-    TCMySQLManager::GetManager()->AddSet(kCALIB_TYPE_TAPS_LED1, calibName, calibDesc,
+    TCMySQLManager::GetManager()->AddSet("Type.TAPS.LED1", calibName, calibDesc,
                                          firstRun, lastRun, 0);
-    TCMySQLManager::GetManager()->AddSet(kCALIB_TYPE_TAPS_LED2, calibName, calibDesc,
+    TCMySQLManager::GetManager()->AddSet("Type.TAPS.LED2", calibName, calibDesc,
                                          firstRun, lastRun, 0);
  
     // read AcquRoot calibration of PID

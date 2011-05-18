@@ -84,7 +84,7 @@ void PIDTime()
     
     // general configuration
     Bool_t watch = kFALSE;
-    CalibData_t data = kCALIB_PID_T0;
+    const Char_t* data = "Data.PID.T0";
     const Char_t* hName = "CaLib_PID_Time";
     Double_t yMin = -20;
     Double_t yMax = 20;

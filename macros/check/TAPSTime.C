@@ -63,7 +63,7 @@ void TAPSTime()
     gSystem->Load("libCaLib.so");
     
     // general configuration
-    CalibData_t data = kCALIB_TAPS_T0;
+    const Char_t* data = "Data.TAPS.T0";
     const Char_t* hName = "CaLib_TAPS_Time_Neut";
 
     // configuration (December 2007)

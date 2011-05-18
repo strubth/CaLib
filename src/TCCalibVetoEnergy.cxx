@@ -20,7 +20,7 @@ ClassImp(TCCalibVetoEnergy)
 
 //______________________________________________________________________________
 TCCalibVetoEnergy::TCCalibVetoEnergy()
-    : TCCalib("Veto.Energy", "Veto energy calibration", kCALIB_VETO_E1,
+    : TCCalib("Veto.Energy", "Veto energy calibration", "Data.Veto.E1",
               TCReadConfig::GetReader()->GetConfigInt("Veto.Elements"))
 {
     // Empty constructor.

@@ -66,7 +66,7 @@ void CBEnergy()
     gSystem->Load("libCaLib.so");
     
     // general configuration
-    CalibData_t data = kCALIB_CB_E1;
+    const Char_t* data = "Data.CB.E1";
     const Char_t* hName = "CaLib_CB_IM_Neut";
 
     // configuration (December 2007)

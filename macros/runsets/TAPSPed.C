@@ -158,7 +158,7 @@ void TAPSPed()
     
     // general configuration
     Bool_t watch = kFALSE;
-    CalibData_t data = kCALIB_TAPS_LG_E0;
+    const Char_t* data = "Data.TAPS.LG.E0";
     const Char_t* elemDesc = "Element:";
     //const Char_t* elemDesc = "TAPSSG:";
     Double_t yMin = 110;

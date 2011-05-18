@@ -37,7 +37,7 @@ class TCCalib : public TNamed
 {
 
 protected:
-    CalibData_t fData;          // used calibration data
+    TString fData;              // used calibration data
     TString fCalibration;       // calibration identifier
     Int_t fNset;                // number of sets to be calibrated
     Int_t* fSet;                //[fNset] array of sets to be calibrated
@@ -69,7 +69,7 @@ protected:
 
 public:
     TCCalib() : TNamed(),
-                fData(kCALIB_EMPTY), 
+                fData(), 
                 fCalibration(),
                 fSet(0), fHistoName(), 
                 fNelem(0), fCurrentElem(0),
@@ -80,7 +80,7 @@ public:
                 fCanvasFit(0), fCanvasResult(0), 
                 fTimer(0), fTimerRunning(kFALSE) { }
     TCCalib(const Char_t* name, const Char_t* title, 
-            CalibData_t data, Int_t nElem) 
+            const Char_t* data, Int_t nElem) 
         : TNamed(name, title),
           fData(data), 
           fCalibration(),
@@ -106,7 +106,7 @@ public:
     void Ignore();
     void StopProcessing();
     
-    CalibData_t GetCalibData() const { return fData; }
+    TString GetCalibData() { return fData; }
 
     void EventHandler(Int_t event, Int_t ox, Int_t oy, TObject* selected);
 

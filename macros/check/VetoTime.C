@@ -63,7 +63,7 @@ void VetoTime()
     gSystem->Load("libCaLib.so");
     
     // general configuration
-    CalibData_t data = kCALIB_VETO_T0;
+    const Char_t* data = "Data.Veto.T0";
     const Char_t* hName = "CaLib_Veto_Time";
 
     // configuration (December 2007)

@@ -37,7 +37,7 @@ private:
 
 public:
     TCCalibEnergy() : TCCalib(), fPi0Pos(0), fLine(0) { }
-    TCCalibEnergy(const Char_t* name, const Char_t* title, CalibData_t data,
+    TCCalibEnergy(const Char_t* name, const Char_t* title, const Char_t* data,
                   Int_t nElem);
     virtual ~TCCalibEnergy();
 
@@ -51,7 +51,7 @@ class TCCalibCBEnergy : public TCCalibEnergy
 public:
     TCCalibCBEnergy()
         : TCCalibEnergy("CB.Energy", "CB energy calibration", 
-                        kCALIB_CB_E1, 
+                        "Data.CB.E1", 
                         TCConfig::kMaxCB) { }
     virtual ~TCCalibCBEnergy() { }
 
@@ -65,7 +65,7 @@ class TCCalibTAPSEnergyLG : public TCCalibEnergy
 public:
     TCCalibTAPSEnergyLG()
         : TCCalibEnergy("TAPS.Energy.LG", "TAPS LG energy calibration", 
-                        kCALIB_TAPS_LG_E1,
+                        "Data.TAPS.LG.E1",
                         TCReadConfig::GetReader()->GetConfigInt("TAPS.Elements")) { }
     virtual ~TCCalibTAPSEnergyLG() { }
 

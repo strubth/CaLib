@@ -183,7 +183,7 @@ void VetoEnergy()
     
     // general configuration
     Bool_t watch = kFALSE;
-    CalibData_t data = kCALIB_VETO_E1;
+    const Char_t* data = "Data.Veto.E1";
 
     // configuration (December 2007)
     //const Char_t calibration[] = "LD2_Dec_07";

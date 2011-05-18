@@ -38,8 +38,8 @@ typedef ERunEntry RunEntry_t;
 Int_t gNrow;
 Int_t gNcol;
 Char_t gCalibration[256];
-CalibType_t gCalibrationType;
-CalibData_t gCalibrationData;
+TCCalibType* gCalibrationType;
+TCCalibData* gCalibrationData;
 Char_t gFinishMessage[256];
 
 // function prototypes
@@ -101,7 +101,7 @@ void DrawHeader(const Char_t* title = "CaLib Manager")
 
 //______________________________________________________________________________
 Int_t ShowMenu(const Char_t* title, const Char_t* message, 
-               Int_t nEntries, const Char_t* entries[], Int_t active)
+               Int_t nEntries, Char_t* entries[], Int_t active)
 {
     // Show the main menu.
 
@@ -350,7 +350,7 @@ WINDOW* FormatCalibTable(TCContainer& c, Int_t* outColLengthTot, WINDOW** outHea
     
     // get number of paramters
     Int_t nPar = 0;
-    if (withPar) nPar = TCConfig::kCalibDataTableLengths[gCalibrationData];
+    if (withPar) nPar = gCalibrationData->GetSize();
     
     // define col headers
     Int_t nCol = 5+nPar;
@@ -502,7 +502,7 @@ void SplitSet()
     else
     {
         // split set
-        Bool_t ret = TCMySQLManager::GetManager()->SplitSet(gCalibrationType, gCalibration,
+        Bool_t ret = TCMySQLManager::GetManager()->SplitSet(gCalibrationType->GetName(), gCalibration,
                                                             set, last_run);
 
         // check return value
@@ -564,7 +564,7 @@ void MergeSets()
     else
     {
         // merge sets
-        Bool_t ret = TCMySQLManager::GetManager()->MergeSets(gCalibrationType, gCalibration,
+        Bool_t ret = TCMySQLManager::GetManager()->MergeSets(gCalibrationType->GetName(), gCalibration,
                                                             set1, set2);
 
         // check return value
@@ -719,9 +719,9 @@ void CalibBrowser(Bool_t browseTypes)
 
     // dump calibrations
     if (browseTypes) 
-        TCMySQLManager::GetManager()->DumpCalibrations(&c, gCalibration, TCConfig::kCalibTypeData[gCalibrationType][0]);
+        TCMySQLManager::GetManager()->DumpCalibrations(&c, gCalibration, gCalibrationType->GetData(0)->GetName());
     else 
-        TCMySQLManager::GetManager()->DumpCalibrations(&c, gCalibration, gCalibrationData);
+        TCMySQLManager::GetManager()->DumpCalibrations(&c, gCalibration, gCalibrationData->GetName());
     
     // get number of calibrations
     Int_t nCalib = c.GetNCalibrations();
@@ -738,8 +738,8 @@ void CalibBrowser(Bool_t browseTypes)
     attroff(A_UNDERLINE);
     
     // draw calibration data or type
-    if (browseTypes) mvprintw(6, 2, "Calibration type: %s", TCConfig::kCalibTypeNames[gCalibrationType]);
-    else mvprintw(6, 2, "Calibration data: %s", TCConfig::kCalibDataNames[gCalibrationData]);
+    if (browseTypes) mvprintw(6, 2, "Calibration type: %s", gCalibrationType->GetTitle());
+    else mvprintw(6, 2, "Calibration data: %s", gCalibrationData->GetTitle());
 
     // build the windows
     Int_t colLengthTot;
@@ -978,8 +978,8 @@ void SelectCalibration(const Char_t* mMsg)
 
     // show menu
     Int_t choice = 0;
-    if (mMsg) choice = ShowMenu(mTitle, mMsg, mN, (const Char_t**)mEntries, 0);
-    else choice = ShowMenu(mTitle, mMsgStd, mN, (const Char_t**)mEntries, 0);
+    if (mMsg) choice = ShowMenu(mTitle, mMsg, mN, (Char_t**)mEntries, 0);
+    else choice = ShowMenu(mTitle, mMsgStd, mN, (Char_t**)mEntries, 0);
 
     // save selected calibration
     strcpy(gCalibration, mEntries[choice]);
@@ -996,13 +996,37 @@ void SelectCalibrationType()
     // menu configuration
     const Char_t mTitle[] = "CALIBRATION TYPE SELECTION";
     const Char_t mMsg[] = "Select a calibration type";
-    const Int_t mN = TCConfig::kCalibNType-1;
-   
+    
+    // get type table
+    THashList* table = TCMySQLManager::GetManager()->GetTypeTable();
+
+    // number of types
+    Int_t mN = table->GetSize();
+    
+    // create string array
+    Char_t** mEntries = new Char_t*[mN];
+    for (Int_t i = 0; i < mN; i++) mEntries[i] = new Char_t[256];
+
+    // loop over types
+    TIter next(table);
+    TCCalibType* e;
+    TCCalibType* list[mN];
+    Int_t n = 0;
+    while ((e = (TCCalibType*)next()))
+    {
+        strcpy(mEntries[n], e->GetTitle());
+        list[n++] = e;
+    }
+
     // show menu
-    Int_t choice = ShowMenu(mTitle, mMsg, mN, TCConfig::kCalibTypeNames+1, 0);
+    Int_t choice = ShowMenu(mTitle, mMsg, mN, mEntries, 0);
+
+    // clean-up
+    for (Int_t i = 0; i < mN; i++) delete [] mEntries[i];
+    delete [] mEntries;
 
     // save selected calibration type
-    gCalibrationType = (CalibType_t)(choice+1);
+    gCalibrationType = list[choice];
 }
 
 //______________________________________________________________________________
@@ -1013,13 +1037,37 @@ void SelectCalibrationData()
     // menu configuration
     const Char_t mTitle[] = "CALIBRATION DATA SELECTION";
     const Char_t mMsg[] = "Select a calibration data";
-    const Int_t mN = TCConfig::kCalibNData-1;
     
+    // get type table
+    THashList* table = TCMySQLManager::GetManager()->GetDataTable();
+
+    // number of data
+    Int_t mN = table->GetSize();
+    
+    // create string array
+    Char_t** mEntries = new Char_t*[mN];
+    for (Int_t i = 0; i < mN; i++) mEntries[i] = new Char_t[256];
+
+    // loop over types
+    TIter next(table);
+    TCCalibData* e;
+    TCCalibData* list[mN];
+    Int_t n = 0;
+    while ((e = (TCCalibData*)next()))
+    {
+        strcpy(mEntries[n], e->GetTitle());
+        list[n++] = e;
+    }
+
     // show menu
-    Int_t choice = ShowMenu(mTitle, mMsg, mN, TCConfig::kCalibDataNames+1, 0);
-    
+    Int_t choice = ShowMenu(mTitle, mMsg, mN, mEntries, 0);
+
+    // clean-up
+    for (Int_t i = 0; i < mN; i++) delete [] mEntries[i];
+    delete [] mEntries;
+
     // save selected calibration type
-    gCalibrationData = (CalibData_t)(choice+1);
+    gCalibrationData = list[choice];
 }
 
 //______________________________________________________________________________
@@ -1287,7 +1335,7 @@ void ImportCalibration()
                                  "Go back" };
     
     // show menu
-    Int_t choice = ShowMenu(mTitle, mMsg, mN, mEntries, 0);
+    Int_t choice = ShowMenu(mTitle, mMsg, mN, (Char_t**)mEntries, 0);
 
     // decide what do to
     switch (choice)
@@ -1298,7 +1346,7 @@ void ImportCalibration()
         case 1:
             SelectCalibrationType();
             sprintf(tmp, "Select the calibration the imported '%s' is added to", 
-                    TCConfig::kCalibTypeNames[gCalibrationType]);
+                    gCalibrationType->GetTitle());
             SelectCalibration(tmp);
             break;
         case 2:
@@ -1362,7 +1410,7 @@ void ImportCalibration()
     else
     {
         mvprintw(8, 2, "'%s' from '%s' will be added to calibration '%s' replacing the existing data!", 
-                 TCConfig::kCalibTypeNames[gCalibrationType], filename, gCalibration);
+                 gCalibrationType->GetTitle(), filename, gCalibration);
     }
     mvprintw(10, 6, "Are you sure to continue? (yes/no) : ");
     scanw((Char_t*)"%s", answer);
@@ -1392,22 +1440,21 @@ void ImportCalibration()
             Int_t nAdded = 0;
 
             // loop over calibration data for this calibration type
-            for (Int_t i = 0; i < TCConfig::kCalibTypeNData[(Int_t)gCalibrationType]; i++)
+            TIter next(gCalibrationType->GetData());
+            TCCalibData* d;
+            while ((d = (TCCalibData*)next()))
             {
-                // get calibration data
-                CalibData_t data = TCConfig::kCalibTypeData[(Int_t)gCalibrationType][i];
-                
                 // delete old calibration before importing
-                TCMySQLManager::GetManager()->RemoveCalibration(gCalibration, data);
+                TCMySQLManager::GetManager()->RemoveCalibration(gCalibration, d->GetName());
 
                 // import new calibration
-                nAdded += TCMySQLManager::GetManager()->ImportCalibrations(c, gCalibration, data);
+                nAdded += TCMySQLManager::GetManager()->ImportCalibrations(c, gCalibration, d->GetName());
             }
             
             // check return value
             if (nAdded)
                 mvprintw(12, 2, "Imported %d calibrations of '%s' from '%s' and added them to '%s'", 
-                         nAdded, TCConfig::kCalibTypeNames[gCalibrationType], filename, gCalibration);
+                         nAdded, gCalibrationType->GetTitle(), filename, gCalibration);
             else
                 mvprintw(12, 2, "No calibration was imported from '%s'!", filename);
         }
@@ -1596,7 +1643,7 @@ void RunEditor()
                                  "Go back" };
     
     // show menu
-    Int_t choice = ShowMenu(mTitle, mMsg, mN, mEntries, 0);
+    Int_t choice = ShowMenu(mTitle, mMsg, mN, (Char_t**)mEntries, 0);
 
     // decide what do to
     switch (choice)
@@ -1635,7 +1682,7 @@ void CalibEditor()
                                  "Go back" };
     
     // show menu
-    Int_t choice = ShowMenu(mTitle, mMsg, mN, mEntries, 0);
+    Int_t choice = ShowMenu(mTitle, mMsg, mN, (Char_t**)mEntries, 0);
 
     // decide what do to
     switch (choice)
@@ -1664,7 +1711,7 @@ void Administration()
                                  "Go back" };
     
     // show menu
-    Int_t choice = ShowMenu(mTitle, mMsg, mN, mEntries, 0);
+    Int_t choice = ShowMenu(mTitle, mMsg, mN, (Char_t**)mEntries, 0);
 
     // decide what do to
     switch (choice)
@@ -1735,7 +1782,7 @@ void MainMenu()
                                  "Exit" };
     
     // show menu
-    Int_t choice = ShowMenu(mTitle, mMsg, mN, mEntries, 0);
+    Int_t choice = ShowMenu(mTitle, mMsg, mN, (Char_t**)mEntries, 0);
 
     // decide what do to
     switch (choice)

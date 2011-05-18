@@ -110,7 +110,7 @@ class TCCalibration : public TObject
 {
 
 private:
-    CalibData_t fData;                  // calibration data type
+    Char_t fData[256];                  // calibration data type
     Char_t fCalibration[256];           // name
     Char_t fDescription[256];           // description
     Int_t fFirstRun;                    // first run
@@ -122,7 +122,7 @@ private:
 public:
     TCCalibration() : TObject() 
     {
-        fData = kCALIB_EMPTY;
+        fData[0] = '\0';
         fCalibration[0] = '\0';
         fDescription[0] = '\0';
         fFirstRun = 0;
@@ -133,7 +133,7 @@ public:
     }
     virtual ~TCCalibration() { if (fPar) delete [] fPar; }
 
-    void SetCalibData(CalibData_t data)  { fData = data; }
+    void SetCalibData(const Char_t* data)  { strcpy(fData, data); }
     void SetCalibration(const Char_t* calib) { strcpy(fCalibration, calib); }
     void SetDescription(const Char_t* desc) { strcpy(fDescription, desc); }
     void SetFirstRun(Int_t run) { fFirstRun = run; }
@@ -147,7 +147,7 @@ public:
         for (Int_t i = 0; i < fNpar; i++) fPar[i] = par[i];
     }
 
-    const CalibData_t GetCalibData() const { return fData; }
+    const Char_t* GetCalibData() const { return fData; }
     const Char_t* GetCalibration() const { return fCalibration; }
     const Char_t* GetDescription() const { return fDescription; }
     Int_t GetFirstRun() const { return fFirstRun; }
@@ -159,7 +159,7 @@ public:
     void Print()
     {
         printf("CaLib Calibration Information\n");
-        printf("Calibration data : %s\n", TCConfig::kCalibDataNames[(Int_t)fData]);
+        printf("Calibration data : %s\n", fData);
         printf("Calibration      : %s\n", fCalibration);
         printf("Description      : %s\n", fDescription);
         printf("First run        : %d\n", fFirstRun);

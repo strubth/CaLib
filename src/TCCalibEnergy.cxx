@@ -19,7 +19,7 @@ ClassImp(TCCalibEnergy)
 
 
 //______________________________________________________________________________
-TCCalibEnergy::TCCalibEnergy(const Char_t* name, const Char_t* title, CalibData_t data,
+TCCalibEnergy::TCCalibEnergy(const Char_t* name, const Char_t* title, const Char_t* data,
                              Int_t nElem)
     : TCCalib(name, title, data, nElem)
 {

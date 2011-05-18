@@ -86,7 +86,7 @@ void TAPSTime()
     
     // general configuration
     Bool_t watch = kTRUE;
-    CalibData_t data = kCALIB_TAPS_T0;
+    const Char_t* data = "Data.TAPS.T0";
     const Char_t* hName = "CaLib_TAPS_Time_Neut";
     Double_t yMin = -50;
     Double_t yMax = 50;

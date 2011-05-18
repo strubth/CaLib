@@ -83,8 +83,8 @@ void TCCalib::Start(const Char_t* calibration, Int_t nSet, Int_t* set)
     Info("Start", "Module description: %s", GetTitle());
     for (Int_t i = 0; i < fNset; i++)
     {
-        Int_t first_run = TCMySQLManager::GetManager()->GetFirstRunOfSet(fData, fCalibration.Data(), fSet[i]);
-        Int_t last_run = TCMySQLManager::GetManager()->GetLastRunOfSet(fData, fCalibration.Data(), fSet[i]);
+        Int_t first_run = TCMySQLManager::GetManager()->GetFirstRunOfSet(fData.Data(), fCalibration.Data(), fSet[i]);
+        Int_t last_run = TCMySQLManager::GetManager()->GetLastRunOfSet(fData.Data(), fCalibration.Data(), fSet[i]);
         Info("Start", "Calibrating set %d (Run %d to %d)", fSet[i], first_run, last_run);
     }
 
@@ -277,7 +277,7 @@ void TCCalib::Write()
     
     // write values to database
     for (Int_t i = 0; i < fNset; i++)
-        TCMySQLManager::GetManager()->WriteParameters(fData, fCalibration.Data(), fSet[i], fNewVal, fNelem);
+        TCMySQLManager::GetManager()->WriteParameters(fData.Data(), fCalibration.Data(), fSet[i], fNewVal, fNelem);
         
     // save overview picture
     SaveCanvas(fCanvasResult, "Overview");

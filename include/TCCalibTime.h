@@ -38,7 +38,7 @@ private:
 
 public:
     TCCalibTime() : TCCalib(), fTimeGain(0), fMean(0), fLine(0) { }
-    TCCalibTime(const Char_t* name, const Char_t* title, CalibData_t data,
+    TCCalibTime(const Char_t* name, const Char_t* title, const Char_t* data,
                 Int_t nElem);
     virtual ~TCCalibTime();
 
@@ -52,7 +52,7 @@ class TCCalibTaggerTime : public TCCalibTime
 public:
     TCCalibTaggerTime() 
         : TCCalibTime("Tagger.Time", "Tagger time calibration",
-                     kCALIB_TAGG_T0,
+                     "Data.Tagger.T0",
                      TCReadConfig::GetReader()->GetConfigInt("Tagger.Elements")) { }
     virtual ~TCCalibTaggerTime() { }
     
@@ -66,7 +66,7 @@ class TCCalibCBTime : public TCCalibTime
 public:
     TCCalibCBTime() 
         : TCCalibTime("CB.Time", "CB time calibration",
-                     kCALIB_CB_T0,
+                     "Data.CB.T0",
                      TCConfig::kMaxCB) { }
     virtual ~TCCalibCBTime() { }
     
@@ -80,7 +80,7 @@ class TCCalibCBRiseTime : public TCCalibTime
 public:
     TCCalibCBRiseTime() 
         : TCCalibTime("CB.RiseTime", "CB rise time calibration",
-                     kCALIB_CB_WALK0,
+                     "Data.CB.Walk.Par0",
                      TCConfig::kMaxCB) { }
     virtual ~TCCalibCBRiseTime() { }
     
@@ -94,7 +94,7 @@ class TCCalibTAPSTime : public TCCalibTime
 public:
     TCCalibTAPSTime() 
         : TCCalibTime("TAPS.Time", "TAPS time calibration",
-                     kCALIB_TAPS_T0,
+                     "Data.TAPS.T0",
                      TCReadConfig::GetReader()->GetConfigInt("TAPS.Elements")) { }
     virtual ~TCCalibTAPSTime() { }
     
@@ -108,7 +108,7 @@ class TCCalibPIDTime : public TCCalibTime
 public:
     TCCalibPIDTime() 
         : TCCalibTime("PID.Time", "PID time calibration",
-                     kCALIB_PID_T0,
+                     "Data.PID.T0",
                      TCConfig::kMaxPID) { }
     virtual ~TCCalibPIDTime() { }
     
@@ -122,7 +122,7 @@ class TCCalibVetoTime : public TCCalibTime
 public:
     TCCalibVetoTime() 
         : TCCalibTime("Veto.Time", "Veto time calibration",
-                     kCALIB_VETO_T0,
+                     "Data.Veto.T0",
                      TCReadConfig::GetReader()->GetConfigInt("Veto.Elements")) { }
     virtual ~TCCalibVetoTime() { }
     

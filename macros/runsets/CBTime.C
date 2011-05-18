@@ -84,7 +84,7 @@ void CBTime()
     
     // general configuration
     Bool_t watch = kFALSE;
-    CalibData_t data = kCALIB_CB_T0;
+    const Char_t* data = "Data.CB.T0";
     const Char_t* hName = "CaLib_CB_Time_Neut";
     Double_t yMin = -20;
     Double_t yMax = 20;

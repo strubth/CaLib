@@ -19,7 +19,7 @@ ClassImp(TCCalibTime)
 
 
 //______________________________________________________________________________
-TCCalibTime::TCCalibTime(const Char_t* name, const Char_t* title, CalibData_t data,
+TCCalibTime::TCCalibTime(const Char_t* name, const Char_t* title, const Char_t* data,
                          Int_t nElem)
     : TCCalib(name, title, data, nElem)
 {
@@ -69,12 +69,12 @@ void TCCalibTime::Init()
     if (this->InheritsFrom("TCCalibTAPSTime"))
     {
         // get individual time gain for TAPS TDCs (only from first set)
-        TCMySQLManager::GetManager()->ReadParameters(kCALIB_TAPS_T1, fCalibration.Data(), fSet[0], fTimeGain, fNelem);
+        TCMySQLManager::GetManager()->ReadParameters("Data.TAPS.T1", fCalibration.Data(), fSet[0], fTimeGain, fNelem);
     }
     else if (this->InheritsFrom("TCCalibVetoTime"))
     {
         // get individual time gain for Veto TDCs (only from first set)
-        TCMySQLManager::GetManager()->ReadParameters(kCALIB_VETO_T1, fCalibration.Data(), fSet[0], fTimeGain, fNelem);
+        TCMySQLManager::GetManager()->ReadParameters("Data.Veto.T1", fCalibration.Data(), fSet[0], fTimeGain, fNelem);
     }
     else
     {

@@ -20,7 +20,7 @@ ClassImp(TCCalibTargetPosition)
 
 //______________________________________________________________________________
 TCCalibTargetPosition::TCCalibTargetPosition()
-    : TCCalib("Target.Position", "Target position calibration", kCALIB_CB_E1,
+    : TCCalib("Target.Position", "Target position calibration", "Data.CB.E1",
               TCReadConfig::GetReader()->GetConfigInt("Target.Position.Bins"))
 {
     // Empty constructor.

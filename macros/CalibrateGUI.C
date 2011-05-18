@@ -363,10 +363,10 @@ void ButtonWindow::ReadRunsets(Int_t i)
 
     // get the calibration data of the module
     TCCalib* c = (TCCalib*) gCaLibModules->At(i);
-    CalibData_t data = c->GetCalibData();
+    TString data = c->GetCalibData();
     
     // get the number of runsets
-    Int_t nsets = TCMySQLManager::GetManager()->GetNsets(data, calibration->GetString().Data());
+    Int_t nsets = TCMySQLManager::GetManager()->GetNsets(data.Data(), calibration->GetString().Data());
     
     // fill the runsets into the list
     fLB_RunSet->RemoveAll();
@@ -374,9 +374,9 @@ void ButtonWindow::ReadRunsets(Int_t i)
     {
         // get the first and last runs
         Char_t ctime[256];    
-        Int_t first_run = TCMySQLManager::GetManager()->GetFirstRunOfSet(data, calibration->GetString().Data(), i);
-        Int_t last_run = TCMySQLManager::GetManager()->GetLastRunOfSet(data, calibration->GetString().Data(), i);
-        TCMySQLManager::GetManager()->GetChangeTimeOfSet(data, calibration->GetString().Data(), i, ctime);
+        Int_t first_run = TCMySQLManager::GetManager()->GetFirstRunOfSet(data.Data(), calibration->GetString().Data(), i);
+        Int_t last_run = TCMySQLManager::GetManager()->GetLastRunOfSet(data.Data(), calibration->GetString().Data(), i);
+        TCMySQLManager::GetManager()->GetChangeTimeOfSet(data.Data(), calibration->GetString().Data(), i, ctime);
         ctime[strlen(ctime)-3] = '\0';
 
         // add list entry

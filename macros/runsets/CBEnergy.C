@@ -106,7 +106,7 @@ void CBEnergy()
     
     // general configuration
     Bool_t watch = kTRUE;
-    CalibData_t data = kCALIB_CB_E1;
+    const Char_t* data = "Data.CB.E1";
     const Char_t* hName = "CaLib_CB_IM_Neut";
     Double_t yMin = 110;
     Double_t yMax = 160;

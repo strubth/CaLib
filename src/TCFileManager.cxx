@@ -19,7 +19,7 @@ ClassImp(TCFileManager)
 
 
 //______________________________________________________________________________
-TCFileManager::TCFileManager(CalibData_t data, const Char_t* calibration, 
+TCFileManager::TCFileManager(const Char_t* data, const Char_t* calibration, 
                              Int_t nSet, Int_t* set, const Char_t* filePat)
 {
     // Constructor using the calibration data 'data', the calibration identifier
@@ -81,7 +81,7 @@ void TCFileManager::BuildFileList()
     {
         // get the list of runs for this set
         Int_t nRun;
-        Int_t* runs = TCMySQLManager::GetManager()->GetRunsOfSet(fCalibData, fCalibration.Data(), fSet[i], &nRun);
+        Int_t* runs = TCMySQLManager::GetManager()->GetRunsOfSet(fCalibData.Data(), fCalibration.Data(), fSet[i], &nRun);
 
         // user information
         Info("BuildFileList", "Adding runs of set %d", fSet[i]);

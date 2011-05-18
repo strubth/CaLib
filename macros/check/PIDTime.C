@@ -63,7 +63,7 @@ void PIDTime()
     gSystem->Load("libCaLib.so");
     
     // general configuration
-    CalibData_t data = kCALIB_PID_T0;
+    const Char_t* data = "Data.PID.T0";
     const Char_t* hName = "CaLib_PID_Time";
 
     // configuration (December 2007)

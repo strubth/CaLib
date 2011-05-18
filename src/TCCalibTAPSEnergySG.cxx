@@ -20,7 +20,7 @@ ClassImp(TCCalibTAPSEnergySG)
 
 //______________________________________________________________________________
 TCCalibTAPSEnergySG::TCCalibTAPSEnergySG()
-    : TCCalib("TAPS.Energy.SG", "TAPS SG energy calibration", kCALIB_TAPS_SG_E1,
+    : TCCalib("TAPS.Energy.SG", "TAPS SG energy calibration", "Data.TAPS.SG.E1",
               TCReadConfig::GetReader()->GetConfigInt("TAPS.Elements"))
 {
     // Empty constructor.
@@ -96,8 +96,8 @@ void TCCalibTAPSEnergySG::Init()
     else fHistoName = *TCReadConfig::GetReader()->GetConfig("TAPS.Energy.SG.Histo.Fit.Name");
     
     // read old parameters (only from first set)
-    TCMySQLManager::GetManager()->ReadParameters(kCALIB_TAPS_SG_E0, fCalibration.Data(), fSet[0], fPedOld, fNelem);
-    TCMySQLManager::GetManager()->ReadParameters(kCALIB_TAPS_SG_E1, fCalibration.Data(), fSet[0], fGainOld, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters("Data.TAPS.SG.E0", fCalibration.Data(), fSet[0], fPedOld, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters("Data.TAPS.SG.E1", fCalibration.Data(), fSet[0], fGainOld, fNelem);
     
     // copy old parameters to new ones
     for (Int_t i = 0; i < fNelem; i++)
@@ -403,8 +403,8 @@ void TCCalibTAPSEnergySG::Write()
     // write values to database
     for (Int_t i = 0; i < fNset; i++)
     {
-        TCMySQLManager::GetManager()->WriteParameters(kCALIB_TAPS_SG_E0, fCalibration.Data(), fSet[i], fPedNew, fNelem);
-        TCMySQLManager::GetManager()->WriteParameters(kCALIB_TAPS_SG_E1, fCalibration.Data(), fSet[i], fGainNew, fNelem);
+        TCMySQLManager::GetManager()->WriteParameters("Data.TAPS.SG.E0", fCalibration.Data(), fSet[i], fPedNew, fNelem);
+        TCMySQLManager::GetManager()->WriteParameters("Data.TAPS.SG.E1", fCalibration.Data(), fSet[i], fGainNew, fNelem);
     }
    
     // save overview canvas

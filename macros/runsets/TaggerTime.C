@@ -165,7 +165,7 @@ void TaggerTime()
     
     // general configuration
     Bool_t watch = kFALSE;
-    CalibData_t data = kCALIB_TAGG_T0;
+    const Char_t* data = "Data.Tagger.T0";
 
     // configuration (December 2007)
     const Char_t calibration[] = "LD2_Dec_07";

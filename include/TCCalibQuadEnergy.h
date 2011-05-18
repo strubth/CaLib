@@ -60,7 +60,7 @@ public:
                           fPi0Pos(0), fEtaPos(0), fPi0MeanE(0), fEtaMeanE(0),
                           fLinePi0(0), fLineEta(0), fLineMeanEPi0(0), fLineMeanEEta(0),
                           fPi0PosHisto(0), fEtaPosHisto(0) { }
-    TCCalibQuadEnergy(const Char_t* name, const Char_t* title, CalibData_t data,
+    TCCalibQuadEnergy(const Char_t* name, const Char_t* title, const Char_t* data,
                       Int_t nElem);
     virtual ~TCCalibQuadEnergy();
     
@@ -77,7 +77,7 @@ class TCCalibCBQuadEnergy : public TCCalibQuadEnergy
 public:
     TCCalibCBQuadEnergy()
         : TCCalibQuadEnergy("CB.QuadEnergy", "CB quadratic energy correction", 
-                            kCALIB_CB_EQUAD0, 
+                            "Data.CB.Energy.Quad.Par0", 
                             TCConfig::kMaxCB) { }
     virtual ~TCCalibCBQuadEnergy() { }
 
@@ -91,7 +91,7 @@ class TCCalibTAPSQuadEnergy : public TCCalibQuadEnergy
 public:
     TCCalibTAPSQuadEnergy()
         : TCCalibQuadEnergy("TAPS.QuadEnergy", "TAPS quadratic energy correction", 
-                            kCALIB_TAPS_EQUAD0, 
+                            "Data.TAPS.Energy.Quad.Par0", 
                             TCReadConfig::GetReader()->GetConfigInt("TAPS.Elements")) { }
     virtual ~TCCalibTAPSQuadEnergy() { }
 

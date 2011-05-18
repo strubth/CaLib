@@ -25,13 +25,9 @@
 #pragma link C++ nestedtypedef;
 
 // enums
-#pragma link C++ enum ECalibData;
-#pragma link C++ enum ECalibType;
 #pragma link C++ enum ECalibDetector;
 
 // typedefs
-#pragma link C++ typedef CalibData_t;
-#pragma link C++ typedef CalibType_t;
 #pragma link C++ typedef CalibDetector_t;
 
 // common classes
@@ -51,6 +47,8 @@
 #pragma link C++ class TCContainer+;
 #pragma link C++ class TCRun+;
 #pragma link C++ class TCCalibration+;
+#pragma link C++ class TCCalibData+;
+#pragma link C++ class TCCalibType+;
 #pragma link C++ class TCCalib+;
 #pragma link C++ class TCCalibPed+;
 #pragma link C++ class TCCalibLED+;

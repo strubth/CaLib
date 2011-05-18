@@ -63,7 +63,7 @@ void CBRiseTime()
     gSystem->Load("libCaLib.so");
     
     // general configuration
-    CalibData_t data = kCALIB_CB_T0;
+    const Char_t* data = "Data.CB.T0";
     const Char_t* hName = "CaLib_CB_RiseTime";
 
     // configuration (December 2007)

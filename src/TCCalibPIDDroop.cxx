@@ -20,7 +20,7 @@ ClassImp(TCCalibPIDDroop)
 
 //______________________________________________________________________________
 TCCalibPIDDroop::TCCalibPIDDroop()
-    : TCCalib("PID.Droop", "PID droop correction", kCALIB_PID_E0, TCConfig::kMaxPID)
+    : TCCalib("PID.Droop", "PID droop correction", "Data.PID.E0", TCConfig::kMaxPID)
 {
     // Empty constructor.
 

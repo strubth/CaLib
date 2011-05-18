@@ -63,7 +63,7 @@ void TaggerTime()
     gSystem->Load("libCaLib.so");
     
     // general configuration
-    CalibData_t data = kCALIB_TAGG_T0;
+    const Char_t* data = "Data.Tagger.T0";
     const Char_t* hName = "CaLib_Tagger_Time_Pi0";
 
     // configuration (December 2007)

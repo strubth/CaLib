@@ -21,7 +21,7 @@ void WriteParASCII()
     
     // configuration
     const Char_t inputFile[] = "gain.dat";
-    CalibData_t data = kCALIB_TAPS_SG_E1;
+    const Char_t data[] = "Data.TAPS.SG.E1";
     const Char_t calibration[] = "LD2_Dec_07";
     Int_t set = 0;
 

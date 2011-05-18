@@ -89,7 +89,7 @@ void PIDEnergy()
     
     // general configuration
     Bool_t watch = kTRUE;
-    CalibData_t data = kCALIB_PID_E1;
+    const Char_t* data = "Data.PID.E1";
     const Char_t* hName = "CaLib_PID_dE_E_013";
     Double_t yMin = 0;
     Double_t yMax = 2000;

@@ -19,7 +19,7 @@ ClassImp(TCCalibQuadEnergy)
 
 
 //______________________________________________________________________________
-TCCalibQuadEnergy::TCCalibQuadEnergy(const Char_t* name, const Char_t* title, CalibData_t data,
+TCCalibQuadEnergy::TCCalibQuadEnergy(const Char_t* name, const Char_t* title, const Char_t* data,
                                      Int_t nElem)
     : TCCalib(name, title, data, nElem)
 {
@@ -132,13 +132,13 @@ void TCCalibQuadEnergy::Init()
     // read old parameters (only from first set)
     if (this->InheritsFrom("TCCalibCBQuadEnergy"))
     {
-        TCMySQLManager::GetManager()->ReadParameters(kCALIB_CB_EQUAD0, fCalibration.Data(), fSet[0], fPar0, fNelem);
-        TCMySQLManager::GetManager()->ReadParameters(kCALIB_CB_EQUAD1, fCalibration.Data(), fSet[0], fPar1, fNelem);
+        TCMySQLManager::GetManager()->ReadParameters("Data.CB.Energy.Quad.Par0", fCalibration.Data(), fSet[0], fPar0, fNelem);
+        TCMySQLManager::GetManager()->ReadParameters("Data.CB.Energy.Quad.Par1", fCalibration.Data(), fSet[0], fPar1, fNelem);
     }
     else if (this->InheritsFrom("TCCalibTAPSQuadEnergy"))
     {
-        TCMySQLManager::GetManager()->ReadParameters(kCALIB_TAPS_EQUAD0, fCalibration.Data(), fSet[0], fPar0, fNelem);
-        TCMySQLManager::GetManager()->ReadParameters(kCALIB_TAPS_EQUAD1, fCalibration.Data(), fSet[0], fPar1, fNelem);
+        TCMySQLManager::GetManager()->ReadParameters("Data.TAPS.Energy.Quad.Par0", fCalibration.Data(), fSet[0], fPar0, fNelem);
+        TCMySQLManager::GetManager()->ReadParameters("Data.TAPS.Energy.Quad.Par1", fCalibration.Data(), fSet[0], fPar1, fNelem);
     }
 
     // sum up all files contained in this runset
@@ -444,13 +444,13 @@ void TCCalibQuadEnergy::Write()
     {
         if (this->InheritsFrom("TCCalibCBQuadEnergy"))
         {
-            TCMySQLManager::GetManager()->WriteParameters(kCALIB_CB_EQUAD0, fCalibration.Data(), fSet[i], fPar0, fNelem);
-            TCMySQLManager::GetManager()->WriteParameters(kCALIB_CB_EQUAD1, fCalibration.Data(), fSet[i], fPar1, fNelem);
+            TCMySQLManager::GetManager()->WriteParameters("Data.CB.Energy.Quad.Par0", fCalibration.Data(), fSet[i], fPar0, fNelem);
+            TCMySQLManager::GetManager()->WriteParameters("Data.CB.Energy.Quad.Par1", fCalibration.Data(), fSet[i], fPar1, fNelem);
         }
         else if (this->InheritsFrom("TCCalibTAPSQuadEnergy"))
         {
-            TCMySQLManager::GetManager()->WriteParameters(kCALIB_TAPS_EQUAD0, fCalibration.Data(), fSet[i], fPar0, fNelem);
-            TCMySQLManager::GetManager()->WriteParameters(kCALIB_TAPS_EQUAD1, fCalibration.Data(), fSet[i], fPar1, fNelem);
+            TCMySQLManager::GetManager()->WriteParameters("Data.TAPS.Energy.Quad.Par0", fCalibration.Data(), fSet[i], fPar0, fNelem);
+            TCMySQLManager::GetManager()->WriteParameters("Data.TAPS.Energy.Quad.Par1", fCalibration.Data(), fSet[i], fPar1, fNelem);
         }
     }
 

@@ -20,7 +20,7 @@ ClassImp(TCCalibPIDEnergyTrad)
 
 //______________________________________________________________________________
 TCCalibPIDEnergyTrad::TCCalibPIDEnergyTrad()
-    : TCCalib("PID.Energy.Trad", "PID energy calibration (traditional)", kCALIB_PID_E1, TCConfig::kMaxPID)
+    : TCCalib("PID.Energy.Trad", "PID energy calibration (traditional)", "Data.PID.E1", TCConfig::kMaxPID)
 {
     // Empty constructor.
 
@@ -112,8 +112,8 @@ void TCCalibPIDEnergyTrad::Init()
     fDelay = TCReadConfig::GetReader()->GetConfigInt("PID.Energy.Trad.Fit.Delay");
 
     // read old parameters (only from first set)
-    TCMySQLManager::GetManager()->ReadParameters(kCALIB_PID_E0, fCalibration.Data(), fSet[0], fPed, fNelem);
-    TCMySQLManager::GetManager()->ReadParameters(kCALIB_PID_E1, fCalibration.Data(), fSet[0], fGain, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters("Data.PID.E0", fCalibration.Data(), fSet[0], fPed, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters("Data.PID.E1", fCalibration.Data(), fSet[0], fGain, fNelem);
 
     // draw main histogram
     fCanvasFit->Divide(1, 2, 0.001, 0.001);
@@ -374,8 +374,8 @@ void TCCalibPIDEnergyTrad::Write()
     // write values to database
     for (Int_t i = 0; i < fNset; i++)
     {
-        TCMySQLManager::GetManager()->WriteParameters(kCALIB_PID_E0, fCalibration.Data(), fSet[i], fPed, fNelem);
-        TCMySQLManager::GetManager()->WriteParameters(kCALIB_PID_E1, fCalibration.Data(), fSet[i], fGain, fNelem);
+        TCMySQLManager::GetManager()->WriteParameters("Data.PID.E0", fCalibration.Data(), fSet[i], fPed, fNelem);
+        TCMySQLManager::GetManager()->WriteParameters("Data.PID.E1", fCalibration.Data(), fSet[i], fGain, fNelem);
     }
     
     // save overview canvas

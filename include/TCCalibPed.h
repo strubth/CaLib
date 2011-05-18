@@ -44,7 +44,7 @@ private:
 
 public:
     TCCalibPed() : TCCalib(), fADC(0), fFileManager(0), fMean(0), fLine(0) { }
-    TCCalibPed(const Char_t* name, const Char_t* title, CalibData_t data,
+    TCCalibPed(const Char_t* name, const Char_t* title, const Char_t* data,
                Int_t nElem);
     virtual ~TCCalibPed();
 
@@ -58,7 +58,7 @@ class TCCalibTAPSPedLG : public TCCalibPed
 public:
     TCCalibTAPSPedLG() 
         : TCCalibPed("TAPS.Ped.LG", "TAPS LG pedestal calibration",
-                     kCALIB_TAPS_LG_E0,
+                     "Data.TAPS.LG.E0",
                      TCReadConfig::GetReader()->GetConfigInt("TAPS.Elements")) { }
     virtual ~TCCalibTAPSPedLG() { }
     
@@ -72,7 +72,7 @@ class TCCalibTAPSPedSG : public TCCalibPed
 public:
     TCCalibTAPSPedSG() 
         : TCCalibPed("TAPS.Ped.SG", "TAPS SG pedestal calibration",
-                     kCALIB_TAPS_SG_E0,
+                     "Data.TAPS.SG.E0",
                      TCReadConfig::GetReader()->GetConfigInt("TAPS.Elements")) { }
     virtual ~TCCalibTAPSPedSG() { }
     
@@ -86,7 +86,7 @@ class TCCalibTAPSPedVeto : public TCCalibPed
 public:
     TCCalibTAPSPedVeto() 
         : TCCalibPed("TAPS.Ped.Veto", "Veto pedestal calibration",
-                     kCALIB_VETO_E0,
+                     "Data.Veto.E0",
                      TCReadConfig::GetReader()->GetConfigInt("Veto.Elements")) { }
     virtual ~TCCalibTAPSPedVeto() { }
     

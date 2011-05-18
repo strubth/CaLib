@@ -20,7 +20,7 @@ ClassImp(TCCalibPIDPhi)
 
 //______________________________________________________________________________
 TCCalibPIDPhi::TCCalibPIDPhi()
-    : TCCalib("PID.Phi", "PID phi angle calibration", kCALIB_PID_PHI, TCConfig::kMaxPID)
+    : TCCalib("PID.Phi", "PID phi angle calibration", "Data.PID.Phi", TCConfig::kMaxPID)
 {
     // Empty constructor.
 

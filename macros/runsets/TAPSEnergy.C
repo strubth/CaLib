@@ -87,7 +87,7 @@ void TAPSEnergy()
     
     // general configuration
     Bool_t watch = kFALSE;
-    CalibData_t data = kCALIB_TAPS_LG_E1;
+    const Char_t* data = "Data.TAPS.LG.E1";
     const Char_t* hName = "CaLib_TAPS_IM_Neut_1CB_1TAPS";
     //const Char_t* hName = "CaLib_TAPS_IM_Neut_2TAPS";
     Double_t yMin = 110;

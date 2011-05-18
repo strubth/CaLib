@@ -19,7 +19,7 @@ ClassImp(TCCalibLED)
 
 
 //______________________________________________________________________________
-TCCalibLED::TCCalibLED(const Char_t* name, const Char_t* title, CalibData_t data,
+TCCalibLED::TCCalibLED(const Char_t* name, const Char_t* title, const Char_t* data,
                        Int_t nElem)
     : TCCalib(name, title, data, nElem)
 {

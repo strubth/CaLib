@@ -152,7 +152,7 @@ void TAPSPulser()
     
     // general configuration
     Bool_t watch = kFALSE;
-    CalibData_t data = kCALIB_TAPS_T0;
+    const Char_t* data = "Data.TAPS.T0";
     const Char_t* elemDesc = "Element:";
     //const Char_t* elemDesc = "TAPSSG:";
 

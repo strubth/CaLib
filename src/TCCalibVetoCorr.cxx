@@ -20,7 +20,7 @@ ClassImp(TCCalibVetoCorr)
 
 //______________________________________________________________________________
 TCCalibVetoCorr::TCCalibVetoCorr()
-    : TCCalib("Veto.Correlation", "Veto correlation", kCALIB_TAPS_T0, 
+    : TCCalib("Veto.Correlation", "Veto correlation", "Data.Veto.E0", 
               TCReadConfig::GetReader()->GetConfigInt("TAPS.Elements"))
 {
     // Empty constructor.

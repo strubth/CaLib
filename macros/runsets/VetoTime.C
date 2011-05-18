@@ -84,7 +84,7 @@ void VetoTime()
     
     // general configuration
     Bool_t watch = kFALSE;
-    CalibData_t data = kCALIB_VETO_T0;
+    const Char_t* data = "Data.Veto.T0";
     const Char_t* hName = "CaLib_Veto_Time";
     Double_t yMin = -20;
     Double_t yMax = 20;
