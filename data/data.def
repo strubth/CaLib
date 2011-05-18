@@ -1,0 +1,36 @@
+# SVN Info: $Id$
+
+########################################################################
+# CaLib data definition                                                #
+########################################################################
+
+# ID                         description                         table           parameters
+Data.Tagger.T0,              Tagger time offset,                 tagg_t0,        352
+Data.CB.T0,                  CB time offset,                     cb_t0,          720
+Data.CB.Walk.Par0,           CB time walk par0,                  cb_walk0,       720
+Data.CB.Walk.Par1,           CB time walk par1,                  cb_walk1,       720
+Data.CB.Walk.Par2,           CB time walk par2,                  cb_walk2,       720
+Data.CB.Walk.Par3,           CB time walk par3,                  cb_walk3,       720
+Data.CB.E1,                  CB ADC gain,                        cb_e1,          720
+Data.CB.Energy.Quad.Par0,    CB quadratic energy corr. par0,     cb_equad0,      720
+Data.CB.Energy.Quad.Par1,    CB quadratic energy corr. par1,     cb_equad1,      720
+Data.CB.LED,                 CB LED threshold,                   cb_led,         720
+Data.TAPS.T0,                TAPS time offset,                   taps_t0,        510
+Data.TAPS.T1,                TAPS TDC gain,                      taps_t1,        510
+Data.TAPS.LG.E0,             TAPS LG ADC pedestal,               taps_lg_e0,     510
+Data.TAPS.LG.E1,             TAPS LG ADC gain,                   taps_lg_e1,     510
+Data.TAPS.SG.E0,             TAPS SG ADC pedestal,               taps_sg_e0,     510
+Data.TAPS.SG.E1,             TAPS SG ADC gain,                   taps_sg_e1,     510
+Data.TAPS.Energy.Quad.Par0,  TAPS quadratic energy corr. par0,   taps_equad0,    510
+Data.TAPS.Energy.Quad.Par1,  TAPS quadratic energy corr. par1,   taps_equad1,    510
+Data.TAPS.LED1,              TAPS LED1 threshold,                taps_led1,      510
+Data.TAPS.LED2,              TAPS LED2 threshold,                taps_led2,      510
+Data.PID.Phi,                PID azimuthal angle,                pid_phi,        24
+Data.PID.T0,                 PID time offset,                    pid_t0,         24
+Data.PID.E0,                 PID ADC pedestal,                   pid_e0,         24
+Data.PID.E1,                 PID ADC gain,                       pid_e1,         24
+Data.Veto.T0,                Veto time offset,                   veto_t0,        510
+Data.Veto.T1,                Veto TDC gain,                      veto_t1,        510
+Data.Veto.E0,                Veto ADC pedestal,                  veto_e0,        510
+Data.Veto.E1,                Veto ADC gain,                      veto_e1,        510
+

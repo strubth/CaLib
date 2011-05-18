@@ -1,0 +1,27 @@
+# SVN Info: $Id$
+
+########################################################################
+# CaLib types definition                                               #
+########################################################################
+
+# ID                         description                         CaLib data
+Type.Tagger.Time,            Tagger time,                        Data.Tagger.T0
+Type.CB.Time,                CB time,                            Data.CB.T0
+Type.CB.Time.Walk,           CB time walk,                       Data.CB.Walk.Par0,Data.CB.Walk.Par1,Data.CB.Walk.Par2,Data.CB.Walk.Par3
+Type.CB.Energy,              CB energy,                          Data.CB.E1
+Type.CB.Energy.Quad,         CB quadratic energy correction,     Data.CB.Energy.Quad.Par0,Data.CB.Energy.Quad.Par1
+Type.CB.LED,                 CB LED threshold,                   Data.CB.LED
+Type.TAPS.Time,              TAPS time,                          Data.TAPS.T0,Data.TAPS.T1
+Type.TAPS.LG.E0,             TAPS LG ADC pedestal,               Data.TAPS.LG.E0
+Type.TAPS.LG.E1,             TAPS LG ADC gain,                   Data.TAPS.LG.E1
+Type.TAPS.SG.Energy,         TAPS SG energy,                     Data.TAPS.SG.E0,Data.TAPS.SG.E1
+Type.TAPS.Energy.Quad,       TAPS quadratic energy correction,   Data.TAPS.Energy.Quad.Par0,Data.TAPS.Energy.Quad.Par1
+Type.TAPS.LED1,              TAPS LED1 threshold,                Data.TAPS.LED1
+Type.TAPS.LED2,              TAPS LED2 threshold,                Data.TAPS.LED2
+Type.PID.Phi,                PID azimuthal angle,                Data.PID.Phi
+Type.PID.Time,               PID time,                           Data.PID.T0
+Type.PID.Energy,             PID energy,                         Data.PID.E0,Data.PID.E1
+Type.Veto.Time,              Veto time,                          Data.Veto.T0,Data.Veto.T1
+Type.Veto.E0,                Veto ADC pedestal,                  Data.Veto.E0
+Type.Veto.E1,                Veto ADC gain,                      Data.Veto.E1
+
