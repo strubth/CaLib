@@ -100,7 +100,7 @@ TCMySQLManager::TCMySQLManager()
     }
     else
     {
-        if (!fSilence) Info("TCMySQLManager", "Connected to the database '%s' on '%s@%s using CaLib %s'",
+        if (!fSilence) Info("TCMySQLManager", "Connected to the database '%s' on '%s@%s' using CaLib %s",
                             strDBName->Data(), strDBUser->Data(), strDBHost->Data(), TCConfig::kCaLibVersion);
     }
 }
