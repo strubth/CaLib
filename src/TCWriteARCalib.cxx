@@ -35,8 +35,6 @@ void TCWriteARCalib::Write(const Char_t* calibFile,
     // Write the calibration file 'calibFile' for the run 'run' using the
     // calibration 'calibration'.
     
-    Char_t line[256];
-    
     // get MySQL manager
     TCMySQLManager* m = TCMySQLManager::GetManager();
     
@@ -180,12 +178,16 @@ void TCWriteARCalib::Write(const Char_t* calibFile,
     }
     
     // open the template file
-    FILE* ftemp = fopen(fTemplate, "r");
-    if (!ftemp)
-    {   Error("Write", "Could not open template AcquRoot calibration file!");
+    std::ifstream ftemp;
+    ftemp.open(fTemplate);
+        
+    // check if file is open
+    if (!ftemp.is_open())
+    {
+        Error("Write", "Could not open template AcquRoot calibration file!");
         return;
     }
-
+ 
     // open the output file
     FILE* fout = fopen(calibFile, "w");
     if (!fout)
@@ -194,40 +196,42 @@ void TCWriteARCalib::Write(const Char_t* calibFile,
     }
 
     // read template file
-    Char_t desc[256];
+    Char_t out[245];
     Int_t nElem = 0;
     Int_t nElemTW = 0;
     Int_t nElemSG = 0;
-    while (fgets(line, 256, ftemp))
-    {   
-        // read first string
-        sscanf(line, "%s", desc);   
-        
+    
+    // read the file
+    while (ftemp.good())
+    {
+        TString line;
+        line.ReadLine(ftemp, kFALSE);
+            
         // check for element line
-        if(!strcmp(desc, "Element:"))
+        if(line.BeginsWith("Element:"))
         {
-            r->GetElement(nElem++)->Format(line);
-            fprintf(fout, "Element: %s\n", line);
+            r->GetElement(nElem++)->Format(out);
+            fprintf(fout, "Element: %s\n", out);
         }
-        else if(!strcmp(desc, "TimeWalk:"))
+        else if(line.BeginsWith("TimeWalk:"))
         {
-            r->GetTimeWalk(nElemTW++)->Format(line);
-            fprintf(fout, "TimeWalk: %s\n", line);
+            r->GetTimeWalk(nElemTW++)->Format(out);
+            fprintf(fout, "TimeWalk: %s\n", out);
         }
-        else if(!strcmp(desc, "TAPSSG:"))
+        else if(line.BeginsWith("TAPSSG:"))
         {
-            rSG->GetElement(nElemSG++)->Format(line);
-            fprintf(fout, "TAPSSG: %s\n", line);
+            rSG->GetElement(nElemSG++)->Format(out);
+            fprintf(fout, "TAPSSG: %s\n", out);
         }
         else
         {
             // write normal line
-            fprintf(fout, "%s", line);
+            fprintf(fout, "%s\n", line.Data());
         }
     }
 
     // close the files
-    fclose(ftemp);
+    ftemp.close();
     fclose(fout);
 
     // clean-up
