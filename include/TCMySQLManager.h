@@ -47,10 +47,7 @@ private:
     
     Bool_t ReadCaLibData();
     Bool_t ReadCaLibTypes();
-
-    void CreateMainTable();
-    void CreateDataTable(const Char_t* data, Int_t nElem);
-    
+   
     TSQLResult* SendQuery(const Char_t* query);
     
     Bool_t SearchTable(const Char_t* data, Char_t* outTableName);
@@ -85,7 +82,10 @@ public:
     const Char_t* GetDBHost() const { return fDB ? fDB->GetHost() : 0; }
     THashList* GetDataTable() const { return fData; }
     THashList* GetTypeTable() const { return fTypes; }
-
+    
+    void CreateMainTable();
+    void CreateDataTable(const Char_t* data, Int_t nElem);
+ 
     TList* GetAllCalibrations(const Char_t* data = "Data.Tagger.T0");
     TList* GetAllTargets();
     

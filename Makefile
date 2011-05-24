@@ -12,7 +12,7 @@ O             = obj
 L             = lib
 B             = bin
 
-SRC           = $(wildcard $(S)/TC*.cxx) $(S)/Dict.cxx
+SRC           = $(wildcard $(S)/TC*.cxx) $(S)/G__CaLib.cxx
 INCD          = $(wildcard $(I)/TC*.h)
 INC           = $(notdir $(INCD))
 OBJD          = $(patsubst $(S)/%.cxx, $(O)/%.o, $(SRC))
@@ -23,6 +23,8 @@ OSTYPE       := $(subst -,,$(shell uname))
 ROOTGLIBS    := $(shell root-config --libs --glibs) -lEG -lFoam -lSpectrum
 ROOTCFLAGS   := $(shell root-config --cflags)
 ROOTLDFLAGS  := $(shell root-config --ldflags)
+
+DEP_LIB      := libHist.so libGui.so libRMySQL.so
 
 BIN_INSTALL_DIR = $(HOME)/$(B)
 
@@ -52,8 +54,7 @@ LDFLAGS     = -g -O2 $(ROOTLDFLAGS)
 
 # ------------------------------------ targets ------------------------------------
 
-all:	begin $(LIB_CaLib) $(B)/calib_manager \
-	end
+all:	begin $(LIB_CaLib) $(L)/libCaLib.rootmap $(B)/calib_manager end
 
 begin:
 	@echo
@@ -72,24 +73,28 @@ $(B)/calib_manager: $(LIB_CaLib) $(S)/MainCaLibManager.cxx
 
 $(LIB_CaLib): $(OBJ)
 	@echo
-	@echo "Building libCaLib ..."
+	@echo "Building libCaLib"
 	@mkdir -p $(L)
 	@rm -f $(L)/libCaLib.*
-	@$(CCCOMP) $(LDFLAGS) $(ROOTGLIBS) $(SOFLAGS) $(OBJD) -o $(LIB_CaLib)
+	@$(CCCOMP) $(LDFLAGS) $(SOFLAGS) $(OBJD) -o $(LIB_CaLib)
 	@$(POST_LIB_BUILD)
 
-$(S)/Dict.cxx: $(INC) $(I)/LinkDef.h
+$(L)/libCaLib.rootmap: $(LIB_CaLib)
+	@echo "Creating ROOT map"
+	@rlibmap -o $(L)/libCaLib.rootmap -l $(LIB_CaLib) -d $(DEP_LIB) -c $(I)/LinkDef.h
+
+$(S)/G__CaLib.cxx: $(INC) $(I)/LinkDef.h
 	@echo
-	@echo "Creating CaLib dictionary ..."
+	@echo "Creating CaLib dictionary"
 	@rootcint -v -f $@ -c -I./$(I) -p $(INC) $(I)/LinkDef.h
 
 %.o: %.cxx
-	@echo "Compiling $(notdir $<) ..."
+	@echo "Compiling $(notdir $<)"
 	@mkdir -p $(O)
 	@$(CCCOMP) $(CXXFLAGS) -o $(O)/$@ -c $< 
 
 docs:
-	@echo "Creating HTML documentation ..."
+	@echo "Creating HTML documentation"
 	@rm -r -f htmldoc
 	root -b -n -q $(S)/htmldoc.C
 	@echo "Done."
@@ -106,8 +111,8 @@ uninstall:
 	@echo "Done."
 	
 clean:
-	@echo "Cleaning CaLib distribution ..."
-	rm -f $(S)/Dict.*
+	@echo "Cleaning CaLib distribution"
+	rm -f $(S)/G__*
 	rm -r -f $(L)
 	rm -f -r $(O)
 	rm -r -f $(B)

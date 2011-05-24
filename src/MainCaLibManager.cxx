@@ -1831,13 +1831,6 @@ Int_t main(Int_t argc, Char_t* argv[])
  
     // get number of rows and columns
     getmaxyx(stdscr, gNrow, gNcol);
- 
-    // check dimensions
-    if (gNrow < 38 || gNcol < 120)
-    {
-        strcpy(gFinishMessage, "Cannot run in a terminal smaller than 38 rows and 120 columns!");
-        Finish(-1);
-    }
     
     // check connection to database
     if (!TCMySQLManager::GetManager())
@@ -1846,6 +1839,14 @@ Int_t main(Int_t argc, Char_t* argv[])
         Finish(-1);
     }
 
+    // check dimensions
+    Int_t minRows = TCMySQLManager::GetManager()->GetDataTable()->GetSize() + 10;
+    if (gNrow < minRows || gNcol < 120)
+    {
+        sprintf(gFinishMessage, "Cannot run in a terminal smaller than %d rows and 120 columns!", minRows);
+        Finish(-1);
+    }
+    
     // set MySQL manager to silence mode
     //TCMySQLManager::GetManager()->SetSilenceMode(kTRUE);
     
