@@ -45,10 +45,6 @@ void AddCalibMC()
                                              calibName, calibDesc,
                                              dummyRun, dummyRun);
     
-    // init CB time walk calibration
-    TCMySQLManager::GetManager()->AddSet("Type.CB.Time.Walk", calibName, calibDesc,
-                                         dummyRun, dummyRun, 0);
-     
     // init CB quadratic energy correction
     TCMySQLManager::GetManager()->AddSet("Type.CB.Energy.Quad", calibName, calibDesc,
                                          dummyRun, dummyRun, 0);

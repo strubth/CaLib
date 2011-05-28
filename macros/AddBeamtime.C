@@ -41,7 +41,11 @@ void AddBeamtime()
     TCMySQLManager::GetManager()->AddCalibAR(kDETECTOR_TAGG, calibFileTagger,
                                              calibName, calibDesc,
                                              firstRun, lastRun);
-     
+    
+    // init tagging efficiency table
+    TCMySQLManager::GetManager()->AddSet("Type.Tagger.Eff", calibName, calibDesc,
+                                         firstRun, lastRun, 0);
+      
     // read AcquRoot calibration of CB
     TCMySQLManager::GetManager()->AddCalibAR(kDETECTOR_CB, calibFileCB,
                                              calibName, calibDesc,

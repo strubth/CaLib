@@ -6,6 +6,7 @@
 
 # ID                         description                         CaLib data
 Type.Tagger.Time,            Tagger time,                        Data.Tagger.T0
+Type.Tagger.Eff,             Tagging efficiency,                 Data.Tagger.Eff
 Type.CB.Time,                CB time,                            Data.CB.T0
 Type.CB.Time.Walk,           CB time walk,                       Data.CB.Walk.Par0,Data.CB.Walk.Par1,Data.CB.Walk.Par2,Data.CB.Walk.Par3
 Type.CB.Energy,              CB energy,                          Data.CB.E1
