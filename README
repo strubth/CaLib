@@ -26,6 +26,7 @@ Installation
 3. add the CaLib location to the list of libraries in your ~/.rootrc file:
    Unix.*.Root.DynamicPath:    .:$CALIB/lib
 4. add the CaLib bin directory to your $PATH environment variable
+4. add the CaLib lib directory to your $LD_LIBRARY_PATH environment variable
 5. change into the CaLib directory and build CaLib:
    cd $CALIB
    make clean
