@@ -80,6 +80,7 @@
 #pragma link C++ class TCCalibTAPSTime+;
 #pragma link C++ class TCCalibTAPSLED1+;
 #pragma link C++ class TCCalibTAPSLED2+;
+#pragma link C++ class TCCalibTAPSPSA+;
 
 // PID calibration classes
 #pragma link C++ class TCCalibPIDPhi+;

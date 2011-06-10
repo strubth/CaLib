@@ -24,7 +24,7 @@ ROOTGLIBS    := $(shell root-config --libs --glibs) -lEG -lFoam -lSpectrum
 ROOTCFLAGS   := $(shell root-config --cflags)
 ROOTLDFLAGS  := $(shell root-config --ldflags)
 
-DEP_LIB      := libHist.so libGui.so libRMySQL.so
+DEP_LIB      := libHist.so libGui.so libRMySQL.so libSpectrum.so
 
 BIN_INSTALL_DIR = $(HOME)/$(B)
 
