@@ -27,15 +27,17 @@ TCCalibTAPSPSA::TCCalibTAPSPSA()
 
     // init members
     fNpoints = 0;
-    fRadius = 0;
-    fPhotonMean = 0;
-    fPhotonSigma = 0;
-    fLPhotonMean = 0;
-    fLPhotonSigma = 0;
+    fRadiusMean = 0;
+    fRadiusSigma = 0;
+    fMean = 0;
+    fSigma = 0;
+    fLMean = 0;
+    fLSigma = 0;
+    fGMean = 0;
+    fGSigma = 0;
     fFileManager = 0;
     fAngleProj = 0;
     fDelay = 0;
-    
 }
 
 //______________________________________________________________________________
@@ -43,13 +45,24 @@ TCCalibTAPSPSA::~TCCalibTAPSPSA()
 {
     // Destructor. 
     
-    if (fRadius) delete [] fRadius;
-    if (fPhotonMean) delete [] fPhotonMean;
-    if (fPhotonSigma) delete [] fPhotonSigma;
-    if (fLPhotonMean) delete fLPhotonMean;
-    if (fLPhotonSigma) delete fLPhotonSigma;
+    if (fRadiusMean) delete [] fRadiusMean;
+    if (fRadiusSigma) delete [] fRadiusSigma;
+    if (fMean) delete [] fMean;
+    if (fSigma) delete [] fSigma;
+    if (fLMean) delete fLMean;
+    if (fLSigma) delete fLSigma;
     if (fFileManager) delete fFileManager;
     if (fAngleProj) delete fAngleProj;
+    if (fGMean)
+    {
+        for (Int_t i = 0; i < fNelem; i++) delete fGMean[i];
+        delete [] fGMean;
+    }
+    if (fGSigma)
+    {
+        for (Int_t i = 0; i < fNelem; i++) delete fGSigma[i];
+        delete [] fGSigma;
+    }
 }
 
 //______________________________________________________________________________
@@ -59,14 +72,22 @@ void TCCalibTAPSPSA::Init()
     
     // init members
     fNpoints = 0;
-    fRadius = new Double_t[500];
-    fPhotonMean = new Double_t[500];
-    fPhotonSigma = new Double_t[500];
-    fLPhotonMean = 0;
-    fLPhotonSigma = 0;
+    fRadiusMean = new Double_t[100];
+    fRadiusSigma = new Double_t[100];
+    fMean = new Double_t[100];
+    fSigma = new Double_t[100];
+    fLMean = 0;
+    fLSigma = 0;
     fFileManager = new TCFileManager(fData, fCalibration.Data(), fNset, fSet);
     fAngleProj = 0;
     fDelay = 0;
+    fGMean = new TGraph*[fNelem];
+    fGSigma = new TGraph*[fNelem];
+    for (Int_t i = 0; i < fNelem; i++)
+    {
+        fGMean[i] = 0;
+        fGSigma[i] = 0;
+    }
 
     // get histogram name
     if (!TCReadConfig::GetReader()->GetConfig("TAPS.PSA.Histo.Fit.Name"))
@@ -80,8 +101,7 @@ void TCCalibTAPSPSA::Init()
     fDelay = TCReadConfig::GetReader()->GetConfigInt("TAPS.PSA.Fit.Delay");
 
     // draw main histogram
-    fCanvasFit->Divide(1, 2, 0.001, 0.001);
-    fCanvasFit->cd(1)->SetLogz();
+    fCanvasFit->SetLogz();
 }
 
 //______________________________________________________________________________
@@ -111,7 +131,7 @@ void TCCalibTAPSPSA::Fit(Int_t elem)
     }
     
     // draw main histogram
-    fCanvasFit->cd(1);
+    fCanvasFit->cd();
     TCUtils::FormatHistogram(fMainHisto, "TAPS.PSA.Histo.Fit");
     fMainHisto->Draw("colz");
     fCanvasFit->Update();
@@ -157,7 +177,10 @@ void TCCalibTAPSPSA::Fit(Int_t elem)
             }
 
             // check if projection has enough entries
-            if (fAngleProj->GetEntries() < 0.02*h2->GetEntries() && i < endBin)
+            Double_t limit;
+            if (h2->GetYaxis()->GetBinCenter(i) < 100) limit = 0.12*h2->GetEntries();
+            else limit = 0.05*h2->GetEntries();
+            if (fAngleProj->GetEntries() < limit && i < endBin)
             {
                 // start adding mode
                 if (!added)
@@ -188,21 +211,18 @@ void TCCalibTAPSPSA::Fit(Int_t elem)
                 }
                 
                 // skip point in punch-through region
-                if (radius > 210 && radius < 310) continue;
+                if (radius > 140 && radius < 310) continue;
                 
                 // rebin
                 fAngleProj->Rebin(2);
                             
                 // find peaks
-                //TSpectrum s;
-                //s.Search(fAngleProj, 2, "goff nobackground", 0.01);
-                //Double_t peakPhoton = TMath::MaxElement(s.GetNPeaks(), s.GetPositionX());
                 Double_t peakPhoton = 45;
                  
                 // create fitting function
                 if (fFitFunc) delete fFitFunc;
                 sprintf(tmp, "fFunc_%i", elem);
-                fFitFunc = new TF1(tmp, "gaus(0)+pol2(3)", peakPhoton-2, peakPhoton+2);
+                fFitFunc = new TF1(tmp, "gaus(0)+pol1(3)", peakPhoton-2, peakPhoton+2);
                 fFitFunc->SetLineColor(2);
 
                 // prepare fitting function
@@ -216,25 +236,28 @@ void TCCalibTAPSPSA::Fit(Int_t elem)
                     if (!fAngleProj->Fit(fFitFunc, "RB0Q")) break;
 
                 // second iteration
-                fFitFunc->SetRange(fFitFunc->GetParameter(1) - 2.5*fFitFunc->GetParameter(2),
-                                   fFitFunc->GetParameter(1) + 2.5*fFitFunc->GetParameter(2));
+                fFitFunc->SetRange(fFitFunc->GetParameter(1) - 4*fFitFunc->GetParameter(2),
+                                   fFitFunc->GetParameter(1) + 4*fFitFunc->GetParameter(2));
                 
                 // perform fit
                 for (Int_t i = 0; i < 10; i++)
                     if (!fAngleProj->Fit(fFitFunc, "RB0Q")) break;
 
                 // get parameters
-                fRadius[fNpoints] = radius;
-                fPhotonMean[fNpoints] = fFitFunc->GetParameter(1);
-                fPhotonSigma[fNpoints] = fFitFunc->GetParameter(1) - fFitFunc->GetParameter(2);
+                if (fNpoints == 0) radius = 20;
+                fRadiusMean[fNpoints] = radius;
+                fRadiusSigma[fNpoints] = radius;
+                fMean[fNpoints] = fFitFunc->GetParameter(1);
+                fSigma[fNpoints] = fFitFunc->GetParameter(2);
                 fNpoints++;
 
                 // plot projection fit  
                 if (fDelay > 0)
                 {
-                    fCanvasFit->cd(2);
+                    fCanvasResult->cd();
                     fAngleProj->Draw("hist");
                     fFitFunc->Draw("same");
+                    fCanvasResult->Update();
                     fCanvasFit->Update();
                     gSystem->Sleep(fDelay);
                 }
@@ -243,33 +266,48 @@ void TCCalibTAPSPSA::Fit(Int_t elem)
         
         } // for: loop over energy bins
         
+        // add last dummy point
+        fRadiusMean[fNpoints] = 600;
+        fRadiusSigma[fNpoints] = 600;
+        fMean[fNpoints] = fMean[fNpoints-1];
+        fSigma[fNpoints] = fSigma[fNpoints-1];
+        fNpoints++;
+
 
         // 
         // create lines
         //
-        if (fLPhotonMean) delete fLPhotonMean;
-        fLPhotonMean = new TPolyLine(fNpoints, fPhotonMean, fRadius);
-        fLPhotonMean->SetLineWidth(2);
 
-        if (fLPhotonSigma) delete fLPhotonSigma;
-        fLPhotonSigma = new TPolyLine(fNpoints, fPhotonSigma, fRadius);
-        fLPhotonSigma->SetLineWidth(2);
-        fLPhotonSigma->SetLineStyle(2);
+        if (fLMean) delete fLMean;
+        fLMean = new TPolyLine(fNpoints);
+        fLMean->SetLineWidth(2);
+
+        if (fLSigma) delete fLSigma;
+        fLSigma = new TPolyLine(fNpoints);
+        fLSigma->SetLineWidth(2);
+        fLSigma->SetLineStyle(2);
+
+        for (Int_t i = 0; i < fNpoints; i++)
+        {
+            fLMean->SetPoint(i, fMean[i], fRadiusMean[i]);
+            fLSigma->SetPoint(i, fMean[i] - 3*fSigma[i], fRadiusSigma[i]);
+        }
         
         // draw lines
-        fCanvasFit->cd(1);
-        fLPhotonMean->Draw();
-        fLPhotonSigma->Draw();
+        fCanvasFit->cd();
+        fLMean->Draw();
+        fLSigma->Draw();
 
         // set log axis
-        fCanvasFit->cd(1)->SetLogz();
+        fCanvasFit->cd()->SetLogz();
     }
     else
     {
-        fCanvasFit->cd(1)->SetLogz(kFALSE);
+        fCanvasFit->cd()->SetLogz(kFALSE);
     }
 
     // update canvas
+    fMainHisto->GetXaxis()->SetRangeUser(38, 50);
     fCanvasFit->Update();
 }
 
@@ -283,6 +321,23 @@ void TCCalibTAPSPSA::Calculate(Int_t elem)
     // check if fit was performed
     if (fMainHisto->GetEntries())
     {
+        // reset mean and sigma from poly line
+        for (Int_t i = 0; i < fNpoints; i++)
+        {
+            // mean
+            fRadiusMean[i] = fLMean->GetY()[i];
+            fMean[i] = fLMean->GetX()[i];
+
+            // sigma
+            fRadiusSigma[i] = fLSigma->GetY()[i];
+            fSigma[i] = (fMean[i] - fLSigma->GetX()[i]) / 3;
+        }
+        
+        // create graphs
+        if (fGMean[elem]) delete fGMean[elem];
+        fGMean[elem] = new TGraph(fNpoints, fRadiusMean, fMean);
+        if (fGSigma[elem]) delete fGSigma[elem];
+        fGSigma[elem] = new TGraph(fNpoints, fRadiusSigma, fSigma);
     }
     else
     {
@@ -308,5 +363,27 @@ void TCCalibTAPSPSA::Write()
 {
     // Write the obtained calibration values to the database.
     
+    Char_t tmp[256];
+    Int_t nSave = 0;
+
+    // open output file
+    sprintf(tmp, "PSA_%s.root", fCalibration.Data());
+    TFile f(tmp, "recreate");
+    
+    // save graphs
+    f.cd();
+    for (Int_t i = 0; i < fNelem; i++)
+    {
+        if (fGMean[i])
+        {
+            sprintf(tmp, "Mean_%03d", i);
+            fGMean[i]->Write(tmp);
+            sprintf(tmp, "Sigma_%03d", i);
+            fGSigma[i]->Write(tmp);
+            nSave++;
+        }
+    }
+    
+    Info("Write", "%d PSA graphs were written to '%s'", nSave, f.GetName());
 }
 

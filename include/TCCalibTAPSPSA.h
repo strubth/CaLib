@@ -21,7 +21,7 @@
 #include "TLine.h"
 #include "TMath.h"
 #include "TPolyLine.h"
-#include "TSpectrum.h"
+#include "TGraph.h"
 
 #include "TCCalib.h"
 #include "TCFileManager.h"
@@ -32,11 +32,14 @@ class TCCalibTAPSPSA : public TCCalib
 
 private:
     Int_t fNpoints;                     // number of points
-    Double_t* fRadius;                  // energy radius
-    Double_t* fPhotonMean;              // photon means
-    Double_t* fPhotonSigma;             // photon sigmas
-    TPolyLine* fLPhotonMean;            // photon mean line
-    TPolyLine* fLPhotonSigma;           // photon sigma
+    Double_t* fRadiusMean;              // radius
+    Double_t* fRadiusSigma;             // radius
+    Double_t* fMean;                    // means
+    Double_t* fSigma;                   // sigmas
+    TPolyLine* fLMean;                  // mean line
+    TPolyLine* fLSigma;                 // sigma
+    TGraph** fGMean;                    // mean graph
+    TGraph** fGSigma;                   // sigma graph
     TCFileManager* fFileManager;        // file manager
     TH1* fAngleProj;                    // angle projection
     Double_t fDelay;                    // display delay

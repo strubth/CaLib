@@ -34,7 +34,7 @@ namespace TCConfig
                     "run INT NOT NULL,"
                     "path VARCHAR(256),"
                     "filename VARCHAR(256),"
-                    "time DATETIME,"
+                    "time DATETIME DEFAULT '1900-01-01 00:00:00',"
                     "description VARCHAR(256),"
                     "run_note VARCHAR(256),"
                     "size BIGINT DEFAULT 0,"
