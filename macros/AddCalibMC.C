@@ -23,14 +23,14 @@ void AddCalibMC()
     // macro configuration: just change here for your beamtime and leave
     // the other parts of the code unchanged
     const Char_t target[]           = "LD2";
-    const Int_t dummyRun            = 999000;
-    const Char_t calibName[]        = "LD2_MC_Dec_07";
-    const Char_t calibDesc[]        = "MC calibration for December 2007 beamtime";
-    const Char_t calibFileTagger[]  = "/usr/users/werthm/AcquRoot/acqu/acqu/data/MC_Dec_07/LadderMC.dat";
-    const Char_t calibFileCB[]      = "/usr/users/werthm/AcquRoot/acqu/acqu/data/MC_Dec_07/NaI_MC.dat";
-    const Char_t calibFileTAPS[]    = "/usr/users/werthm/AcquRoot/acqu/acqu/data/MC_Dec_07/BaF2_MC_07.dat";
-    const Char_t calibFilePID[]     = "/usr/users/werthm/AcquRoot/acqu/acqu/data/MC_Dec_07/PID2_MC.dat";
-    const Char_t calibFileVeto[]    = "/usr/users/werthm/AcquRoot/acqu/acqu/data/MC_Dec_07/Veto_MC.dat";
+    const Int_t dummyRun            = 999001;
+    const Char_t calibName[]        = "LD2_MC_Feb_09";
+    const Char_t calibDesc[]        = "MC calibration for February 2009 beamtime";
+    const Char_t calibFileTagger[]  = "/usr/users/werthm/AcquRoot/acqu/acqu/data/MC_Feb_09/LadderMC.dat";
+    const Char_t calibFileCB[]      = "/usr/users/werthm/AcquRoot/acqu/acqu/data/MC_Feb_09/NaI_MC.dat";
+    const Char_t calibFileTAPS[]    = "/usr/users/werthm/AcquRoot/acqu/acqu/data/MC_Feb_09/BaF2_MC_09.dat";
+    const Char_t calibFilePID[]     = "/usr/users/werthm/AcquRoot/acqu/acqu/data/MC_Feb_09/PID2_MC.dat";
+    const Char_t calibFileVeto[]    = "/usr/users/werthm/AcquRoot/acqu/acqu/data/MC_Feb_09/Veto_MC.dat";
 
     // add raw files to the database
     TCMySQLManager::GetManager()->AddRun(dummyRun, target, calibDesc);
