@@ -2299,7 +2299,7 @@ Int_t TCMySQLManager::ImportCalibrations(TCContainer* container, const Char_t* n
         TCCalibration* c = container->GetCalibration(i);
         
         // skip unwanted calibration data
-        if (data != 0 && c->GetCalibData() != data) continue;
+        if (data != 0 && strcmp(c->GetCalibData(), data)) continue;
 
         // add the set with new calibration identifer or the same
         const Char_t* calibration;
