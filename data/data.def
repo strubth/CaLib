@@ -24,6 +24,7 @@ Data.TAPS.SG.E0,             TAPS SG ADC pedestal,               taps_sg_e0,    
 Data.TAPS.SG.E1,             TAPS SG ADC gain,                   taps_sg_e1,     510
 Data.TAPS.Energy.Quad.Par0,  TAPS quadratic energy corr. par0,   taps_equad0,    510
 Data.TAPS.Energy.Quad.Par1,  TAPS quadratic energy corr. par1,   taps_equad1,    510
+Data.TAPS.CFD,               TAPS CFD threshold,                 taps_cfd,       510
 Data.TAPS.LED1,              TAPS LED1 threshold,                taps_led1,      510
 Data.TAPS.LED2,              TAPS LED2 threshold,                taps_led2,      510
 Data.PID.Phi,                PID azimuthal angle,                pid_phi,        24
@@ -34,5 +35,6 @@ Data.Veto.T0,                Veto time offset,                   veto_t0,       
 Data.Veto.T1,                Veto TDC gain,                      veto_t1,        510
 Data.Veto.E0,                Veto ADC pedestal,                  veto_e0,        510
 Data.Veto.E1,                Veto ADC gain,                      veto_e1,        510
+Data.Veto.LED,               Veto LED threshold,                 veto_led,       510
 Data.Livetime,               Livetime (Tagger/total),            livetime,       2
 

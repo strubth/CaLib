@@ -51,7 +51,7 @@
 #pragma link C++ class TCCalibType+;
 #pragma link C++ class TCCalib+;
 #pragma link C++ class TCCalibPed+;
-#pragma link C++ class TCCalibLED+;
+#pragma link C++ class TCCalibDiscrThr+;
 #pragma link C++ class TCCalibTime+;
 #pragma link C++ class TCCalibEnergy+;
 #pragma link C++ class TCCalibQuadEnergy+;
@@ -80,6 +80,7 @@
 #pragma link C++ class TCCalibTAPSTime+;
 #pragma link C++ class TCCalibTAPSLED1+;
 #pragma link C++ class TCCalibTAPSLED2+;
+#pragma link C++ class TCCalibTAPSCFD+;
 #pragma link C++ class TCCalibTAPSPSA+;
 
 // PID calibration classes
@@ -93,6 +94,7 @@
 #pragma link C++ class TCCalibVetoCorr+;
 #pragma link C++ class TCCalibVetoEnergy+;
 #pragma link C++ class TCCalibVetoTime+;
+#pragma link C++ class TCCalibVetoLED+;
 
 #endif
 

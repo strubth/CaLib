@@ -448,7 +448,7 @@ void CreateModuleList()
             if (c == "TCCalibTime") continue;
             if (c == "TCCalibEnergy") continue;
             if (c == "TCCalibQuadEnergy") continue;
-            if (c == "TCCalibLED") continue;
+            if (c == "TCCalibDiscrThr") continue;
 
             // add module to list if it is really a module
             TClass tc(c.Data());

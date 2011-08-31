@@ -17,6 +17,7 @@ Type.TAPS.LG.E0,             TAPS LG ADC pedestal,               Data.TAPS.LG.E0
 Type.TAPS.LG.E1,             TAPS LG ADC gain,                   Data.TAPS.LG.E1
 Type.TAPS.SG.Energy,         TAPS SG energy,                     Data.TAPS.SG.E0,Data.TAPS.SG.E1
 Type.TAPS.Energy.Quad,       TAPS quadratic energy correction,   Data.TAPS.Energy.Quad.Par0,Data.TAPS.Energy.Quad.Par1
+Type.TAPS.CFD,               TAPS CFD threshold,                 Data.TAPS.CFD
 Type.TAPS.LED1,              TAPS LED1 threshold,                Data.TAPS.LED1
 Type.TAPS.LED2,              TAPS LED2 threshold,                Data.TAPS.LED2
 Type.PID.Phi,                PID azimuthal angle,                Data.PID.Phi
@@ -25,5 +26,6 @@ Type.PID.Energy,             PID energy,                         Data.PID.E0,Dat
 Type.Veto.Time,              Veto time,                          Data.Veto.T0,Data.Veto.T1
 Type.Veto.E0,                Veto ADC pedestal,                  Data.Veto.E0
 Type.Veto.E1,                Veto ADC gain,                      Data.Veto.E1
+Type.Veto.LED,               Veto LED threshold,                 Data.Veto.LED
 Type.Livetime,               Livetime (Tagger/total),            Data.Livetime
 

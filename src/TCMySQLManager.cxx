@@ -1292,6 +1292,7 @@ void TCMySQLManager::AddCalibAR(CalibDetector_t det, const Char_t* calibFileAR,
     }
 
     // create generic parameter arrays
+    Double_t eL[nDet];
     Double_t e0[nDet];
     Double_t e1[nDet];
     Double_t t0[nDet];
@@ -1300,6 +1301,7 @@ void TCMySQLManager::AddCalibAR(CalibDetector_t det, const Char_t* calibFileAR,
     // read generic parameters
     for (Int_t i = 0; i < nDet; i++)
     {
+        eL[i] = r.GetElement(i)->GetEnergyLow();
         e0[i] = r.GetElement(i)->GetPedestal();
         e1[i] = r.GetElement(i)->GetADCGain();
         t0[i] = r.GetElement(i)->GetOffset();
@@ -1356,6 +1358,7 @@ void TCMySQLManager::AddCalibAR(CalibDetector_t det, const Char_t* calibFileAR,
             }
 
             // write to database
+            AddDataSet("Data.TAPS.CFD", calib, desc, first_run, last_run, eL, nDet);
             AddDataSet("Data.TAPS.LG.E0", calib, desc, first_run, last_run, e0, nDet);
             AddDataSet("Data.TAPS.LG.E1", calib, desc, first_run, last_run, e1, nDet);
             AddDataSet("Data.TAPS.SG.E0", calib, desc, first_run, last_run, e0SG, nDetSG);
@@ -1389,6 +1392,7 @@ void TCMySQLManager::AddCalibAR(CalibDetector_t det, const Char_t* calibFileAR,
         case kDETECTOR_VETO:
         {
             // write to database
+            AddDataSet("Data.Veto.LED", calib, desc, first_run, last_run, eL, nDet);
             AddDataSet("Data.Veto.E0", calib, desc, first_run, last_run, e0, nDet);
             AddDataSet("Data.Veto.E1", calib, desc, first_run, last_run, e1, nDet);
             AddDataSet("Data.Veto.T0", calib, desc, first_run, last_run, t0, nDet);
