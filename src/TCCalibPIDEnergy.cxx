@@ -31,7 +31,9 @@ TCCalibPIDEnergy::TCCalibPIDEnergy()
     fLinPlot = 0;
     fNpeak = 0;
     fPeak = 0;
+    fPeak_Err = 0;
     fPeakMC = 0;
+    fPeakMC_Err = 0;
     fLine = 0;
     fDelay = 0;
     fMCHisto = 0;
@@ -48,7 +50,9 @@ TCCalibPIDEnergy::~TCCalibPIDEnergy()
     if (fGain) delete [] fGain;
     if (fLinPlot) delete fLinPlot;
     if (fPeak) delete [] fPeak;
+    if (fPeak_Err) delete [] fPeak_Err;
     if (fPeakMC) delete [] fPeakMC;
+    if (fPeakMC_Err) delete [] fPeakMC_Err;
     if (fLine) delete fLine;
     if (fMCHisto) delete fMCHisto;
     if (fMCFile) delete fMCFile;
@@ -66,7 +70,9 @@ void TCCalibPIDEnergy::Init()
     fLinPlot = 0;
     fNpeak = 0;
     fPeak = 0;
+    fPeak_Err = 0;
     fPeakMC = 0;
+    fPeakMC_Err = 0;
     fLine =  new TLine();
     fDelay = 0;
     fMCHisto = 0;
@@ -144,6 +150,9 @@ void TCCalibPIDEnergy::Init()
     // perform fitting for the MC histogram
     FitSlices(fMCHisto);
     fCanvasFit->Update();
+    printf("MC proton peak positions: ");
+    for (Int_t i = 0; i < fNpeak; i++) printf("%.2f  ", fPeakMC[i]);
+    printf("\n");
 
     // user information
     Info("Init", "Fitting of MC data finished");
@@ -165,10 +174,18 @@ void TCCalibPIDEnergy::FitSlices(TH2* h)
     fNpeak = (highLimit - lowLimit) / interval;
     
     // prepare arrays
-    if (h == fMCHisto) fPeakMC = new Double_t[fNpeak];
+    if (h == fMCHisto) 
+    {
+        fPeakMC = new Double_t[fNpeak];
+        fPeakMC_Err = new Double_t[fNpeak];
+    }
     else
     {
-        if (!fPeak) fPeak = new Double_t[fNpeak];
+        if (!fPeak) 
+        {
+            fPeak = new Double_t[fNpeak];
+            fPeak_Err = new Double_t[fNpeak];
+        }
     }
     
     // loop over energy slices
@@ -191,8 +208,8 @@ void TCCalibPIDEnergy::FitSlices(TH2* h)
         fFitFunc->SetLineColor(2);
         
         // estimate peak position
-        TSpectrum s;
-        s.Search(fFitHisto, 10, "goff nobackground", 0.05);
+        TSpectrum s(1);
+        s.Search(fFitHisto, 10, "goff nobackground", 0.1);
         Double_t peak = TMath::MaxElement(s.GetNPeaks(), s.GetPositionX());
         
         // prepare fitting function
@@ -202,7 +219,7 @@ void TCCalibPIDEnergy::FitSlices(TH2* h)
         {
             range = 20./start+0.3;
             peak_range = 0.2;
-            fFitFunc->SetRange(peak - range, peak + range*2);
+            fFitFunc->SetRange(peak - 1.5*range, peak + range*2);
             fFitFunc->SetParameter(2, fFitHisto->GetXaxis()->FindBin(peak));
             fFitFunc->SetParLimits(2, 0, 100000);
             fFitFunc->SetParameter(3, peak);
@@ -233,11 +250,14 @@ void TCCalibPIDEnergy::FitSlices(TH2* h)
             fFitFunc->SetRange(peak - 3*sigma, peak + range+3.5*sigma);
 
             // perform second fit
-            fFitHisto->Fit(fFitFunc, "RB0Q");
+            for (Int_t i = 0; i < 20; i++)
+                if (!fFitHisto->Fit(fFitFunc, "RBQ0") && fFitFunc->GetParError(3) > 0) break;
         }
         
         // get peak
         peak = fFitFunc->GetParameter(3);
+        Double_t peak_err = fFitFunc->GetParError(3);
+        if (peak_err == 0) peak_err = 1;
 
         // format line
         fLine->SetY1(0);
@@ -246,8 +266,16 @@ void TCCalibPIDEnergy::FitSlices(TH2* h)
         fLine->SetX2(peak);
         
         // save peak position
-        if (h == fMCHisto) fPeakMC[nfit] = peak;
-        else fPeak[nfit] = peak;
+        if (h == fMCHisto) 
+        {
+            fPeakMC[nfit] = peak;
+            fPeakMC_Err[nfit] = peak_err;
+        }
+        else 
+        {
+            fPeak[nfit] = peak;
+            fPeak_Err[nfit] = peak_err;
+        }
 
         // plot projection fit  
         if (fDelay > 0)
@@ -307,15 +335,12 @@ void TCCalibPIDEnergy::Fit(Int_t elem)
 
         // create linear plot
         if (fLinPlot) delete fLinPlot;
-        fLinPlot = new TGraph(fNpeak, fPeakMC, fPeak);
+        fLinPlot = new TGraphErrors(fNpeak, fPeakMC, fPeak, fPeakMC_Err, fPeak_Err);
         sprintf(tmp, "Element %d", elem);
         fLinPlot->SetName(tmp);
         fLinPlot->SetTitle(tmp);
         fLinPlot->GetXaxis()->SetTitle("MC peak position [MeV]");
         fLinPlot->GetYaxis()->SetTitle("Data peak position [Channel]");
-        fLinPlot->SetMarkerStyle(2);
-        fLinPlot->SetMarkerSize(2);
-        fLinPlot->SetMarkerColor(kBlue);
         
         // create linear fitting function
         if (fFitFunc) delete fFitFunc;

@@ -307,8 +307,8 @@ void TCCalib::SaveCanvas(TCanvas* c, const Char_t* name)
         sprintf(date, "%d-%02d-%02d_%02d.%02d", year, month, day, hour, min);
 
         // save canvas (only for first set)
-        sprintf(tmp, "%s/%s/%s_Set_%d_%s.png", 
-                path->Data(), GetName(), name, fSet[0], date);
+        sprintf(tmp, "%s/%s/%s_Set_%d_%s_%s.png", 
+                path->Data(), GetName(), name, fSet[0], fCalibration.Data(), date);
         c->SaveAs(tmp);
     }
 }
