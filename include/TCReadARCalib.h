@@ -106,7 +106,7 @@ public:
         if (fIsTagger)
         {
             // write the calibration line
-            sprintf(out, "%7s %6.1lf %6.1lf %7.2lf %8.6lf "
+            sprintf(out, "%7s %6.3lf %6.1lf %7.2lf %8.6lf "
                          "%7s %7.1lf %7.1lf %8.2lf %8.6lf "
                          "%8.3lf %8.3lf %8.3lf %8.3lf %5.3lf %3d", 
                          fADC, fEnergyLow, fEnergyHigh, fPed, fADCGain, 
@@ -116,7 +116,7 @@ public:
         else
         {
             // write the calibration line
-            sprintf(out, "%7s %6.1lf %6.1lf %7.2lf %8.6lf "
+            sprintf(out, "%7s %6.3lf %6.1lf %7.2lf %8.6lf "
                          "%7s %7.1lf %7.1lf %8.2lf %8.6lf "
                          "%8.3lf %8.3lf %8.3lf", 
                          fADC, fEnergyLow, fEnergyHigh, fPed, fADCGain, 

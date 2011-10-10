@@ -118,6 +118,10 @@ void TCWriteARCalib::Write(const Char_t* calibFile,
             if (m->ReadParametersRun("Data.TAPS.LG.E1", calibration, run, par, nDet))
                 for (Int_t i = 0; i < nDet; i++) r->GetElement(i)->SetADCGain(par[i]);
             
+            // read CFD threshold
+            if (m->ReadParametersRun("Data.TAPS.CFD", calibration, run, par, nDet))
+                for (Int_t i = 0; i < nDet; i++) r->GetElement(i)->SetEnergyLow(par[i]);
+             
             if (nDetSG)
             {
                 // read SG ADC pedestal
@@ -168,6 +172,10 @@ void TCWriteARCalib::Write(const Char_t* calibFile,
             // read ADC gain
             if (m->ReadParametersRun("Data.Veto.E1", calibration, run, par, nDet))
                 for (Int_t i = 0; i < nDet; i++) r->GetElement(i)->SetADCGain(par[i]);
+
+            // read LED thresholds
+            if (m->ReadParametersRun("Data.Veto.LED", calibration, run, par, nDet))
+                for (Int_t i = 0; i < nDet; i++) r->GetElement(i)->SetEnergyLow(par[i]);
 
             break;
         }

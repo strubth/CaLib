@@ -20,7 +20,7 @@ void htmldoc()
     if (!gROOT->GetClass("TCCalib")) gSystem->Load("libCaLib.so");
 
     THtml h;
-    h.SetInputDir(".");
+    h.SetInputDir(".:src:include");
     h.SetOutputDir("htmldoc");
     h.SetAuthorTag("* Author:");
     h.SetProductName("CaLib");
