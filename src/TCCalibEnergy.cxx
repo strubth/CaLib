@@ -199,7 +199,7 @@ void TCCalibEnergy::Calculate(Int_t elem)
         if (fLine->GetX1() != fPi0Pos) fPi0Pos = fLine->GetX1();
         
         // calculate the new offset
-        fNewVal[elem] = fOldVal[elem] * TCConfig::kPi0Mass * TCConfig::kPi0Mass / fPi0Pos / fPi0Pos;
+        fNewVal[elem] = fOldVal[elem] * TCConfig::kPi0Mass / fPi0Pos;
         
         // if new value is negative take old
         if (fNewVal[elem] < 0) 

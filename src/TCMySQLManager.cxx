@@ -2332,6 +2332,45 @@ Int_t TCMySQLManager::ImportCalibrations(TCContainer* container, const Char_t* n
 }
 
 //______________________________________________________________________________
+void TCMySQLManager::CloneCalibration(const Char_t* calibration, const Char_t* newCalibrationName,
+                                      const Char_t* newDesc, Int_t new_first_run, Int_t new_last_run)
+{
+    // Create a clone of the calibration 'calibration' using 'newCalibrationName' as
+    // the new calibration name and 'newDesc' as the calibration description.
+    // For each calibration data one set from 'new_first_run' to 'new_last_run' 
+    // is created with the values of the last set of the original calibration.
+    
+    // check if original calibration exists
+    if (!ContainsCalibration(calibration))
+    {
+        if (!fSilence) Error("CloneCalibration", "Original calibration '%s' does not exist!", calibration);
+        return;
+    }
+
+    // loop over calibration data
+    TIter next(fData);
+    TCCalibData* d;
+    while ((d = (TCCalibData*)next()))
+    {
+        // get number of original sets
+        Int_t nSets = GetNsets(d->GetName(), calibration);
+        
+        // read parameters
+        Double_t par[d->GetSize()];
+        if (ReadParameters(d->GetName(), calibration, nSets-1, par, d->GetSize()))
+        {
+            if (!AddDataSet(d->GetName(), newCalibrationName, newDesc, 
+                            new_first_run, new_last_run, par, d->GetSize()))
+                if (!fSilence) Error("CloneCalibration", "Could not clone calibration data '%s'!", d->GetName());
+        }
+        else
+        {
+            if (!fSilence) Error("CloneCalibration", "Could not read original data '%s'!", d->GetName());
+        }
+    }
+}
+
+//______________________________________________________________________________
 void TCMySQLManager::Export(const Char_t* filename, Int_t first_run, Int_t last_run, 
                             const Char_t* calibration)
 {

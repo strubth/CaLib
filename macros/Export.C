@@ -30,30 +30,34 @@ void Export()
     t.GetTime(kFALSE, 0, &hour, &min);
     sprintf(tstamp, "%d-%02d-%02d_%02d.%02d", year, month, day, hour, min);
 
-    // export CaLib data
-    sprintf(tmp, "backup_Dec_07_%s.root", tstamp);
-    TCMySQLManager::GetManager()->Export(tmp, 0, -1, "LD2_Dec_07");
-    
-    // export CaLib data
-    sprintf(tmp, "backup_Feb_09_%s.root", tstamp);
-    TCMySQLManager::GetManager()->Export(tmp, 0, -1, "LD2_Feb_09");
+    //// export CaLib data
+    //sprintf(tmp, "backup_Dec_07_%s.root", tstamp);
+    //TCMySQLManager::GetManager()->Export(tmp, 0, -1, "LD2_Dec_07");
+    //
+    //// export CaLib data
+    //sprintf(tmp, "backup_Feb_09_%s.root", tstamp);
+    //TCMySQLManager::GetManager()->Export(tmp, 0, -1, "LD2_Feb_09");
 
-    // export CaLib data
-    sprintf(tmp, "backup_May_09_%s.root", tstamp);
-    TCMySQLManager::GetManager()->Export(tmp, 0, -1, "LD2_May_09");
+    //// export CaLib data
+    //sprintf(tmp, "backup_May_09_%s.root", tstamp);
+    //TCMySQLManager::GetManager()->Export(tmp, 0, -1, "LD2_May_09");
+    //
+    //// export CaLib data
+    //sprintf(tmp, "backup_MC_Dec_07_%s.root", tstamp);
+    //TCMySQLManager::GetManager()->Export(tmp, 0, -1, "LD2_MC_Dec_07");
+    //
+    //// export CaLib data
+    //sprintf(tmp, "backup_MC_Feb_09_%s.root", tstamp);
+    //TCMySQLManager::GetManager()->Export(tmp, 0, -1, "LD2_MC_Feb_09");
+    //
+    //// export CaLib data
+    //sprintf(tmp, "backup_MC_May_09_%s.root", tstamp);
+    //TCMySQLManager::GetManager()->Export(tmp, 0, -1, "LD2_MC_May_09");
     
     // export CaLib data
-    sprintf(tmp, "backup_MC_Dec_07_%s.root", tstamp);
-    TCMySQLManager::GetManager()->Export(tmp, 0, -1, "LD2_MC_Dec_07");
-    
-    // export CaLib data
-    sprintf(tmp, "backup_MC_Feb_09_%s.root", tstamp);
-    TCMySQLManager::GetManager()->Export(tmp, 0, -1, "LD2_MC_Feb_09");
-    
-    // export CaLib data
-    sprintf(tmp, "backup_MC_May_09_%s.root", tstamp);
-    TCMySQLManager::GetManager()->Export(tmp, 0, -1, "LD2_MC_May_09");
-    
+    sprintf(tmp, "backup_Apr_09_%s.root", tstamp);
+    TCMySQLManager::GetManager()->Export(tmp, 0, -1, "LH2_Apr_09");
+     
     gSystem->Exit(0);
 }
 

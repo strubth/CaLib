@@ -146,7 +146,8 @@ public:
     Int_t ImportRuns(TCContainer* container);
     Int_t ImportCalibrations(TCContainer* container, const Char_t* newCalibName = 0,
                              const Char_t* data = 0);
- 
+    void CloneCalibration(const Char_t* calibration, const Char_t* newCalibrationName,
+                          const Char_t* newDesc, Int_t new_first_run, Int_t new_last_run);
     void Export(const Char_t* filename, Int_t first_run, Int_t last_run, 
                 const Char_t* calibration);
     void Import(const Char_t* filename, Bool_t runs, Bool_t calibrations,
