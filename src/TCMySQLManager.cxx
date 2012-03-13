@@ -677,7 +677,7 @@ Int_t* TCMySQLManager::GetRunsOfSet(const Char_t* data, const Char_t* calibratio
     // Return the list of runs that are in the set 'set' of the calibration data 'data'
     // for the calibration identifier 'calibration'.
     // If 'outNruns' is not zero the number of runs will be written to this variable.
-    // ATTENTION: the run array has to be destroyed by the caller!
+    // NOTE: the run array must be destroyed by the caller.
 
     Char_t query[256];
 
@@ -2425,7 +2425,7 @@ TCContainer* TCMySQLManager::LoadContainer(const Char_t* filename)
 {
     // Load the CaLib container from the ROOT file 'filename'.
     // Return the container if found, otherwise 0.
-    // NOTE: The container has to be destroyed by the caller.
+    // NOTE: The container must be destroyed by the caller.
 
     // try to open the ROOT file
     TFile* f = new TFile(filename);
