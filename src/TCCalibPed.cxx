@@ -110,17 +110,28 @@ void TCCalibPed::Fit(Int_t elem)
         
         // estimate peak position
 	Double_t fTotMaxPos = fFitHisto->GetBinCenter(fFitHisto->GetMaximumBin());
-	fFitHisto->GetXaxis()->SetRangeUser(70, 112);
-	fMean = fFitHisto->GetBinCenter(fFitHisto->GetMaximumBin());
+
+	// find first big jump
+	for(int i=10; i<200; i++)
+	{
+            if(fFitHisto->GetBinContent(i) > 100 &&
+	       fFitHisto->GetBinContent(i) > 5*fFitHisto->GetBinContent(i-3) && 
+	       fFitHisto->GetBinContent(i) > 5*fFitHisto->GetBinContent(i+3))
+	    {
+	        Double_t fTotMaxPos = i+2;
+	        fMean = fFitHisto->GetBinCenter( fTotMaxPos );
+	        break;
+	    }
+        }
 
         // configure fitting function
         fFitFunc->SetRange(fMean - 2, fMean + 2);
         fFitFunc->SetLineColor(2);
         fFitFunc->SetParameters(1, fMean, 0.1);
 	fFitFunc->SetParLimits(2, 0.001, 1);
-	if (fTotMaxPos > fMean) // if pedestal isn't the maximum
+	if (fTotMaxPos > fMean)
 	{
-	    fFitFunc->SetRange(fMean - 5, fMean + 5);
+	    fFitFunc->SetRange(fMean - 7, fMean + 5);
 	    fFitFunc->SetParLimits(2, 0.0000001, 5);
 	}
         fFitHisto->Fit(fFitFunc, "RB0Q");
@@ -128,11 +139,10 @@ void TCCalibPed::Fit(Int_t elem)
 	// second iteration for elements where pedestal isn't the maximum
 	if (fTotMaxPos > fMean)
 	{
-	    fFitHisto->GetXaxis()->SetRangeUser(fFitFunc->GetParameter(1) - 5, fFitFunc->GetParameter(1) + 5);
-	    fFitFunc->SetRange(fFitFunc->GetParameter(1) - 10, fFitFunc->GetParameter(1) + 10);
-	    fFitHisto->Fit(fFitFunc, "RB0Q");
+	  fFitFunc->SetRange(fFitFunc->GetParameter(1) - 15, fFitFunc->GetParameter(1) + 10);
+	  fFitHisto->Fit(fFitFunc, "RB0Q");
 	}
-	
+
         // final results
         fMean = fFitFunc->GetParameter(1); 
 
@@ -152,7 +162,8 @@ void TCCalibPed::Fit(Int_t elem)
     // draw histogram
     fFitHisto->SetFillColor(35);
     fCanvasFit->cd(2);
-    fFitHisto->GetXaxis()->SetRangeUser(fMean-10, fMean+10);
+    //fFitHisto->GetXaxis()->SetRangeUser(fMean-10, fMean+10);
+    fFitHisto->GetXaxis()->SetRangeUser(70, 140);
     fFitHisto->Draw("hist");
     
     // draw fitting function
