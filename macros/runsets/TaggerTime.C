@@ -95,7 +95,7 @@ void CheckTime(const Char_t* loc)
                 func->SetParameters(1, maxPos, 0.5, 1, 0.1);
                 func->SetRange(maxPos - 2, maxPos + 2);
                 func->SetParLimits(0, 0, 1000);
-                for (Int_t i = 0; i < 10; i++)
+                for (Int_t k = 0; k < 10; k++)
                     if (!h->Fit(func, "RBQ")) break;
 
                 // save position in file and memory
