@@ -163,7 +163,8 @@ void TCCalib::ProcessElement(Int_t elem, Bool_t ignorePrev)
         // calculate last element and update result canvas
         if (elem == fNelem) 
         {
-            Calculate(fCurrentElem);
+            if (!ignorePrev) Calculate(fCurrentElem);
+            else printf("Ignoring element %d\n", fCurrentElem);
             fCanvasResult->Update();
         }
 
@@ -172,7 +173,11 @@ void TCCalib::ProcessElement(Int_t elem, Bool_t ignorePrev)
     }
     
     // calculate previous element
-    if (elem != fCurrentElem && !ignorePrev) Calculate(fCurrentElem);
+    if (elem != fCurrentElem)
+    {
+        if (!ignorePrev) Calculate(fCurrentElem);
+        else printf("Ignoring element %d\n", fCurrentElem);
+    }
 
     // set current element
     fCurrentElem = elem;

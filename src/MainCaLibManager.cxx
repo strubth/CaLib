@@ -1746,7 +1746,7 @@ void About()
     mvprintw(8,  2, "(c) 2011 by Dominik Werthmueller");
     mvprintw(10, 2, "CaLib - calibration database");
     mvprintw(11, 2, "Version %s", TCConfig::kCaLibVersion);
-    mvprintw(12, 2, "(c) 2010-2011 by Dominik Werthmueller and Irakli Keshelashvili");
+    mvprintw(12, 2, "(c) 2010-2013 by Dominik Werthmueller and Irakli Keshelashvili");
     mvprintw(13, 2, "                 University of Basel");
 
     // user information

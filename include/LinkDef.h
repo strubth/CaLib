@@ -26,9 +26,13 @@
 
 // enums
 #pragma link C++ enum ECalibDetector;
+#pragma link C++ enum ERawFileType;
+#pragma link C++ enum ERawFileFormat;
 
 // typedefs
 #pragma link C++ typedef CalibDetector_t;
+#pragma link C++ typedef RawFileType_t;
+#pragma link C++ typedef RawFileFormat_t;
 
 // common classes
 #pragma link C++ namespace TCConfig;

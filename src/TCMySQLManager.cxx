@@ -987,14 +987,14 @@ void TCMySQLManager::AddRunFiles(const Char_t* path, const Char_t* target)
         // prepare the insert query
         TString ins_query = TString::Format("INSERT INTO %s SET "
                                             "run = %d, "
-                                            "path = '%s', "
-                                            "filename = '%s', "
-                                            "time = STR_TO_DATE('%s', '%%a %%b %%d %%H:%%i:%%S %%Y'), "
-                                            "description = '%s', "
-                                            "run_note = '%s', "
+                                            "path = \"%s\", "
+                                            "filename = \"%s\", "
+                                            "time = STR_TO_DATE(\"%s\", \"%%a %%b %%d %%H:%%i:%%S %%Y\"), "
+                                            "description = \"%s\", "
+                                            "run_note = \"%s\", "
                                             "size = %lld,"
-                                            "target = '%s'",
-                                            TCConfig::kCalibMainTableName, 
+                                            "target = \"%s\"",
+                                            TCConfig::kCalibMainTableName,
                                             f->GetRun(),
                                             path,
                                             f->GetFileName(),

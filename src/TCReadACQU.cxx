@@ -71,7 +71,12 @@ void TCReadACQU::ReadFiles()
     {
         // look for ACQU raw files
         TString str(f->GetName());
-        if (str.BeginsWith("CB_") && (str.EndsWith(".dat") || str.EndsWith(".dat.gz")))
+
+        // skip tagging efficiency and tagger calibration runs
+        if (str.BeginsWith("Tagg")) continue;
+
+        // get data files
+        if (str.EndsWith(".dat") || str.EndsWith(".dat.gz") || str.EndsWith(".dat.xz"))
         {
             // user information
             Info("ReadFiles", "Reading '%s/%s'", fPath, f->GetName());
@@ -81,9 +86,10 @@ void TCReadACQU::ReadFiles()
             acqufile->ReadFile(fPath, f->GetName());
             
             // check file 
-            if (!acqufile->IsGoodStartMarker())
+            if (!acqufile->IsGoodDataFile())
             {
-                Warning("ReadFiles", "Bad file header found in '%s/%s'", fPath, f->GetName());
+                Error("ReadFiles", "Unknown file header found in '%s/%s' - skipping file", fPath, f->GetName());
+                continue;
             }
             
             // add file to list
