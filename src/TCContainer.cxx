@@ -81,7 +81,7 @@ TCCalibration* TCContainer::AddCalibration(const Char_t* calibration)
 Bool_t TCContainer::SaveAs(const Char_t* filename, Bool_t silence)
 {
     // Save this container to the ROOT file 'filename'.
-    // Return kFALSE if an error occured, otherwise kTRUE.
+    // Return kFALSE if an error occurred, otherwise kTRUE.
 
     // try to open the ROOT file
     TFile* f = new TFile(filename, "CREATE");

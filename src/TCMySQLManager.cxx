@@ -120,7 +120,7 @@ TCMySQLManager::~TCMySQLManager()
 Bool_t TCMySQLManager::ReadCaLibData()
 {
     // Read the CaLib data definitions from the configuration file.
-    // Return kTRUE on success, kFALSE if an error occured.
+    // Return kTRUE on success, kFALSE if an error occurred.
     
     // try to get the CaLib source path from the shell variable CALIB
     // otherwise use the current directory
@@ -228,7 +228,7 @@ Bool_t TCMySQLManager::ReadCaLibData()
 Bool_t TCMySQLManager::ReadCaLibTypes()
 {
     // Read the CaLib type definitions from the configuration file.
-    // Return kTRUE on success, kFALSE if an error occured.
+    // Return kTRUE on success, kFALSE if an error occurred.
     
     // try to get the CaLib source path from the shell variable CALIB
     // otherwise use the current directory
@@ -776,7 +776,7 @@ Bool_t TCMySQLManager::ReadParametersRun(const Char_t* data, const Char_t* calib
 {
     // Read 'length' parameters of the calibration data 'data' for the calibration identifier
     // 'calibration' valid for the run 'run' from the database to the value array 'par'.
-    // Return kFALSE if an error occured, otherwise kTRUE.
+    // Return kFALSE if an error occurred, otherwise kTRUE.
 
     // get set
     Int_t set = GetSetForRun(data, calibration, run);
@@ -799,7 +799,7 @@ Bool_t TCMySQLManager::ReadParameters(const Char_t* data, const Char_t* calibrat
 {
     // Read 'length' parameters of the 'set'-th set of the calibration data 'data'
     // for the calibration identifier 'calibration' from the database to the value array 'par'.
-    // Return kFALSE if an error occured, otherwise kTRUE.
+    // Return kFALSE if an error occurred, otherwise kTRUE.
 
     Char_t query[256];
     Char_t table[256];
@@ -868,7 +868,7 @@ Bool_t TCMySQLManager::WriteParameters(const Char_t* data, const Char_t* calibra
 {
     // Write 'length' parameters of the 'set'-th set of the calibration data 'data'
     // for the calibration identifier 'calibration' from the value array 'par' to the database.
-    // Return kFALSE if an error occured, otherwise kTRUE.
+    // Return kFALSE if an error occurred, otherwise kTRUE.
 
     Char_t table[256];
  
@@ -1543,7 +1543,7 @@ Bool_t TCMySQLManager::AddDataSet(const Char_t* data, const Char_t* calibration,
     // Create a new set of the calibration data 'data' with the calibration identifier
     // 'calibration' for the runs 'first_run' to 'last_run'. Use 'desc' as a 
     // description. Read the 'length' parameters from 'par'.
-    // Return kFALSE when an error occured, otherwise kTRUE.
+    // Return kFALSE when an error occurred, otherwise kTRUE.
  
     Char_t table[256];
     
@@ -1658,7 +1658,7 @@ Bool_t TCMySQLManager::AddDataSet(const Char_t* data, const Char_t* calibration,
     // Create a new set of the calibration data 'data' with the calibration identifier
     // 'calibration' for the runs 'first_run' to 'last_run'. Use 'desc' as a 
     // description. Set all parameters to the value 'par'.
-    // Return kFALSE when an error occured, otherwise kTRUE.
+    // Return kFALSE when an error occurred, otherwise kTRUE.
     
     // get maximum number of parameters
     Int_t length = ((TCCalibData*) fData->FindObject(data))->GetSize();
@@ -1678,7 +1678,7 @@ Bool_t TCMySQLManager::AddSet(const Char_t* type, const Char_t* calibration, con
     // Create new sets for the calibration type 'type' with the calibration identifier
     // 'calibration' for the runs 'first_run' to 'last_run'. Use 'desc' as a 
     // description. Set all parameters to the value 'par'.
-    // Return kFALSE when an error occured, otherwise kTRUE.
+    // Return kFALSE when an error occurred, otherwise kTRUE.
     
     Bool_t ret = kTRUE;
     
