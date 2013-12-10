@@ -22,17 +22,17 @@ void AddBeamtime()
  
     // macro configuration: just change here for your beamtime and leave
     // the other parts of the code unchanged
-    const Char_t rawfilePath[]      = "/kernph/data/A2/LD2/May_09";
-    const Char_t target[]           = "LD2";
-    const Int_t firstRun            = 22626;
-    const Int_t lastRun             = 23728;
-    const Char_t calibName[]        = "LD2_May_09";
-    const Char_t calibDesc[]        = "Standard calibration for May 2009 beamtime";
-    const Char_t calibFileTagger[]  = "/usr/users/werthm/AcquRoot/acqu/acqu/data/May_09/Tagger/FP.dat";
-    const Char_t calibFileCB[]      = "/usr/users/werthm/AcquRoot/acqu/acqu/data/May_09/CB/NaI.dat";
-    const Char_t calibFileTAPS[]    = "/usr/users/werthm/AcquRoot/acqu/acqu/data/May_09/TAPS/BaF2_PWO.dat";
-    const Char_t calibFilePID[]     = "/usr/users/werthm/AcquRoot/acqu/acqu/data/May_09/PID/PID.dat";
-    const Char_t calibFileVeto[]    = "/usr/users/werthm/AcquRoot/acqu/acqu/data/May_09/TAPS/Veto.dat";
+    const Char_t rawfilePath[]      = "/kernph/data/A2/H-Butanol/Nov_13";
+    const Char_t target[]           = "H-Butanol";
+    const Int_t firstRun            = 1293;
+    const Int_t lastRun             = 1300;
+    const Char_t calibName[]        = "H-Butanol_Nov_13";
+    const Char_t calibDesc[]        = "Standard calibration for November 2013 beamtime";
+    const Char_t calibFileTagger[]  = "/usr/users/werthm/AcquRoot/acqu/acqu/data/Nov_13/Tagger/FP.dat";
+    const Char_t calibFileCB[]      = "/usr/users/werthm/AcquRoot/acqu/acqu/data/Nov_13/CB/NaI.dat";
+    const Char_t calibFileTAPS[]    = "/usr/users/werthm/AcquRoot/acqu/acqu/data/Nov_13/TAPS/BaF2_PWO.dat";
+    const Char_t calibFilePID[]     = "/usr/users/werthm/AcquRoot/acqu/acqu/data/Nov_13/PID/PID.dat";
+    const Char_t calibFileVeto[]    = "/usr/users/werthm/AcquRoot/acqu/acqu/data/Nov_13/TAPS/Veto.dat";
 
     // add raw files to the database
     TCMySQLManager::GetManager()->AddRunFiles(rawfilePath, target);
