@@ -17,17 +17,17 @@ Installation
 Configuration
 -------------
 
-All the configuration is done in $CALIB/config/config.cfg.  
-$CALIB/config/example.cfg contains comments and basic settings that should
+All the configuration is done in config/config.cfg.  
+config/example.cfg contains comments and basic settings that should
 help to understand the configuration. Rename this example file to config.cfg
 and modify it according to your setup.
 
 Documentation
 -------------
 
-The ROOT html documentation in $CALIB/htmldoc gives an overview of the 
+The ROOT html documentation in htmldoc gives an overview of the 
 CaLib library and its classes.
-Further information and examples can be found in $CALIB/macros.
+Further information and examples can be found in macros.
 
 Changelog
 ---------
