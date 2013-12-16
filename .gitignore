@@ -1,0 +1,15 @@
+# object files
+*.o
+
+# libraries
+*.so
+
+# ROOT library maps
+*.rootmap
+
+# ROOT dictionaries
+G__*.cxx
+G__*.h
+
+# binaries
+bin/*
