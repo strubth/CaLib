@@ -63,26 +63,3 @@ August 31, 2011
 August 24, 2011
 * initial public release
 
-### 0.1.4
-May 17, 2011
-* removed target position and droop correction from database
-
-### 0.1.3
-May 12, 2011
-* implemented CB LED calibration module
-* added CB LED to database
-* added CB LED to AddBeamTime.C and AddCalibMC macros
-
-### 0.1.2
-May 5, 2011
-* modified SG calibration
-
-### 0.1.1
-March 18, 2011
-* added import/export functions to CaLib Manager
-* updated API
-
-### 0.1.0
-February 16, 2011
-* first official version
-
