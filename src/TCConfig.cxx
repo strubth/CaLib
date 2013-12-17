@@ -36,6 +36,8 @@ namespace TCConfig
                     "description VARCHAR(256),"
                     "run_note VARCHAR(256),"
                     "size BIGINT DEFAULT 0,"
+                    "scr_n INT DEFAULT -1,"
+                    "scr_bad VARCHAR(512),"
                     "target VARCHAR(20),"
                     "target_pol VARCHAR(128),"
                     "target_pol_deg DOUBLE DEFAULT 0,"
@@ -58,8 +60,8 @@ namespace TCConfig
     const Char_t* kCalibDataTableSettings = ",PRIMARY KEY (calibration, first_run) ";
     
     // version numbers
-    const Char_t kCaLibVersion[] = "0.1.11";
-    const Int_t kContainerFormatVersion = 2;
+    const Char_t kCaLibVersion[] = "0.2.0beta";
+    const Int_t kContainerFormatVersion = 3;
     extern const Char_t kCaLibDumpName[] = "CaLib_Dump";
 
     // constants

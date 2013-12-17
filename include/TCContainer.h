@@ -32,6 +32,8 @@ private:
     Char_t fDescription[256];       // description
     Char_t fRunNote[256];           // run note
     Long64_t fSize;                 // file size
+    Int_t fNScR;                    // number of scaler reads
+    Char_t fScRBad[256];            // list of bad scaler reads
     Char_t fTarget[20];             // target
     Char_t fTargetPol[128];         // target polarization
     Double_t fTargetPolDeg;         // target polarization degree
@@ -48,6 +50,8 @@ public:
         fDescription[0] = '\0';
         fRunNote[0] = '\0';
         fSize = 0;
+        fNScR = 0;
+        fScRBad[0] = '\0';
         fTarget[0] = '\0';
         fTargetPol[0] = '\0';
         fTargetPolDeg = 0;
@@ -63,6 +67,8 @@ public:
     void SetDescription(const Char_t* desc) { strcpy(fDescription, desc); }
     void SetRunNote(const Char_t* rnote) { strcpy(fRunNote, rnote); }
     void SetSize(Long64_t size) { fSize = size; }
+    void SetNScalerReads(Int_t n) { fNScR = n; }
+    void SetBadScalerReads(const Char_t* b) { strcpy(fScRBad, b); }
     void SetTarget(const Char_t* target) { strcpy(fTarget, target); }
     void SetTargetPol(const Char_t* targetPol) { strcpy(fTargetPol, targetPol); }
     void SetTargetPolDeg(Double_t deg) { fTargetPolDeg = deg; }
@@ -76,6 +82,8 @@ public:
     const Char_t* GetDescription() const { return fDescription; }
     const Char_t* GetRunNote() const { return fRunNote; }
     Long64_t GetSize() const { return fSize; }
+    Int_t GetNScalerReads() const { return fNScR; }
+    const Char_t* GetBadScalerReads() const { return fScRBad; }
     const Char_t* GetTarget() const { return fTarget; }
     const Char_t* GetTargetPol() const { return fTargetPol; }
     Double_t GetTargetPolDeg() const { return fTargetPolDeg; }
@@ -85,18 +93,20 @@ public:
     void Print()
     {
         printf("CaLib Run Information\n");
-        printf("Run              : %d\n", fRun);
-        printf("Path             : %s\n", fPath);
-        printf("File name        : %s\n", fFileName);
-        printf("Time             : %s\n", fTime);
-        printf("Description      : %s\n", fDescription);
-        printf("Run note         : %s\n", fRunNote);
-        printf("Size in bytes    : %lld\n", fSize);
-        printf("Target           : %s\n", fTarget);
-        printf("Target pol.      : %s\n", fTargetPol);
-        printf("Target pol. deg. : %lf\n", fTargetPolDeg);
-        printf("Beam pol.        : %s\n", fBeamPol);
-        printf("Beam pol. deg.   : %lf\n", fBeamPolDeg);
+        printf("Run               : %d\n", fRun);
+        printf("Path              : %s\n", fPath);
+        printf("File name         : %s\n", fFileName);
+        printf("Time              : %s\n", fTime);
+        printf("Description       : %s\n", fDescription);
+        printf("Run note          : %s\n", fRunNote);
+        printf("Size in bytes     : %lld\n", fSize);
+        printf("# of scaler reads : %d\n", fNScR);
+        printf("Bad scaler reads  : %s\n", fScRBad);
+        printf("Target            : %s\n", fTarget);
+        printf("Target pol.       : %s\n", fTargetPol);
+        printf("Target pol. deg.  : %lf\n", fTargetPolDeg);
+        printf("Beam pol.         : %s\n", fBeamPol);
+        printf("Beam pol. deg.    : %lf\n", fBeamPolDeg);
         printf("\n");
     }
 

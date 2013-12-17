@@ -113,7 +113,12 @@ public:
     Bool_t ChangeRunTargetPolDeg(Int_t first_run, Int_t last_run, Double_t target_pol_deg);
     Bool_t ChangeRunBeamPol(Int_t first_run, Int_t last_run, const Char_t* beam_pol);
     Bool_t ChangeRunBeamPolDeg(Int_t first_run, Int_t last_run, Double_t beam_pol_deg);
+
+    Bool_t ChangeRunTotNScR(const Int_t run, const Int_t nscr);
+    Bool_t ChangeRunBadScR(const Int_t run, const Int_t nbadscr, const Int_t* const badscr);
     
+    Bool_t ChangeCalibrationRunRange(const Char_t* calibration, const UInt_t firstRun, 
+                                     const UInt_t lastRun);
     Bool_t ChangeCalibrationName(const Char_t* calibration, const Char_t* newCalibration);
     Bool_t RemoveCalibration(const Char_t* calibration, const Char_t* data);
     Int_t RemoveAllCalibrations(const Char_t* calibration);
@@ -132,8 +137,9 @@ public:
                     const Char_t* calib, const Char_t* desc,
                     Int_t first_run, Int_t last_run);
     
-    void InitDatabase();
-    
+    Bool_t InitDatabase();
+    Bool_t UpgradeDatabase(Int_t version); 
+
     TCContainer* LoadContainer(const Char_t* filename);
     
     Int_t DumpRuns(TCContainer* container, Int_t first_run = 0, Int_t last_run = 0);
@@ -144,8 +150,8 @@ public:
     Int_t ImportRuns(TCContainer* container);
     Int_t ImportCalibrations(TCContainer* container, const Char_t* newCalibName = 0,
                              const Char_t* data = 0);
-    void CloneCalibration(const Char_t* calibration, const Char_t* newCalibrationName,
-                          const Char_t* newDesc, Int_t new_first_run, Int_t new_last_run);
+    Bool_t CloneCalibration(const Char_t* calibration, const Char_t* newCalibrationName,
+                            const Char_t* newDesc, Int_t new_first_run, Int_t new_last_run);
     void Export(const Char_t* filename, Int_t first_run, Int_t last_run, 
                 const Char_t* calibration);
     void Import(const Char_t* filename, Bool_t runs, Bool_t calibrations,
