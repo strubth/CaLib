@@ -13,3 +13,10 @@ G__*.h
 
 # binaries
 bin/*
+
+# other folders
+backup
+images
+
+# personal config files
+config/config.cfg
