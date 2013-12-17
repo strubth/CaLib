@@ -34,5 +34,4 @@ Data.Veto.T1,                Veto TDC gain,                      veto_t1,       
 Data.Veto.E0,                Veto ADC pedestal,                  veto_e0,        510
 Data.Veto.E1,                Veto ADC gain,                      veto_e1,        510
 Data.Veto.LED,               Veto LED threshold,                 veto_led,       510
-Data.Livetime,               Livetime (Tagger/total),            livetime,       2
 
