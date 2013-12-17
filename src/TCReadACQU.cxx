@@ -6,7 +6,7 @@
 //                                                                      //
 // TCReadACQU                                                           //
 //                                                                      //
-// Read raw ACQU MK1 files.                                             //
+// Read a list of ACQU raw files.                                       //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
@@ -82,7 +82,7 @@ void TCReadACQU::ReadFiles()
             // create file object
             TCACQUFile* acqufile = new TCACQUFile();
             acqufile->ReadFile(fPath, f->GetName());
-            
+
             // check file 
             if (!acqufile->IsGoodDataFile())
             {
