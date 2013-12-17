@@ -82,7 +82,7 @@ void TCFileManager::BuildFileList()
         Int_t* runs = TCMySQLManager::GetManager()->GetRunsOfSet(fCalibData.Data(), fCalibration.Data(), fSet[i], &nRun);
 
         // user information
-        Info("BuildFileList", "Adding runs of set %d", fSet[i]);
+        Info("BuildFileList", "Trying to add %d runs of set %d", nRun, fSet[i]);
 
         // loop over runs
         for (Int_t j = 0; j < nRun; j++)
@@ -90,7 +90,7 @@ void TCFileManager::BuildFileList()
             // construct file name
             TString filename(fInputFilePatt);
             filename.ReplaceAll("RUN", TString::Format("%d", runs[j]));
-            
+
             // open the file
             TFile* f = TFile::Open(filename.Data());
             
