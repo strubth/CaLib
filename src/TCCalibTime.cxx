@@ -159,7 +159,8 @@ void TCCalibTime::Fit(Int_t elem)
 	fFitFunc = new TF1("fFitFunc", "pol1(0)+gaus(2)");
 	fFitFunc->SetLineColor(2);
 	
-	// get important parameter positions
+	// get important parameter positionsa
+        fFitHisto->GetXaxis()->SetRange(2, fFitHisto->GetNbinsX()-1);
 	Double_t fMean = fFitHisto->GetXaxis()->GetBinCenter(fFitHisto->GetMaximumBin());
 	Double_t max = fFitHisto->GetBinContent(fFitHisto->GetMaximumBin());
 
