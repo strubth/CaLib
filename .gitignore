@@ -20,3 +20,6 @@ images
 
 # personal config files
 config/config.cfg
+
+# calib_manager log file
+calib_manager.log
