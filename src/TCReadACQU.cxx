@@ -70,9 +70,6 @@ void TCReadACQU::ReadFiles()
         // look for ACQU raw files
         TString str(f->GetName());
 
-        // skip tagging efficiency and tagger calibration runs
-        if (str.BeginsWith("Tagg")) continue;
-
         // get data files
         if (str.EndsWith(".dat") || str.EndsWith(".dat.gz") || str.EndsWith(".dat.xz"))
         {
