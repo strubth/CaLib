@@ -12,14 +12,14 @@ G__*.cxx
 G__*.h
 
 # binaries
-bin/*
+/bin/*
 
 # other folders
-backup
-images
+/backup
+/images
 
 # personal config files
-config/config.cfg
+/config/config.cfg
 
 # calib_manager log file
 calib_manager.log
