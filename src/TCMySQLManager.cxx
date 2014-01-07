@@ -1,5 +1,5 @@
 /*************************************************************************
- * Author: Dominik Werthmueller, Irakli Keshelashvili
+ * Author: Dominik Werthmueller, Irakli Keshelashvili, Thomas Strub
  *************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
@@ -972,15 +972,18 @@ Bool_t TCMySQLManager::UpgradeDatabase(Int_t version)
     
     // create queries (update only this part in the future)
     Int_t nQuery = 0;
-    Char_t query[2][256];
+    Char_t query[3][256];
     switch (version)
     {
-        // version 3: add two columns in run_main for bad scaler reads
+        // version 3: 
+        // - add two columns in run_main for bad scaler reads
+        // - remove livetime table
         case 3:
         {
-            nQuery = 2;
+            nQuery = 3;
             strcpy(query[0], "ALTER TABLE run_main ADD scr_n INT DEFAULT -1 AFTER size");
             strcpy(query[1], "ALTER TABLE run_main ADD scr_bad VARCHAR(512) AFTER scr_n");
+            strcpy(query[2], "DROP TABLE IF EXISTS livetime");
             break;
         }
         default:
