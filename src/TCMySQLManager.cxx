@@ -1417,35 +1417,57 @@ Bool_t TCMySQLManager::ChangeCalibrationRunRange(const Char_t* calibration, cons
     TCCalibData* d;
     while ((d = (TCCalibData*)next()))
     {
-        // create the query
-        sprintf(query, "UPDATE %s SET ", d->GetTableName());
+        // 
+        // first run
+        //
+        
         if (firstRun)
         {
-            sprintf(tmp, "first_run = %d ", firstRun);
-            strcat(query, tmp);
+            // get the first run of the first set
+            Int_t oldFirstRun = GetFirstRunOfSet(d->GetName(), calibration, 0);
+
+            // execute the query
+            sprintf(query, "UPDATE %s SET first_run = %d WHERE calibration = '%s' and first_run = %d", 
+                           d->GetTableName(), firstRun, calibration, oldFirstRun);
+            TSQLResult* res = SendQuery(query);
+            
+            // check result
+            if (!res)
+            {
+                if (!fSilence) Error("ChangeCalibrationRunRange", "Could not change first run of calibration '%s' to %d!",
+                                     calibration, firstRun);
+                return kFALSE;
+            }
+
+            // clean-up
+            delete res;
         }
+        
+        // 
+        // last run
+        //
+        
         if (lastRun)
         {
-            if (firstRun) strcat(query, ",");
-            sprintf(tmp, "last_run = %d ", lastRun);
-            strcat(query, tmp);
-        }
-        sprintf(tmp, "WHERE calibration = '%s'", calibration);
-        strcat(query, tmp);
+           // get the last run of the last set
+            Int_t oldLastRun = GetLastRunOfSet(d->GetName(), calibration, GetNsets(d->GetName(), calibration)-1);
 
-        // read from database
-        TSQLResult* res = SendQuery(query);
-        
-        // check result
-        if (!res)
-        {
-            if (!fSilence) Error("ChangeCalibrationRunRange", "Could not change run range of calibration '%s' to [%d,%d]!",
-                                 calibration, firstRun, lastRun);
-            return kFALSE;
-        }
+            // execute the query
+            sprintf(query, "UPDATE %s SET last_run = %d WHERE calibration = '%s' and last_run = %d", 
+                           d->GetTableName(), lastRun, calibration, oldLastRun);
+            TSQLResult* res = SendQuery(query);
+            
+            // check result
+            if (!res)
+            {
+                if (!fSilence) Error("ChangeCalibrationRunRange", "Could not change last run of calibration '%s' to %d!",
+                                     calibration, lastRun);
+                return kFALSE;
+            }
 
-        // clean-up
-        delete res;
+            // clean-up
+            delete res;
+        }
     }
     
     if (!fSilence) Info("ChangeCalibrationRunRange", "Changed run range of calibration '%s' to [%d,%d]",
