@@ -1654,6 +1654,82 @@ void RenameCalibration()
 }
 
 //______________________________________________________________________________
+void ChangeRunRange()
+{
+    // Change the run range of a calibration.
+    
+    Char_t answer[16];
+    Int_t newFirstRun;
+    Int_t newLastRun;
+
+    // select a calibration
+    SelectCalibration();
+    
+    // clear the screen
+    clear();
+    
+    // echo input 
+    echo();
+    
+    // draw header
+    DrawHeader();
+    
+    // draw title
+    attron(A_UNDERLINE);
+    mvprintw(4, 2, "CHANGE RUN RANGE OF CALIBRATION");
+    attroff(A_UNDERLINE);
+  
+    // ask new name
+    mvprintw(6, 2, "Selected calibration                                       : %s", gCalibration);
+    mvprintw(7, 2, "New first run (run has to be in DB, 0 to keep current one) : ");
+    scanw((Char_t*)"%d", &newFirstRun);
+    mvprintw(8, 2, "New last run (run has to be in DB, 0 to keep current one)  : ");
+    scanw((Char_t*)"%d", &newLastRun);
+
+    // ask confirmation
+    mvprintw(10, 2, "Changing run range to [%d,%d]", newFirstRun, newLastRun);
+    mvprintw(12, 6, "Are you sure to continue? (yes/no) : ");
+    scanw((Char_t*)"%s", answer);
+    if (strcmp(answer, "yes")) 
+    {
+        mvprintw(14, 2, "Aborted.");
+    }
+    else
+    {
+        // rename calibration
+        Bool_t ret = TCMySQLManager::GetManager()->ChangeCalibrationRunRange(gCalibration, newFirstRun, newLastRun);
+
+        // check return value
+        if (ret)
+        {
+            mvprintw(14, 2, "Changed run range of calibration '%s' to [%d,%d]", 
+                            gCalibration, newFirstRun, newLastRun);
+        }
+        else
+            mvprintw(14, 2, "There was an error during changing the run range!");
+    }
+    
+    // user information
+    PrintStatusMessage("Hit ESC or 'q' to exit");
+  
+    // wait for input
+    for (;;)
+    {
+        // get key
+        Int_t c = getch();
+        
+        // leave loop
+        if (c == KEY_ESC || c == 'q') break;
+    }
+ 
+    // don't echo input 
+    noecho();
+    
+    // go back
+    CalibEditor();
+}
+
+//______________________________________________________________________________
 void DeleteCalibration()
 {
     // Delete a calibration.
@@ -1767,9 +1843,10 @@ void CalibEditor()
     // menu configuration
     const Char_t mTitle[] = "CALIBRATION EDITOR";
     const Char_t mMsg[] = "Select a calibration operation";
-    const Int_t mN = 5;
+    const Int_t mN = 6;
     const Char_t* mEntries[] = { "Browse calibration data",
                                  "Manipulate calibration sets",
+                                 "Change run range",
                                  "Rename calibration",
                                  "Delete calibration",
                                  "Go back" };
@@ -1782,9 +1859,10 @@ void CalibEditor()
     {
         case 0: CalibBrowser(kFALSE);
         case 1: CalibBrowser(kTRUE);
-        case 2: RenameCalibration();
-        case 3: DeleteCalibration();
-        case 4: MainMenu();
+        case 2: ChangeRunRange();
+        case 3: RenameCalibration();
+        case 4: DeleteCalibration();
+        case 5: MainMenu();
     }
 }
 
