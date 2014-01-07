@@ -14,6 +14,15 @@ Installation
 ### Installation
 * Compile the software using `make clean ; make`
 
+### Upgrade from 0.1.x to 0.2.x
+* The database has to be updated to version 3 using
+
+```
+root -b $CALIB/macros/Upgrade_3.C
+```
+
+* Exports to ROOT files created with CaLib < 0.2.0 cannot be imported by Calib > 0.2.0!
+
 Configuration
 -------------
 
@@ -31,6 +40,13 @@ Further information and examples can be found in macros.
 
 Changelog
 ---------
+
+### 0.2.0
+January 7, 2014
+* added support for bad scaler reads
+* added calibration cloning
+* added run range setting for calibration sets
+* removed livetime data type
 
 ### 0.1.11
 August 16, 2013
