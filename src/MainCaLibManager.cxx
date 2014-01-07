@@ -1916,10 +1916,10 @@ void About()
     // print some information
     mvprintw(6,  2, "CaLib Manager");
     mvprintw(7,  2, "an ncurses-based CaLib administration software");
-    mvprintw(8,  2, "(c) 2011-2013 by Dominik Werthmueller");
+    mvprintw(8,  2, "(c) 2011-2014 by Dominik Werthmueller");
     mvprintw(10, 2, "CaLib - A2 calibration system");
     mvprintw(11, 2, "Version %s", TCConfig::kCaLibVersion);
-    mvprintw(12, 2, "(c) 2010-2013 by Dominik Werthmueller,");
+    mvprintw(12, 2, "(c) 2010-2014 by Dominik Werthmueller,");
     mvprintw(13, 2, "                 Irakli Keshelashvili,");
     mvprintw(14, 2, "                 Thomas Strub,");
     mvprintw(15, 2, "                 University of Basel");
