@@ -1,3 +1,5 @@
+// SVN Info: $Id: TAPSPed.C 912 2011-05-18 22:09:17Z werthm $
+
 /*************************************************************************
  * Author: Dominik Werthmueller
  *************************************************************************/
@@ -7,6 +9,10 @@
 // TAPSPed.C                                                            //
 //                                                                      //
 // Make run sets depending on the stability in time of a calibration.   //
+//                                                                      //
+// root ped.root                                                        //
+// TGraph* g = (TGraph*) _file0->Get("Overview_000_30001")               //
+//for(Int_t i = 0; i<g->GetN(); i++){if(TMath::Abs((g->GetY()[i]-g->GetY()[i-1]))>5. && g->GetY()[i]>0. && g->GetY()[i-1]>0) cout << "-"<< g->GetX()[i-1] << endl << g->GetX()[i];}//
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
@@ -66,7 +72,7 @@ void CheckPedestals(const Char_t* loc)
 
         // extract run number
         Int_t runNumber;
-        sprintf(t, "%s/ARHistograms_CB_%%d.root", loc);
+        sprintf(t, "%s/ARHistograms_CBTaggTAPS_%%d.root", loc);
         sscanf(f->GetName(), t, &runNumber);
         runNumbersD[i] = (Double_t)runNumber;
 
@@ -88,23 +94,61 @@ void CheckPedestals(const Char_t* loc)
             //else h->GetXaxis()->SetRange(90, 115);
             //if (j == 27112) h->GetXaxis()->SetRange(60, 110);
             //else h->GetXaxis()->SetRange(60, 99);
-            h->GetXaxis()->SetRangeUser(60, 120);
+            h->GetXaxis()->SetRangeUser(40, 120);
+
             Double_t maxPos = h->GetXaxis()->GetBinCenter(h->GetMaximumBin());
-            
-            h->GetXaxis()->SetRangeUser(60, 150);
-            func->SetParameters(1, maxPos, 0.1);
-            func->SetRange(maxPos - 2, maxPos + 2);
-            h->Fit(func, "RBQ");
-            maxPos = func->GetParameter(1);
-            
+            Double_t MaxCont = h->GetBinContent(h->GetMaximumBin()); 
+            if(h->GetEntries()<5) 
+            {
+                maxPos = 0;
+                MaxCont = 0;
+            }
+            else if(h->GetEntries()>50)
+            {
+	        // find first big jump
+	        for(int u=10; u<200; u++)
+	        {
+                    Double_t BinMin = 10;
+                    Double_t BinDiff = 5;
+                    if(h->GetEntries()<150)
+                    {
+                        BinMin = 2;
+                        BinDiff =1; 
+
+                    }
+                    else if(h->GetEntries()<2000) 
+                    {
+                        BinMin = 3;
+                        BinDiff =2; 
+                    }
+
+                    if(h->GetBinContent(u) > BinMin &&
+	               h->GetBinContent(u) > BinDiff*h->GetBinContent(u-3) && 
+	               h->GetBinContent(u) > BinDiff*h->GetBinContent(u+3))
+	            {
+                        //Printf("%i", i);
+	                Double_t fTotMaxPos = u;
+	                maxPos = h->GetBinCenter( fTotMaxPos );
+                        MaxCont= h->GetBinContent(fTotMaxPos );
+	                break;
+	            }
+                }
+                if(TMath::Abs(maxPos-(h->GetXaxis()->GetBinCenter(h->GetMaximumBin())))<5.) maxPos = h->GetXaxis()->GetBinCenter(h->GetMaximumBin());
+                //Printf("%5.3f", maxPos);
+                h->GetXaxis()->SetRangeUser(40, 150);
+                func->SetParameters(MaxCont, maxPos, 0.1);
+                func->SetRange(maxPos - 3, maxPos + 3);
+                h->Fit(func, "RBQ");
+                maxPos = func->GetParameter(1);
+            }    
             // save position in file and memory
             pedPos[j][i] = maxPos;
-
+        
             sprintf(t, "Run_%d", runNumber);
             TCanvas* c = new TCanvas(t, t);
             h->Draw();
             
-            TLine* tline = new TLine(maxPos, 0, maxPos, 10000);
+            TLine* tline = new TLine(maxPos, 0, maxPos, func->GetParameter(0));
             tline->SetLineColor(kRed);
             tline->SetLineWidth(2);
             tline->Draw();
@@ -130,7 +174,14 @@ void CheckPedestals(const Char_t* loc)
         g->SetName(t);
         g->SetTitle(t);
         g->Write(g->GetName(), TObject::kOverwrite);
-        
+        for(Int_t i = 0; i<g->GetN(); i++)
+        {
+            if(TMath::Abs((g->GetY()[i]-g->GetY()[i-1]))>5. && g->GetY()[i]>0. && g->GetY()[i-1]>0 && i>0) 
+                printf("-%i \n %i", g->GetX()[i-1],g->GetX()[i]);
+                //cout << "-"<< g->GetX()[i-1] << endl << g->GetX()[i];
+        }
+        printf("\n");
+
         delete g;
     }
 
@@ -161,24 +212,10 @@ void TAPSPed()
     //const Char_t* elemDesc = "TAPSSG:";
     Double_t yMin = 110;
     Double_t yMax = 160;
-
-    // configuration (December 2007)
-    //const Char_t calibration[] = "LD2_Dec_07";
-    //const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/Dec_07/AR/out/ADC";
-    //const Char_t* fAR = "/usr/users/werthm/AcquRoot/acqu/acqu/data/Dec_07/TAPS/BaF2.dat";
-    //const Char_t* fAR = "/usr/users/werthm/AcquRoot/acqu/acqu/data/Dec_07/TAPS/Veto.dat";
-
-    // configuration (February 2009)
-    //const Char_t calibration[] = "LD2_Feb_09";
-    //const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/Feb_09/AR/out/ADC";
-    //const Char_t* fAR = "/usr/users/werthm/AcquRoot/acqu/acqu/data/Feb_09/TAPS/BaF2_PWO.dat";
-    //const Char_t* fAR = "/usr/users/werthm/AcquRoot/acqu/acqu/data/Feb_09/TAPS/Veto.dat";
     
-    // configuration (May 2009)
-    const Char_t calibration[] = "LD2_May_09";
-    const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/May_09/AR/out/ADC";
-    const Char_t* fAR = "/usr/users/werthm/AcquRoot/acqu/acqu/data/May_09/TAPS/BaF2_PWO.dat";
-    //const Char_t* fAR = "/usr/users/werthm/AcquRoot/acqu/acqu/data/May_09/TAPS/Veto.dat";
+    const Char_t calibration[] = "H-Butanol_Nov_13";
+    const Char_t* fLoc = "/usr/ocelot_scratch1/witth/Nov13/presort/";
+    const Char_t* fAR = "/usr/users/witth/AcquRoot/acqu/acqu/data/Nov_13/TAPS/BaF2_PWO.dat";
 
     // read the calibration file with the correct element identifier
     gReadAR = new TCReadARCalib(fAR, kFALSE, elemDesc);
@@ -204,7 +241,7 @@ void TAPSPed()
         for (Int_t j = 0; j < nRuns; j++)
         {
             // load ROOT file
-            sprintf(tmp, "%s/ARHistograms_CB_%d.root", fLoc, runs[j]);
+            sprintf(tmp, "%s/ARHistograms_CBTaggTAPS_%d.root", fLoc, runs[j]);
             TFile* f = new TFile(tmp);
 
             // check file
