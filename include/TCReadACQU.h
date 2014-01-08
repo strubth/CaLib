@@ -28,11 +28,11 @@ private:
     Char_t* fPath;                  // path of files
     TList* fFiles;                  // list of files
 
-    void ReadFiles();
+    void ReadFiles(const Char_t* runPrefix);
 
 public:
     TCReadACQU() : fPath(0), fFiles(0) { }
-    TCReadACQU(const Char_t* path);
+    TCReadACQU(const Char_t* path, const Char_t* runPrefix);
     virtual ~TCReadACQU();
     
     TList* GetFiles() const { return fFiles; }

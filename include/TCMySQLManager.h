@@ -131,7 +131,8 @@ public:
     Bool_t MergeSets(const Char_t* type, const Char_t* calibration, 
                      Int_t set1, Int_t set2);
 
-    void AddRunFiles(const Char_t* path, const Char_t* target);
+    void AddRunFiles(const Char_t* path, const Char_t* target,
+                     const Char_t* runPrefix = "CBTaggTAPS");
     void AddRun(Int_t run, const Char_t* target, const Char_t* desc);
     void AddCalibAR(CalibDetector_t det, const Char_t* calibFileAR,
                     const Char_t* calib, const Char_t* desc,

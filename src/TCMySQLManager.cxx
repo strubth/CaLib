@@ -1044,13 +1044,14 @@ Bool_t TCMySQLManager::UpgradeDatabase(Int_t version)
 }
 
 //______________________________________________________________________________
-void TCMySQLManager::AddRunFiles(const Char_t* path, const Char_t* target)
+void TCMySQLManager::AddRunFiles(const Char_t* path, const Char_t* target,
+                                 const Char_t* runPrefix)
 {
-    // Look for raw ACQU files in 'path' and add all runs to the database
-    // using the target specifier 'target'.
+    // Look for raw ACQU files in 'path' and add all runs with the prefix 'runPrefix'
+    // to the database using the target specifier 'target'.
 
     // read the raw files
-    TCReadACQU r(path);
+    TCReadACQU r(path, runPrefix);
     Int_t nRun = r.GetNFiles();
     
     // ask for user confirmation

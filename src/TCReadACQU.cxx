@@ -17,9 +17,10 @@ ClassImp(TCReadACQU)
 
 
 //______________________________________________________________________________
-TCReadACQU::TCReadACQU(const Char_t* path) 
+TCReadACQU::TCReadACQU(const Char_t* path, const Char_t* runPrefix) 
 {
-    // Constructor using the path of the raw files 'path'.
+    // Constructor using the path of the raw files 'path' and the prefix 'runPrefix'
+    // for the data files.
     
     // init members
     fPath = new Char_t[256];
@@ -30,7 +31,7 @@ TCReadACQU::TCReadACQU(const Char_t* path)
     strcpy(fPath, path);
 
     // read all files
-    ReadFiles();
+    ReadFiles(runPrefix);
 }
 
 //______________________________________________________________________________
@@ -43,9 +44,13 @@ TCReadACQU::~TCReadACQU()
 }
 
 //______________________________________________________________________________
-void TCReadACQU::ReadFiles()
+void TCReadACQU::ReadFiles(const Char_t* runPrefix)
 {
-    // Read all raw files.
+    // Read all raw files using the run prefix 'runPrefix'.
+
+    // format full prefix string
+    Char_t fullPre[256];
+    sprintf(fullPre, "%s_", runPrefix);
 
     // user information
     Info("ReadFiles", "Looking for ACQU raw files in '%s'", fPath);
@@ -69,6 +74,9 @@ void TCReadACQU::ReadFiles()
     {
         // look for ACQU raw files
         TString str(f->GetName());
+        
+        // select only files with the correct prefix
+        if (!str.BeginsWith(fullPre)) continue;
 
         // get data files
         if (str.EndsWith(".dat") || str.EndsWith(".dat.gz") || str.EndsWith(".dat.xz"))
