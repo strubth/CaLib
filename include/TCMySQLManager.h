@@ -60,7 +60,8 @@ private:
                           const Char_t* name, const Char_t* value);
     
     Bool_t AddDataSet(const Char_t* data, const Char_t* calibration, const Char_t* desc,
-                      Int_t first_run, Int_t last_run, Double_t* par, Int_t length);
+                      Int_t first_run, Int_t last_run, Double_t* par, Int_t length, 
+                      Bool_t skipChecks = kFALSE);
     Bool_t AddDataSet(const Char_t* data, const Char_t* calibration, const Char_t* desc,
                       Int_t first_run, Int_t last_run, Double_t par);
     Bool_t RemoveDataSet(const Char_t* data, const Char_t* calibration, Int_t set);
@@ -120,6 +121,7 @@ public:
     Bool_t ChangeCalibrationRunRange(const Char_t* calibration, const UInt_t firstRun, 
                                      const UInt_t lastRun);
     Bool_t ChangeCalibrationName(const Char_t* calibration, const Char_t* newCalibration);
+    Bool_t ChangeCalibrationDescription(const Char_t* calibration, const Char_t* newDesc);
     Bool_t RemoveCalibration(const Char_t* calibration, const Char_t* data);
     Int_t RemoveAllCalibrations(const Char_t* calibration);
 

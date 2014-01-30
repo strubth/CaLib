@@ -1367,6 +1367,54 @@ Bool_t TCMySQLManager::ChangeCalibrationName(const Char_t* calibration, const Ch
 }
 
 //______________________________________________________________________________
+Bool_t TCMySQLManager::ChangeCalibrationDescription(const Char_t* calibration, const Char_t* newDesc)
+{
+    // Change the calibration description of the 'calibration' in all calibration sets
+    // to 'newDesc'.
+    
+    Char_t query[256];
+    
+    // check if calibration was not found
+    if (!ContainsCalibration(calibration))
+    {
+        if (!fSilence) Error("ChangeCalibrationDescription", "Calibration '%s' was not found in database!",
+                             calibration);
+        return kFALSE;
+    }
+
+    // loop over calibration data
+    TIter next(fData);
+    TCCalibData* d;
+    while ((d = (TCCalibData*)next()))
+    {
+        // create the query
+        sprintf(query,
+                "UPDATE %s SET description = '%s' "
+                "WHERE calibration = '%s'",
+                d->GetTableName(), newDesc, calibration);
+
+        // read from database
+        TSQLResult* res = SendQuery(query);
+        
+        // check result
+        if (!res)
+        {
+            if (!fSilence) Error("ChangeCalibrationDescription", "Could not change description for calibration '%s' to '%s'!",
+                                 calibration, newDesc);
+            return kFALSE;
+        }
+
+        // clean-up
+        delete res;
+    }
+    
+    if (!fSilence) Info("ChangeCalibrationDescription", "Changed description of calibration '%s' to '%s'",
+                        calibration, newDesc);
+ 
+    return kTRUE;
+}
+
+//______________________________________________________________________________
 Bool_t TCMySQLManager::ChangeCalibrationRunRange(const Char_t* calibration, const UInt_t firstRun,
                                                  const UInt_t lastRun)
 {
@@ -1814,74 +1862,80 @@ TList* TCMySQLManager::GetAllCalibrations(const Char_t* data)
 
 //______________________________________________________________________________
 Bool_t TCMySQLManager::AddDataSet(const Char_t* data, const Char_t* calibration, const Char_t* desc,
-                                  Int_t first_run, Int_t last_run, Double_t* par, Int_t length)
+                                  Int_t first_run, Int_t last_run, Double_t* par, Int_t length, 
+                                  Bool_t skipChecks)
 {
     // Create a new set of the calibration data 'data' with the calibration identifier
     // 'calibration' for the runs 'first_run' to 'last_run'. Use 'desc' as a 
     // description. Read the 'length' parameters from 'par'.
+    // Check run numbers if 'skipChecks' is kFALSE (default) and abort on errors.
     // Return kFALSE when an error occurred, otherwise kTRUE.
  
     Char_t table[256];
     
-    //
-    // check if first and last run exist
-    //
-    
-    // check first run
-    if (!SearchRunEntry(first_run, "run", table))
+    // do some checks concerning the run numbers
+    if (!skipChecks)
     {
-        if (!fSilence) Error("AddDataSet", "First run has no valid run number!");
-        return kFALSE;
-    }
-    
-    // check last run
-    if (!SearchRunEntry(last_run, "run", table))
-    {
-        if (!fSilence) Error("AddDataSet", "Last run has no valid run number!");
-        return kFALSE;
-    }
-
-    //
-    // check if the run range is ok
-    //
-
-    // check if first run is smaller than last run
-    if (first_run > last_run)
-    {
-        if (!fSilence) Error("AddDataSet", "First run of set has to be smaller than last run!");
-        return kFALSE;
-    }
-
-    // get number of existing sets
-    Int_t nSet = GetNsets(data, calibration);
-
-    // loop over sets
-    for (Int_t i = 0; i < nSet; i++)
-    {
-        // get first and last runs of set
-        Int_t setLow = GetFirstRunOfSet(data, calibration, i);
-        Int_t setHigh = GetLastRunOfSet(data, calibration, i);
-
-        // check if first run is member of this set
-        if (first_run >= setLow && first_run <= setHigh)
+        //
+        // check if first and last run exist
+        //
+        
+        // check first run
+        if (!SearchRunEntry(first_run, "run", table))
         {
-            if (!fSilence) Error("AddDataSet", "First run is already member of set %d", i);
+            if (!fSilence) Error("AddDataSet", "First run has no valid run number!");
+            return kFALSE;
+        }
+        
+        // check last run
+        if (!SearchRunEntry(last_run, "run", table))
+        {
+            if (!fSilence) Error("AddDataSet", "Last run has no valid run number!");
             return kFALSE;
         }
 
-        // check if last run is member of this set
-        if (last_run >= setLow && last_run <= setHigh)
+        //
+        // check if the run range is ok
+        //
+
+        // check if first run is smaller than last run
+        if (first_run > last_run)
         {
-            if (!fSilence) Error("AddDataSet", "Last run is already member of set %d", i);
+            if (!fSilence) Error("AddDataSet", "First run of set has to be smaller than last run!");
             return kFALSE;
         }
 
-        // check if sets are not overlapping
-        if ((setLow >= first_run && setLow <= last_run) ||
-            (setHigh >= first_run && setHigh <= last_run))
+        // get number of existing sets
+        Int_t nSet = GetNsets(data, calibration);
+
+        // loop over sets
+        for (Int_t i = 0; i < nSet; i++)
         {
-            if (!fSilence) Error("AddDataSet", "Run overlap with set %d", i);
-            return kFALSE;
+            // get first and last runs of set
+            Int_t setLow = GetFirstRunOfSet(data, calibration, i);
+            Int_t setHigh = GetLastRunOfSet(data, calibration, i);
+
+            // check if first run is member of this set
+            if (first_run >= setLow && first_run <= setHigh)
+            {
+                if (!fSilence) Error("AddDataSet", "First run is already member of set %d", i);
+                return kFALSE;
+            }
+
+            // check if last run is member of this set
+            if (last_run >= setLow && last_run <= setHigh)
+            {
+                if (!fSilence) Error("AddDataSet", "Last run is already member of set %d", i);
+                return kFALSE;
+            }
+
+            // check if sets are not overlapping
+            if ((setLow >= first_run && setLow <= last_run) ||
+                (setHigh >= first_run && setHigh <= last_run))
+            {
+                if (!fSilence) Error("AddDataSet", "Run overlap with set %d", i);
+                return kFALSE;
+            }
         }
     }
 
@@ -2600,7 +2654,7 @@ Int_t TCMySQLManager::ImportCalibrations(TCContainer* container, const Char_t* n
 
         // add the set
         if (AddDataSet(c->GetCalibData(), calibration, c->GetDescription(), 
-                       c->GetFirstRun(), c->GetLastRun(), c->GetParameters(), c->GetNParameters()))
+                       c->GetFirstRun(), c->GetLastRun(), c->GetParameters(), c->GetNParameters(), kTRUE))
         {
             if (!fSilence) Info("ImportCalibrations", "Added calibration '%s' of '%s' to the database",
                                 calibration, ((TCCalibData*) fData->FindObject(c->GetCalibData()))->GetTitle());
