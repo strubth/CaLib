@@ -2386,7 +2386,7 @@ Int_t TCMySQLManager::DumpRuns(TCContainer* container, Int_t first_run, Int_t la
     // Return the number of dumped runs.
 
     Char_t query[256];
-    Char_t tmp[256];
+    Char_t tmp[65536];
 
     // create the query
     if (!first_run && !last_run)

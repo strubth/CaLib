@@ -33,7 +33,7 @@ private:
     Char_t fRunNote[256];           // run note
     Long64_t fSize;                 // file size
     Int_t fNScR;                    // number of scaler reads
-    Char_t fScRBad[256];            // list of bad scaler reads
+    Char_t fScRBad[65536];          // list of bad scaler reads
     Char_t fTarget[20];             // target
     Char_t fTargetPol[128];         // target polarization
     Double_t fTargetPolDeg;         // target polarization degree

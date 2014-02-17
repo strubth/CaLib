@@ -18,6 +18,7 @@
 
 #define KEY_ENTER_MINE 13
 #define KEY_ESC 27
+#define MAX_SCR_BAD_STRING 30000
 
 
 // locally used enum for run entries
@@ -208,7 +209,7 @@ WINDOW* FormatRunTable(TCContainer& c, Int_t* outColLengthTot, WINDOW** outHeade
                                 "Target pol. deg.", "Beam pol.", "Beam pol. deg." };
 
     // determine maximum col lengths
-    Char_t tmp_str[256];
+    Char_t tmp_str[65536];
     const Char_t* tmp = 0;
     UInt_t colLength[14];
 
@@ -253,7 +254,8 @@ WINDOW* FormatRunTable(TCContainer& c, Int_t* outColLengthTot, WINDOW** outHeade
         // bad scaler reads
         tmp = c.GetRun(i)->GetBadScalerReads();
         if (strlen(tmp) > colLength[8]) colLength[8] = strlen(tmp);
-        
+        if (colLength[8] > MAX_SCR_BAD_STRING) colLength[8] = MAX_SCR_BAD_STRING;
+
         // target
         tmp = c.GetRun(i)->GetTarget();
         if (strlen(tmp) > colLength[9]) colLength[9] = strlen(tmp);
@@ -323,7 +325,9 @@ WINDOW* FormatRunTable(TCContainer& c, Int_t* outColLengthTot, WINDOW** outHeade
         WriteTableEntry(table, tmp_str, colLength[7]);
 
         // bad scaler reads
-        WriteTableEntry(table, c.GetRun(i)->GetBadScalerReads(), colLength[8]);
+        strncpy(tmp_str, c.GetRun(i)->GetBadScalerReads(), MAX_SCR_BAD_STRING);
+        tmp_str[MAX_SCR_BAD_STRING] = '\0';
+        WriteTableEntry(table, tmp_str, colLength[8]);
         
         // target
         WriteTableEntry(table, c.GetRun(i)->GetTarget(), colLength[9]);
