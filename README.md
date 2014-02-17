@@ -14,7 +14,16 @@ Installation
 ### Installation
 * Compile the software using `make clean ; make`
 
-### Upgrade from 0.1.x to 0.2.x
+### Upgrade from 0.2.x to 0.3.x
+* The database has to be updated to version 4 using
+
+```
+root -b $CALIB/macros/Upgrade_4.C
+```
+
+* Exports to ROOT files created with CaLib < 0.3.0 cannot be imported by Calib > 0.3.0!
+
+### Upgrade from 0.1.11 to 0.2.x
 * The database has to be updated to version 3 using
 
 ```
@@ -40,6 +49,9 @@ Further information and examples can be found in macros.
 
 Changelog
 ---------
+
+### 0.3.0beta
+* improved support for bad scaler reads
 
 ### 0.2.0
 January 7, 2014
