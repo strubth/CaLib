@@ -986,6 +986,14 @@ Bool_t TCMySQLManager::UpgradeDatabase(Int_t version)
             strcpy(query[2], "DROP TABLE IF EXISTS livetime");
             break;
         }
+        // version 4:
+        // - change type of table scr_bad to TEXT
+        case 4:
+        {
+            nQuery = 1;
+            strcpy(query[0], "ALTER TABLE run_main MODIFY scr_bad TEXT");
+            break;
+        }
         default:
         {
             Error("UpgradeDatabase", "Database upgrade to version %d not implemented!", version);

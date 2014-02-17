@@ -37,7 +37,7 @@ namespace TCConfig
                     "run_note VARCHAR(256),"
                     "size BIGINT DEFAULT 0,"
                     "scr_n INT DEFAULT -1,"
-                    "scr_bad VARCHAR(512),"
+                    "scr_bad TEXT,"
                     "target VARCHAR(20),"
                     "target_pol VARCHAR(128),"
                     "target_pol_deg DOUBLE DEFAULT 0,"
