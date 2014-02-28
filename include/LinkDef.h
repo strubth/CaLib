@@ -1,5 +1,5 @@
 /*************************************************************************
- * Author: Irakli Keshelashvili, Dominik Werthmueller
+ * Author: Irakli Keshelashvili, Dominik Werthmueller, Thomas Strub
  *************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
@@ -97,6 +97,19 @@
 #pragma link C++ class TCCalibVetoEnergy+;
 #pragma link C++ class TCCalibVetoTime+;
 #pragma link C++ class TCCalibVetoLED+;
+
+// Run calibration classes
+#pragma link C++ class TCARFileLoader+;
+#pragma link C++ class TCARHistoLoader+;
+#pragma link C++ class TCARRunHistoLoader+;
+#pragma link C++ class TCBadElement+;
+#pragma link C++ class TCBadScRElement+;
+#pragma link C++ class TCCalibRun+;
+#pragma link C++ class TCCalibRunBadScR+;
+#pragma link C++ class TCCalibRunBadScR_NaI+;
+#pragma link C++ class TCCalibRunBadScR_PID+;
+#pragma link C++ class TCCalibRunBadScR_BaF2+;
+#pragma link C++ class TCCalibRunBadScR_PWO+;
 
 #endif
 
