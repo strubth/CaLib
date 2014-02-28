@@ -670,6 +670,67 @@ void TCMySQLManager::GetChangeTimeOfSet(const Char_t* data, const Char_t* calibr
 }
 
 //______________________________________________________________________________
+Int_t* TCMySQLManager::GetRunsOfCalibration(const Char_t* calibration, Int_t* outNruns)
+{
+    // Returns a list of all runs of the calibration identifier 'calibration'.
+    // If 'outNruns' is not zero the number of runs will be written to this variable.
+    // NOTE: the run array must be destroyed by the caller.
+
+    // default data
+    const Char_t* default_data = "Data.Tagger.T0";
+
+    // init result variables
+    Int_t nruns = 0;
+    Int_t* runs = 0;
+
+    // get no. of sets
+    Int_t nsets = GetNsets(default_data, calibration);
+
+    // init helpers for sets
+    Int_t* nruns_set = new Int_t[nsets];
+    Int_t** runs_set = new Int_t*[nsets];
+
+    // loop over sets
+    for (Int_t i = 0; i < nsets; i++)
+    {
+        // get list of runs for set
+        runs_set[i] = GetRunsOfSet(default_data, calibration, i, &nruns_set[i]);
+
+        // update total number of runs
+        nruns += nruns_set[i];
+    }
+
+    // create array of run numbers
+    runs = new Int_t[nruns];
+
+    // loop over sets
+    Int_t index = 0;
+    for (Int_t i = 0; i < nsets; i++)
+    {
+        // loop over runs of this set and fill runs
+        for (Int_t j = 0; j < nruns_set[i]; j++)
+            runs[index + j] = runs_set[i][j];
+
+        // set new index
+        index += nruns_set[i];
+    }
+
+    // clean up
+    if (nruns_set) delete [] nruns_set;
+    if (runs_set)
+    {
+        for (Int_t i = 0; i < nsets; i++)
+            if (runs_set[i]) delete [] runs_set[i];
+        delete [] runs_set;
+    }
+
+    // return number of runs
+    if (outNruns) *outNruns = nruns;
+
+    return runs;
+}
+
+//______________________________________________________________________________
 Int_t* TCMySQLManager::GetRunsOfSet(const Char_t* data, const Char_t* calibration, 
                                     Int_t set, Int_t* outNruns = 0)
 {
@@ -1215,10 +1276,10 @@ Bool_t TCMySQLManager::ChangeRunBeamPolDeg(Int_t first_run, Int_t last_run, Doub
 }
 
 //______________________________________________________________________________
-Bool_t TCMySQLManager::ChangeRunTotNScR(const Int_t run, const Int_t nscr)
+Bool_t TCMySQLManager::ChangeRunNScR(const Int_t run, const Int_t nscr)
 {
-    // Change the number of total scaler reads for run 'run' to 'nscr'.  
-    // Returns kTRUE on success, kFALSE otherwise.
+    // Change the number of scaler reads for run 'run' to 'nscr'.  Returns kTRUE
+    // on success, kFALSE otherwise.
 
     // create string
     Char_t tmp[16];
@@ -1229,19 +1290,40 @@ Bool_t TCMySQLManager::ChangeRunTotNScR(const Int_t run, const Int_t nscr)
 }
 
 //______________________________________________________________________________
+Int_t TCMySQLManager::GetRunNScR(const Int_t run)
+{
+   // Reads the number of scaler reads for run 'run' from the database. Returns
+   // the read number of scaler read on success, or -2;
+
+   // create string
+   Char_t tmp[16];
+
+   // get number of scaler reads
+   if (!SearchRunEntry(run, "scr_n", tmp))
+   {
+       //
+       return -2;
+   }
+   else
+   {
+       //
+       return atoi(tmp);
+   }
+}
+
+/*
+//______________________________________________________________________________
 Bool_t TCMySQLManager::ChangeRunBadScR(const Int_t run, const Int_t nbadscr, const Int_t* const badscr)
 {
     // Change the bad scaler reads list string for run 'run' to a string of
     // comma and colon separated (ASCII) integers describing the 'nbadscr' bad
-    // scaler reads in 'badscr'.
+    // scaler reads in 'badscr'. Returns kTRUE on success, kFALSE otherwise.
     //
     // e.g.: badscr = {1,3,4,5,7,8,10} --> s = "1,3:5,7,8,10"
     //
     // With a 512 byte string and number of scaler reads <= 1000:
     //     Supported number of bad scaler reads: 128 (guaranteed) or more
     //     Supported number of scaler reads:     218 (guaranteed) or more
-    //
-    // Returns kTRUE on success, kFALSE otherwise.
 
     // init query string
     TString s = "";
@@ -1273,7 +1355,7 @@ Bool_t TCMySQLManager::ChangeRunBadScR(const Int_t run, const Int_t nbadscr, con
         s.Append(tmp);
     }
 
-    // remove trailing comma
+    // remove tailing comma
     s.Chop();
 
     // check length
@@ -1286,6 +1368,7 @@ Bool_t TCMySQLManager::ChangeRunBadScR(const Int_t run, const Int_t nbadscr, con
     // change list of bad scaler reads
     return ChangeRunEntries(run, run, "scr_bad", s.Data());
 }
+*/
 
 //______________________________________________________________________________
 Bool_t TCMySQLManager::ContainsCalibration(const Char_t* calibration)
@@ -2361,6 +2444,307 @@ Bool_t TCMySQLManager::MergeDataSets(const Char_t* data, const Char_t* calibrati
         {
             if (!fSilence) Error("MergeDataSets", "Could not adjust run interval of set %d!", set1);
             return kFALSE;
+        }
+    }
+
+    return kTRUE;
+}
+
+//______________________________________________________________________________
+Bool_t TCMySQLManager::ChangeRunBadScR(Int_t run, Int_t nbadscr, const Int_t* badscr, const Char_t* data)
+{
+    // ...
+
+    // get short name (only last part of calib data, e.g. 'Data.Run.BadScR.NaI' --> 'NaI')
+    data = strrchr(data, '.') + 1;
+
+    // read old values from database -------------------------------------------
+
+    // init return values
+    TCBadScRElement** badscr_data = 0;
+    Int_t ndata = 0;
+
+    // read all data
+    if (!ReadAllBadScR(run, badscr_data, ndata)) return kFALSE;
+
+
+    // change scaler reads in list --------------------------------------------
+
+    // init flag
+    Bool_t isAdded = kFALSE;
+
+    // loop over data
+    for (Int_t d = 0; d < ndata; d++)
+    {
+        // check whether names match
+        if (strcmp(badscr_data[d]->GetCalibData(), data) == 0)
+        {
+            // remove bad scaler reads
+            badscr_data[d]->RemBad();
+
+            // add new bad scaler reads
+            badscr_data[d]->AddBad(nbadscr, badscr);
+
+            // set flag
+            isAdded = kTRUE;
+        }
+    }
+
+    // check whether it was added already (if not append a new element)
+    if (!isAdded)
+    {
+        // create new array
+        TCBadScRElement** badscr_data_tmp = new TCBadScRElement*[ndata+1];
+
+        // copy old pointers
+        for (Int_t i = 0; i < ndata; i++)
+            badscr_data_tmp[i] = badscr_data[i];
+
+        // delete old array
+        delete [] badscr_data;
+
+        // set pointer
+        badscr_data = badscr_data_tmp;
+
+        // append the new data (do not need to set totnscr)
+        badscr_data[ndata] = new TCBadScRElement(run, nbadscr, badscr);
+
+        // set name
+        badscr_data[ndata]->SetCalibData(data);
+
+        // increment number of data
+        ndata++;
+    }
+
+
+    // create query string -------------------------------------------------------
+
+    // init query string
+    TString s = "";
+
+    // loop over data
+    for (Int_t d = 0; d < ndata; d++)
+    {
+        // append name
+        s.Append(badscr_data[d]->GetCalibData());
+        s.Append(":");
+
+        // get bad scaler read values
+        Int_t nbadscr = badscr_data[d]->GetNBad();
+        const Int_t* badscr = badscr_data[d]->GetBad();
+
+        // loop over input bad scaler reads list
+        for (Int_t i = 0; i < nbadscr; i++)
+        {
+            Char_t tmp[16];
+            Int_t j = 0;
+    
+            // loop over subsequent values in order to detect series, i.e., badscr[k]+1 == badscr[k+1]
+            for (j = 0; i + j < nbadscr - 1; j++)
+                if (badscr[i+j] + 1 != badscr[i+j+1]) break;
+    
+            // check for series with more than 2 elements
+            if (j > 1)
+            {
+                // separate first and last value of series with ':'
+                sprintf(tmp, "%d-%d,", badscr[i], badscr[i+j]);
+                i += j; 
+            }
+            else
+            {
+                // separate with ','
+                sprintf(tmp, "%d,", badscr[i]);
+            }
+    
+            // append to query string
+            s.Append(tmp);
+        }
+    
+        // remove tailing comma
+        s.Chop();
+
+        // append data delimiter
+        s.Append(";");
+    }
+
+
+    // finish ------------------------------------------------------------------
+
+    // clean up 
+    for (Int_t i = 0; i < ndata; i++)
+        delete badscr_data[i];
+    delete [] badscr_data;
+
+    // change list of bad scaler reads
+    return ChangeRunEntries(run, run, "scr_bad", s.Data());
+}
+
+//______________________________________________________________________________
+Bool_t TCMySQLManager::GetRunBadScR(Int_t run, Int_t& nbadscr, Int_t*& badscr, const Char_t* data)
+{
+    // Returns a list bad scaler reads for 'data' of the run 'run'. If data is
+    // ommited all bad scaler read of the run are returned. The number of bad
+    // scaler reads is stored to 'nbadscr' and the array of bad scaler reads is
+    // stored to 'badscr'.
+    // If there is no list of bad scaler reads for 'data' the NULL pointer for
+    // 'badscr' is returnd.
+    // NOTE: The array has to be destroyed by the caller. 
+
+    // get short name (only last part of calib data, e.g. 'Data.Run.BadScR.NaI' --> 'NaI')
+    data = strrchr(data, '.') + 1;
+
+    // declare temporary bad scr element
+    TCBadScRElement* badscr_tmp = 0;
+
+    // init return variables
+    nbadscr = 0;
+    badscr = 0;
+
+    // init variables for database read call
+    TCBadScRElement** badscr_data = 0;
+    Int_t ndata = 0;
+
+    // read bad scr for all data
+    if (!ReadAllBadScR(run, badscr_data, ndata)) return kFALSE;
+
+    // loop over data
+    for (Int_t d = 0; d < ndata; d++)
+    {
+        // check whether names match
+        if (!data || strcmp(badscr_data[d]->GetCalibData(), data) == 0)
+        {
+            // create bad scr element
+            if (!badscr_tmp) badscr_tmp = new TCBadScRElement();
+
+            // add bad scr
+            badscr_tmp->AddBad(badscr_data[d]->GetNBad(), badscr_data[d]->GetBad());
+        }
+
+        // clean up
+        delete badscr_data[d];
+    }
+
+    // clean up
+    delete [] badscr_data;
+
+    // check whether data was found
+    if (badscr_tmp)
+    {
+        // set number of bad scaler reads
+        nbadscr = badscr_tmp->GetNBad();
+
+        // create array of bad scaler reads
+        if (nbadscr) badscr = new Int_t[nbadscr];
+
+        // copy values
+        for (Int_t i = 0; i < nbadscr; i++)
+            badscr[i] = badscr_tmp->GetBad()[i];
+
+        // clean up
+        delete badscr_tmp;
+    }
+
+    return kTRUE;
+}
+
+//______________________________________________________________________________
+Bool_t TCMySQLManager::ReadAllBadScR(Int_t run, TCBadScRElement**& badscr_data, Int_t& ndata)
+{
+    // Reads the all bad scaler read of the run 'run'. The number of data found
+    // is stored to 'ndata'. The bad scaler reads of each data is stored to a
+    // bad scaler read element
+    // an array of pointers to bad scaler read elements
+    // If the NULL
+    // Returns kTRUE if the database readout was successful, kFALSE otherwise.
+    // NOTE: The array has to be destroyed by the caller.
+
+    // init result variables
+    ndata = 0;
+    badscr_data = 0;
+
+    // init query return string 
+    Char_t tmp[1024*64];
+
+    // get run entry
+    if (!SearchRunEntry(run, "scr_bad", tmp)) return kFALSE;
+
+    // pointers to data tokens
+    Char_t** data = 0;
+
+    // get token for first data (e.g., "NaI:1,2,5-9\0")
+    Char_t* datatok = strtok(tmp, ";");
+
+    // loop over data tokens
+    while (datatok)
+    {
+        // create new pointer array
+        Char_t** data_tmp = new Char_t*[ndata + 1];
+
+        // copy old pointers
+        for (Int_t i = 0; i < ndata; i++)
+            data_tmp[i] = data[i];
+
+        // delete old pointer array
+        delete [] data;
+
+        // set pointer array to new pointer array
+        data = data_tmp;
+
+        // add new pointer
+        data[ndata] = datatok;
+
+        // increment data counter
+        ndata++;
+
+        // get next data token
+        datatok = strtok(0, ";");
+    }
+
+    // create bad scaler read element array
+    if (ndata) badscr_data = new TCBadScRElement*[ndata];
+
+    // loop over data
+    for (Int_t i = 0; i < ndata; i++)
+    {
+        // create new element
+        badscr_data[i] = new TCBadScRElement();
+
+        // get data name (e.g., "NaI\0")
+        Char_t* name = strtok(data[i], ":");
+
+        // set name
+        badscr_data[i]->SetCalibData(name);
+
+        // get first bad scr token (e.g., "1\0")
+        Char_t* bad = strtok(0, ",");
+
+        // loop over bad scr
+        while (bad)
+        {
+            // detect series ('-' separated, e.g. "5-9\0") 
+            Char_t* loc = strchr(bad, (Int_t) '-');
+
+            // check for series
+            if (!loc)
+            {
+                // add single bad scr
+                badscr_data[i]->AddBad(atoi(bad));
+            }
+            else
+            {
+                // get start value of series
+                Int_t min = atoi(bad);
+
+                // get stop value of series
+                Int_t max = atoi(&loc[1]);
+
+                // add series of bad scr
+                for (Int_t j = min; j <= max; j++)
+                    badscr_data[i]->AddBad(j);
+            }
+
+            // get next bad scr
+            bad = strtok(0, ",");
         }
     }
 

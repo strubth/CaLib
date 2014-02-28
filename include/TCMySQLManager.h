@@ -31,7 +31,7 @@
 #include "TCReadACQU.h"
 #include "TCReadARCalib.h"
 #include "TCContainer.h"
-
+#include "TCBadScRElement.h"
 
 class TCMySQLManager
 {
@@ -70,6 +70,8 @@ private:
     Bool_t MergeDataSets(const Char_t* data, const Char_t* calibration, 
                          Int_t set1, Int_t set2);
 
+    Bool_t ReadAllBadScR(Int_t run, TCBadScRElement**& badscr_data, Int_t& ndata);
+
 public:
     TCMySQLManager();
     virtual ~TCMySQLManager();
@@ -97,6 +99,7 @@ public:
                              Int_t set, Char_t* outDesc);
     void GetChangeTimeOfSet(const Char_t* data, const Char_t* calibration, 
                             Int_t set, Char_t* outTime);
+    Int_t* GetRunsOfCalibration(const Char_t* calibration, Int_t* outNruns = 0);
     Int_t* GetRunsOfSet(const Char_t* data, const Char_t* calibration,
                         Int_t set, Int_t* outNruns);
     Int_t GetSetForRun(const Char_t* data, const Char_t* calibration, Int_t run);
@@ -115,9 +118,12 @@ public:
     Bool_t ChangeRunBeamPol(Int_t first_run, Int_t last_run, const Char_t* beam_pol);
     Bool_t ChangeRunBeamPolDeg(Int_t first_run, Int_t last_run, Double_t beam_pol_deg);
 
-    Bool_t ChangeRunTotNScR(const Int_t run, const Int_t nscr);
-    Bool_t ChangeRunBadScR(const Int_t run, const Int_t nbadscr, const Int_t* const badscr);
-    
+    Bool_t ChangeRunNScR(Int_t run, Int_t nscr);
+    Int_t GetRunNScR(Int_t run);
+
+    Bool_t ChangeRunBadScR(Int_t run, Int_t nbadscr, const Int_t* badscr, const Char_t* data);
+    Bool_t GetRunBadScR(Int_t run, Int_t& nbadscr, Int_t*& badscr, const Char_t* data = 0);
+ 
     Bool_t ChangeCalibrationRunRange(const Char_t* calibration, const UInt_t firstRun, 
                                      const UInt_t lastRun);
     Bool_t ChangeCalibrationName(const Char_t* calibration, const Char_t* newCalibration);
