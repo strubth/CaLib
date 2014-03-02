@@ -23,8 +23,9 @@ void AddRuns()
     const Char_t target[]           = "H-Butanol";
 
     // add raw files to the database
-    TCMySQLManager::GetManager()->AddRunFiles(rawfilePath, target);
-    
+    TCMySQLManager::GetManager()->AddRunFiles(rawfilePath, target, "CBTaggTAPS");
+    TCMySQLManager::GetManager()->AddRunFiles(rawfilePath, target, "CBTaggTAPSPed");
+  
     gSystem->Exit(0);
 }
 
