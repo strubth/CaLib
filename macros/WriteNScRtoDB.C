@@ -4,7 +4,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
-// WriteTotScalerReads.C                                                      //
+// WriteNScRtoDB.C                                                            //
 //                                                                            //
 // Gets the number of scaler reads from histogram 'EventInfo' (bin no. 14)    //
 // for all runs of calibration 'calibration' and, after user confirmation,    //
@@ -14,15 +14,13 @@
 //     Mk1: around 50 ScR/GB.                                                 //
 //     Mk2: around ?? ScR/GB.                                                 //
 //                                                                            //
-// Have fun!                                                                  //
-//                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
 
-void WriteTotScalerReads(Char_t* calibration)
+void WriteNScRtoDB(Char_t* calibration)
 {
     // Write the total scaler reads to the database of the calibration 'calibration'.
-
+    
     // get configuration ///////////////////////////////////////////////////////
 
     // get input file pattern from config file
@@ -210,7 +208,7 @@ void WriteTotScalerReads(Char_t* calibration)
         }
 
         // save
-        if(TCMySQLManager::GetManager()->ChangeRunTotNScR(runs[i], n_scr[i]))
+        if(TCMySQLManager::GetManager()->ChangeRunNScR(runs[i], n_scr[i]))
         {
             printf("Info: Write to data base: Number of scaler reads for run '%d': %d\n", runs[i], n_scr[i]);
         }
