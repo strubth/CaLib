@@ -87,7 +87,7 @@ public:
     virtual ~TCACQUFile() { }
    
     void ReadFile(const Char_t* path, const Char_t* fname);
-    void Print();
+    virtual void Print(Option_t* option = "") const;
     void PrintListing() { printf("%s\t%s\t%s\t%s\t%lld\n", fFileName, fTime, fDescription, fRunNote, fSize); }
     
     Bool_t IsGoodDataFile()

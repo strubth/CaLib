@@ -2782,7 +2782,7 @@ void TCMySQLManager::Export(const Char_t* filename, Int_t first_run, Int_t last_
     }
 
     // save container to ROOT file
-    container->SaveAs(filename, fSilence);
+    container->Save(filename, fSilence);
     
     // clean-up
     delete container;

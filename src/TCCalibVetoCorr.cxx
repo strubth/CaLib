@@ -202,7 +202,7 @@ void TCCalibVetoCorr::ReadNeighbours()
 } 
 
 //______________________________________________________________________________
-void TCCalibVetoCorr::Write()
+void TCCalibVetoCorr::WriteValues()
 {
     // Disable this method.
 

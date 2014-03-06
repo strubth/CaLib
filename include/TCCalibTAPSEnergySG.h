@@ -51,7 +51,7 @@ public:
     TCCalibTAPSEnergySG();
     virtual ~TCCalibTAPSEnergySG();
     
-    virtual void Write();
+    virtual void WriteValues();
     virtual void PrintValues();
 
     ClassDef(TCCalibTAPSEnergySG, 0) // TAPS SG energy calibration

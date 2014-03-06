@@ -357,7 +357,7 @@ void TCCalibTAPSPSA::PrintValues()
 }
 
 //______________________________________________________________________________
-void TCCalibTAPSPSA::Write()
+void TCCalibTAPSPSA::WriteValues()
 {
     // Write the obtained calibration values to the database.
     

@@ -1139,7 +1139,7 @@ void ExportRuns()
         Int_t nRun = TCMySQLManager::GetManager()->DumpRuns(container, first_run, last_run);
 
         // save container to ROOT file
-        Bool_t ret = container->SaveAs(filename, kTRUE);
+        Bool_t ret = container->Save(filename, kTRUE);
     
         // clean-up
         delete container;
@@ -1218,7 +1218,7 @@ void ExportCalibration()
         Int_t nCalib = TCMySQLManager::GetManager()->DumpAllCalibrations(container, gCalibration);
 
         // save container to ROOT file
-        Bool_t ret = container->SaveAs(filename, kTRUE);
+        Bool_t ret = container->Save(filename, kTRUE);
     
         // clean-up
         delete container;
@@ -1761,7 +1761,7 @@ void ChangeDescription()
     // ask new description
     mvprintw(6, 2, "Selected calibration                       : %s", gCalibration);
     mvprintw(7, 2, "Enter new description                      : ");
-    scanw("%[^\n]s", newDesc);
+    scanw((Char_t*)"%[^\n]s", newDesc);
 
     // ask confirmation
     mvprintw(9, 2, "Changing description of calibration '%s' to '%s'", gCalibration, newDesc);

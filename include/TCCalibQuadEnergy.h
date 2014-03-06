@@ -62,7 +62,7 @@ public:
                       Int_t nElem);
     virtual ~TCCalibQuadEnergy();
     
-    virtual void Write();
+    virtual void WriteValues();
     virtual void PrintValues();
 
     ClassDef(TCCalibQuadEnergy, 0) // Base quadratic energy correction class

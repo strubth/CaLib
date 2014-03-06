@@ -433,7 +433,7 @@ void TCCalibQuadEnergy::PrintValues()
 }
 
 //______________________________________________________________________________
-void TCCalibQuadEnergy::Write()
+void TCCalibQuadEnergy::WriteValues()
 {
     // Write the obtained calibration values to the database.
     

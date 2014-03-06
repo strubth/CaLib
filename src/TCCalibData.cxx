@@ -26,7 +26,7 @@ TCCalibData::TCCalibData(const Char_t* name, const Char_t* title, Int_t nSize)
 }
 
 //______________________________________________________________________________
-void TCCalibData::Print()
+void TCCalibData::Print(Option_t* option) const
 {
     // Print the content of this class.
     

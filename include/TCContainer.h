@@ -90,7 +90,7 @@ public:
     const Char_t* GetBeamPol() const { return fBeamPol; }
     Double_t GetBeamPolDeg() const { return fBeamPolDeg; }
     
-    void Print()
+    virtual void Print(Option_t* option = "") const
     {
         printf("CaLib Run Information\n");
         printf("Run               : %d\n", fRun);
@@ -164,7 +164,7 @@ public:
     Int_t GetNParameters() const { return fNpar; }
     Double_t* GetParameters() const { return fPar; }
     
-    void Print()
+    virtual void Print(Option_t* option = "") const
     {
         printf("CaLib Calibration Information\n");
         printf("Calibration data : %s\n", fData);
@@ -206,9 +206,9 @@ public:
 
     TCRun* AddRun(Int_t run);
     TCCalibration* AddCalibration(const Char_t* calibration);
-    Bool_t SaveAs(const Char_t* filename, Bool_t silence = kFALSE);
+    Bool_t Save(const Char_t* filename, Bool_t silence = kFALSE);
  
-    void Print();
+    virtual void Print(Option_t* option = "") const;
     void ShowRuns();
     void ShowCalibrations();
 

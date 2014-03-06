@@ -43,7 +43,7 @@ public:
     TCCalibPIDPhi();
     virtual ~TCCalibPIDPhi();
     
-    virtual void Write();
+    virtual void WriteValues();
 
     ClassDef(TCCalibPIDPhi, 0) // PID phi calibration
 };

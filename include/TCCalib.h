@@ -92,7 +92,7 @@ public:
           fTimer(0), fTimerRunning(kFALSE) { }
     virtual ~TCCalib();
     
-    virtual void Write();
+    virtual void WriteValues();
     virtual void PrintValues();
     virtual void PrintValuesChanged();
 

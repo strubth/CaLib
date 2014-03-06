@@ -274,7 +274,7 @@ void TCCalib::PrintValuesChanged()
 }
 
 //______________________________________________________________________________
-void TCCalib::Write()
+void TCCalib::WriteValues()
 {
     // Write the obtained calibration values to the database.
     

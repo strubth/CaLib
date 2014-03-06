@@ -34,7 +34,7 @@ public:
     TCCalibData* GetData(Int_t n) { return fData ? (TCCalibData*)fData->At(n) : 0; }
 
     void AddData(TCCalibData* data) { if (fData) fData->Add(data); }
-    void Print();
+    virtual void Print(Option_t* option = "") const;
 
     ClassDef(TCCalibType, 1) // Calibration type class
 };

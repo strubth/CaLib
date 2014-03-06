@@ -358,7 +358,7 @@ void TCCalibPIDDroop::PrintValues()
 }
 
 //______________________________________________________________________________
-void TCCalibPIDDroop::Write()
+void TCCalibPIDDroop::WriteValues()
 {
     // Disable this method.
     
