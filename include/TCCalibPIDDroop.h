@@ -51,7 +51,7 @@ public:
     TCCalibPIDDroop();
     virtual ~TCCalibPIDDroop();
 
-    virtual void Write();
+    virtual void WriteValues();
     virtual void PrintValues();
 
 

@@ -311,7 +311,7 @@ TH1* TCCalibPIDPhi::GetMappedHistogram(TH1* histo)
 }
 
 //______________________________________________________________________________
-void TCCalibPIDPhi::Write()
+void TCCalibPIDPhi::WriteValues()
 {
     // Overwrite this method of the parent class to save also the second
     // overview canvas.

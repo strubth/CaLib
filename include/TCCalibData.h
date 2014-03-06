@@ -34,7 +34,7 @@ public:
 
     void SetTableName(TString tName) { fTableName = tName; }
     
-    void Print();
+    virtual void Print(Option_t* option = "") const;
     virtual ULong_t Hash() const { return fName.Hash(); }
 
     ClassDef(TCCalibData, 1) // Calibration data class

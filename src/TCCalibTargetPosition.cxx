@@ -250,7 +250,7 @@ void TCCalibTargetPosition::Calculate(Int_t elem)
 }   
 
 //______________________________________________________________________________
-void TCCalibTargetPosition::Write()
+void TCCalibTargetPosition::WriteValues()
 {
     // Save the overview plot.
     

@@ -50,7 +50,7 @@ public:
     TCCalibTAPSPSA();
     virtual ~TCCalibTAPSPSA();
     
-    virtual void Write();
+    virtual void WriteValues();
     virtual void PrintValues();
 
     ClassDef(TCCalibTAPSPSA, 0) // TAPS PSA

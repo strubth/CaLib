@@ -45,7 +45,7 @@ public:
     TCCalibCBTimeWalk();
     virtual ~TCCalibCBTimeWalk();
 
-    virtual void Write();
+    virtual void WriteValues();
     virtual void PrintValues();
 
     Double_t TWFunc(Double_t* x, Double_t* par);

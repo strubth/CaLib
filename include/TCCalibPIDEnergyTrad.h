@@ -55,7 +55,7 @@ public:
     TCCalibPIDEnergyTrad();
     virtual ~TCCalibPIDEnergyTrad();
 
-    virtual void Write();
+    virtual void WriteValues();
     virtual void PrintValues();
 
 

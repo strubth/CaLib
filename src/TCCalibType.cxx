@@ -34,7 +34,7 @@ TCCalibType::~TCCalibType()
 }
 
 //______________________________________________________________________________
-void TCCalibType::Print()
+void TCCalibType::Print(Option_t* option) const
 {
     // Print the content of this class.
     

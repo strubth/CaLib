@@ -37,7 +37,7 @@ public:
     TCCalibTargetPosition();
     virtual ~TCCalibTargetPosition();
 
-    virtual void Write();
+    virtual void WriteValues();
     virtual void PrintValues();
 
     ClassDef(TCCalibTargetPosition, 0) // target position calibration

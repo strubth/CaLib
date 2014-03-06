@@ -40,7 +40,7 @@ public:
     TCCalibVetoCorr();
     virtual ~TCCalibVetoCorr();
 
-    virtual void Write();
+    virtual void WriteValues();
     virtual void PrintValues();
     virtual void PrintValuesChanged();
 

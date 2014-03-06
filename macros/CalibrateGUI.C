@@ -280,7 +280,7 @@ void ButtonWindow::DoWrite()
     // Write the values of the current module to the database.
 
     if (gCurrentModule)
-        ((TCCalib*)gCurrentModule)->Write();
+        ((TCCalib*)gCurrentModule)->WriteValues();
 }
 
 //______________________________________________________________________________

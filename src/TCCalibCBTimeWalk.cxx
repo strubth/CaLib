@@ -339,7 +339,7 @@ void TCCalibCBTimeWalk::PrintValues()
 }
 
 //______________________________________________________________________________
-void TCCalibCBTimeWalk::Write()
+void TCCalibCBTimeWalk::WriteValues()
 {
     // Write the obtained calibration values to the database.
     

@@ -394,7 +394,7 @@ void TCCalibTAPSEnergySG::PrintValues()
 }
 
 //______________________________________________________________________________
-void TCCalibTAPSEnergySG::Write()
+void TCCalibTAPSEnergySG::WriteValues()
 {
     // Write the obtained calibration values to the database.
     

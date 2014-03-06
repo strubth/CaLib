@@ -365,7 +365,7 @@ void TCCalibPIDEnergyTrad::PrintValues()
 }
 
 //______________________________________________________________________________
-void TCCalibPIDEnergyTrad::Write()
+void TCCalibPIDEnergyTrad::WriteValues()
 {
     // Write the obtained calibration values to the database.
     

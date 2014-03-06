@@ -255,7 +255,7 @@ void TCACQUFile::ParseHeader(const Char_t* buffer, RawFileFormat_t format)
 }
 
 //______________________________________________________________________________
-void TCACQUFile::Print()
+void TCACQUFile::Print(Option_t* option) const
 {
     // Print the content of this class.
 
