@@ -22,8 +22,8 @@ void AddBeamtime()
     // the other parts of the code unchanged
     const Char_t rawfilePath[]      = "/kernph/data/A2/H-Butanol/Nov_13";
     const Char_t target[]           = "H-Butanol";
-    const Int_t firstRun            = 1293;
-    const Int_t lastRun             = 1300;
+    const Int_t firstRun            = 201;
+    const Int_t lastRun             = 1357;
     const Char_t calibName[]        = "H-Butanol_Nov_13";
     const Char_t calibDesc[]        = "Standard calibration for November 2013 beamtime";
     const Char_t calibFileTagger[]  = "/usr/users/werthm/AcquRoot/acqu/acqu/data/Nov_13/Tagger/FP.dat";
