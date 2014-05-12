@@ -1428,6 +1428,7 @@ Bool_t TCMySQLManager::ChangeCalibrationName(const Char_t* calibration, const Ch
     // loop over calibration data
     TIter next(fData);
     TCCalibData* d;
+    Bool_t succ = kTRUE;
     while ((d = (TCCalibData*)next()))
     {
         // create the query
@@ -1442,19 +1443,24 @@ Bool_t TCMySQLManager::ChangeCalibrationName(const Char_t* calibration, const Ch
         // check result
         if (!res)
         {
-            if (!fSilence) Error("ChangeCalibrationName", "Could not rename calibration '%s' to '%s'!",
-                                 calibration, newCalibration);
-            return kFALSE;
+            if (!fSilence) Error("ChangeCalibrationName", "Could not rename table '%s' of calibration '%s'!",
+                                 d->GetTableName(), calibration);
+            succ = kFALSE;
         }
 
         // clean-up
         delete res;
     }
     
-    if (!fSilence) Info("ChangeCalibrationName", "Renamed calibration '%s' to '%s'",
-                        calibration, newCalibration);
- 
-    return kTRUE;
+    if (!fSilence) 
+    {
+        if (succ)
+            Info("ChangeCalibrationName", "Renamed calibration '%s' to '%s'", calibration, newCalibration);
+        else
+            Error("ChangeCalibrationName", "Some problem(s) occurred - check your database for inconsistencies!");
+    }
+    
+    return succ;
 }
 
 //______________________________________________________________________________
@@ -1476,6 +1482,7 @@ Bool_t TCMySQLManager::ChangeCalibrationDescription(const Char_t* calibration, c
     // loop over calibration data
     TIter next(fData);
     TCCalibData* d;
+    Bool_t succ = kTRUE;
     while ((d = (TCCalibData*)next()))
     {
         // create the query
@@ -1490,19 +1497,24 @@ Bool_t TCMySQLManager::ChangeCalibrationDescription(const Char_t* calibration, c
         // check result
         if (!res)
         {
-            if (!fSilence) Error("ChangeCalibrationDescription", "Could not change description for calibration '%s' to '%s'!",
-                                 calibration, newDesc);
-            return kFALSE;
+            if (!fSilence) Error("ChangeCalibrationDescription", "Could not change description in table '%s' of calibration '%s'!",
+                                 d->GetTableName(), calibration);
+            succ = kFALSE;
         }
 
         // clean-up
         delete res;
     }
     
-    if (!fSilence) Info("ChangeCalibrationDescription", "Changed description of calibration '%s' to '%s'",
-                        calibration, newDesc);
- 
-    return kTRUE;
+    if (!fSilence) 
+    {
+        if (succ)
+            Info("ChangeCalibrationDescription", "Changed description of calibration '%s' to '%s'", calibration, newDesc);
+        else
+            Error("ChangeCalibrationDescription", "Some problem(s) occurred - check your database for inconsistencies!");
+    }
+
+    return succ;
 }
 
 //______________________________________________________________________________
@@ -1558,6 +1570,7 @@ Bool_t TCMySQLManager::ChangeCalibrationRunRange(const Char_t* calibration, cons
     // loop over calibration data
     TIter next(fData);
     TCCalibData* d;
+    Bool_t succ = kTRUE;
     while ((d = (TCCalibData*)next()))
     {
         // 
@@ -1577,9 +1590,9 @@ Bool_t TCMySQLManager::ChangeCalibrationRunRange(const Char_t* calibration, cons
             // check result
             if (!res)
             {
-                if (!fSilence) Error("ChangeCalibrationRunRange", "Could not change first run of calibration '%s' to %d!",
-                                     calibration, firstRun);
-                return kFALSE;
+                if (!fSilence) Error("ChangeCalibrationRunRange", "Could not change first run in table '%s' of calibration '%s'!",
+                                     d->GetTableName(), calibration);
+                succ = kFALSE;
             }
 
             // clean-up
@@ -1603,9 +1616,9 @@ Bool_t TCMySQLManager::ChangeCalibrationRunRange(const Char_t* calibration, cons
             // check result
             if (!res)
             {
-                if (!fSilence) Error("ChangeCalibrationRunRange", "Could not change last run of calibration '%s' to %d!",
-                                     calibration, lastRun);
-                return kFALSE;
+                if (!fSilence) Error("ChangeCalibrationRunRange", "Could not change last run in table '%s' of calibration '%s'!",
+                                     d->GetTableName(), calibration);
+                succ = kFALSE;
             }
 
             // clean-up
@@ -1613,10 +1626,15 @@ Bool_t TCMySQLManager::ChangeCalibrationRunRange(const Char_t* calibration, cons
         }
     }
     
-    if (!fSilence) Info("ChangeCalibrationRunRange", "Changed run range of calibration '%s' to [%d,%d]",
-                        calibration, firstRun, lastRun);
- 
-    return kTRUE;
+    if (!fSilence) 
+    {
+        if (succ)
+            Info("ChangeCalibrationRunRange", "Changed run range of calibration '%s' to [%d,%d]", calibration, firstRun, lastRun);
+        else
+            Error("ChangeCalibrationRunRange", "Some problem(s) occurred - check your database for inconsistencies!");
+    }
+
+    return succ;
 }
 
 //______________________________________________________________________________
