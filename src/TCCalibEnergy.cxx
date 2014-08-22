@@ -142,7 +142,7 @@ void TCCalibEnergy::Fit(Int_t elem)
         {
 	    fFitFunc->SetRange(80, 200);
        	    fFitFunc->SetParameters(fFitHisto->GetMaximum(), fPi0Pos, 10, 1, 1, 1, 0.1);
-	    fFitFunc->SetParLimits(1, 1, 2000);
+	    fFitFunc->SetParLimits(0, 1, 2000);
 	    fFitFunc->SetParLimits(1, 115, 140);
 	    fFitFunc->SetParLimits(2, 5, 15);
             fFitFunc->FixParameter(6, 0);
