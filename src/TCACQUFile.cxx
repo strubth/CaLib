@@ -91,6 +91,9 @@ void TCACQUFile::RemoveControlChars(Char_t* string)
     TString s(string);
     s.Remove(TString::kBoth, '\n');
     s.Remove(TString::kBoth, '\t');
+    s.ReplaceAll("\\", "");
+    s.ReplaceAll("\"", "");
+    s.ReplaceAll("\'", "");
     s.Remove(TString::kBoth, ' ');
     strcpy(string, s.Data());
 }
