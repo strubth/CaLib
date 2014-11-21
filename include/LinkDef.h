@@ -101,7 +101,6 @@
 // Run calibration classes
 #pragma link C++ class TCARFileLoader+;
 #pragma link C++ class TCARHistoLoader+;
-#pragma link C++ class TCARRunHistoLoader+;
 #pragma link C++ class TCBadElement+;
 #pragma link C++ class TCBadScRElement+;
 #pragma link C++ class TCCalibRun+;
