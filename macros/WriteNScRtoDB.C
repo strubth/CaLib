@@ -6,9 +6,9 @@
 //                                                                            //
 // WriteNScRtoDB.C                                                            //
 //                                                                            //
-// Gets the number of scaler reads from histogram 'EventInfo' (bin no. 14)    //
-// for all runs of calibration 'calibration' and, after user confirmation,    //
-// writes these values to the database.                                       //
+// Gets the number of scaler reads from histogram 'EventInfo' (bin number     //
+// TCConfig::kNScREventHBin) for all runs of calibration 'calibration' and,   //
+// after user confirmation, writes these values to the database.              //
 //                                                                            //
 // NB: Needs the correct CaLib config file.                                   //
 //     Mk1: around 50 ScR/GB.                                                 //
@@ -17,9 +17,12 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 
-void WriteNScRtoDB(Char_t* calibration)
+void WriteNScRtoDB()
 {
-    // Write the total scaler reads to the database of the calibration 'calibration'.
+    // Main method.
+    
+    // macro configuration (to be adapted by the user)
+    const Char_t* calibration = "LH2_Apr_09";
     
     // get configuration ///////////////////////////////////////////////////////
 
@@ -150,7 +153,7 @@ void WriteNScRtoDB(Char_t* calibration)
         if (h)
         {
             // set number of scaler reads for this run
-            n_scr[i] = h->GetBinContent(14);
+            n_scr[i] = h->GetBinContent(TCConfig::kNScREventHBin);
             printf("Info: Number of scaler reads for run '%d': %d\n", runs[i], n_scr[i]);
         }
         else
