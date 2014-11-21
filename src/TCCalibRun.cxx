@@ -1,13 +1,14 @@
-/*************************************************************************
- * Author: Thomas Strub
- *************************************************************************/
+/************************************************************************
+ * Author: Thomas Strub                                                 *
+ ************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TCCalibRun                                                           //
 //                                                                      //
-// Abstract beamtime calibration module class for run by run            //
-// calibration.                                                         //
+// Abstract run by run calibration class.                               //
+//                                                                      //
+// Have fun!                                                            //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
@@ -27,6 +28,7 @@ TCCalibRun::~TCCalibRun()
     if (fRuns) delete [] fRuns;
 }
 
+
 //______________________________________________________________________________
 Bool_t TCCalibRun::SetConfig()
 {
@@ -37,6 +39,7 @@ Bool_t TCCalibRun::SetConfig()
 
     return kTRUE;
 }
+
 
 //______________________________________________________________________________
 Bool_t TCCalibRun::Init()
@@ -49,6 +52,7 @@ Bool_t TCCalibRun::Init()
     return kTRUE;
 }
 
+
 //______________________________________________________________________________
 Bool_t TCCalibRun::Start(Int_t nruns, const Int_t* runs)
 {
@@ -56,11 +60,15 @@ Bool_t TCCalibRun::Start(Int_t nruns, const Int_t* runs)
     // run number array (from calib database), loads the histos, inits child and
     // processes first run.
 
+    // check whether already started
     if (fIsStarted)
     {
         Error("Start", "Is already started!");
         return kFALSE;
     }
+
+    // delete old run list
+    if (fRuns) delete [] fRuns;
 
     // set runs
     fNRuns = nruns;
@@ -77,11 +85,15 @@ Bool_t TCCalibRun::Start(Int_t nruns, const Int_t* runs)
     // set started flag
     fIsStarted = kTRUE;
 
+    // user info
+    Info("Start", "Starting calibration...");
+
     // start with the first run
     Process(0);
 
     return kTRUE;
 }
+
 
 //______________________________________________________________________________
 Bool_t TCCalibRun::Start(const Char_t* calibration)
@@ -90,11 +102,15 @@ Bool_t TCCalibRun::Start(const Char_t* calibration)
     // run number array (from calib database), loads the histos, inits child and
     // processes first run.
 
+    // check whether already started
     if (fIsStarted)
     {
         Error("Start", "Was already started!");
         return kFALSE;
     }
+
+    // delete old run list
+    if (fRuns) delete [] fRuns;
 
     // set calibration
     fCalibration = new TString(calibration);
@@ -112,24 +128,29 @@ Bool_t TCCalibRun::Start(const Char_t* calibration)
     // set started flag
     fIsStarted = kTRUE;
 
+    // user info
+    Info("Start", "Starting calibration...");
+
     // start with the first run
     Process(0);
 
     return kTRUE;
 }
 
+
 //______________________________________________________________________________
 void TCCalibRun::Process(Int_t index)
 {
-    // Processes item 'item'.
+    // Processes run with index 'index'.
 
+    // check whether already started
     if (!fIsStarted)
     {
         Error("Process", "Not yet started!");
         return;
     }
 
-    // check range
+    // check whether index is in range
     if (index < 0 || index >= fNRuns)
     {
         Error("Process", "Run index  %d out of allowed range [0,%d]", index, fNRuns);
@@ -137,26 +158,28 @@ void TCCalibRun::Process(Int_t index)
     }
 
     // clean up current run
-    CleanUpRun();
+    CleanUpCurr();
 
-    // set current item
+    // set current run index
     fIndex = index; 
 
-    // setup new item
-    PrepareRun();
+    // setup current run
+    PrepareCurr();
 
-    // perform item
-    ProcessRun();
+    // process current run
+    ProcessCurr();
 
-    // update graphics
+    // update canvas
     UpdateCanvas();
 }
+
 
 //______________________________________________________________________________
 void TCCalibRun::Previous()
 {
-    // Processes the previous run
+    // Processes the previous run in list
 
+    // check whether already started
     if (!fIsStarted)
     {
         Error("Process", "Not yet started!");
@@ -167,10 +190,11 @@ void TCCalibRun::Previous()
     Process(fIndex - 1);
 }
 
+
 //______________________________________________________________________________
 void TCCalibRun::Next()
 {
-    // Saves run infos and process the next run. 
+    // Saves calibration values for current run and processes the next run. 
 
     if (!fIsStarted)
     {
@@ -178,17 +202,18 @@ void TCCalibRun::Next()
         return;
     }
 
-    // save run
-    SaveValRun();
+    // save values for current run
+    SaveValCurr();
 
     // process next run in list
     Process(fIndex + 1);
 }
+
 
 //______________________________________________________________________________
-void TCCalibRun::Ignore()
+void TCCalibRun::Skip()
 {
-    // Processes next run w/o saving the calculation of the current current run.
+    // Processes next run w/o saving the calibration values for the current.
 
     if (!fIsStarted)
     {
@@ -199,6 +224,7 @@ void TCCalibRun::Ignore()
     // process next run in list
     Process(fIndex + 1);
 }
+
 
 //______________________________________________________________________________
 void TCCalibRun::EventHandler(Int_t event, Int_t ox, Int_t oy, TObject* selected)
@@ -215,4 +241,7 @@ void TCCalibRun::EventHandler(Int_t event, Int_t ox, Int_t oy, TObject* selected
         if (oy == kKey_Right) Next();
     }
 }
+
+
+//finito
 

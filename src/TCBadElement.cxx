@@ -1,12 +1,14 @@
-/*************************************************************************
- * Author: Thomas Strub
- *************************************************************************/
+/************************************************************************
+ * Author: Thomas Strub                                                 *
+ ************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TCBadElement                                                         //
 //                                                                      //
 // Class containing an array of bad elements.                           //
+//                                                                      //
+// Have fun!                                                            //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
@@ -42,6 +44,7 @@ TCBadElement::TCBadElement(Int_t nbad, const Int_t* bad, Int_t nelem)
     // add the bad elements
     AddBad(nbad, bad);
 }
+
 
 //______________________________________________________________________________
 Int_t TCBadElement::MergeNSort(Int_t nbad, const Int_t* bad, Int_t* &bad_sort, Int_t nelem)
@@ -86,7 +89,7 @@ Int_t TCBadElement::MergeNSort(Int_t nbad, const Int_t* bad, Int_t* &bad_sort, I
         if (nelem >= 0 && nextentry >= nelem)
         {
             // print warning
-            Warning("MergeNSort", "Bad element '%d' ignored since it is out of the defined range of [0,%d]!", nextentry, nelem);
+            //Warning("MergeNSort", "Bad element '%d' ignored since it is out of the defined range of [0,%d]!", nextentry, nelem);
         }
         else
         {
@@ -116,6 +119,7 @@ Int_t TCBadElement::MergeNSort(Int_t nbad, const Int_t* bad, Int_t* &bad_sort, I
     return nbad_new;
 }
 
+
 //______________________________________________________________________________
 Bool_t TCBadElement::IsBad(Int_t bad) const
 {
@@ -134,6 +138,7 @@ Bool_t TCBadElement::IsBad(Int_t bad) const
     return kFALSE;
 }
 
+
 //______________________________________________________________________________
 Int_t TCBadElement::SetBad(Int_t nbad, const Int_t* bad)
 {
@@ -151,6 +156,7 @@ Int_t TCBadElement::SetBad(Int_t nbad, const Int_t* bad)
     // add the bad scaler reads
     return AddBad(nbad, bad);
 }
+
 
 //______________________________________________________________________________
 Int_t TCBadElement::SetNElem(Int_t nelem)
@@ -181,6 +187,7 @@ Int_t TCBadElement::SetNElem(Int_t nelem)
     return fNElem;
 }
 
+
 //______________________________________________________________________________
 Int_t TCBadElement::AddBad(Int_t bad)
 {
@@ -191,6 +198,7 @@ Int_t TCBadElement::AddBad(Int_t bad)
 
     return AddBad(1, &bad_tmp);
 }
+
 
 //______________________________________________________________________________
 Int_t TCBadElement::AddBad(Int_t nbad, const Int_t* bad)
@@ -230,6 +238,7 @@ Int_t TCBadElement::AddBad(Int_t nbad, const Int_t* bad)
     return fNBad;
 }
 
+
 //______________________________________________________________________________
 Int_t TCBadElement::RemBad(Int_t &bad)
 {
@@ -259,6 +268,7 @@ Int_t TCBadElement::RemBad(Int_t &bad)
     return --fNBad;
 }
 
+
 //______________________________________________________________________________
 void TCBadElement::RemBad()
 {
@@ -270,3 +280,4 @@ void TCBadElement::RemBad()
     fBad = 0;
 }
 
+//finito

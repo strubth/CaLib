@@ -1,12 +1,14 @@
-/*************************************************************************
- * Author: Thomas Strub
- *************************************************************************/
+/************************************************************************
+ * Author: Thomas Strub                                                 *
+ ************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TCBadScRElement                                                      //
 //                                                                      //
 // Class containing an array of bad scaler reads.                       //
+//                                                                      //
+// Have fun!                                                            //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
@@ -27,6 +29,7 @@ TCBadScRElement::TCBadScRElement(const TCBadScRElement &elem)
     fRunNumber = elem.GetRunNumber();
 }
 
+
 //______________________________________________________________________________
 Int_t TCBadScRElement::Set(Int_t runno, Int_t nbad, const Int_t* bad, Int_t nscr)
 {
@@ -44,3 +47,4 @@ Int_t TCBadScRElement::Set(Int_t runno, Int_t nbad, const Int_t* bad, Int_t nscr
     return SetBad(nbad, bad);
 }
 
+//finito
