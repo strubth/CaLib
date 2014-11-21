@@ -1,12 +1,14 @@
-/*************************************************************************
- * Author: Thomas Strub
- *************************************************************************/
+/************************************************************************
+ * Author: Thomas Strub                                                 *
+ ************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TCBadElement                                                         //
 //                                                                      //
 // Class containing an array of bad elements.                           //
+//                                                                      //
+// Have fun!                                                            //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
@@ -24,7 +26,7 @@ class TCBadElement
 protected:
     Int_t fNElem;                       // total number of elements
     Int_t fNBad;                        // number of bad elements
-    Int_t* fBad;                        //[fNBad] list of bad elements
+    Int_t* fBad;              //[fNBad] // list of bad elements
 
     static Int_t MergeNSort(Int_t nbad, const Int_t* bad, Int_t* &bad_sort, Int_t nelem = -1);
 
@@ -58,4 +60,3 @@ public:
 };
 
 #endif
-
