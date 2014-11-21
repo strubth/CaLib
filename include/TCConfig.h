@@ -50,6 +50,7 @@ namespace TCConfig
     extern const Char_t kCaLibVersion[];
     extern const Int_t kContainerFormatVersion;
     extern const Char_t kCaLibDumpName[];
+    extern const Int_t kNScREventHBin;
 
     // constants
     extern const Double_t kPi0Mass;
