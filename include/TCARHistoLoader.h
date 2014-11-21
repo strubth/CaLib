@@ -1,12 +1,14 @@
-/*************************************************************************
- * Author: Thomas Strub
- *************************************************************************/
+/************************************************************************
+ * Author: Thomas Strub                                                 *
+ ************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TCARHistoLoader                                                      //
 //                                                                      //
-// AR Histogram loading class for run by run calibration.               //
+// AR histogram loading class.                                          //
+//                                                                      //
+// Have fun!                                                            //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
@@ -31,9 +33,9 @@ public:
 
     TH1** CreateHistoArray(const Char_t* hname, Int_t& nhistos);
     TH1** CreateHistoArray(const Char_t* hname);
-    TH2*  CreateHistoOfProj(const Char_t* hname, const Char_t projaxis = 'X'); 
+    TH2D* CreateHistoOfProj(const Char_t* hname, const Char_t projaxis = 'X'); 
 
-    ClassDef(TCARHistoLoader, 0) // AR Histogram loading class (run by run)
+    ClassDef(TCARHistoLoader, 0) // AR histogram loading class
 };
 
 #endif
