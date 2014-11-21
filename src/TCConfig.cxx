@@ -62,7 +62,8 @@ namespace TCConfig
     // version numbers
     const Char_t kCaLibVersion[] = "0.3.0beta";
     const Int_t kContainerFormatVersion = 4;
-    extern const Char_t kCaLibDumpName[] = "CaLib_Dump";
+    const Char_t kCaLibDumpName[] = "CaLib_Dump";
+    const Int_t kNScREventHBin = 14;
 
     // constants
     const Double_t kPi0Mass = 134.9766;
