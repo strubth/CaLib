@@ -1,12 +1,14 @@
-/*************************************************************************
- * Author: Thomas Strub
- *************************************************************************/
+/************************************************************************
+ * Author: Thomas Strub                                                 *
+ ************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TCARHistoLoader                                                      //
 //                                                                      //
-// AR Histogram loading class for run by run calibration.               //
+// AR histogram loading class.                                          //
+//                                                                      //
+// Have fun!                                                            //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
@@ -19,7 +21,8 @@ ClassImp(TCARHistoLoader)
 //______________________________________________________________________________
 TH1** TCARHistoLoader::CreateHistoArray(const Char_t* hname, Int_t& nhistos)
 {
-   // Returns an array of histogram pointers (cf descr. below).
+   // Returns an array of histogram pointers (cf. description of function
+   // 'CreateHistoArray(const Char_t*)' below).
 
    // create the histogram array
    TH1** h = CreateHistoArray(hname);
@@ -32,26 +35,28 @@ TH1** TCARHistoLoader::CreateHistoArray(const Char_t* hname, Int_t& nhistos)
    return h;
 }
 
+
 //______________________________________________________________________________
 TH1** TCARHistoLoader::CreateHistoArray(const Char_t* hname)
 {
-    // Returns an array of histogram pointers of length 'fNRuns'. The i-th array
+    // Creates an array of histogram pointers of length 'fNRuns'. The i-th array
     // element points to the histogram with name 'hname' loaded from the file
-    // 'fFiles[i]' (AR file of the run 'fRuns[i]'). The name is changed to
-    // 'hname_fRuns[i]'.
+    // 'fFiles[i]' (i.e., the AR file of the run with run number 'fRuns[i]').
+    // The individual histogram names are suffixed with an underscore followed
+    // by the associated the run number.
     // If the histogram cannot be found for some file, the NULL pointer is set
-    // for the corresponding array element.
-    // If ...
+    // for the corresponding array element. If no histogram is found the NULL
+    // pointer is returned for the output histogram array.
     // NOTE: the array (incl. histograms) has to be destroyed by the caller.
 
-    // create file list first
-    if (!fFiles && !CreateFileList()) return 0;
+    // load files first (if not already loaded)
+    if (!LoadFiles()) return 0;
 
     // create histogram array
     TH1** hOut =  new TH1*[fNRuns];
 
-    // init flag
-    Bool_t ische_nitte = kTRUE;
+    // init histo found flag 
+    Bool_t isFound = kFALSE;
 
     // loop over files
     for (Int_t i = 0; i < fNRuns; i++)
@@ -65,29 +70,30 @@ TH1** TCARHistoLoader::CreateHistoArray(const Char_t* hname)
         // get histogram
         TH1* h = (TH1*) fFiles[i]->Get(hname);
 
-        // check if histogram is there
+        // check for histogram
         if (!h)
         {
-            Warning("GetHistogram", "Histogram '%s' was not found in file '%s'",
-                                    hname, fFiles[i]->GetName());
+            Error("CreateHistoArray", "Histogram '%s' was not found in file '%s'!",
+                                      hname, fFiles[i]->GetName());
             continue;
         }
 
-        // check if object is really a histogram
+        // check whether object is a histogram
         if (!h->InheritsFrom("TH1"))
         {
-            Error("GetHistogram", "Object '%s' found in file '%s' is not a histogram!",
-                                  hname, fFiles[i]->GetName());
+            Error("CreateHistoOfProj", "Object named '%s' of file '%s' is not a histogram!",
+                                       hname, fFiles[i]->GetName());
             continue;
         }
 
-        ische_nitte = kFALSE;
+        // update found flag
+        isFound = kTRUE;
 
-        // detach from file
+        // detach histogram from file
         h->SetDirectory(0);
 
-        // set name
-        Char_t tmp[128];
+        // set histogram name
+        Char_t tmp[256];
         sprintf(tmp, "%s_%i", hname, fRuns[i]);
         h->SetName(tmp);
 
@@ -95,8 +101,8 @@ TH1** TCARHistoLoader::CreateHistoArray(const Char_t* hname)
         hOut[i] = h;
     }
 
-    // reset output array if no histo loaded
-    if (ische_nitte)
+    // reset output array if no histogram was loaded
+    if (!isFound)
     {
         delete [] hOut;
         hOut = 0;
@@ -105,12 +111,17 @@ TH1** TCARHistoLoader::CreateHistoArray(const Char_t* hname)
     return hOut;
 }
 
-//______________________________________________________________________________
-TH2* TCARHistoLoader::CreateHistoOfProj(const Char_t* hname, const Char_t projaxis)
-{
-    // WARNING: Not tested yet!!!
 
-    // init projection axis flag
+//______________________________________________________________________________
+TH2D* TCARHistoLoader::CreateHistoOfProj(const Char_t* hname, const Char_t projaxis)
+{
+    // Creates a TH2D histogram with 'fNRuns' y-bins. Its i-th y-slice is filled
+    // with the projection on the axis 'projaxis' of the histogram named 'hname'
+    // from the file 'fFiles[i]' (i.e., the AR file of the run with run number
+    // 'fRuns[i]').
+    // NOTE: the histogram has to be destroyed by the caller.
+
+    // init projection axis flags
     Bool_t isX = kFALSE;
     Bool_t isY = kFALSE;
     Bool_t isZ = kFALSE;
@@ -126,7 +137,7 @@ TH2* TCARHistoLoader::CreateHistoOfProj(const Char_t* hname, const Char_t projax
     }
 
     // get list of files first
-    if (!fFiles && !CreateFileList()) return 0;
+    if (!LoadFiles()) return 0;
 
     // declare out histo
     TH2D* hOut = 0;
@@ -134,27 +145,33 @@ TH2* TCARHistoLoader::CreateHistoOfProj(const Char_t* hname, const Char_t projax
     // declare reference histo
     TH1* href = 0;
 
-    // loop over runs
+    // loop over files
     for (Int_t i = 0; i < fNRuns; i++)
     {
-        // check file pointer (CreateFileList() already reports an error on that)
+        // check for file
         if (!fFiles[i]) continue;
 
-        // get histogram of this run
+        // get histogram
         TH1* h = (TH1*) fFiles[i]->Get(hname);
 
-        // check for histogram pointer
+        // check for histogram
         if (!h)
         {
-            Error("CreateHistoOfProj", "Run %i does not have a histogram named '%s'!", fRuns[i], hname);
+            Error("CreateHistoOfProj", "Histogram '%s' was not found in file '%s'!",
+                                      hname, fFiles[i]->GetName());
             continue;
         }
 
-        // check whether its a histogram
+        // check whether object is a histogram
         if (!h->InheritsFrom("TH1"))
         {
-            Error("CreateHistoOfProj", "Object named '%s' of run %i is not a histogramm!", hname, fRuns[i]);
+            Error("CreateHistoOfProj", "Object named '%s' of file '%s' is not a histogram!",
+                                       hname, fFiles[i]->GetName());
+
+            // delete h form memory
+            h->ResetBit(kMustCleanup);
             delete h;
+
             continue;
         }
 
@@ -164,23 +181,34 @@ TH2* TCARHistoLoader::CreateHistoOfProj(const Char_t* hname, const Char_t projax
             // check histo dimension vs. projection axis compatibility
             if (isY && h->GetDimension() < 2)
             {
-                Error("CreateHistoOfProj", "Cannot project on y-axis in a 1-dim histogram!");
-                continue;
+                Error("CreateHistoOfProj", "Cannot project on y-axis in a 1-dim. histogram!");
+
+                // delete h form memory
+                h->ResetBit(kMustCleanup);
+                delete h;
+
+                return 0;
             }
-            if (isZ && h->GetDimension() < 3)
+            else if (isZ && h->GetDimension() < 3)
             {
-                Error("CreateHistoOfProj", "Cannot project on z-axis in a 2-dim histogram!");
-                continue;
+                Error("CreateHistoOfProj", "Cannot project on z-axis in a 1- or 2-dim. histogram!");
+
+                // delete h form memory
+                h->ResetBit(kMustCleanup);
+                delete h;
+
+                return 0;
             }
         }
+/*
         else
         {
             // check consistency
             // ... to be done. Unfortunately the CheckConsistency() member function of TH1 is protected.
             // For the moment its the user's responsibility
         }
-
-        // declare projection
+*/
+        // declare projection histogram
         TH1* hp = 0;
 
         // project histogram
@@ -201,11 +229,24 @@ TH2* TCARHistoLoader::CreateHistoOfProj(const Char_t* hname, const Char_t projax
             if (isZ) hp = (TH1D*) ((TH3*) h)->ProjectionZ("pproj", 1, -1, 1, -1, "e");
         }
 
-        // create output histo if not created yet
+        // create output histogram (if not created yet)
         if (!hOut)
         {
             // improve!!! (assumes standard binning)
-            hOut = new TH2D("xxx","xxx", hp->GetNbinsX(), hp->GetBinLowEdge(1), hp->GetBinLowEdge(hp->GetNbinsX() + 1), fNRuns, 0, fNRuns);
+
+            // get name
+            Char_t name[256];
+            sprintf(name, "%s", h->GetName());
+
+            // get projection axis title
+            Char_t axistitle[256];
+            if (isX) sprintf(axistitle, h->GetXaxis()->GetTitle());
+            if (isY) sprintf(axistitle, h->GetYaxis()->GetTitle());
+            if (isZ) sprintf(axistitle, h->GetZaxis()->GetTitle());
+             
+            Char_t newtitle[256];
+            sprintf(newtitle, "%s;%s;Run index", h->GetTitle(), axistitle);
+            hOut = new TH2D(name, newtitle, hp->GetNbinsX(), hp->GetBinLowEdge(1), hp->GetBinLowEdge(hp->GetNbinsX() + 1), fNRuns, 0, fNRuns);
         }
 
         // loop over bins
@@ -221,7 +262,11 @@ TH2* TCARHistoLoader::CreateHistoOfProj(const Char_t* hname, const Char_t projax
             if (hp) delete hp;
 
         // set pointer to reference histo
-        if (!href) href = h;
+        if (!href) href = (TH1*) h->Clone("href");
+
+        // delete h form memory
+        h->ResetBit(kMustCleanup);
+        delete h;
 
     } // loop over runs
 
@@ -230,4 +275,6 @@ TH2* TCARHistoLoader::CreateHistoOfProj(const Char_t* hname, const Char_t projax
 
     return hOut;
 }
+
+// finito
 

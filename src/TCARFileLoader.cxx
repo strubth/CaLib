@@ -1,12 +1,14 @@
-/*************************************************************************
- * Author: Thomas Strub
- *************************************************************************/
+/************************************************************************
+ * Author: Thomas Strub                                                 *
+ ************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TCARFileLoader                                                       //
 //                                                                      //
-// AR Histogram loading base class.                                     //
+// AR file loading class.                                               //
+//                                                                      //
+// Have fun!                                                            //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
@@ -30,12 +32,12 @@ TCARFileLoader::TCARFileLoader(Int_t nruns, const Int_t* runs, const Char_t* inp
         fRuns[i] = runs[i];
 
     fFiles = 0;
-
-    fNGoodFiles = 0;
+    fNOpenFiles = 0;
 
     fInputFilePathPatt = 0;
     if (inputfilepathpatt) fInputFilePathPatt = new TString(inputfilepathpatt);
 }
+
 
 //______________________________________________________________________________
 TCARFileLoader::~TCARFileLoader()
@@ -51,6 +53,31 @@ TCARFileLoader::~TCARFileLoader()
     }
     if (fInputFilePathPatt) delete fInputFilePathPatt;
 }
+
+
+//______________________________________________________________________________
+void TCARFileLoader::ResetFileList()
+{
+    // Deletes the array of open files 'fFiles', resets the file list index
+    // 'fFileListIndex' and the number of open files 'fNOpenFiles'.
+
+    // delete old file list
+    if (fFiles)
+    {
+        for (Int_t i = 0; i < fNRuns; i++)
+            if (fFiles[i]) delete fFiles[i];
+        delete [] fFiles;
+        fFiles = 0;
+    }
+
+    // reset file list index
+    fFileListIndex = 0;
+
+    // reset number of open files
+    fNOpenFiles = 0;
+
+}
+
 
 //______________________________________________________________________________
 Bool_t TCARFileLoader::CreateFileList()
@@ -70,34 +97,26 @@ Bool_t TCARFileLoader::CreateFileList()
         return kFALSE;
     }
 
-    // delete old file list
-    if (fFiles)
-    {
-        for (Int_t i = 0; i < fNRuns; i++)
-            if (fFiles[i]) delete fFiles[i];
-        delete [] fFiles;
-    }
-
-    // reset number of good (i.e., open) files
-    fNGoodFiles = 0;
+    // reset file list
+    ResetFileList();
 
     // read input file pattern form config file
     if (!fInputFilePathPatt)
     {
-        if (TString* f = TCReadConfig::GetReader()->GetConfig("File.Input.Rootfiles"))
+        if (TString* patt = TCReadConfig::GetReader()->GetConfig("File.Input.Rootfiles"))
         {
-            fInputFilePathPatt = new TString(*f);
-
             // check file pattern
-            if (!fInputFilePathPatt->Contains("RUN"))
+            if (!patt->Contains("RUN"))
             {
-                Error("CreateFileList", "Error in file pattern configuration!");
+                Error("CreateFileList", "Error in input file path pattern configuration!");
                 return kFALSE;
             }
+
+            fInputFilePathPatt = new TString(*patt);
         }
         else
         {
-            Error("CreateFileList", "Could not load input file pattern from configuration file!");
+            Error("CreateFileList", "Could not load input file path pattern from configuration file!");
             return kFALSE;
         }
     }
@@ -136,11 +155,11 @@ Bool_t TCARFileLoader::CreateFileList()
             continue;
         }
 
-        // add good file to list
+        // add file to list
         fFiles[i] = f;
 
-        // increment counter
-        fNGoodFiles++;
+        // increment number of open files
+        fNOpenFiles++;
 
         // user information
         Info("CreateFileList", "%03d : added file '%s'", i, f->GetName());
@@ -152,20 +171,18 @@ Bool_t TCARFileLoader::CreateFileList()
     return kTRUE;
 }
 
+
 //______________________________________________________________________________
 void TCARFileLoader::SetRuns(Int_t nruns, Int_t* runs)
 {
     // Deletes old run list 'fRuns' and the file list 'fFiles'. Sets up the new
     // run list 'fRuns'.
 
-    // delete members first
+    // delete old run list
     if (fRuns) delete [] fRuns;
-    if (fFiles)
-    {
-        for (Int_t i = 0; i < fNRuns; i++)
-            if (fFiles[i]) delete fFiles[i];
-        delete [] fFiles;
-    }
+
+    // reset file list
+    ResetFileList();
 
     // set up new run list
     fNRuns = nruns;
@@ -174,6 +191,7 @@ void TCARFileLoader::SetRuns(Int_t nruns, Int_t* runs)
         fRuns[i] = runs[i];
 }
 
+
 //______________________________________________________________________________
 void TCARFileLoader::SetInputFilePatt(const Char_t* inputfilepathpatt)
 {
@@ -181,13 +199,8 @@ void TCARFileLoader::SetInputFilePatt(const Char_t* inputfilepathpatt)
     // 'inputfilepathpatt' is NULL 'fInputFilePathPatt' is set to NULL.
     // The list of files 'fFiles' is deleted.
 
-    // delete file list
-    if (fFiles)
-    {
-        for (Int_t i = 0; i < fNRuns; i++)
-            if (fFiles[i]) delete fFiles[i];
-        delete [] fFiles;
-    }
+    // reset file list
+    ResetFileList();
 
     // delete old pattern
     if (fInputFilePathPatt) delete fInputFilePathPatt;
@@ -196,6 +209,7 @@ void TCARFileLoader::SetInputFilePatt(const Char_t* inputfilepathpatt)
     // set new pattern
     if (inputfilepathpatt) fInputFilePathPatt = new TString(inputfilepathpatt);
 }
+
 
 //______________________________________________________________________________
 Bool_t TCARFileLoader::IsGood()
@@ -214,13 +228,12 @@ Bool_t TCARFileLoader::IsGood()
         return kFALSE;
 }
 
+
 //______________________________________________________________________________
 TFile* TCARFileLoader::NextFile()
 {
     // Returns the pointer (incl. NULL) to the next file in the file list
     // 'fFiles'. Returns NULL if there is no next file.
-
-    //return IsGood() ? fFiles[fFileListIndex++] : 0;
 
     if (IsGood())
         return fFiles[fFileListIndex++];
@@ -232,6 +245,7 @@ TFile* TCARFileLoader::NextFile()
         return 0;
     }
 }
+
 
 //______________________________________________________________________________
 TFile* TCARFileLoader::NextOpenFile()
@@ -252,3 +266,28 @@ TFile* TCARFileLoader::NextOpenFile()
     return f;
 }
 
+/*
+//______________________________________________________________________________
+Int_t TCARFileLoader::GetRun()
+{
+    // Returns the run number of the last file accessed by NextFile().
+
+    return (fFileListIndex > 0) ? fRuns[fFileListIndex-1] : 0;
+}
+*/
+
+
+//______________________________________________________________________________
+Int_t TCARFileLoader::FindRunIndex(Int_t run)
+{
+    // Returns the index of the run with run number 'run' within the list of
+    // runs 'fRuns'. If it cannot be found -1 is returned;
+
+    // loop over runs
+    for (Int_t i = 0; i < fNRuns; i++)
+        if (fRuns[i] == run) return i;
+
+    return -1;
+}
+
+//finito
