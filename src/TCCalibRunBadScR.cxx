@@ -297,14 +297,14 @@ Bool_t TCCalibRunBadScR::Init()
             TH1* h = (TH1*) rhl.GetFiles()[i]->Get("EventInfo");
 
             // check for same number of scaler reads
-            if (h && nscr != h->GetBinContent(14))
+            if (h && nscr != h->GetBinContent(TCConfig::kNScREventHBin))
             {
                  if (nscr == -1)
                      Warning("Init", "Number of scaler reads for run '%i' is not set in the database yet!", fRuns[i]);
                  else
                      Error("Init", "Number of scaler reads mismatch for run '%i' (database: '%i' vs. EventInfo histogram: '%i'!",
-                           fRuns[i], nscr, (Int_t) h->GetBinContent(14));
-                 nscr = h->GetBinContent(14);
+                           fRuns[i], nscr, (Int_t) h->GetBinContent(TCConfig::kNScREventHBin));
+                 nscr = h->GetBinContent(TCConfig::kNScREventHBin);
             }
         }
 
