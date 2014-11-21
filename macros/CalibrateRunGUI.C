@@ -4,7 +4,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// CalibrateGUI.C                                                       //
+// CalibrateRunGUI.C                                                    //
 //                                                                      //
 // GUI calibrations using CaLib.                                        //
 //                                                                      //
@@ -28,7 +28,7 @@ private:
     TGTextButton* fTB_Init;
     TGTextButton* fTB_Prev;
     TGTextButton* fTB_Next;
-    TGTextButton* fTB_Ignore;
+    TGTextButton* fTB_Skip;
     TGTextButton* fTB_Print;
     TGTextButton* fTB_PrintChanges;
     TGTextButton* fTB_Goto;
@@ -49,7 +49,7 @@ public:
     void ResizeFrame(TGFrame* f);
     void Goto();
     void DoNext();
-    void DoIgnore();
+    void DoSkip();
     void DoPrev();
     void DoAll();
     void DoModulSelection(Int_t);
@@ -128,11 +128,13 @@ ButtonWindow::ButtonWindow()
     control_frame->AddFrame(fTB_Write, new TGLayoutHints(kLHintsExpandX, 0, 0, 10, 0));
 
     fTB_Print = new TGTextButton(control_frame, "Print values");
+    fTB_Print->SetEnabled(kFALSE);
     ResizeFrame(fTB_Print);
     fTB_Print->Connect("Clicked()", "ButtonWindow", this, "Print()");
     control_frame->AddFrame(fTB_Print, new TGLayoutHints(kLHintsExpandX, 0, 0, 10, 0));
 
     fTB_PrintChanges = new TGTextButton(control_frame, "Print changes");
+    fTB_PrintChanges->SetEnabled(kFALSE);
     ResizeFrame(fTB_PrintChanges);
     fTB_PrintChanges->Connect("Clicked()", "ButtonWindow", this, "PrintChanges()");
     control_frame->AddFrame(fTB_PrintChanges, new TGLayoutHints(kLHintsExpandX, 0, 0, 10, 0));
@@ -154,25 +156,25 @@ ButtonWindow::ButtonWindow()
 
     fTB_Prev = new TGTextButton(nav_man_frame, "Previous");
     ResizeFrame(fTB_Prev);
-    fTB_Prev->SetToolTipText("Go to previous element", 200);
+    fTB_Prev->SetToolTipText("Go to previous run", 200);
     fTB_Prev->Connect("Clicked()", "ButtonWindow", this, "DoPrev()");
     nav_man_frame->AddFrame(fTB_Prev, new TGLayoutHints(kLHintsLeft, 0, 0, 10, 0));
     
     fTB_Next = new TGTextButton(nav_man_frame, "   Next   ");
     ResizeFrame(fTB_Next);
-    fTB_Next->SetToolTipText("Go to next element", 200);
+    fTB_Next->SetToolTipText("Go to next run", 200);
     fTB_Next->Connect("Clicked()", "ButtonWindow", this, "DoNext()");
     nav_man_frame->AddFrame(fTB_Next, new TGLayoutHints(kLHintsLeft, 0, 0, 10, 0));
     
-    fTB_Ignore = new TGTextButton(nav_man_frame, "   Ignore   ");
-    ResizeFrame(fTB_Ignore);
-    fTB_Ignore->SetToolTipText("Go to next element and ignore current one", 200);
-    fTB_Ignore->Connect("Clicked()", "ButtonWindow", this, "DoIgnore()");
-    nav_man_frame->AddFrame(fTB_Ignore, new TGLayoutHints(kLHintsLeft, 0, 20, 10, 0));
+    fTB_Skip = new TGTextButton(nav_man_frame, "   Skip   ");
+    ResizeFrame(fTB_Skip);
+    fTB_Skip->SetToolTipText("Go to next run and ignore current one", 200);
+    fTB_Skip->Connect("Clicked()", "ButtonWindow", this, "DoSkip()");
+    nav_man_frame->AddFrame(fTB_Skip, new TGLayoutHints(kLHintsLeft, 0, 20, 10, 0));
 
     fTB_Goto = new TGTextButton(nav_man_frame, "Go to");
     ResizeFrame(fTB_Goto);
-    fTB_Goto->SetToolTipText("Go to specified element", 200);
+    fTB_Goto->SetToolTipText("Go to specified run", 200);
     fTB_Goto->Connect("Released()", "ButtonWindow", this, "Goto()");
     nav_man_frame->AddFrame(fTB_Goto, new TGLayoutHints(kLHintsLeft, 0, 0, 10, 0));
     
@@ -193,12 +195,14 @@ ButtonWindow::ButtonWindow()
     nav_auto_frame->AddFrame(fNE_Delay, new TGLayoutHints(kLHintsLeft, 0, 5, 10, 0));
 
     fTB_DoAll = new TGTextButton(nav_auto_frame, "Start");
+    fTB_DoAll->SetEnabled(kFALSE);
     ResizeFrame(fTB_DoAll);
     fTB_DoAll->SetToolTipText("Process automatically", 200);
     fTB_DoAll->Connect("Clicked()", "ButtonWindow", this, "DoAll()");
     nav_auto_frame->AddFrame(fTB_DoAll, new TGLayoutHints(kLHintsLeft, 0, 0, 10, 0));
 
     fTB_Stop = new TGTextButton(nav_auto_frame, "Stop");
+    fTB_Stop->SetEnabled(kFALSE);
     ResizeFrame(fTB_Stop);
     fTB_Stop->SetToolTipText("Stop processing", 200);
     fTB_Stop->Connect("Clicked()", "ButtonWindow", this, "Stop()");
@@ -266,12 +270,12 @@ void ButtonWindow::DoNext()
 }
 
 //______________________________________________________________________________
-void ButtonWindow::DoIgnore()
+void ButtonWindow::DoSkip()
 {
     // Go to the next element in the current module and ignore current one.
     
     if (gCurrentModule)
-        ((TCCalibRun*)gCurrentModule)->Ignore();
+        ((TCCalibRun*)gCurrentModule)->Skip();
 }
 
 //______________________________________________________________________________
@@ -480,6 +484,18 @@ void CreateModuleList()
             // add module to list if it is really a module
             TClass tc(c.Data());
             if (tc.InheritsFrom("TCCalibRun")) gCaLibModules->Add((TCCalibRun*) tc.New());
+/*
+            if (c == "TCCalibRun") continue;
+
+            TClass tc(c.Data());
+            if (!tc.InheritsFrom("TCCalibRun")) continue;
+
+            TCCalibRun* o = (TCCalibRun*) tc.New();
+            if (o->IsTrueCalib())
+                gCaLibModules->Add(o);
+            else
+                delete o;
+*/
         }
     }
 }
