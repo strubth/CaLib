@@ -48,6 +48,20 @@ public:
 };
 
 
+class TCCalibRunBadScR_BaF2PWO : public TCCalibRunBadScR
+{
+
+public:
+    TCCalibRunBadScR_BaF2PWO()
+      : TCCalibRunBadScR("BadScR.BaF2PWO", "Bad scaler read calibration (BaF2PWO)", "Data.Run.BadScR.BaF2PWO", kTRUE) { };
+    virtual ~TCCalibRunBadScR_BaF2PWO() { };
+
+    //virtual Bool_t IsTrueCalib() const { return kTRUE; };
+
+    ClassDef(TCCalibRunBadScR_BaF2PWO, 0) // BaF2PWO bad scaler read calibration class
+};
+
+
 class TCCalibRunBadScR_BaF2 : public TCCalibRunBadScR
 {
 
