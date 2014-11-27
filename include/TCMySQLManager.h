@@ -71,9 +71,10 @@ private:
                          Int_t set1, Int_t set2);
 
     Bool_t ReadAllBadScR(Int_t run, TCBadScRElement**& badscr_data, Int_t& ndata);
+    
+    TCMySQLManager();
 
 public:
-    TCMySQLManager();
     virtual ~TCMySQLManager();
 
     void SetSilenceMode(Bool_t s) { fSilence = s; }
@@ -173,6 +174,7 @@ public:
         if (!fgMySQLManager->IsConnected())
         {
             Error("GetManager", "No connection to the database!");
+            delete fgMySQLManager;
             return 0;
         }
         else return fgMySQLManager;
