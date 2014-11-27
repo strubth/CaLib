@@ -24,6 +24,8 @@
 #include "TH2.h"
 #include "TH3.h"
 
+class TArrow;
+class TLine;
 
 class TCCalibRunBadScR : public TCCalibRun
 {
@@ -63,6 +65,9 @@ protected:
     TCBadScRElement* fBadScRCurr;             //! // bad scaler reads of the current run
 
     TBox** fBadScRCurrBox;                    //! // array of TBoxes (displays the bad scaler reads)
+
+    TArrow* fLastReadMarker;                  // marker arrow for last scaler read
+    TLine* fRunMarker;                        // marker for current run in overview canvas
 
     Int_t fLastMouseBin;                      //! // last mouse click position (i.e., bin in main histo)
     Int_t fUserInterval;                          //
@@ -107,6 +112,8 @@ public:
         fRangeMax(0),
         fBadScRCurr(0),
         fBadScRCurrBox(0),
+        fLastReadMarker(0),
+        fRunMarker(0),
         fLastMouseBin(0), fUserInterval(100), fUserLastInterval(100),
         fCanvasMain(0), fCanvasOverview(0) { };
     TCCalibRunBadScR(const Char_t* name, const Char_t* title, const Char_t* data, Bool_t istruecalib)
@@ -120,6 +127,8 @@ public:
         fRangeMax(0),
         fBadScRCurr(0),
         fBadScRCurrBox(0),
+        fLastReadMarker(0),
+        fRunMarker(0),
         fLastMouseBin(0), fUserInterval(100), fUserLastInterval(100),
         fCanvasMain(0), fCanvasOverview(0) { };
     virtual ~TCCalibRunBadScR();

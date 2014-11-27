@@ -14,6 +14,9 @@
 //////////////////////////////////////////////////////////////////////////
 
 
+#include "TGClient.h"
+#include "TArrow.h"
+#include "TStyle.h"
 #include "TCCalibRunBadScR.h"
 
 ClassImp(TCCalibRunBadScR)
@@ -67,6 +70,9 @@ TCCalibRunBadScR::~TCCalibRunBadScR()
             if (fBadScRCurrBox[i]) delete fBadScRCurrBox[i];
         delete [] fBadScRCurrBox;
     }
+
+    if (fLastReadMarker) delete fLastReadMarker;
+    if (fRunMarker) delete fRunMarker;
 
     if (fBadScRCurr) delete fBadScRCurr;
 
@@ -376,10 +382,28 @@ Bool_t TCCalibRunBadScR::Init()
         fBadScRCurr = 0;
     }
 
+    // create last read marker
+    fLastReadMarker = new TArrow();
+    fLastReadMarker->SetOption("<|-|");
+    fLastReadMarker->SetArrowSize(0.015);
+    fLastReadMarker->SetLineWidth(3);
+    fLastReadMarker->SetLineColor(kBlack);
+    fLastReadMarker->SetFillColor(kBlack);
+
+    // create run marker
+    fRunMarker = new TLine();
+    fRunMarker->SetLineWidth(2);
+    fRunMarker->SetLineColor(kRed);
+
+    // adjust style
+    gStyle->SetOptStat(0);
+    gStyle->SetPadRightMargin(0.05);
+    gStyle->SetPadLeftMargin(0.03);
+
     // setup canvas
-    fCanvasMain = new TCanvas("Main", "Main", 0, 0, 1600, 800);
-    fCanvasMain->Divide(1, 2);
-    fCanvasOverview = new TCanvas("Overview", "Overview", 0, 0, 800, 400);
+    fCanvasMain = new TCanvas("Main", "Main", 0, 0, gClient->GetDisplayWidth(), gClient->GetDisplayHeight()/2.+50);
+    fCanvasMain->Divide(1, 2, 0.001, 0.001);
+    fCanvasOverview = new TCanvas("Overview", "Overview", 0, gClient->GetDisplayHeight(), 800, gClient->GetDisplayHeight()/4.+20);
 
     // connect event handler
     fCanvasMain->Connect("ProcessedEvent(Int_t, Int_t, Int_t, TObject*)", "TCCalibRunBadScR", this,
@@ -393,6 +417,12 @@ Bool_t TCCalibRunBadScR::Init()
 void TCCalibRunBadScR::PrepareCurr()
 {
     // Prepares 
+
+    // update run marker
+    fRunMarker->SetX1(fIndex+0.5);
+    fRunMarker->SetX2(fIndex+0.5);
+    fRunMarker->SetY1(0);
+    fRunMarker->SetY2(fOverviewHisto->GetMaximum());
 
     // check for valid run
     if (!IsGood())
@@ -428,6 +458,13 @@ void TCCalibRunBadScR::PrepareCurr()
     fBadScRCurr->RemBad();
     for (Int_t i = 0; i < fBadScRNew[fIndex]->GetNBad(); i++)
         SetBadScalerRead(fBadScRNew[fIndex]->GetBad()[i]);
+
+    // mark last scaler read
+    Int_t last = TCMySQLManager::GetManager()->GetRunNScR(fRuns[fIndex]);
+    fLastReadMarker->SetX1(last);
+    fLastReadMarker->SetX2(last+5);
+    fLastReadMarker->SetY1(fMainHistos[fIndex]->GetYaxis()->GetXmax()/2);
+    fLastReadMarker->SetY2(fMainHistos[fIndex]->GetYaxis()->GetXmax()/2);
 
     //fCanvasMain->cd(1);
     //gPad->SetEditable(kFALSE);
@@ -520,6 +557,8 @@ void TCCalibRunBadScR::UpdateCanvas()
         fMainHistos[fIndex]->GetYaxis()->SetBit(kCannotPick);
         //fMainHistos[fIndex]->SetBit(kCannotPick);
 
+        // set title
+        fMainHistos[fIndex]->SetTitle(TString::Format("Run %d", fRuns[fIndex]));
         // draw
         fCanvasMain->cd(1);
         fMainHistos[fIndex]->Draw("colz");
@@ -527,6 +566,9 @@ void TCCalibRunBadScR::UpdateCanvas()
         // draw boxes
         for (Int_t i = 0; i < fBadScRCurr->GetNElem(); i++)
             if (fBadScRCurrBox[i]) fBadScRCurrBox[i]->Draw("samel");
+
+        // draw last read marker
+        fLastReadMarker->Draw();
 
         // bottom pad
         fCanvasMain->cd(2);
@@ -568,6 +610,7 @@ void TCCalibRunBadScR::UpdateCanvas()
     // update overview canvas
     fCanvasOverview->cd();
     fOverviewHisto->Draw();
+    fRunMarker->Draw();
     fCanvasOverview->Update();
 
     //fCanvasMain->cd(1);
