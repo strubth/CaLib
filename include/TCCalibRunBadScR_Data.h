@@ -100,7 +100,7 @@ public:
 
     //virtual Bool_t IsTrueCalib() const { return kTRUE; };
 
-    ClassDef(TCCalibRunBadScR_Veto, 0) // PWO bad scaler read calibration class
+    ClassDef(TCCalibRunBadScR_Veto, 0) // Veto bad scaler read calibration class
 };
 
 
@@ -114,7 +114,21 @@ public:
 
     //virtual Bool_t IsTrueCalib() const { return kTRUE; };
 
-    ClassDef(TCCalibRunBadScR_Ladder, 0) // PWO bad scaler read calibration class
+    ClassDef(TCCalibRunBadScR_Ladder, 0) // Ladder bad scaler read calibration class
+};
+
+
+class TCCalibRunBadScR_LadderScalers : public TCCalibRunBadScR
+{
+
+public:
+    TCCalibRunBadScR_LadderScalers()
+      : TCCalibRunBadScR("BadScR.LadderScalers", "Bad scaler read calibration (Ladder Scalers)", "Data.Run.BadScR.LadderScalers", kTRUE) { };
+    virtual ~TCCalibRunBadScR_LadderScalers() { };
+
+    //virtual Bool_t IsTrueCalib() const { return kTRUE; };
+
+    ClassDef(TCCalibRunBadScR_LadderScalers, 0) // Ladder scalers bad scaler read calibration class
 };
 
 
