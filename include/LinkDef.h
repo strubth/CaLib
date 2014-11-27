@@ -110,6 +110,9 @@
 #pragma link C++ class TCCalibRunBadScR_BaF2PWO+;
 #pragma link C++ class TCCalibRunBadScR_BaF2+;
 #pragma link C++ class TCCalibRunBadScR_PWO+;
+#pragma link C++ class TCCalibRunBadScR_Veto+;
+#pragma link C++ class TCCalibRunBadScR_Ladder+;
+#pragma link C++ class TCCalibRunBadScR_LadderScalers+;
 
 #endif
 
