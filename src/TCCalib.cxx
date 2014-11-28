@@ -122,11 +122,11 @@ void TCCalib::EventHandler(Int_t event, Int_t ox, Int_t oy, TObject* selected)
     // catch key events
     if (event == kKeyPress)
     {
-        // left key
-        if (oy == kKey_Left) Previous();
+        // 'a' key
+        if (oy == kKey_a) Previous();
 
-        // right key
-        if (oy == kKey_Right) Next();
+        // 's' key
+        if (oy == kKey_s) Next();
 
         // space
         if (oy == kKey_Space) 
