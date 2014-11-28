@@ -103,10 +103,12 @@ ButtonWindow::ButtonWindow()
     TGVerticalFrame* ver_frame_2 = new TGVerticalFrame(config_frame);
     
     // runset selection
-    fLB_RunSet = new TGListBox(ver_frame_2);
-    fLB_RunSet->SetMultipleSelections(kTRUE);
-    fLB_RunSet->Resize(120, 60);
-    ver_frame_2->AddFrame(fLB_RunSet, new TGLayoutHints(kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 5, 0, 10, 0));
+    TGLabel* helpLabel = new TGLabel(ver_frame_2);
+    helpLabel->SetText("Keyboard commands (focus on main window):\n[HOME] Go to read 0    [END] Go to last read\n"
+                       "[INS] Zoom in/out         [PgUp]/[PgDn] scroll read axis\n"
+                       "[a] previous run           [s] next run");
+    helpLabel->Resize(120, 60);
+    ver_frame_2->AddFrame(helpLabel, new TGLayoutHints(kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 5, 0, 10, 0));
     
     config_frame->AddFrame(ver_frame_2, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY));
     AddFrame(config_frame, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, 5, 5, 5, 5));
