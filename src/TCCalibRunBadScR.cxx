@@ -270,8 +270,8 @@ Bool_t TCCalibRunBadScR::Init()
 
                 // normalize
                 if (p2 > 0. && lt > 0.)
-                    fProjHistos[i]->SetBinContent(j, fProjHistos[i]->GetBinContent(j) / (p2 * lt));
-                else fProjHistos[i]->SetBinContent(j, 0.);
+                    fProjHistos[i]->SetBinContent(j+1, fProjHistos[i]->GetBinContent(j+1) / (p2 * lt));
+                else fProjHistos[i]->SetBinContent(j+1, 0.);
             } 
         }
     }
