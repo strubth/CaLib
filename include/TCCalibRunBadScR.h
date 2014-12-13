@@ -33,49 +33,42 @@ class TCCalibRunBadScR : public TCCalibRun
 protected:
     //----------------------------- data members -------------------------------
 
-    const Char_t* fMainHistoName;         //[128] // name of main histo
-    const Char_t* fScalerHistoName;       //[128] // name of scaler histo
+    const Char_t* fMainHistoName;       //         name of main histo
+    const Char_t* fScalerHistoName;     //         name of scaler histo
 
-    TH2** fMainHistos;                 //[fNRuns] // array of pointers to the run's main histo ...
-                                                  // ... (detector element vs. scaler reads)
-    TH1** fProjHistos;                 //[fNRuns] // array of pointers to projected main histos
+    TH2** fMainHistos;                  //[fNRuns] array of pointers to the run's main histo ...
+                                        //         ... (detector element vs. scaler reads)
+    TH1** fProjHistos;                  //[fNRuns] array of pointers to projected main histos
 
-    TH2** fScalerHistos;               //[fNRuns] // array of pointers to the run's scaler histo ...
-                                                  // ... (scalers vs. scaler reads)
-    TH2* fEmptyMainHisto;                         // empty main histo (dummy)
-    TH1* fEmptyProjHisto;                         // empty projected main histo (dummy)
+    TH2** fScalerHistos;                //[fNRuns] array of pointers to the run's scaler histo ...
+                                        //         ... (scalers vs. scaler reads)
+    TH2* fEmptyMainHisto;               //         empty main histo (dummy)
+    TH1* fEmptyProjHisto;               //         empty projected main histo (dummy)
 
-    TH1* fOverviewHisto;                          // overview histo ...
-                                                  // ... (normalized summed up detector hits vs. run)
-    //TH1* fP2Histo;
-    //TH1* fLTHisto;
-    //TH1* fFaradayHisto;
+    TH1* fOverviewHisto;                //         overview histo ...
+                                        //         ... (detector hits per scaler read vs. run)
+    Int_t fScP2;                        //         number of P2 scaler (= P2 bin-1)
+    Int_t fScFree;                      //         number of free scaler (= free bin-1) for livetime
+    Int_t fScLive;                      //         number of live scaler (= live bin-1) for livetime
 
-    Int_t fScP2;                                  // number of P2 scaler (= P2 bin - 1)
-    Int_t fScFree;                                // number of free scaler (= free bin - 1) for livetime
-    Int_t fScLive;                                // number of inh. scaler (= inh. bin - 1) for livetime
+    TCBadScRElement** fBadScROld;       //[fNRuns] array of pointers to the run's bad scaler reads (old)
+    TCBadScRElement** fBadScRNew;       //[fNruns] array of pointers to the rus's bad scaler reads (new)
 
-//    Bool_t fUseEventInfoNScR;                     // flag 
+    Int_t fRangeMax;                    //         maximal range of 
 
-    TCBadScRElement** fBadScROld;      //[fNRuns] // array of pointers to the run's bad scaler reads (old)
-    TCBadScRElement** fBadScRNew;      //[fNruns] // array of pointers to the rus's bad scaler reads (new)
+    TCBadScRElement* fBadScRCurr;       //!        bad scaler reads of the current run
 
-    Int_t fRangeMax;                              // maximal range of 
+    TBox** fBadScRCurrBox;              //!        array of TBoxes (displays the bad scaler reads)
 
-    TCBadScRElement* fBadScRCurr;             //! // bad scaler reads of the current run
+    TArrow* fLastReadMarker;            //!        marker arrow for last scaler read
+    TLine* fRunMarker;                  //!        marker for current run in overview canvas
 
-    TBox** fBadScRCurrBox;                    //! // array of TBoxes (displays the bad scaler reads)
+    Int_t fLastMouseBin;                //!        last mouse click position (i.e., bin in main histo)
+    Int_t fUserInterval;                //         number of scaler read bins for displayed
+    Int_t fUserLastInterval;            //         last interval displayed
 
-    TArrow* fLastReadMarker;                  // marker arrow for last scaler read
-    TLine* fRunMarker;                        // marker for current run in overview canvas
-
-    Int_t fLastMouseBin;                      //! // last mouse click position (i.e., bin in main histo)
-    Int_t fUserInterval;                          //
-    Int_t fUserLastInterval;                      //
-
-    TCanvas* fCanvasMain;                         // main canvas
-    TCanvas* fCanvasOverview;                     // overview canvas
-    //TCanvas* fCanvasScalers;                      // scaler canvas
+    TCanvas* fCanvasMain;               //         main canvas
+    TCanvas* fCanvasOverview;           //         overview canvas
 
     //---------------------------- member methods ------------------------------
 
