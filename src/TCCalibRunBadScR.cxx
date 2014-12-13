@@ -827,12 +827,14 @@ void TCCalibRunBadScR::ChangeInterval(Int_t key)
         {
             if (axis_max - axis_min == fUserInterval - 1)
             {
+                // zoom out
                 axis_min_new = 1;
                 axis_max_new = fRangeMax;
                 fUserLastInterval = axis_min;
             }
             else
             {
+                // zoom in
                 axis_min_new = fUserLastInterval;
                 axis_max_new = axis_min_new + fUserInterval - 1;
             }
