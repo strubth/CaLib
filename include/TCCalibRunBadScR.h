@@ -53,7 +53,7 @@ protected:
 
     Int_t fScP2;                                  // number of P2 scaler (= P2 bin - 1)
     Int_t fScFree;                                // number of free scaler (= free bin - 1) for livetime
-    Int_t fScInh;                                 // number of inh. scaler (= inh. bin - 1) for livetime
+    Int_t fScLive;                                // number of inh. scaler (= inh. bin - 1) for livetime
 
 //    Bool_t fUseEventInfoNScR;                     // flag 
 
@@ -107,7 +107,7 @@ public:
         fMainHistos(0), fProjHistos(0), fScalerHistos(0),
         fEmptyMainHisto(0), fEmptyProjHisto(0),
         fOverviewHisto(0),
-        fScP2(-1), fScFree(-1), fScInh(-1),
+        fScP2(-1), fScFree(-1), fScLive(-1),
         fBadScROld(0), fBadScRNew(0),
         fRangeMax(0),
         fBadScRCurr(0),
@@ -122,7 +122,7 @@ public:
         fMainHistos(0), fProjHistos(0), fScalerHistos(0),
         fEmptyMainHisto(0), fEmptyProjHisto(0),
         fOverviewHisto(0),
-        fScP2(-1), fScFree(-1), fScInh(-1),
+        fScP2(-1), fScFree(-1), fScLive(-1),
         fBadScROld(0), fBadScRNew(0),
         fRangeMax(0),
         fBadScRCurr(0),

@@ -126,13 +126,13 @@ Bool_t TCCalibRunBadScR::SetConfig()
     else fScFree = TCReadConfig::GetReader()->GetConfigInt(tmp);
 
     // get inhibited scaler number
-    sprintf(tmp, "BadScR.Scaler.Inh");
+    sprintf(tmp, "BadScR.Scaler.Live");
     if (!TCReadConfig::GetReader()->GetConfig(tmp))
     {
-        Error("Start", "Inh. scaler was not found in configuration!");
+        Error("Start", "Live scaler was not found in configuration!");
         //return kFALSE;
     }
-    else fScInh = TCReadConfig::GetReader()->GetConfigInt(tmp);
+    else fScLive = TCReadConfig::GetReader()->GetConfigInt(tmp);
 
     //// get 
     //sprintf(tmp, "BadScR.UseEventInfoNScR");
@@ -232,7 +232,7 @@ Bool_t TCCalibRunBadScR::Init()
         Info("Init", "Normalizing projection histograms...");
         if (fScP2 <= -1)
             Warning("Init", "Histograms will not be P2 corrected.");
-        if (fScFree <= -1 || fScInh <= -1)
+        if (fScFree <= -1 || fScLive <= -1)
             Warning("Init", "Histograms will not be livetime corrected.");
 
         // loop over runs
@@ -264,9 +264,9 @@ Bool_t TCCalibRunBadScR::Init()
                     p2 = fScalerHistos[i]->GetBinContent(j+1, fScP2+1);
 
                 // get livetime
-                if (fScFree >= 0 && fScInh >= 0)
+                if (fScFree >= 0 && fScLive >= 0)
                     if (fScalerHistos[i]->GetBinContent(j+1, fScFree+1) > 0.)
-                        lt = fScalerHistos[i]->GetBinContent(j+1, fScInh+1) / fScalerHistos[i]->GetBinContent(j+1, fScFree+1);
+                        lt = fScalerHistos[i]->GetBinContent(j+1, fScLive+1) / fScalerHistos[i]->GetBinContent(j+1, fScFree+1);
 
                 // normalize
                 if (p2 > 0. && lt > 0.)
@@ -762,7 +762,7 @@ void TCCalibRunBadScR::UpdateOverviewHisto()
         {
             c += fProjHistos[fIndex]->GetBinContent(j+1);
             f += fScalerHistos[fIndex]->GetBinContent(j+1, fScFree+1);
-            i += fScalerHistos[fIndex]->GetBinContent(j+1, fScInh+1);
+            i += fScalerHistos[fIndex]->GetBinContent(j+1, fScLive+1);
             p += fScalerHistos[fIndex]->GetBinContent(j+1, fScP2+1);
         }
     }
