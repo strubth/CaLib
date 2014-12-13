@@ -107,7 +107,7 @@ public:
         fBadScRCurrBox(0),
         fLastReadMarker(0),
         fRunMarker(0),
-        fLastMouseBin(0), fUserInterval(100), fUserLastInterval(100),
+        fLastMouseBin(0), fUserInterval(100), fUserLastInterval(1),
         fCanvasMain(0), fCanvasOverview(0) { };
     TCCalibRunBadScR(const Char_t* name, const Char_t* title, const Char_t* data, Bool_t istruecalib)
       : TCCalibRun(name, title, data, istruecalib),
@@ -122,7 +122,7 @@ public:
         fBadScRCurrBox(0),
         fLastReadMarker(0),
         fRunMarker(0),
-        fLastMouseBin(0), fUserInterval(100), fUserLastInterval(100),
+        fLastMouseBin(0), fUserInterval(100), fUserLastInterval(1),
         fCanvasMain(0), fCanvasOverview(0) { };
     virtual ~TCCalibRunBadScR();
 
