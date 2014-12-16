@@ -398,6 +398,9 @@ Bool_t TCCalibRunBadScR::Init()
     fCanvasMain->Divide(1, 2, 0.001, 0.001);
     fCanvasOverview = new TCanvas("Overview", "Overview", 0, gClient->GetDisplayHeight(), 800, gClient->GetDisplayHeight()/4.+20);
 
+    // disable ROOT zoom box
+    fCanvasMain->MoveOpaque(0);
+
     // connect event handler
     fCanvasMain->Connect("ProcessedEvent(Int_t, Int_t, Int_t, TObject*)", "TCCalibRunBadScR", this,
                          "EventHandler(Int_t, Int_t, Int_t, TObject*)");
@@ -428,9 +431,6 @@ void TCCalibRunBadScR::PrepareCurr()
     // user info
     printf("Processing run %05d:\n", fRuns[fIndex]);
 
-    // new ROOT workarround (to be changed)
-    fCanvasMain->GetPad(1)->SetEditable(kTRUE);
-
     // set standatd user range 
     fMainHistos[fIndex]->GetXaxis()->SetRangeUser(0, fMainHistos[fIndex]->GetXaxis()->GetBinUpEdge(fRangeMax));
     fProjHistos[fIndex]->GetXaxis()->SetRangeUser(0, fProjHistos[fIndex]->GetXaxis()->GetBinUpEdge(fRangeMax));
@@ -457,9 +457,6 @@ void TCCalibRunBadScR::PrepareCurr()
     fLastReadMarker->SetX2(last+5);
     fLastReadMarker->SetY1(fMainHistos[fIndex]->GetYaxis()->GetXmax()/2);
     fLastReadMarker->SetY2(fMainHistos[fIndex]->GetYaxis()->GetXmax()/2);
-
-    // new ROOT workarround (to be changed)
-    fCanvasMain->GetPad(1)->SetEditable(kFALSE);
 }
 
 
@@ -537,8 +534,9 @@ void TCCalibRunBadScR::UpdateCanvas()
     {
         // top pad
 
-        // new ROOT workarround (to be changed)
+        // set editable
         fCanvasMain->GetPad(1)->SetEditable(kTRUE);
+        fCanvasMain->GetPad(2)->SetEditable(kTRUE);
 
         // set cannot pic flag axis
         fMainHistos[fIndex]->GetXaxis()->SetBit(kCannotPick);
@@ -580,16 +578,20 @@ void TCCalibRunBadScR::UpdateCanvas()
     }
     else
     {
-        // new ROOT workarround (to be changed)
+        // set editable
         fCanvasMain->GetPad(1)->SetEditable(kTRUE);
+        fCanvasMain->GetPad(2)->SetEditable(kTRUE);
 
         // clear pads & set cannot pic flag pad
         fCanvasMain->cd(1);
         fEmptyMainHisto->Draw("colz");
-        gPad->SetBit(kCannotPick);
+
         fCanvasMain->cd(2);
         fEmptyProjHisto->Draw();
-        gPad->SetBit(kCannotPick);
+
+        // unset editable
+        fCanvasMain->GetPad(1)->SetEditable(kFALSE);
+        fCanvasMain->GetPad(2)->SetEditable(kFALSE);
     }
 
     // update main canvas
@@ -600,9 +602,6 @@ void TCCalibRunBadScR::UpdateCanvas()
     fOverviewHisto->Draw();
     fRunMarker->Draw();
     fCanvasOverview->Update();
-
-    // new ROOT workarround (to be changed)
-    fCanvasMain->GetPad(1)->SetEditable(kFALSE);
 }
 
 
@@ -883,14 +882,8 @@ void TCCalibRunBadScR::ChangeInterval(Int_t key)
             return;
     }
 
-    // new ROOT workarround (to be changed)
-    fCanvasMain->GetPad(1)->SetEditable(kTRUE);
-
     // change range and update canvas
     fMainHistos[fIndex]->GetXaxis()->SetRange(axis_min_new, axis_max_new);
-
-    // new ROOT workarround (to be changed)
-    fCanvasMain->GetPad(1)->SetEditable(kFALSE);
 
     UpdateCanvas();
 
@@ -915,12 +908,17 @@ void TCCalibRunBadScR::EventHandler(Int_t event, Int_t ox, Int_t oy, TObject* se
     // process parent event handler
     TCCalibRun::EventHandler(event, ox, oy, selected);
 
+    // check for main histo
+    if (!IsGood()) return;
+
     // catch interval navigation keys
     if (event == kKeyPress) ChangeInterval(oy);
 
     // catch mouse click etc.
-    if (!(kButton1Down == event ||
-          kButton1Up == event
+    if (!(event == kButton1Down ||
+          event == kButton1Up ||
+          event == kWheelUp ||
+          event == kWheelDown
           )) return;
 
     // return if no selected pad
@@ -929,11 +927,17 @@ void TCCalibRunBadScR::EventHandler(Int_t event, Int_t ox, Int_t oy, TObject* se
     // get name of selected pad
     TString name = selected->GetName();
 
-    // check axis event (e.g. 'Unzoom' etc.)
-    if (name.BeginsWith("xaxis")) UpdateCanvas();
- 
+    // catch axis zoom (not for MENU)
+    if ((event == kButton1Up ||
+         event == kWheelUp ||
+         event == kWheelDown)
+        && name.BeginsWith("xaxis")) UpdateCanvas();
+
     // check whether main histo was clicked
     if (!name.BeginsWith(fMainHistoName)) return;
+
+    // catch mouse wheel histogram zoom
+    if (event == kWheelUp || event == kWheelDown) UpdateCanvas();
 
     // change to main histo pad
     fCanvasMain->cd(1);
