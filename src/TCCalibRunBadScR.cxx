@@ -56,7 +56,6 @@ TCCalibRunBadScR::~TCCalibRunBadScR()
             if (fBadScROld[i]) delete fBadScROld[i];
         delete [] fBadScROld;
     }
-
     if (fBadScRNew)
     {
         for (Int_t i = 0; i < fNRuns; i++)
@@ -84,11 +83,12 @@ TCCalibRunBadScR::~TCCalibRunBadScR()
 //______________________________________________________________________________
 Bool_t TCCalibRunBadScR::SetConfig()
 {
-    // Reads configuration values from config file
+    // Reads configuration values from config file via 'TCReadConfig'
 
     // call parent SetConfig()
     TCCalibRun::SetConfig();
 
+    // temporary string
     Char_t tmp[128];
 
     // get main histogram name
@@ -112,7 +112,6 @@ Bool_t TCCalibRunBadScR::SetConfig()
     if (!TCReadConfig::GetReader()->GetConfig(tmp))
     {
         Error("Start", "P2 scaler was not found in configuration!");
-        //return kFALSE;
     }
     else fScP2 = TCReadConfig::GetReader()->GetConfigInt(tmp);
 
@@ -121,23 +120,16 @@ Bool_t TCCalibRunBadScR::SetConfig()
     if (!TCReadConfig::GetReader()->GetConfig(tmp))
     {
         Error("Start", "Free scaler was not found in configuration!");
-        //return kFALSE;
     }
     else fScFree = TCReadConfig::GetReader()->GetConfigInt(tmp);
 
-    // get inhibited scaler number
-    sprintf(tmp, "BadScR.Scaler.Inh");
+    // get live scaler number
+    sprintf(tmp, "BadScR.Scaler.Live");
     if (!TCReadConfig::GetReader()->GetConfig(tmp))
     {
-        Error("Start", "Inh. scaler was not found in configuration!");
-        //return kFALSE;
+        Error("Start", "Live scaler was not found in configuration!");
     }
-    else fScInh = TCReadConfig::GetReader()->GetConfigInt(tmp);
-
-    //// get 
-    //sprintf(tmp, "BadScR.UseEventInfoNScR");
-    //if (TCReadConfig::GetReader()->GetConfig(tmp))
-    //    fUseEventInfoNScR = (Bool_t) TCReadConfig::GetReader()->GetConfigInt(tmp);
+    else fScLive = TCReadConfig::GetReader()->GetConfigInt(tmp);
 
     // get user interval
     sprintf(tmp, "BadScR.Histo.Main.UserRange");
@@ -151,7 +143,9 @@ Bool_t TCCalibRunBadScR::SetConfig()
 //______________________________________________________________________________
 Bool_t TCCalibRunBadScR::Init()
 {
-    // Loads main and scaler histogras, reads old bad scr from db ...
+    // Loads main and scaler histogras, creates (normalized) projections of main
+    // histograms, reads old bad scaler reads from the calib database, sets up
+    // the overview histogram and creates the canvas.
 
     // call parent Init()
     TCCalibRun::Init();
@@ -232,7 +226,7 @@ Bool_t TCCalibRunBadScR::Init()
         Info("Init", "Normalizing projection histograms...");
         if (fScP2 <= -1)
             Warning("Init", "Histograms will not be P2 corrected.");
-        if (fScFree <= -1 || fScInh <= -1)
+        if (fScFree <= -1 || fScLive <= -1)
             Warning("Init", "Histograms will not be livetime corrected.");
 
         // loop over runs
@@ -248,10 +242,6 @@ Bool_t TCCalibRunBadScR::Init()
                 continue;
             }
 
-            //Double_t p2tot = 0;
-            //Double_t lttot = 0;
-            //Double_t lttot = 0;
-
             // loop over scaler reads
             for (Int_t j = 0; j < fProjHistos[i]->GetNbinsX(); j++)
             {
@@ -264,9 +254,9 @@ Bool_t TCCalibRunBadScR::Init()
                     p2 = fScalerHistos[i]->GetBinContent(j+1, fScP2+1);
 
                 // get livetime
-                if (fScFree >= 0 && fScInh >= 0)
+                if (fScFree >= 0 && fScLive >= 0)
                     if (fScalerHistos[i]->GetBinContent(j+1, fScFree+1) > 0.)
-                        lt = fScalerHistos[i]->GetBinContent(j+1, fScInh+1) / fScalerHistos[i]->GetBinContent(j+1, fScFree+1);
+                        lt = fScalerHistos[i]->GetBinContent(j+1, fScLive+1) / fScalerHistos[i]->GetBinContent(j+1, fScFree+1);
 
                 // normalize
                 if (p2 > 0. && lt > 0.)
@@ -310,6 +300,8 @@ Bool_t TCCalibRunBadScR::Init()
                  else
                      Error("Init", "Number of scaler reads mismatch for run '%i' (database: '%i' vs. EventInfo histogram: '%i'!",
                            fRuns[i], nscr, (Int_t) h->GetBinContent(TCConfig::kNScREventHBin));
+
+                 // use number of scaler reads from event info histo
                  nscr = h->GetBinContent(TCConfig::kNScREventHBin);
             }
         }
@@ -339,7 +331,8 @@ Bool_t TCCalibRunBadScR::Init()
 
         // clean up
         if (badscr) delete [] badscr;
-    }
+
+    }//end loop over runs
 
     // set max. range to number of scaler reads + 2
     fRangeMax += 2;
@@ -377,7 +370,7 @@ Bool_t TCCalibRunBadScR::Init()
         // update
         UpdateOverviewHisto();
 
-        // reset members (for the sake beauty of already here)
+        // reset members (for the sake of beauty already here)
         fIndex = 0;
         fBadScRCurr = 0;
     }
@@ -405,6 +398,9 @@ Bool_t TCCalibRunBadScR::Init()
     fCanvasMain->Divide(1, 2, 0.001, 0.001);
     fCanvasOverview = new TCanvas("Overview", "Overview", 0, gClient->GetDisplayHeight(), 800, gClient->GetDisplayHeight()/4.+20);
 
+    // disable ROOT zoom box
+    fCanvasMain->MoveOpaque(0);
+
     // connect event handler
     fCanvasMain->Connect("ProcessedEvent(Int_t, Int_t, Int_t, TObject*)", "TCCalibRunBadScR", this,
                          "EventHandler(Int_t, Int_t, Int_t, TObject*)");
@@ -416,7 +412,7 @@ Bool_t TCCalibRunBadScR::Init()
 //______________________________________________________________________________
 void TCCalibRunBadScR::PrepareCurr()
 {
-    // Prepares 
+    // Prepares everything to process the current run
 
     // update run marker
     fRunMarker->SetX1(fIndex+0.5);
@@ -434,10 +430,6 @@ void TCCalibRunBadScR::PrepareCurr()
 
     // user info
     printf("Processing run %05d:\n", fRuns[fIndex]);
-
-    //fCanvasMain->cd(1);
-    //gPad->SetEditable(kTRUE);
-    fCanvasMain->GetPad(1)->SetEditable(kTRUE);
 
     // set standatd user range 
     fMainHistos[fIndex]->GetXaxis()->SetRangeUser(0, fMainHistos[fIndex]->GetXaxis()->GetBinUpEdge(fRangeMax));
@@ -465,10 +457,6 @@ void TCCalibRunBadScR::PrepareCurr()
     fLastReadMarker->SetX2(last+5);
     fLastReadMarker->SetY1(fMainHistos[fIndex]->GetYaxis()->GetXmax()/2);
     fLastReadMarker->SetY2(fMainHistos[fIndex]->GetYaxis()->GetXmax()/2);
-
-    //fCanvasMain->cd(1);
-    //gPad->SetEditable(kFALSE);
-    fCanvasMain->GetPad(1)->SetEditable(kFALSE);
 }
 
 
@@ -478,11 +466,12 @@ void TCCalibRunBadScR::ProcessCurr()
     // Preforms the current run indexed by 'fIndex'.
 
     // nothing to do here so far.
-
     return;
 
     // check for valid run
     if (!IsGood()) return;
+
+    // it follows some test code for automatic calibration ... to be finished...
 
     //
     Int_t ngood = fBadScRCurr->GetNElem() - fBadScRCurr->GetNBad();
@@ -544,21 +533,18 @@ void TCCalibRunBadScR::UpdateCanvas()
     if (IsGood())
     {
         // top pad
-        //fCanvasMain->cd(1);
-        //gPad->SetEditable(kTRUE);
-        fCanvasMain->GetPad(1)->SetEditable(kTRUE);
 
-        // set cannot pic flag pad
-        //gPad->SetBit(kCannotPick);
-        //gPad->SetBit(TPad::kCannotMove);
+        // set editable
+        fCanvasMain->GetPad(1)->SetEditable(kTRUE);
+        fCanvasMain->GetPad(2)->SetEditable(kTRUE);
 
         // set cannot pic flag axis
         fMainHistos[fIndex]->GetXaxis()->SetBit(kCannotPick);
         fMainHistos[fIndex]->GetYaxis()->SetBit(kCannotPick);
-        //fMainHistos[fIndex]->SetBit(kCannotPick);
 
         // set title
         fMainHistos[fIndex]->SetTitle(TString::Format("Run %d", fRuns[fIndex]));
+
         // draw
         fCanvasMain->cd(1);
         fMainHistos[fIndex]->Draw("colz");
@@ -592,16 +578,20 @@ void TCCalibRunBadScR::UpdateCanvas()
     }
     else
     {
-        //fCanvasMain->cd(1);
-        //gPad->SetEditable(kTRUE);
+        // set editable
         fCanvasMain->GetPad(1)->SetEditable(kTRUE);
+        fCanvasMain->GetPad(2)->SetEditable(kTRUE);
+
         // clear pads & set cannot pic flag pad
         fCanvasMain->cd(1);
         fEmptyMainHisto->Draw("colz");
-        gPad->SetBit(kCannotPick);
+
         fCanvasMain->cd(2);
         fEmptyProjHisto->Draw();
-        gPad->SetBit(kCannotPick);
+
+        // unset editable
+        fCanvasMain->GetPad(1)->SetEditable(kFALSE);
+        fCanvasMain->GetPad(2)->SetEditable(kFALSE);
     }
 
     // update main canvas
@@ -612,17 +602,13 @@ void TCCalibRunBadScR::UpdateCanvas()
     fOverviewHisto->Draw();
     fRunMarker->Draw();
     fCanvasOverview->Update();
-
-    //fCanvasMain->cd(1);
-    //gPad->SetEditable(kFALSE);
-    fCanvasMain->GetPad(1)->SetEditable(kFALSE);
 }
 
 
 //______________________________________________________________________________
 void TCCalibRunBadScR::SaveValCurr()
 {
-    // Add the bad scaler reads to the list of bad scaler reads.
+    // Sets 'fBadScRNew[fIndex]' to the current bad scaler reads.
 
     // check for valid run
     if (!IsGood()) return;
@@ -648,8 +634,9 @@ void TCCalibRunBadScR::SaveValCurr()
 //______________________________________________________________________________
 void TCCalibRunBadScR::SetBadScalerReads(Int_t bscr1, Int_t bscr2)
 {
-    // (Un)sets 
+    // (Un)sets the scaler reads from 'bscr1' to 'bscr2'
 
+    // loop over scaler reads and (un)set each of them
     for (Int_t i = bscr1; i <= bscr2; i++) SetBadScalerRead(i);
 }
 
@@ -657,7 +644,7 @@ void TCCalibRunBadScR::SetBadScalerReads(Int_t bscr1, Int_t bscr2)
 //______________________________________________________________________________
 void TCCalibRunBadScR::SetBadScalerRead(Int_t bscr)
 {
-    // Adds a bad scaler read to the list of bad scaler reeads.
+    // Adds/Removes a bad scaler read to/from the list of bad scaler reeads.
 
     // check range
     if (bscr < 0 || bscr >= fBadScRCurr->GetNElem()) return;
@@ -685,7 +672,6 @@ void TCCalibRunBadScR::SetBadScalerRead(Int_t bscr)
 
         // create box
         fBadScRCurrBox[bscr] = new TBox(xlow, ylow, xup, yup);
-        //fBadScRCurrBox[bscr]->SetFillStyle(3001);
         fBadScRCurrBox[bscr]->SetFillStyle(3004);
         fBadScRCurrBox[bscr]->SetFillColor(kRed);
         fBadScRCurrBox[bscr]->SetLineStyle(1);
@@ -699,7 +685,7 @@ void TCCalibRunBadScR::SetBadScalerRead(Int_t bscr)
 //______________________________________________________________________________
 void TCCalibRunBadScR::CleanUpCurr()
 {
-    // Cleans everything up for the current run.
+    // Cleans everything up for the current run and updates overview histogram.
 
     // delete old boxes
     if (fBadScRCurrBox)
@@ -712,9 +698,14 @@ void TCCalibRunBadScR::CleanUpCurr()
 
     // delete old curr bad scaler read
     if (fBadScRCurr) delete fBadScRCurr;
+
+    // set curr to new in order to update overview histo
     fBadScRCurr = fBadScRNew[fIndex];
 
+    // update overview histo
     UpdateOverviewHisto();
+
+    // reset curr
     fBadScRCurr = 0;
 }
 
@@ -748,28 +739,6 @@ void TCCalibRunBadScR::UpdateOverviewHisto()
     if (ngoodscr > 0)
         fOverviewHisto->SetBinContent(fIndex+1, fOverviewHisto->GetBinContent(fIndex+1) / ngoodscr);
 
-/*
-    Double_t c = 0;
-    Double_t f = 0;
-    Double_t i = 0;
-    Double_t p = 0;
-
-    // loop over scaler reads
-    for (Int_t j = 0; j < fBadScRCurr->GetNElem(); j++)
-    {
-        // fill overview histo, i.e., add up (normalized) counts for good scaler reads
-        if (!fBadScRCurr->IsBad(j))
-        {
-            c += fProjHistos[fIndex]->GetBinContent(j+1);
-            f += fScalerHistos[fIndex]->GetBinContent(j+1, fScFree+1);
-            i += fScalerHistos[fIndex]->GetBinContent(j+1, fScInh+1);
-            p += fScalerHistos[fIndex]->GetBinContent(j+1, fScP2+1);
-        }
-    }
-    if (f > 0. && p*i > 0.)
-        fOverviewHisto->SetBinContent(fIndex+1, c/(p*i/f));
-*/
-
     return;
 }
 
@@ -802,8 +771,10 @@ Bool_t TCCalibRunBadScR::Write()
         // check for existing bad scaler reads
         if (fBadScRNew[i])
         {
+            // increment counter
             nruns++;
 
+            // write bad scaler reads for run with index 'i'
             if (!TCMySQLManager::GetManager()->ChangeRunBadScR(fBadScRNew[i]->GetRunNumber(), fBadScRNew[i]->GetNBad(), fBadScRNew[i]->GetBad(), (*fCalibData).Data()))
             {
                 // an error occurred
@@ -816,6 +787,7 @@ Bool_t TCCalibRunBadScR::Write()
         }
     }
 
+    // print user info
     if (errors)
     {
         Error("Write", "%i error(s) while writing to the database occurred", errors);
@@ -849,30 +821,32 @@ void TCCalibRunBadScR::ChangeInterval(Int_t key)
     // proccess keys
     switch (key)
     {
-        // 
+        // zoom in/out 
         case kKey_Insert:
         {
             if (axis_max - axis_min == fUserInterval - 1)
             {
+                // zoom out
                 axis_min_new = 1;
                 axis_max_new = fRangeMax;
                 fUserLastInterval = axis_min;
             }
             else
             {
+                // zoom in
                 axis_min_new = fUserLastInterval;
                 axis_max_new = axis_min_new + fUserInterval - 1;
             }
             break;
         }
-        //
+        // go to interval with first scaler read
         case kKey_Home:
         {
             axis_min_new = 1;
             axis_max_new = axis_min_new + fUserInterval - 1;
             break;
         }
-        //
+        // go to interval with last scaler read
         case kKey_End:
         {
             axis_min_new = (fBadScRCurr->GetNElem() / fUserInterval) * fUserInterval + 1;
@@ -899,6 +873,7 @@ void TCCalibRunBadScR::ChangeInterval(Int_t key)
             }
             break;
         }
+        // do something I cannot remenber what
         case kKey_o:
         {
             
@@ -908,13 +883,8 @@ void TCCalibRunBadScR::ChangeInterval(Int_t key)
     }
 
     // change range and update canvas
-    //fCanvasMain->cd(1);
-    //gPad->SetEditable(kTRUE);
-    fCanvasMain->GetPad(1)->SetEditable(kTRUE);
     fMainHistos[fIndex]->GetXaxis()->SetRange(axis_min_new, axis_max_new);
-    //fCanvasMain->cd(1);
-    //gPad->SetEditable(kFALSE);
-    fCanvasMain->GetPad(1)->SetEditable(kFALSE);
+
     UpdateCanvas();
 
     return;
@@ -926,25 +896,30 @@ void TCCalibRunBadScR::EventHandler(Int_t event, Int_t ox, Int_t oy, TObject* se
 {
     // Event handler method for (un)setting bad scaler reads.
     //
-    // Checks first for the desired event on the desired pad. Then, 
-    //    i) if the left mouse button was pressed at binx, this value is saved
+    // Checks first for the desired event on the desired pad. Then,
+    //    i) if a key was pressed, it will change the interval
+    //   ii) if the left mouse button was pressed at binx, this value is saved
     //       into 'fLastMouseBin'.
-    //   ii) if the left mouse button was released at binx it calls the method
+    //  iii) if the left mouse button was released at binx it calls the method
     //       'SetBadScalerReads(fLastMouseBin-1, xbin-1)' in order to (un)set
     //       the bins within this interval.
     // Finally, the canvas update.
 
+    // process parent event handler
     TCCalibRun::EventHandler(event, ox, oy, selected);
 
-    // catch interval management keys
+    // check for main histo
+    if (!IsGood()) return;
+
+    // catch interval navigation keys
     if (event == kKeyPress) ChangeInterval(oy);
 
     // catch mouse click etc.
-    if (!(kButton1Down == event ||
-          kButton1Up == event
-          
+    if (!(event == kButton1Down ||
+          event == kButton1Up ||
+          event == kWheelUp ||
+          event == kWheelDown
           )) return;
-
 
     // return if no selected pad
     if (!selected) return;
@@ -952,12 +927,19 @@ void TCCalibRunBadScR::EventHandler(Int_t event, Int_t ox, Int_t oy, TObject* se
     // get name of selected pad
     TString name = selected->GetName();
 
-    // check ...
-    if (name.BeginsWith("xaxis")) UpdateCanvas();
- 
+    // catch axis zoom (not for MENU)
+    if ((event == kButton1Up ||
+         event == kWheelUp ||
+         event == kWheelDown)
+        && name.BeginsWith("xaxis")) UpdateCanvas();
+
+    // check whether main histo was clicked
     if (!name.BeginsWith(fMainHistoName)) return;
 
-    // 
+    // catch mouse wheel histogram zoom
+    if (event == kWheelUp || event == kWheelDown) UpdateCanvas();
+
+    // change to main histo pad
     fCanvasMain->cd(1);
 
     // get pos & bin
@@ -969,7 +951,7 @@ void TCCalibRunBadScR::EventHandler(Int_t event, Int_t ox, Int_t oy, TObject* se
     // check for left mouse button press ...
     if (event == kButton1Down)
     {
-        // save bin & return
+        // save bin and return
         fLastMouseBin = binx;
         return;
     }
