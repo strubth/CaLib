@@ -39,11 +39,13 @@ protected:
     TH2** fMainHistos;                  //[fNRuns] array of pointers to the run's main histo ...
                                         //         ... (detector element vs. scaler reads)
     TH1** fProjHistos;                  //[fNRuns] array of pointers to projected main histos
+    TH1** fProjNormHistos;              //[fNRuns] array of pointers to projected, normalized main histos
 
     TH2** fScalerHistos;                //[fNRuns] array of pointers to the run's scaler histo ...
                                         //         ... (scalers vs. scaler reads)
     TH2* fEmptyMainHisto;               //         empty main histo (dummy)
     TH1* fEmptyProjHisto;               //         empty projected main histo (dummy)
+    TH1* fEmptyProjNormHisto;           //         empty projected, normalized main histo (dummy)
 
     TH1* fOverviewHisto;                //         overview histo ...
                                         //         ... (detector hits per scaler read vs. run)
@@ -97,8 +99,8 @@ public:
     TCCalibRunBadScR()
       : TCCalibRun(),
         fMainHistoName(0), fScalerHistoName(0),
-        fMainHistos(0), fProjHistos(0), fScalerHistos(0),
-        fEmptyMainHisto(0), fEmptyProjHisto(0),
+        fMainHistos(0), fProjHistos(0), fProjNormHistos(0),fScalerHistos(0),
+        fEmptyMainHisto(0), fEmptyProjHisto(0), fEmptyProjNormHisto(0),
         fOverviewHisto(0),
         fScP2(-1), fScFree(-1), fScLive(-1),
         fBadScROld(0), fBadScRNew(0),
@@ -112,8 +114,8 @@ public:
     TCCalibRunBadScR(const Char_t* name, const Char_t* title, const Char_t* data, Bool_t istruecalib)
       : TCCalibRun(name, title, data, istruecalib),
         fMainHistoName(0), fScalerHistoName(0),
-        fMainHistos(0), fProjHistos(0), fScalerHistos(0),
-        fEmptyMainHisto(0), fEmptyProjHisto(0),
+        fMainHistos(0), fProjHistos(0), fProjNormHistos(0), fScalerHistos(0),
+        fEmptyMainHisto(0), fEmptyProjHisto(0), fEmptyProjNormHisto(0),
         fOverviewHisto(0),
         fScP2(-1), fScFree(-1), fScLive(-1),
         fBadScROld(0), fBadScRNew(0),

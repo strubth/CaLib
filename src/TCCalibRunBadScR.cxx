@@ -18,6 +18,7 @@
 #include "TArrow.h"
 #include "TStyle.h"
 #include "TCCalibRunBadScR.h"
+#include "TROOT.h"
 
 ClassImp(TCCalibRunBadScR)
 
@@ -40,6 +41,12 @@ TCCalibRunBadScR::~TCCalibRunBadScR()
         for (Int_t i = 0; i < fNRuns; i++)
             if (fProjHistos[i]) delete fProjHistos[i];
         delete [] fProjHistos;
+    }
+    if (fProjNormHistos)
+    {
+        for (Int_t i = 0; i < fNRuns; i++)
+            if (fProjNormHistos[i]) delete fProjNormHistos[i];
+        delete [] fProjNormHistos;
     }
     if (fScalerHistos)
     {
@@ -150,6 +157,16 @@ Bool_t TCCalibRunBadScR::Init()
     // call parent Init()
     TCCalibRun::Init();
 
+    // adjust style
+    gStyle->SetOptStat(0);
+    gStyle->SetPadRightMargin(0.03);
+    gStyle->SetPadLeftMargin(0.05);
+    gStyle->SetLabelSize(0.06, "X");
+    gStyle->SetLabelSize(0.06, "Y");
+
+    // force style for loaded histograms too
+    gROOT->ForceStyle();
+
 
     // load & prepare histos ---------------------------------------------------
 
@@ -197,7 +214,7 @@ Bool_t TCCalibRunBadScR::Init()
     // user info
     Info("Init", "Projecting main histograms...");
 
-    // projecting main histograms
+    // create main histogram projections
     for (Int_t i = 0; i < fNRuns; i++)
     {
         // init pointer
@@ -210,16 +227,14 @@ Bool_t TCCalibRunBadScR::Init()
         Char_t tmp[128];
         sprintf(tmp, "%s_px", fMainHistos[i]->GetName());
         fProjHistos[i] = (TH1D*) fMainHistos[i]->ProjectionX(tmp, 1, -1);
-
-        // security check (should not happen)
-        if (!fProjHistos[i])
-        {
-            delete fMainHistos[i];
-            fMainHistos[i] = 0;
-        }
+        fProjHistos[i]->SetTitle("");
+        fProjHistos[i]->GetXaxis()->SetLabelSize(0);
     }
 
-    // normalize projection histo
+    // create normalized projection array
+    fProjNormHistos = new TH1*[fNRuns];
+
+    // check whether scaler histo was loaded
     if (fScalerHistos)
     {
         // user infos
@@ -228,42 +243,62 @@ Bool_t TCCalibRunBadScR::Init()
             Warning("Init", "Histograms will not be P2 corrected.");
         if (fScFree <= -1 || fScLive <= -1)
             Warning("Init", "Histograms will not be livetime corrected.");
+    }
 
-        // loop over runs
-        for (Int_t i = 0; i < fNRuns; i++)
+    // loop over runs
+    for (Int_t i = 0; i < fNRuns; i++)
+    {
+        // init pointer
+        fProjNormHistos[i] = 0;
+
+        // check for histo
+        if (!fProjHistos[i]) continue;
+
+        // clone it
+        Char_t tmp[256];
+        sprintf(tmp, "%s_%s", fProjHistos[i]->GetName(), "_norm");
+        fProjNormHistos[i] = (TH1D*) fProjHistos[i]->Clone(tmp);
+        fProjNormHistos[i]->UseCurrentStyle();//SetLabelSize(0.06);
+
+        // check whether scaler histo was loaded
+        if (!fScalerHistos) continue;
+
+        // check for scaler histo
+        if (!fScalerHistos[i])
         {
-            // check for histo
-            if (!fProjHistos[i]) continue;
+            Warning("Init", "No scaler histogram for run '%i'. Will not be normalized.", fRuns[i]);
+            continue;
+        }
 
-            // check for scaler histo
-            if( !fScalerHistos[i])
+        // loop over scaler reads
+        for (Int_t j = 0; j < fProjNormHistos[i]->GetNbinsX(); j++)
+        {
+            // init scalers
+            Double_t p2 = 1.;
+            Double_t lt = 1.;
+
+            // get p2 scaler
+            if (fScP2 >= 0)
+                p2 = fScalerHistos[i]->GetBinContent(j+1, fScP2+1);
+
+            // get livetime
+            if (fScFree >= 0 && fScLive >= 0)
             {
-                Warning("Init", "No scaler histogram for run '%i'. Will not be normalized.", fRuns[i]);
-                continue;
+                if (fScalerHistos[i]->GetBinContent(j+1, fScFree+1) > 0.)
+                    lt = fScalerHistos[i]->GetBinContent(j+1, fScLive+1) / fScalerHistos[i]->GetBinContent(j+1, fScFree+1);
+                else
+                    lt = 0.;
             }
 
-            // loop over scaler reads
-            for (Int_t j = 0; j < fProjHistos[i]->GetNbinsX(); j++)
-            {
-                // init scalers
-                Double_t p2 = 1.;
-                Double_t lt = 1.;
+            // normalization factor
+            Double_t norm = p2 * lt;
 
-                // get p2 scaler
-                if (fScP2 >= 0)
-                    p2 = fScalerHistos[i]->GetBinContent(j+1, fScP2+1);
-
-                // get livetime
-                if (fScFree >= 0 && fScLive >= 0)
-                    if (fScalerHistos[i]->GetBinContent(j+1, fScFree+1) > 0.)
-                        lt = fScalerHistos[i]->GetBinContent(j+1, fScLive+1) / fScalerHistos[i]->GetBinContent(j+1, fScFree+1);
-
-                // normalize
-                if (p2 > 0. && lt > 0.)
-                    fProjHistos[i]->SetBinContent(j+1, fProjHistos[i]->GetBinContent(j+1) / (p2 * lt));
-                else fProjHistos[i]->SetBinContent(j+1, 0.);
-            } 
-        }
+            // normalize histo
+            if (norm > 0.)
+                fProjNormHistos[i]->SetBinContent(j+1, fProjNormHistos[i]->GetBinContent(j+1) / norm);
+            else
+                fProjNormHistos[i]->SetBinContent(j+1, 0.);
+        } 
     }
 
 
@@ -343,11 +378,14 @@ Bool_t TCCalibRunBadScR::Init()
         if (fMainHistos[i])
         {
             fEmptyMainHisto = (TH2*) fMainHistos[i]->Clone("EmptyMainHisto");
-            fEmptyMainHisto->GetXaxis()->SetRange(0, fRangeMax);
+            fEmptyMainHisto->GetXaxis()->SetRange(1, fRangeMax);
             fEmptyMainHisto->Reset();
             fEmptyProjHisto = (TH1D*) fProjHistos[i]->Clone("EmptyProjHisto");
-            fEmptyProjHisto->GetXaxis()->SetRange(0, fRangeMax);
+            fEmptyProjHisto->GetXaxis()->SetRange(1, fRangeMax);
             fEmptyProjHisto->Reset();
+            fEmptyProjNormHisto = (TH1D*) fProjNormHistos[i]->Clone("EmptyProjNormHisto");
+            fEmptyProjNormHisto->GetXaxis()->SetRange(1, fRangeMax);
+            fEmptyProjNormHisto->Reset();
             break;
         }
     }
@@ -388,14 +426,18 @@ Bool_t TCCalibRunBadScR::Init()
     fRunMarker->SetLineWidth(2);
     fRunMarker->SetLineColor(kRed);
 
-    // adjust style
-    gStyle->SetOptStat(0);
-    gStyle->SetPadRightMargin(0.05);
-    gStyle->SetPadLeftMargin(0.03);
 
-    // setup canvas
+    // setup main canvas
     fCanvasMain = new TCanvas("Main", "Main", 0, 0, gClient->GetDisplayWidth(), gClient->GetDisplayHeight()/2.+50);
-    fCanvasMain->Divide(1, 2, 0.001, 0.001);
+    fCanvasMain->Divide(1, 3, 0.001, 0.001);
+    fCanvasMain->GetPad(1)->SetMargin(0.03, 0.03, 0.02, 0.1);
+    fCanvasMain->GetPad(2)->SetMargin(0.03, 0.03, 0.02, 0.02);
+    fCanvasMain->GetPad(3)->SetMargin(0.03, 0.03, 0.1, 0.02);
+    fCanvasMain->GetPad(1)->SetBit(kCannotPick);
+    fCanvasMain->GetPad(2)->SetBit(kCannotPick);
+    fCanvasMain->GetPad(3)->SetBit(kCannotPick);
+
+    // setup overview canvas
     fCanvasOverview = new TCanvas("Overview", "Overview", 0, gClient->GetDisplayHeight(), 800, gClient->GetDisplayHeight()/4.+20);
 
     // disable ROOT zoom box
@@ -537,6 +579,7 @@ void TCCalibRunBadScR::UpdateCanvas()
         // set editable
         fCanvasMain->GetPad(1)->SetEditable(kTRUE);
         fCanvasMain->GetPad(2)->SetEditable(kTRUE);
+        fCanvasMain->GetPad(3)->SetEditable(kTRUE);
 
         // set cannot pic flag axis
         fMainHistos[fIndex]->GetXaxis()->SetBit(kCannotPick);
@@ -547,7 +590,7 @@ void TCCalibRunBadScR::UpdateCanvas()
 
         // draw
         fCanvasMain->cd(1);
-        fMainHistos[fIndex]->Draw("colz");
+        fMainHistos[fIndex]->Draw("colzX+");
 
         // draw boxes
         for (Int_t i = 0; i < fBadScRCurr->GetNElem(); i++)
@@ -556,7 +599,7 @@ void TCCalibRunBadScR::UpdateCanvas()
         // draw last read marker
         fLastReadMarker->Draw();
 
-        // bottom pad
+        // middle pad
         fCanvasMain->cd(2);
 
         // set same range as main histo
@@ -575,23 +618,44 @@ void TCCalibRunBadScR::UpdateCanvas()
 
         // draw
         fProjHistos[fIndex]->Draw();
+
+        // bottom pad
+        fCanvasMain->cd(3);
+
+        // set same range as main histo
+        fProjNormHistos[fIndex]->GetXaxis()->SetRangeUser(min, max);
+
+        // set y-range
+        fProjNormHistos[fIndex]->GetYaxis()->SetRangeUser(0., fProjNormHistos[fIndex]->GetBinContent(fProjNormHistos[fIndex]->GetMaximumBin())*1.1);
+
+        // set cannot pic flag
+        fProjNormHistos[fIndex]->GetXaxis()->SetBit(kCannotPick);
+        fProjNormHistos[fIndex]->GetYaxis()->SetBit(kCannotPick);
+
+        // draw
+        fProjNormHistos[fIndex]->Draw();
     }
     else
     {
         // set editable
         fCanvasMain->GetPad(1)->SetEditable(kTRUE);
         fCanvasMain->GetPad(2)->SetEditable(kTRUE);
+        fCanvasMain->GetPad(3)->SetEditable(kTRUE);
 
         // clear pads & set cannot pic flag pad
         fCanvasMain->cd(1);
-        fEmptyMainHisto->Draw("colz");
+        fEmptyMainHisto->Draw("colzX+");
 
         fCanvasMain->cd(2);
         fEmptyProjHisto->Draw();
 
+        fCanvasMain->cd(3);
+        fEmptyProjNormHisto->Draw();
+
         // unset editable
         fCanvasMain->GetPad(1)->SetEditable(kFALSE);
         fCanvasMain->GetPad(2)->SetEditable(kFALSE);
+        fCanvasMain->GetPad(3)->SetEditable(kFALSE);
     }
 
     // update main canvas
@@ -729,7 +793,7 @@ void TCCalibRunBadScR::UpdateOverviewHisto()
     {
         // fill overview histo, i.e., add up (normalized) counts for good scaler reads
         if (!fBadScRCurr->IsBad(j))
-            fOverviewHisto->AddBinContent(fIndex+1, fProjHistos[fIndex]->GetBinContent(j+1));
+            fOverviewHisto->AddBinContent(fIndex+1, fProjNormHistos[fIndex]->GetBinContent(j+1));
     }
 
     // get number of good scaler reads
