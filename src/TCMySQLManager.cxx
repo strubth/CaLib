@@ -759,11 +759,10 @@ Int_t* TCMySQLManager::GetRunsOfSet(const Char_t* data, const Char_t* calibratio
     // create the query
     sprintf(query,
             "SELECT run FROM %s "
-            "WHERE time >= ( SELECT time FROM %s WHERE run = %d) "
-            "AND time <= ( SELECT time FROM %s WHERE run = %d) "
+            "WHERE run >= %d "
+            "AND run <= %d "
             "ORDER by run,time",
-            TCConfig::kCalibMainTableName, TCConfig::kCalibMainTableName, first_run, 
-            TCConfig::kCalibMainTableName, last_run);
+            TCConfig::kCalibMainTableName, first_run, last_run);
 
     // read from database
     TSQLResult* res = SendQuery(query);
