@@ -494,9 +494,8 @@ void TCCalibRunBadScR::PrepareCurr()
         SetBadScalerRead(fBadScRNew[fIndex]->GetBad()[i]);
 
     // mark last scaler read
-    Int_t last = TCMySQLManager::GetManager()->GetRunNScR(fRuns[fIndex]);
-    fLastReadMarker->SetX1(last);
-    fLastReadMarker->SetX2(last+5);
+    fLastReadMarker->SetX1(fBadScRCurr->GetNElem());
+    fLastReadMarker->SetX2(fBadScRCurr->GetNElem()+3);
     fLastReadMarker->SetY1(fMainHistos[fIndex]->GetYaxis()->GetXmax()/2);
     fLastReadMarker->SetY2(fMainHistos[fIndex]->GetYaxis()->GetXmax()/2);
 }
