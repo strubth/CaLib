@@ -48,6 +48,7 @@ protected:
     TH1* fEmptyProjNormHisto;           //         empty projected, normalized main histo (dummy)
 
     TH1* fOverviewHisto;                //         overview histo ...
+    TH1* fOverviewNormHisto;            //         inormalized overview histo ...
                                         //         ... (detector hits per scaler read vs. run)
     Int_t fScP2;                        //         number of P2 scaler (= P2 bin-1)
     Int_t fScFree;                      //         number of free scaler (= free bin-1) for livetime
@@ -101,7 +102,7 @@ public:
         fMainHistoName(0), fScalerHistoName(0),
         fMainHistos(0), fProjHistos(0), fProjNormHistos(0),fScalerHistos(0),
         fEmptyMainHisto(0), fEmptyProjHisto(0), fEmptyProjNormHisto(0),
-        fOverviewHisto(0),
+        fOverviewHisto(0), fOverviewNormHisto(0),
         fScP2(-1), fScFree(-1), fScLive(-1),
         fBadScROld(0), fBadScRNew(0),
         fRangeMax(0),
@@ -116,7 +117,7 @@ public:
         fMainHistoName(0), fScalerHistoName(0),
         fMainHistos(0), fProjHistos(0), fProjNormHistos(0), fScalerHistos(0),
         fEmptyMainHisto(0), fEmptyProjHisto(0), fEmptyProjNormHisto(0),
-        fOverviewHisto(0),
+        fOverviewHisto(0), fOverviewNormHisto(0),
         fScP2(-1), fScFree(-1), fScLive(-1),
         fBadScROld(0), fBadScRNew(0),
         fRangeMax(0),

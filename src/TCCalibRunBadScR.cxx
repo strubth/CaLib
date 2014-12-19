@@ -56,6 +56,7 @@ TCCalibRunBadScR::~TCCalibRunBadScR()
     }
 
     if (fOverviewHisto) delete fOverviewHisto;
+    if (fOverviewNormHisto) delete fOverviewNormHisto;
 
     if (fBadScROld)
     {
@@ -395,6 +396,7 @@ Bool_t TCCalibRunBadScR::Init()
     
     // init overview histo
     fOverviewHisto = new TH1F("OverviewHisto", "Overview histogram", fNRuns, 0, fNRuns);
+    fOverviewNormHisto = new TH1F("OverviewNormHisto", "Normalized overview histogram", fNRuns, 0, fNRuns);
 
     // initialize overview histo for all runs
     for (Int_t i = 0; i < fNRuns; i++)
@@ -439,6 +441,7 @@ Bool_t TCCalibRunBadScR::Init()
 
     // setup overview canvas
     fCanvasOverview = new TCanvas("Overview", "Overview", 0, gClient->GetDisplayHeight(), 800, gClient->GetDisplayHeight()/4.+20);
+    fCanvasOverview->Divide(1, 2, 0.001, 0.001);
 
     // disable ROOT zoom box
     fCanvasMain->MoveOpaque(0);
@@ -661,9 +664,12 @@ void TCCalibRunBadScR::UpdateCanvas()
     fCanvasMain->Update();
 
     // update overview canvas
-    fCanvasOverview->cd();
+    fCanvasOverview->cd(1);
     fOverviewHisto->Draw();
     fRunMarker->Draw();
+
+    fCanvasOverview->cd(2);
+    fOverviewNormHisto->Draw();
     fCanvasOverview->Update();
 }
 
@@ -783,6 +789,7 @@ void TCCalibRunBadScR::UpdateOverviewHisto()
 
     // reset value
     fOverviewHisto->SetBinContent(fIndex+1, 0);
+    fOverviewNormHisto->SetBinContent(fIndex+1, 0);
 
     // check for valid run
     if (!IsGood()) return;
@@ -792,7 +799,10 @@ void TCCalibRunBadScR::UpdateOverviewHisto()
     {
         // fill overview histo, i.e., add up (normalized) counts for good scaler reads
         if (!fBadScRCurr->IsBad(j))
-            fOverviewHisto->AddBinContent(fIndex+1, fProjNormHistos[fIndex]->GetBinContent(j+1));
+        {
+            fOverviewHisto->AddBinContent(fIndex+1, fProjHistos[fIndex]->GetBinContent(j+1));
+            fOverviewNormHisto->AddBinContent(fIndex+1, fProjNormHistos[fIndex]->GetBinContent(j+1));
+        }
     }
 
     // get number of good scaler reads
@@ -800,7 +810,10 @@ void TCCalibRunBadScR::UpdateOverviewHisto()
 
     // devide by number of scaler reads
     if (ngoodscr > 0)
+    {
         fOverviewHisto->SetBinContent(fIndex+1, fOverviewHisto->GetBinContent(fIndex+1) / ngoodscr);
+        fOverviewNormHisto->SetBinContent(fIndex+1, fOverviewNormHisto->GetBinContent(fIndex+1) / ngoodscr);
+    }
 
     return;
 }
