@@ -11,8 +11,9 @@
 G__*.cxx
 G__*.h
 
-# binaries
-/bin/*
+# binaries/libray
+/bin
+/lib
 
 # other folders
 /backup
