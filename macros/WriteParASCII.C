@@ -28,7 +28,7 @@ void WriteParASCII()
     Int_t nPar = 0;
 
     // read from file (one value per line)
-    Char_t* line[256];
+    Char_t line[256];
     FILE* f = fopen(inputFile, "r");
     while (fgets(line, 256, f)) sscanf(line, "%lf", &par[nPar++]);
     fclose(f);
