@@ -15,7 +15,7 @@ TCanvas* gCFit;
 TH1* gHOverview;
 TH1* gH;
 TH3* gH3;
-TFile* gFile;
+TFile* gRFile;
 TF1* gFitFunc;
 TLine* gLine;
 Double_t gMin;
@@ -149,21 +149,21 @@ void PIDEnergy()
             // clean-up
             if (gH) delete gH;
             if (gH3) delete gH3;
-            if (gFile) delete gFile;
+            if (gRFile) delete gRFile;
             gH = 0;
             gH3 = 0;
-            gFile = 0;
+            gRFile = 0;
 
             // load ROOT file
             sprintf(tmp, "%s/ARHistograms_CB_%d.root", fLoc, runs[j]);
-            gFile = new TFile(tmp);
+            gRFile = new TFile(tmp);
 
             // check file
-            if (!gFile) continue;
-            if (gFile->IsZombie()) continue;
+            if (!gRFile) continue;
+            if (gRFile->IsZombie()) continue;
 
             // load histogram
-            gH3 = (TH3*) gFile->Get(hName);
+            gH3 = (TH3*) gRFile->Get(hName);
             if (!gH3) continue;
             if (!gH3->GetEntries()) continue;
             if (gH3->GetEntries() < 5000) continue;
