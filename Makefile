@@ -20,11 +20,20 @@ OBJ           = $(notdir $(OBJD))
 
 OSTYPE       := $(subst -,,$(shell uname))
 
-ROOTGLIBS    := $(shell root-config --libs --glibs) -lEG -lFoam -lSpectrum -lSQLite
+ROOTGLIBS    := $(shell root-config --libs --glibs) -lEG -lFoam -lSpectrum
 ROOTCFLAGS   := $(shell root-config --cflags)
 ROOTLDFLAGS  := $(shell root-config --ldflags)
 
-DEP_LIB      := libHist.so libGui.so libRMySQL.so libSpectrum.so
+DEP_LIB      := libHist.so libGui.so libSpectrum.so
+
+ifeq ($(shell root-config --has-mysql),yes)
+    ROOTGLIBS := $(ROOTGLIBS) -lRMySQL
+    DEP_LIB   := $(DEP_LIB) libRMySQL.so
+endif
+ifeq ($(shell root-config --has-sqlite),yes)
+    ROOTGLIBS := $(ROOTGLIBS) -lSQLite
+    DEP_LIB   := $(DEP_LIB) libSQLite.so
+endif
 
 BIN_INSTALL_DIR = $(HOME)/$(B)
 
