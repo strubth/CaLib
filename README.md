@@ -7,12 +7,11 @@ Installation
 ------------
 
 ### Dependencies
-* ROOT 5.34 (with MySQL support)
+* ROOT 5.34 (with MySQL or/and SQLite support)
 * ncurses
-* MySQL database server
 
 ### Installation
-* Compile the software using `make clean ; make`
+* Compile the software using `make clean ; make; make install`
 
 ### Upgrade from 0.2.x to 0.3.x
 * The database has to be updated to version 4 using
@@ -51,7 +50,9 @@ Changelog
 ---------
 
 ### 0.3.0beta
+* added SQLite support
 * improved support for bad scaler reads
+* bugfixes
 
 ### 0.2.0
 January 7, 2014
