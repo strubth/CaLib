@@ -26,6 +26,7 @@ TCMySQLManager::TCMySQLManager()
     // Constructor.
 
     fDB = 0;
+    fDBType = kNoType;
     fSilence = kFALSE;
     fData = new THashList();
     fData->SetOwner(kTRUE);
@@ -46,60 +47,99 @@ TCMySQLManager::TCMySQLManager()
         return;
     }
 
+    //
     // get database configuration
-    TString* strDBHost;
-    TString* strDBName;
-    TString* strDBUser;
-    TString* strDBPass;
+    //
 
-    // get database hostname
-    if (!(strDBHost = TCReadConfig::GetReader()->GetConfig("DB.Host")))
-    {
-        if (!fSilence) Error("TCMySQLManager", "Database host not included in configuration file!");
-        return;
-    }
+    TString* strDBFile;
 
-    // get database name
-    if (!(strDBName = TCReadConfig::GetReader()->GetConfig("DB.Name")))
+    // get database file (sqlite)
+    if ((strDBFile = TCReadConfig::GetReader()->GetConfig("DB.File")))
     {
-        if (!fSilence) Error("TCMySQLManager", "Database name not included in configuration file!");
-        return;
-    }
+        // open connection to sqlite server
+        Char_t szMySQL[200];
+        sprintf(szMySQL, "sqlite://%s", strDBFile->Data());
+        fDB = TSQLServer::Connect(szMySQL, "", "");
 
-    // get database user
-    if (!(strDBUser = TCReadConfig::GetReader()->GetConfig("DB.User")))
-    {
-        if (!fSilence) Error("TCMySQLManager", "Database user not included in configuration file!");
-        return;
-    }
-    
-    // get database password
-    if (!(strDBPass = TCReadConfig::GetReader()->GetConfig("DB.Pass")))
-    {
-        if (!fSilence) Error("TCMySQLManager", "Database password not included in configuration file!");
-        return;
-    }
-
-    // open connection to MySQL server on localhost
-    Char_t szMySQL[200];
-    sprintf(szMySQL, "mysql://%s/%s", strDBHost->Data(), strDBName->Data());
-    fDB = TSQLServer::Connect(szMySQL, strDBUser->Data(), strDBPass->Data());
-    if (!fDB)
-    {
-        if (!fSilence) Error("TCMySQLManager", "Cannot connect to the database '%s' on '%s@%s'!",
-               strDBName->Data(), strDBUser->Data(), strDBHost->Data());
-        return;
-    }
-    else if (fDB->IsZombie())
-    {
-        if (!fSilence) Error("TCMySQLManager", "Cannot connect to the database '%s' on '%s@%s'!",
-               strDBName->Data(), strDBUser->Data(), strDBHost->Data());
-        return;
+        // check DB connection
+        if (!fDB)
+        {
+            if (!fSilence) Error("TCMySQLManager", "Cannot connect to the database '%s'!",
+                                 strDBFile->Data());
+            return;
+        }
+        else if (fDB->IsZombie())
+        {
+            if (!fSilence) Error("TCMySQLManager", "Cannot connect to the database '%s'!",
+                                 strDBFile->Data());
+            return;
+        }
+        else
+        {
+            if (!fSilence) Info("TCMySQLManager", "Connected to the database '%s' using CaLib %s",
+                                strDBFile->Data(), TCConfig::kCaLibVersion);
+            fDBType = kSQLite;
+        }
     }
     else
     {
-        if (!fSilence) Info("TCMySQLManager", "Connected to the database '%s' on '%s@%s' using CaLib %s",
-                            strDBName->Data(), strDBUser->Data(), strDBHost->Data(), TCConfig::kCaLibVersion);
+        TString* strDBHost;
+        TString* strDBName;
+        TString* strDBUser;
+        TString* strDBPass;
+
+        // get database hostname
+        if (!(strDBHost = TCReadConfig::GetReader()->GetConfig("DB.Host")))
+        {
+            if (!fSilence) Error("TCMySQLManager", "Database host not included in configuration file!");
+            return;
+        }
+
+        // get database name
+        if (!(strDBName = TCReadConfig::GetReader()->GetConfig("DB.Name")))
+        {
+            if (!fSilence) Error("TCMySQLManager", "Database name not included in configuration file!");
+            return;
+        }
+
+        // get database user
+        if (!(strDBUser = TCReadConfig::GetReader()->GetConfig("DB.User")))
+        {
+            if (!fSilence) Error("TCMySQLManager", "Database user not included in configuration file!");
+            return;
+        }
+
+        // get database password
+        if (!(strDBPass = TCReadConfig::GetReader()->GetConfig("DB.Pass")))
+        {
+            if (!fSilence) Error("TCMySQLManager", "Database password not included in configuration file!");
+            return;
+        }
+
+        // open connection to MySQL server on localhost
+        Char_t szMySQL[200];
+        sprintf(szMySQL, "mysql://%s/%s", strDBHost->Data(), strDBName->Data());
+        fDB = TSQLServer::Connect(szMySQL, strDBUser->Data(), strDBPass->Data());
+
+        // check DB connection
+        if (!fDB)
+        {
+            if (!fSilence) Error("TCMySQLManager", "Cannot connect to the database '%s' on '%s@%s'!",
+                                 strDBName->Data(), strDBUser->Data(), strDBHost->Data());
+            return;
+        }
+        else if (fDB->IsZombie())
+        {
+            if (!fSilence) Error("TCMySQLManager", "Cannot connect to the database '%s' on '%s@%s'!",
+                                 strDBName->Data(), strDBUser->Data(), strDBHost->Data());
+            return;
+        }
+        else
+        {
+            if (!fSilence) Info("TCMySQLManager", "Connected to the database '%s' on '%s@%s' using CaLib %s",
+                                strDBName->Data(), strDBUser->Data(), strDBHost->Data(), TCConfig::kCaLibVersion);
+            fDBType = kMySQL;
+        }
     }
 }
 
@@ -345,6 +385,23 @@ TSQLResult* TCMySQLManager::SendQuery(const Char_t* query)
 }
 
 //______________________________________________________________________________
+Bool_t TCMySQLManager::SendExec(const Char_t* sql)
+{
+    // Send the SQL command 'sql' without returned result to the database.
+    // Return kTRUE on success, otherwise kFALSE.
+
+    // check server connection
+    if (!IsConnected())
+    {
+        if (!fSilence) Error("SendExec", "No connection to the database!");
+        return kFALSE;
+    }
+
+    // execute command
+    return fDB->Exec(sql);
+}
+
+//______________________________________________________________________________
 Bool_t TCMySQLManager::IsConnected()
 {
     // Check if the connection to the database is open.
@@ -394,7 +451,7 @@ Bool_t TCMySQLManager::SearchRunEntry(Int_t run, const Char_t* name, Char_t* out
 
     // read from database
     TSQLResult* res = SendQuery(query);
-    
+
     // check result
     if (!res)
     {
@@ -402,7 +459,12 @@ Bool_t TCMySQLManager::SearchRunEntry(Int_t run, const Char_t* name, Char_t* out
                                                name, run);
         return kFALSE;
     }
-    if (!res->GetRowCount())
+
+    // get row
+    TSQLRow* row = res->Next();
+
+    // check row
+    if (!row)
     {
         if (!fSilence) Error("SearchRunEntry", "Could not find the information '%s' for run %d!",
                                                name, run);
@@ -410,9 +472,6 @@ Bool_t TCMySQLManager::SearchRunEntry(Int_t run, const Char_t* name, Char_t* out
         return kFALSE;
     }
 
-    // get row
-    TSQLRow* row = res->Next();
-  
     // write the information
     const Char_t* field = row->GetField(0);
     if (!field) strcpy(outInfo, "");
@@ -459,14 +518,18 @@ Bool_t TCMySQLManager::SearchSetEntry(const Char_t* data, const Char_t* calibrat
         if (!fSilence) Error("SearchSetEntry", "No runset %d found in table '%s'!", set, table);
         return kFALSE;
     }
-    if (!res->GetRowCount())
+
+    // get data
+    TSQLRow* row = res->Next();
+
+    // check row
+    if (!row)
     {
         if (!fSilence) Error("SearchSetEntry", "No runset %d found in table '%s'!", set, table);
         return kFALSE;
     }
 
-    // get data
-    TSQLRow* row = res->Next();
+    // extract data
     const Char_t* d = row->GetField(0);
     if (!d) strcpy(outInfo, "");
     else strcpy(outInfo, d);
@@ -501,8 +564,8 @@ Bool_t TCMySQLManager::ChangeRunEntries(Int_t first_run, Int_t last_run,
             TCConfig::kCalibMainTableName, name, value, first_run, last_run);
 
     // read from database
-    TSQLResult* res = SendQuery(query);
-    
+    Bool_t res = SendExec(query);
+
     // check result
     if (!res)
     {
@@ -511,9 +574,6 @@ Bool_t TCMySQLManager::ChangeRunEntries(Int_t first_run, Int_t last_run,
         return kFALSE;
     }
 
-    // clean-up
-    delete res;
-    
     return kTRUE;
 }
 
@@ -545,8 +605,8 @@ Bool_t TCMySQLManager::ChangeSetEntry(const Char_t* data, const Char_t* calibrat
             table, name, value, calibration, first_run);
 
     // read from database
-    TSQLResult* res = SendQuery(query);
-    
+    Bool_t res = SendExec(query);
+
     // check result
     if (!res)
     {
@@ -555,9 +615,6 @@ Bool_t TCMySQLManager::ChangeSetEntry(const Char_t* data, const Char_t* calibrat
         return kFALSE;
     }
 
-    // clean-up
-    delete res;
- 
     return kTRUE;
 }
 
@@ -595,7 +652,14 @@ Int_t TCMySQLManager::GetNsets(const Char_t* data, const Char_t* calibration)
     }
 
     // count rows
-    Int_t rows = res->GetRowCount();
+    Int_t rows = 0;
+    TSQLRow* r = res->Next();
+    while (r)
+    {
+        rows++;
+        delete r;
+        r = res->Next();
+    }
     delete res;
 
     return rows;
@@ -767,8 +831,21 @@ Int_t* TCMySQLManager::GetRunsOfSet(const Char_t* data, const Char_t* calibratio
     // read from database
     TSQLResult* res = SendQuery(query);
 
+    // create list for run numbers
+    TList run_numbers;
+    run_numbers.SetOwner(kTRUE);
+
+    // read all rows/runs
+    TSQLRow* r = res->Next();
+    while (r)
+    {
+        run_numbers.Add(new TObjString(r->GetField(0)));
+        delete r;
+        r = res->Next();
+    }
+
     // get number of runs
-    Int_t nruns = res->GetRowCount();
+    Int_t nruns = run_numbers.GetSize();
 
     // create run array
     Int_t* runs = new Int_t[nruns];
@@ -777,13 +854,10 @@ Int_t* TCMySQLManager::GetRunsOfSet(const Char_t* data, const Char_t* calibratio
     for (Int_t i = 0; i < nruns; i++)
     {
         // get next run
-        TSQLRow* row = res->Next();
+        TObjString* rn = (TObjString*) run_numbers.At(i);
 
         // save run number
-        runs[i] = atoi(row->GetField(0));
-
-        // clean-up
-        delete row;
+        runs[i] = atoi(rn->GetString().Data());
     }
 
     // clean-up
@@ -898,7 +972,12 @@ Bool_t TCMySQLManager::ReadParameters(const Char_t* data, const Char_t* calibrat
                              set, ((TCCalibData*) fData->FindObject(data))->GetTitle());
         return kFALSE;
     }
-    else if (!res->GetRowCount())
+
+    // get data (parameters start at field 5)
+    TSQLRow* row = res->Next();
+
+    // check row
+    if (!row)
     {
         if (!fSilence) Error("ReadParameters", "No calibration found for set %d of '%s'!", 
                              set, ((TCCalibData*) fData->FindObject(data))->GetTitle());
@@ -906,8 +985,6 @@ Bool_t TCMySQLManager::ReadParameters(const Char_t* data, const Char_t* calibrat
         return kFALSE;
     }
 
-    // get data (parameters start at field 5)
-    TSQLRow* row = res->Next();
     for (Int_t i = 0; i < length; i++) par[i] = atof(row->GetField(i+5));
 
     // clean-up
@@ -965,8 +1042,8 @@ Bool_t TCMySQLManager::WriteParameters(const Char_t* data, const Char_t* calibra
                                  calibration, first_run));
  
     // write data to database
-    TSQLResult* res = SendQuery(query.Data());
-    
+    Bool_t res = SendExec(query.Data());
+
     // check result
     if (!res)
     {
@@ -976,7 +1053,6 @@ Bool_t TCMySQLManager::WriteParameters(const Char_t* data, const Char_t* calibra
     }
     else
     {
-        delete res;
         if (!fSilence) Info("WriteParameters", "Wrote %d parameters of '%s' to the database", 
                                                length, ((TCCalibData*) fData->FindObject(data))->GetTitle());
         return kTRUE;
@@ -998,9 +1074,18 @@ Bool_t TCMySQLManager::InitDatabase()
 
     // ask for user confirmation
     Char_t answer[256];
-    printf("\nWARNING: You are about to initialize a new CaLib database.\n"
-           "         All existing tables in the database '%s' on '%s'\n"
-           "         will be deleted!\n\n", fDB->GetDB(), fDB->GetHost());
+    if (fDBType == kSQLite)
+    {
+        printf("\nWARNING: You are about to initialize a new CaLib database.\n"
+               "         All existing tables in the database '%s'\n"
+               "         will be deleted!\n\n", fDB->GetDB());
+    }
+    else
+    {
+        printf("\nWARNING: You are about to initialize a new CaLib database.\n"
+               "         All existing tables in the database '%s' on '%s'\n"
+               "         will be deleted!\n\n", fDB->GetDB(), fDB->GetHost());
+    }
     printf("Are you sure to continue? (yes/no) : ");
     scanf("%s", answer);
     if (strcmp(answer, "yes")) 
@@ -1070,9 +1155,18 @@ Bool_t TCMySQLManager::UpgradeDatabase(Int_t version)
 
     // ask for user confirmation
     Char_t answer[256];
-    printf("\nWARNING: You are about to update your existing CaLib database '%s' on '%s'\n"
-           "         It is highly recommended to create a complete backup using\n"
-           "         e.g. mysqldump before proceeding!\n\n", fDB->GetDB(), fDB->GetHost());
+    if (fDBType == kSQLite)
+    {
+        printf("\nWARNING: You are about to update your existing CaLib database '%s'\n"
+               "         It is highly recommended to create a complete backup\n"
+               "         before proceeding!\n\n", fDB->GetDB());
+    }
+    else
+    {
+        printf("\nWARNING: You are about to update your existing CaLib database '%s' on '%s'\n"
+               "         It is highly recommended to create a complete backup using\n"
+               "         e.g. mysqldump before proceeding!\n\n", fDB->GetDB(), fDB->GetHost());
+    }
     printf("Are you sure to continue? (yes/no) : ");
     scanf("%s", answer);
     if (strcmp(answer, "yes")) 
@@ -1086,14 +1180,13 @@ Bool_t TCMySQLManager::UpgradeDatabase(Int_t version)
     for (Int_t i = 0; i < nQuery; i++)
     {
         // send query
-        TSQLResult* res = SendQuery(query[i]);
-    
+        Bool_t res = SendExec(query[i]);
+
         // check result
         if (!res) Error("UpgradeDatabase", "Could not execute query %d!", i+1);
         else
         {
             Info("UpgradeDatabase", "Executed query %d", i+1);
-            delete res;
             queryOk++;
         }
     }
@@ -1118,18 +1211,30 @@ void TCMySQLManager::AddRunFiles(const Char_t* path, const Char_t* target,
     // Look for raw ACQU files in 'path' and add all runs with the prefix 'runPrefix'
     // to the database using the target specifier 'target'.
 
+    struct tm tm;
+    Char_t time[256];
+
     // read the raw files
     TCReadACQU r(path, runPrefix);
     Int_t nRun = r.GetNFiles();
-    
+
     // ask for user confirmation
     Char_t answer[256];
-    printf("\n%d runs were found in '%s'\n"
-           "They will be added to the database '%s' on '%s'\n", 
-           nRun, path, fDB->GetDB(), fDB->GetHost());
+    if (fDBType == kSQLite)
+    {
+        printf("\n%d runs were found in '%s'\n"
+               "They will be added to the database '%s'\n",
+               nRun, path, fDB->GetDB());
+    }
+    else
+    {
+        printf("\n%d runs were found in '%s'\n"
+               "They will be added to the database '%s' on '%s'\n",
+               nRun, path, fDB->GetDB(), fDB->GetHost());
+    }
     printf("Are you sure to continue? (yes/no) : ");
     scanf("%s", answer);
-    if (strcmp(answer, "yes")) 
+    if (strcmp(answer, "yes"))
     {
         printf("Aborted.\n");
         return;
@@ -1140,30 +1245,35 @@ void TCMySQLManager::AddRunFiles(const Char_t* path, const Char_t* target,
     for (Int_t i = 0; i < nRun; i++)
     {
         TCACQUFile* f = r.GetFile(i);
-        
+
+        // convert the time string
+        strptime(f->GetTime(), "%a %b %d %H:%M:%S %Y", &tm);
+        strftime(time, sizeof(time), "%Y-%m-%d %H:%M:%S", &tm);
+
         // prepare the insert query
-        TString ins_query = TString::Format("INSERT INTO %s SET "
-                                            "run = %d, "
-                                            "path = \"%s\", "
-                                            "filename = \"%s\", "
-                                            "time = STR_TO_DATE(\"%s\", \"%%a %%b %%d %%H:%%i:%%S %%Y\"), "
-                                            "description = \"%s\", "
-                                            "run_note = \"%s\", "
-                                            "size = %lld,"
-                                            "target = \"%s\"",
+        TString ins_query = TString::Format("INSERT INTO %s (run, path, filename, time, description, run_note, size, target) "
+                                            "VALUES ( "
+                                            "%d, "
+                                            "\"%s\", "
+                                            "\"%s\", "
+                                            "\"%s\", "
+                                            "\"%s\", "
+                                            "\"%s\", "
+                                            "%lld, "
+                                            "\"%s\" )",
                                             TCConfig::kCalibMainTableName,
                                             f->GetRun(),
                                             path,
                                             f->GetFileName(),
-                                            f->GetTime(),
+                                            time,
                                             f->GetDescription(),
                                             f->GetRunNote(),
                                             f->GetSize(),
                                             target);
 
         // try to write data to database
-        TSQLResult* res = SendQuery(ins_query.Data());
-        if (res == 0)
+        Bool_t res = SendExec(ins_query.Data());
+        if (!res)
         {
             Warning("AddRunFiles", "Run %d of file '%s/%s' could not be added to the database!", 
                     f->GetRun(), path, f->GetFileName());
@@ -1171,7 +1281,6 @@ void TCMySQLManager::AddRunFiles(const Char_t* path, const Char_t* target,
         else
         {
             nRunAdded++;
-            delete res;
         }
     }
 
@@ -1186,24 +1295,25 @@ void TCMySQLManager::AddRun(Int_t run, const Char_t* target, const Char_t* desc)
     // identifier 'target' and the description 'desc'.
 
     // prepare the insert query
-    TString ins_query = TString::Format("INSERT INTO %s SET "
-                                        "run = %d, "
-                                        "description = '%s', "
-                                        "target = '%s'",
-                                        TCConfig::kCalibMainTableName, 
+    TString ins_query = TString::Format("INSERT INTO %s (run, description, target) "
+                                        "VALUES ( "
+                                        "%d, "
+                                        "'%s', "
+                                        "'%s' )",
+                                        TCConfig::kCalibMainTableName,
                                         run,
                                         desc,
                                         target);
 
     // try to write data to database
-    TSQLResult* res = SendQuery(ins_query.Data());
-    if (res == 0)
+    Bool_t res = SendExec(ins_query.Data());
+    if (!res)
     {
         if (!fSilence) Warning("AddRun", "Run %d could not be added to the database!", run);
     }
     else
     {
-        if (!fSilence) Info("AddRun", "Run %d ('%s') for target '%s' was added to the database", 
+        if (!fSilence) Info("AddRun", "Run %d ('%s') for target '%s' was added to the database",
                             run, desc, target);
     }
 }
@@ -1437,8 +1547,8 @@ Bool_t TCMySQLManager::ChangeCalibrationName(const Char_t* calibration, const Ch
                 d->GetTableName(), newCalibration, calibration);
 
         // read from database
-        TSQLResult* res = SendQuery(query);
-        
+        Bool_t res = SendExec(query);
+
         // check result
         if (!res)
         {
@@ -1446,19 +1556,16 @@ Bool_t TCMySQLManager::ChangeCalibrationName(const Char_t* calibration, const Ch
                                  d->GetTableName(), calibration);
             succ = kFALSE;
         }
-
-        // clean-up
-        delete res;
     }
-    
-    if (!fSilence) 
+
+    if (!fSilence)
     {
         if (succ)
             Info("ChangeCalibrationName", "Renamed calibration '%s' to '%s'", calibration, newCalibration);
         else
             Error("ChangeCalibrationName", "Some problem(s) occurred - check your database for inconsistencies!");
     }
-    
+
     return succ;
 }
 
@@ -1491,8 +1598,8 @@ Bool_t TCMySQLManager::ChangeCalibrationDescription(const Char_t* calibration, c
                 d->GetTableName(), newDesc, calibration);
 
         // read from database
-        TSQLResult* res = SendQuery(query);
-        
+        Bool_t res = SendExec(query);
+
         // check result
         if (!res)
         {
@@ -1500,12 +1607,9 @@ Bool_t TCMySQLManager::ChangeCalibrationDescription(const Char_t* calibration, c
                                  d->GetTableName(), calibration);
             succ = kFALSE;
         }
-
-        // clean-up
-        delete res;
     }
-    
-    if (!fSilence) 
+
+    if (!fSilence)
     {
         if (succ)
             Info("ChangeCalibrationDescription", "Changed description of calibration '%s' to '%s'", calibration, newDesc);
@@ -1584,8 +1688,8 @@ Bool_t TCMySQLManager::ChangeCalibrationRunRange(const Char_t* calibration, cons
             // execute the query
             sprintf(query, "UPDATE %s SET first_run = %d WHERE calibration = '%s' and first_run = %d", 
                            d->GetTableName(), firstRun, calibration, oldFirstRun);
-            TSQLResult* res = SendQuery(query);
-            
+            Bool_t res = SendExec(query);
+
             // check result
             if (!res)
             {
@@ -1593,11 +1697,8 @@ Bool_t TCMySQLManager::ChangeCalibrationRunRange(const Char_t* calibration, cons
                                      d->GetTableName(), calibration);
                 succ = kFALSE;
             }
-
-            // clean-up
-            delete res;
         }
-        
+
         // 
         // last run
         //
@@ -1610,8 +1711,8 @@ Bool_t TCMySQLManager::ChangeCalibrationRunRange(const Char_t* calibration, cons
             // execute the query
             sprintf(query, "UPDATE %s SET last_run = %d WHERE calibration = '%s' and last_run = %d", 
                            d->GetTableName(), lastRun, calibration, oldLastRun);
-            TSQLResult* res = SendQuery(query);
-            
+            Bool_t res = SendExec(query);
+
             // check result
             if (!res)
             {
@@ -1619,12 +1720,9 @@ Bool_t TCMySQLManager::ChangeCalibrationRunRange(const Char_t* calibration, cons
                                      d->GetTableName(), calibration);
                 succ = kFALSE;
             }
-
-            // clean-up
-            delete res;
         }
     }
-    
+
     if (!fSilence) 
     {
         if (succ)
@@ -1658,8 +1756,8 @@ Bool_t TCMySQLManager::RemoveCalibration(const Char_t* calibration, const Char_t
             ((TCCalibData*) fData->FindObject(data))->GetTableName(), calibration);
 
     // read from database
-    TSQLResult* res = SendQuery(query);
-        
+    Bool_t res = SendExec(query);
+
     // check result
     if (!res)
     {
@@ -1668,12 +1766,9 @@ Bool_t TCMySQLManager::RemoveCalibration(const Char_t* calibration, const Char_t
         return kFALSE;
     }
 
-    // clean-up
-    delete res;
-    
     if (!fSilence) Info("RemoveCalibration", "Removed calibration '%s' of calibration '%s'",
                         ((TCCalibData*) fData->FindObject(data))->GetTitle(), calibration);
- 
+
     return kTRUE;
 }
 
@@ -1845,27 +1940,49 @@ void TCMySQLManager::AddCalibAR(CalibDetector_t det, const Char_t* calibFileAR,
 void TCMySQLManager::CreateMainTable()
 {
     // Create the main table for CaLib.
-    
+
     // user information
     if (!fSilence) Info("CreateMainTable", "Creating main CaLib table");
 
     // delete the old table if it exists
-    TSQLResult* res = SendQuery(TString::Format("DROP TABLE IF EXISTS %s", TCConfig::kCalibMainTableName).Data());
-    delete res;
+    SendExec(TString::Format("DROP TABLE IF EXISTS %s", TCConfig::kCalibMainTableName).Data());
 
     // create the table
-    res = SendQuery(TString::Format("CREATE TABLE %s ( %s )", 
-                                     TCConfig::kCalibMainTableName, TCConfig::kCalibMainTableFormat).Data());
-    delete res;
+    SendExec(TString::Format("CREATE TABLE %s ( %s )",
+                             TCConfig::kCalibMainTableName, TCConfig::kCalibMainTableFormat).Data());
+
+    // add timestamp update mechanism
+    if (fDBType == kMySQL)
+    {
+        SendExec(TString::Format("ALTER TABLE %s DROP changed", TCConfig::kCalibMainTableName).Data());
+        SendExec(TString::Format("ALTER TABLE %s ADD changed TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP "
+                                 "ON UPDATE CURRENT_TIMESTAMP", TCConfig::kCalibMainTableName).Data());
+    }
+    else if (fDBType == kSQLite)
+    {
+        // delete the old timestamp update trigger if it exists
+        SendExec(TString::Format("DROP TRIGGER IF EXISTS timestamp_update_%s", TCConfig::kCalibMainTableName).Data());
+
+        // create the timestamp update trigger
+        SendExec(TString::Format("CREATE TRIGGER after_%s_update "
+                                 "AFTER UPDATE "
+                                 "ON %s "
+                                 "FOR EACH ROW "
+                                 "WHEN NEW.changed < OLD.changed "
+                                 "BEGIN "
+                                 "UPDATE %s SET changed = CURRENT_TIMESTAMP WHERE run = OLD.run; "
+                                 "END",
+                                 TCConfig::kCalibMainTableName, TCConfig::kCalibMainTableName, TCConfig::kCalibMainTableName).Data());
+    }
 }
 
 //______________________________________________________________________________
 void TCMySQLManager::CreateDataTable(const Char_t* data, Int_t nElem)
 {
     // Create the table for the calibration data 'data' for 'nElem' elements.
-    
+
     Char_t table[256];
-    
+
     // get the table name
     if (!SearchTable(data, table))
     {
@@ -1874,10 +1991,9 @@ void TCMySQLManager::CreateDataTable(const Char_t* data, Int_t nElem)
     }
 
     if (!fSilence) Info("CreateDataTable", "Adding data table '%s' for %d elements", table, nElem);
-        
+
     // delete the old table if it exists
-    TSQLResult* res = SendQuery(TString::Format("DROP TABLE IF EXISTS %s", table));
-    delete res;
+    SendExec(TString::Format("DROP TABLE IF EXISTS %s", table));
 
     // prepare CREATE TABLE query
     TString query;
@@ -1893,10 +2009,33 @@ void TCMySQLManager::CreateDataTable(const Char_t* data, Int_t nElem)
     // finish preparing the query
     query.Append(TCConfig::kCalibDataTableSettings);
     query.Append(" )");
-    
+
     // submit the query
-    res = SendQuery(query.Data());
-    delete res;
+    SendExec(query.Data());
+
+    // add timestamp update mechanism
+    if (fDBType == kMySQL)
+    {
+        SendExec(TString::Format("ALTER TABLE %s DROP changed", table).Data());
+        SendExec(TString::Format("ALTER TABLE %s ADD changed TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP "
+                                 "ON UPDATE CURRENT_TIMESTAMP AFTER last_run", table).Data());
+    }
+    else if (fDBType == kSQLite)
+    {
+        // delete the old timestamp update trigger if it exists
+        SendExec(TString::Format("DROP TRIGGER IF EXISTS timestamp_update_%s", table).Data());
+
+        // create the timestamp update trigger
+        SendExec(TString::Format("CREATE TRIGGER after_%s_update "
+                                 "AFTER UPDATE "
+                                 "ON %s "
+                                 "FOR EACH ROW "
+                                 "WHEN NEW.changed < OLD.changed "
+                                 "BEGIN "
+                                 "UPDATE %s SET changed = CURRENT_TIMESTAMP WHERE calibration = OLD.calibration AND first_run = old.first_run ; "
+                                 "END",
+                                 table, table, table).Data());
+    }
 }
 
 //______________________________________________________________________________
@@ -1913,15 +2052,28 @@ TList* TCMySQLManager::SearchDistinctEntries(const Char_t* data, const Char_t* t
     sprintf(query, "SELECT DISTINCT %s from %s", data, table);
     TSQLResult* res = SendQuery(query);
 
+    // create list for rows
+    TList rows;
+    rows.SetOwner(kTRUE);
+
+    // read all rows
+    TSQLRow* r = res->Next();
+    while (r)
+    {
+        rows.Add(new TObjString(r->GetField(0)));
+        delete r;
+        r = res->Next();
+    }
+
+    // get number of entries
+    Int_t n = rows.GetSize();
+
     // count rows
-    if (!res->GetRowCount())
+    if (!n)
     {
         delete res;
         return 0;
     }
-
-    // get number of entries
-    Int_t n = res->GetRowCount();
 
     // create list
     TList* list = new TList();
@@ -1930,14 +2082,11 @@ TList* TCMySQLManager::SearchDistinctEntries(const Char_t* data, const Char_t* t
     // read all entries and add them to the list
     for (Int_t i = 0; i < n; i++)
     {
-        // get next run
-        TSQLRow* row = res->Next();
+        // get next entry
+        TObjString* entry = (TObjString*) rows.At(i);
 
-        // save target
-        list->Add(new TObjString(row->GetField(0)));
-
-        // clean-up
-        delete row;
+        // save entry
+        list->Add(new TObjString(*entry));
     }
 
     // clean-up
@@ -2050,7 +2199,7 @@ Bool_t TCMySQLManager::AddDataSet(const Char_t* data, const Char_t* calibration,
     //
     // create the set
     //
-    
+
     // get the data table
     if (!SearchTable(data, table))
     {
@@ -2059,20 +2208,27 @@ Bool_t TCMySQLManager::AddDataSet(const Char_t* data, const Char_t* calibration,
     }
 
     // prepare the insert query
-    TString ins_query = TString::Format("INSERT INTO %s SET calibration = '%s', description = '%s', first_run = %d, last_run = %d,",
-                                        table, calibration, desc, first_run, last_run);
-    
-    // read all parameters and write them to new query
+    TString ins_query_1 = TString::Format("INSERT INTO %s (calibration, description, first_run, last_run",
+                                          table);
+    TString ins_query_2 = TString::Format(" VALUES ( '%s', '%s', %d, %d",
+                                          calibration, desc, first_run, last_run);
+
+    // read all parameters and update the partial queries
     for (Int_t j = 0; j < length; j++)
     {
         // append parameter to query
-        ins_query.Append(TString::Format("par_%03d = %.17g", j, par[j]));
-        if (j != length - 1) ins_query.Append(",");
+        ins_query_1.Append(TString::Format(", par_%03d", j));
+        ins_query_2.Append(TString::Format(", %.17g", par[j]));
     }
 
+    // finalize query
+    ins_query_1.Append(")");
+    ins_query_2.Append(")");
+    ins_query_1.Append(ins_query_2.Data());
+
     // write data to database
-    TSQLResult* res = SendQuery(ins_query.Data());
-    
+    Bool_t res = SendExec(ins_query_1.Data());
+
     // check result
     if (!res)
     {
@@ -2082,7 +2238,6 @@ Bool_t TCMySQLManager::AddDataSet(const Char_t* data, const Char_t* calibration,
     }
     else
     {
-        delete res;
         if (!fSilence) Info("AddDataSet", "Added set of '%s' for runs %d to %d", 
                                       ((TCCalibData*) fData->FindObject(data))->GetTitle(), first_run, last_run);
         return kTRUE;
@@ -2176,7 +2331,7 @@ Bool_t TCMySQLManager::RemoveDataSet(const Char_t* data, const Char_t* calibrati
             table, calibration, first_run);
 
     // read from database
-    TSQLResult* res = SendQuery(query);
+    Bool_t res = SendExec(query);
 
     // check result
     if (!res)
@@ -2189,7 +2344,6 @@ Bool_t TCMySQLManager::RemoveDataSet(const Char_t* data, const Char_t* calibrati
     {
         if (!fSilence) Info("RemoveDataSet", "Deleted set %d in '%s' of calibration '%s'",
                                          set, ((TCCalibData*) fData->FindObject(data))->GetTitle(), calibration);
-        delete res;
         return kTRUE;
     }
 }
@@ -2264,16 +2418,18 @@ Bool_t TCMySQLManager::SplitDataSet(const Char_t* data, const Char_t* calibratio
         if (!fSilence) Error("SplitDataSet", "Cannot find first run of second set!");
         return kFALSE;
     }
-    if (!res->GetRowCount())
+
+    // get row
+    TSQLRow* row = res->Next();
+
+    // check row
+    if (!row)
     {
         if (!fSilence) Error("SplitDataSet", "Cannot find first run of second set!");
         delete res;
         return kFALSE;
     }
-    
-    // get row
-    TSQLRow* row = res->Next();
-  
+
     // get the first run of the second set
     Int_t firstRunSecondSet = 0;
     const Char_t* field = row->GetField(0);
@@ -2810,17 +2966,30 @@ Int_t TCMySQLManager::DumpRuns(TCContainer* container, Int_t first_run, Int_t la
     // read from database
     TSQLResult* res = SendQuery(query);
 
+    // create list for run numbers
+    TList run_numbers;
+    run_numbers.SetOwner(kTRUE);
+
+    // read all rows/runs
+    TSQLRow* r = res->Next();
+    while (r)
+    {
+        run_numbers.Add(new TObjString(r->GetField(0)));
+        delete r;
+        r = res->Next();
+    }
+
     // get number of runs
-    Int_t nruns = res->GetRowCount();
+    Int_t nruns = run_numbers.GetSize();
 
     // loop over runs
     for (Int_t i = 0; i < nruns; i++)
     {
         // get next run
-        TSQLRow* row = res->Next();
-        
+        TObjString* rn = (TObjString*) run_numbers.At(i);
+
         // get run number
-        Int_t run_number = atoi(row->GetField(0));
+        Int_t run_number = atoi(rn->GetString().Data());
 
         // add new run
         TCRun* run = container->AddRun(run_number);
@@ -2871,9 +3040,6 @@ Int_t TCMySQLManager::DumpRuns(TCContainer* container, Int_t first_run, Int_t la
         
         // user information
         if (!fSilence) Info("DumpRuns", "Dumped run %d", run_number);
-
-        // clean-up
-        delete row;
     }
     
     // clean-up
@@ -2980,24 +3146,26 @@ Int_t TCMySQLManager::ImportRuns(TCContainer* container)
     {
         // get the run
         TCRun* r = container->GetRun(i);
-        
+
         // prepare the insert query
-        TString ins_query = TString::Format("INSERT INTO %s SET "
-                                            "run = %d, "
-                                            "path = '%s', "
-                                            "filename = '%s', "
-                                            "time = '%s', "
-                                            "description = '%s', "
-                                            "run_note = '%s', "
-                                            "size = %lld, "
-                                            "scr_n = %d, "
-                                            "scr_bad = '%s', "
-                                            "target = '%s', "
-                                            "target_pol = '%s', "
-                                            "target_pol_deg = %lf, "
-                                            "beam_pol = '%s', "
-                                            "beam_pol_deg = %lf",
-                                            TCConfig::kCalibMainTableName, 
+        TString ins_query = TString::Format("INSERT INTO %s (run, path, filename, time, description, run_note, size, scr_n, scr_bad, "
+                                            "target, target_pol, target_pol_deg, beam_pol, beam_pol_deg) "
+                                            "VALUES ( "
+                                            "%d, "
+                                            "'%s', "
+                                            "'%s', "
+                                            "'%s', "
+                                            "'%s', "
+                                            "'%s', "
+                                            "%lld, "
+                                            "%d, "
+                                            "'%s', "
+                                            "'%s', "
+                                            "'%s', "
+                                            "%lf, "
+                                            "'%s', "
+                                            "%lf )",
+                                            TCConfig::kCalibMainTableName,
                                             r->GetRun(),
                                             r->GetPath(),
                                             r->GetFileName(),
@@ -3014,8 +3182,8 @@ Int_t TCMySQLManager::ImportRuns(TCContainer* container)
                                             r->GetBeamPolDeg());
 
         // try to write data to database
-        TSQLResult* res = SendQuery(ins_query.Data());
-        if (res == 0)
+        Bool_t res = SendExec(ins_query.Data());
+        if (res == kFALSE)
         {
             Warning("ImportRuns", "Run %d could not be added to the database!", 
                     r->GetRun());
@@ -3024,7 +3192,6 @@ Int_t TCMySQLManager::ImportRuns(TCContainer* container)
         {
             if (!fSilence) Info("ImportRuns", "Added run %d to the database", r->GetRun());
             nRunAdded++;
-            delete res;
         }
     }
 
@@ -3084,7 +3251,7 @@ Int_t TCMySQLManager::ImportCalibrations(TCContainer* container, const Char_t* n
 
 //______________________________________________________________________________
 Bool_t TCMySQLManager::CloneCalibration(const Char_t* calibration, const Char_t* newCalibrationName,
-                                      const Char_t* newDesc, Int_t new_first_run, Int_t new_last_run)
+                                        const Char_t* newDesc, Int_t new_first_run, Int_t new_last_run)
 {
     // Create a clone of the calibration 'calibration' using 'newCalibrationName' as
     // the new calibration name and 'newDesc' as the calibration description.
@@ -3264,9 +3431,18 @@ void TCMySQLManager::Import(const Char_t* filename, Bool_t runs, Bool_t calibrat
         {
             // ask for user confirmation
             Char_t answer[256];
-            printf("\n%d runs were found in the ROOT file '%s'\n"
-                   "They will be added to the database '%s' on '%s'\n", 
-                   nRun, filename, fDB->GetDB(), fDB->GetHost());
+            if (fDBType == kSQLite)
+            {
+                printf("\n%d runs were found in the ROOT file '%s'\n"
+                       "They will be added to the database '%s'\n",
+                       nRun, filename, fDB->GetDB());
+            }
+            else
+            {
+                printf("\n%d runs were found in the ROOT file '%s'\n"
+                       "They will be added to the database '%s' on '%s'\n",
+                       nRun, filename, fDB->GetDB(), fDB->GetHost());
+            }
             printf("Are you sure to continue? (yes/no) : ");
             scanf("%s", answer);
             if (strcmp(answer, "yes")) 
@@ -3299,13 +3475,22 @@ void TCMySQLManager::Import(const Char_t* filename, Bool_t runs, Bool_t calibrat
 
             // ask for user confirmation
             Char_t answer[256];
-            printf("\n%d calibrations named '%s' were found in the ROOT file '%s'\n"
-                   "They will be added to the database '%s' on '%s'\n", 
-                   nCalib, calibName, filename, fDB->GetDB(), fDB->GetHost());
+            if (fDBType == kSQLite)
+            {
+                printf("\n%d calibrations named '%s' were found in the ROOT file '%s'\n"
+                       "They will be added to the database '%s'\n",
+                       nCalib, calibName, filename, fDB->GetDB());
+            }
+            else
+            {
+                printf("\n%d calibrations named '%s' were found in the ROOT file '%s'\n"
+                       "They will be added to the database '%s' on '%s'\n",
+                       nCalib, calibName, filename, fDB->GetDB(), fDB->GetHost());
+            }
             if (newCalibName) printf("The calibrations will be renamed to '%s'\n", newCalibName);
             printf("Are you sure to continue? (yes/no) : ");
             scanf("%s", answer);
-            if (strcmp(answer, "yes")) 
+            if (strcmp(answer, "yes"))
             {
                 printf("Aborted.\n");
             }

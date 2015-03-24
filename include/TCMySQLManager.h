@@ -33,21 +33,30 @@
 #include "TCContainer.h"
 #include "TCBadScRElement.h"
 
+enum EServerType {
+    kNoType,
+    kMySQL,
+    kSQLite
+};
+typedef EServerType ServerType_t;
+
 class TCMySQLManager
 {
 
 private:
-    TSQLServer* fDB;                            // MySQL database conneciton
+    TSQLServer* fDB;                            // SQL database connection
+    ServerType_t fDBType;                       // server type
     Bool_t fSilence;                            // silence mode toggle
     THashList* fData;                           // calibration data
     THashList* fTypes;                          // calibration types
     static TCMySQLManager* fgMySQLManager;      // pointer to static instance of this class
-    
+
     Bool_t ReadCaLibData();
     Bool_t ReadCaLibTypes();
-   
+
     TSQLResult* SendQuery(const Char_t* query);
-    
+    Bool_t SendExec(const Char_t* sql);
+
     Bool_t SearchTable(const Char_t* data, Char_t* outTableName);
     Bool_t SearchRunEntry(Int_t run, const Char_t* name, Char_t* outInfo);
     Bool_t SearchSetEntry(const Char_t* data, const Char_t* calibration, Int_t set,
@@ -82,6 +91,7 @@ public:
     
     const Char_t* GetDBName() const { return fDB ? fDB->GetDB() : 0; }
     const Char_t* GetDBHost() const { return fDB ? fDB->GetHost() : 0; }
+    ServerType_t GetDBType() const  { return fDBType; }
     THashList* GetDataTable() const { return fData; }
     THashList* GetTypeTable() const { return fTypes; }
     
@@ -179,7 +189,7 @@ public:
         }
         else return fgMySQLManager;
     }
-    
+
     ClassDef(TCMySQLManager, 0) // Communication with MySQL Server
 };
 
