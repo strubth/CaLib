@@ -15,7 +15,7 @@
 
 
 namespace TCConfig
-{   
+{
     // detector elements
     const Int_t kMaxCrystal   = 720;
     const Int_t kMaxCB        = 720;
@@ -23,12 +23,12 @@ namespace TCConfig
     const Int_t kMaxPID       =  24;
     const Int_t kMaxVeto      = 510;
     const Int_t kMaxTAGGER    = 352;
-    
+
     // name of the main table
     const Char_t* kCalibMainTableName = "run_main";
 
     // format of the main table
-    const Char_t* kCalibMainTableFormat = 
+    const Char_t* kCalibMainTableFormat =
                     "run INT NOT NULL,"
                     "path VARCHAR(256),"
                     "filename VARCHAR(256),"
@@ -43,8 +43,7 @@ namespace TCConfig
                     "target_pol_deg DOUBLE DEFAULT 0,"
                     "beam_pol VARCHAR(128),"
                     "beam_pol_deg DOUBLE DEFAULT 0,"
-                    "changed TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP"
-                    "                  ON UPDATE CURRENT_TIMESTAMP,"
+                    "changed TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,"
                     "PRIMARY KEY (run) ";
 
     // header of the data tables
@@ -53,12 +52,11 @@ namespace TCConfig
                     "description VARCHAR(1024),"
                     "first_run INT NOT NULL,"
                     "last_run INT NOT NULL,"
-                    "changed TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP"
-                    "                  ON UPDATE CURRENT_TIMESTAMP,";
-    
+                    "changed TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,";
+
     // additional settings for the data tables
     const Char_t* kCalibDataTableSettings = ",PRIMARY KEY (calibration, first_run) ";
-    
+
     // version numbers
     const Char_t kCaLibVersion[] = "0.3.0beta";
     const Int_t kContainerFormatVersion = 4;

@@ -87,13 +87,23 @@ void DrawHeader(const Char_t* title = "CaLib Manager")
     }
 
     // draw title
-    sprintf(tmp, "%s using %s@%s with CaLib %s", 
-            title, 
-            TCMySQLManager::GetManager()->GetDBName(),
-            TCMySQLManager::GetManager()->GetDBHost(),
-            TCConfig::kCaLibVersion);
+    if (TCMySQLManager::GetManager()->GetDBType() == kSQLite)
+    {
+        sprintf(tmp, "%s using %s with CaLib %s",
+                title,
+                TCMySQLManager::GetManager()->GetDBName(),
+                TCConfig::kCaLibVersion);
+    }
+    else
+    {
+        sprintf(tmp, "%s using %s@%s with CaLib %s",
+                title,
+                TCMySQLManager::GetManager()->GetDBName(),
+                TCMySQLManager::GetManager()->GetDBHost(),
+                TCConfig::kCaLibVersion);
+    }
     mvprintw(1, (gNcol-strlen(tmp)) / 2, "%s", tmp);
-    
+
     // turn off bold
     attroff(A_BOLD);
 }
