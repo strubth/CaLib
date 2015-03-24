@@ -15,7 +15,7 @@ TCanvas* gCFit;
 TH1* gHOverview;
 TH1* gH;
 TH2* gH2;
-TFile* gFile;
+TFile* gRFile;
 TF1* gFitFunc;
 TLine* gLine;
 
@@ -146,21 +146,21 @@ void TAPSTime()
             // clean-up
             if (gH) delete gH;
             if (gH2) delete gH2;
-            if (gFile) delete gFile;
+            if (gRFile) delete gRFile;
             gH = 0;
             gH2 = 0;
-            gFile = 0;
+            gRFile = 0;
 
             // load ROOT file
             sprintf(tmp, "%s/ARHistograms_CB_%d.root", fLoc, runs[j]);
-            gFile = new TFile(tmp);
+            gRFile = new TFile(tmp);
 
             // check file
-            if (!gFile) continue;
-            if (gFile->IsZombie()) continue;
+            if (!gRFile) continue;
+            if (gRFile->IsZombie()) continue;
 
             // load histogram
-            gH2 = (TH2*) gFile->Get(hName);
+            gH2 = (TH2*) gRFile->Get(hName);
             if (!gH2) continue;
             if (!gH2->GetEntries()) continue;
 
