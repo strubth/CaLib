@@ -1594,6 +1594,69 @@ void CloneCalibration()
 }
 
 //______________________________________________________________________________
+void ExportDatabase()
+{
+    // Export the complete database.
+
+    Char_t filename[256];
+    Char_t answer[16];
+
+    // clear the screen
+    clear();
+
+    // echo input
+    echo();
+
+    // draw header
+    DrawHeader();
+
+    // draw title
+    attron(A_UNDERLINE);
+    mvprintw(4, 2, "EXPORT DATABASE");
+    attroff(A_UNDERLINE);
+
+    // ask file name
+    mvprintw(6, 2, "Name of output file                         : ");
+    scanw((Char_t*)"%s", filename);
+
+    // ask confirmation
+    mvprintw(8, 2, "Exporting the complete database to '%s'", filename);
+    mvprintw(10, 6, "Are you sure to continue? (yes/no) : ");
+    scanw((Char_t*)"%s", answer);
+    if (strcmp(answer, "yes"))
+    {
+        mvprintw(12, 2, "Aborted.");
+    }
+    else
+    {
+        // try to export
+        if (TCMySQLManager::GetManager()->ExportDatabase(filename))
+            mvprintw(12, 2, "Exported the complete database to '%s'", filename);
+        else
+            mvprintw(12, 2, "Could not export the complete database to '%s'!", filename);
+    }
+
+    // user information
+    PrintStatusMessage("Hit ESC or 'q' to exit");
+
+    // wait for input
+    for (;;)
+    {
+        // get key
+        Int_t c = getch();
+
+        // leave loop
+        if (c == KEY_ESC || c == 'q') break;
+    }
+
+    // don't echo input
+    noecho();
+
+    // go back
+    Administration();
+}
+
+//______________________________________________________________________________
 void RenameCalibration()
 {
     // Rename a calibration.
@@ -1964,12 +2027,13 @@ void Administration()
     // menu configuration
     const Char_t mTitle[] = "ADMINISTRATION";
     const Char_t mMsg[] = "Select an administration operation";
-    const Int_t mN = 6;
+    const Int_t mN = 7;
     const Char_t* mEntries[] = { "Export runs",
                                  "Export calibration",
                                  "Import runs",
                                  "Import calibration",
                                  "Clone calibration",
+                                 "Export complete database",
                                  "Go back" };
     
     // show menu
@@ -1983,7 +2047,8 @@ void Administration()
         case 2: ImportRuns();
         case 3: ImportCalibration();
         case 4: CloneCalibration();
-        case 5: MainMenu();
+        case 5: ExportDatabase();
+        case 6: MainMenu();
     }
 }
 
@@ -2006,10 +2071,10 @@ void About()
     // print some information
     mvprintw(6,  2, "CaLib Manager");
     mvprintw(7,  2, "an ncurses-based CaLib administration software");
-    mvprintw(8,  2, "(c) 2011-2014 by Dominik Werthmueller");
+    mvprintw(8,  2, "(c) 2011-2015 by Dominik Werthmueller");
     mvprintw(10, 2, "CaLib - A2 calibration system");
     mvprintw(11, 2, "Version %s", TCConfig::kCaLibVersion);
-    mvprintw(12, 2, "(c) 2010-2014 by Dominik Werthmueller,");
+    mvprintw(12, 2, "(c) 2010-2015 by Dominik Werthmueller,");
     mvprintw(13, 2, "                 Irakli Keshelashvili,");
     mvprintw(14, 2, "                 Thomas Strub,");
     mvprintw(15, 2, "                 University of Basel");
