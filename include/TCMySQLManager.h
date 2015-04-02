@@ -157,7 +157,7 @@ public:
                     const Char_t* calib, const Char_t* desc,
                     Int_t first_run, Int_t last_run);
     
-    Bool_t InitDatabase();
+    Bool_t InitDatabase(Bool_t interact = kTRUE);
     Bool_t UpgradeDatabase(Int_t version); 
 
     TCContainer* LoadContainer(const Char_t* filename);
@@ -176,6 +176,7 @@ public:
                 const Char_t* calibration);
     void Import(const Char_t* filename, Bool_t runs, Bool_t calibrations,
                 const Char_t* newCalibName = 0);
+    Bool_t ExportDatabase(const Char_t* filename);
 
     static TCMySQLManager* GetManager()
     {
