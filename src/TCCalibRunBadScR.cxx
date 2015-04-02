@@ -795,7 +795,7 @@ void TCCalibRunBadScR::UpdateOverviewHisto()
     if (!IsGood()) return;
 
     // loop over scaler reads
-    for (Int_t j = 0; j < fBadScRCurr->GetNElem(); j++)
+    for (Int_t j = 1; j < fBadScRCurr->GetNElem(); j++)
     {
         // fill overview histo, i.e., add up (normalized) counts for good scaler reads
         if (!fBadScRCurr->IsBad(j))
