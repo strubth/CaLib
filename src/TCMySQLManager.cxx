@@ -58,7 +58,7 @@ TCMySQLManager::TCMySQLManager()
     {
         // open connection to sqlite server
         Char_t szMySQL[200];
-        sprintf(szMySQL, "sqlite://%s", strDBFile->Data());
+        sprintf(szMySQL, "sqlite://%s", gSystem->ExpandPathName(strDBFile->Data()));
         fDB = TSQLServer::Connect(szMySQL, "", "");
 
         // check DB connection
