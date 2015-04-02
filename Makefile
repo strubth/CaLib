@@ -36,6 +36,7 @@ ifeq ($(shell root-config --has-sqlite),yes)
 endif
 
 BIN_INSTALL_DIR = $(HOME)/$(B)
+LINKLIB         = -L$(CURDIR)/$(L) -lCaLib
 
 vpath %.cxx $(S)
 vpath %.h  $(I)
@@ -78,7 +79,7 @@ end:
 $(B)/calib_manager: $(LIB_CaLib) $(S)/MainCaLibManager.cxx
 	@echo "Building the CaLib Manager"
 	@mkdir -p $(B)
-	@$(CCCOMP) $(CXXFLAGS) $(ROOTGLIBS) $(CURDIR)/$(LIB_CaLib) -lncurses -o $(B)/calib_manager $(S)/MainCaLibManager.cxx
+	@$(CCCOMP) $(CXXFLAGS) $(ROOTGLIBS) $(LINKLIB) -lncurses -o $(B)/calib_manager $(S)/MainCaLibManager.cxx
 
 $(LIB_CaLib): $(OBJ)
 	@echo
@@ -110,8 +111,7 @@ docs:
 
 install: $(B)/calib_manager
 	@echo "Installing binaries in $(BIN_INSTALL_DIR)"
-	@mkdir -p $(BIN_INSTALL_DIR)
-	@cp $(B)/* $(BIN_INSTALL_DIR) 
+	@install -D $(B)/calib_manager $(BIN_INSTALL_DIR)/calib_manager
 	@echo "Done."
 
 uninstall:
