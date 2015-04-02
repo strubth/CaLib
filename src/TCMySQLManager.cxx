@@ -58,20 +58,23 @@ TCMySQLManager::TCMySQLManager()
     {
         // open connection to sqlite server
         Char_t szMySQL[200];
-        sprintf(szMySQL, "sqlite://%s", gSystem->ExpandPathName(strDBFile->Data()));
+        Char_t* exp = gSystem->ExpandPathName(strDBFile->Data());
+        sprintf(szMySQL, "sqlite://%s", exp);
         fDB = TSQLServer::Connect(szMySQL, "", "");
 
         // check DB connection
         if (!fDB)
         {
             if (!fSilence) Error("TCMySQLManager", "Cannot connect to the database '%s'!",
-                                 strDBFile->Data());
+                                 exp);
+            delete exp;
             return;
         }
         else if (fDB->IsZombie())
         {
             if (!fSilence) Error("TCMySQLManager", "Cannot connect to the database '%s'!",
-                                 strDBFile->Data());
+                                 exp);
+            delete exp;
             return;
         }
         else
@@ -79,6 +82,7 @@ TCMySQLManager::TCMySQLManager()
             if (!fSilence) Info("TCMySQLManager", "Connected to the database '%s' using CaLib %s",
                                 strDBFile->Data(), TCConfig::kCaLibVersion);
             fDBType = kSQLite;
+            delete exp;
         }
     }
     else
