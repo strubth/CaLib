@@ -18,9 +18,11 @@ G__*.h
 # other folders
 /backup
 /images
+/db
 
 # personal config files
 /config/config.cfg
 
 # calib_manager log file
 calib_manager.log
+
