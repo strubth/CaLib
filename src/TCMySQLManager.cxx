@@ -1064,11 +1064,12 @@ Bool_t TCMySQLManager::WriteParameters(const Char_t* data, const Char_t* calibra
 }
 
 //______________________________________________________________________________
-Bool_t TCMySQLManager::InitDatabase()
+Bool_t TCMySQLManager::InitDatabase(Bool_t interact)
 {
-    // Init a new CaLib database on a MySQL server.
+    // Init a new CaLib database on a MySQL server in interactive mode when
+    // 'interact' is kTRUE.
     // Return kTRUE on success, otherwise kFALSE.
-    
+
     // check server connection
     if (!IsConnected())
     {
@@ -1077,27 +1078,30 @@ Bool_t TCMySQLManager::InitDatabase()
     }
 
     // ask for user confirmation
-    Char_t answer[256];
-    if (fDBType == kSQLite)
+    if (interact)
     {
-        printf("\nWARNING: You are about to initialize a new CaLib database.\n"
-               "         All existing tables in the database '%s'\n"
-               "         will be deleted!\n\n", fDB->GetDB());
+        Char_t answer[256];
+        if (fDBType == kSQLite)
+        {
+            printf("\nWARNING: You are about to initialize a new CaLib database.\n"
+                   "         All existing tables in the database '%s'\n"
+                   "         will be deleted!\n\n", fDB->GetDB());
+        }
+        else
+        {
+            printf("\nWARNING: You are about to initialize a new CaLib database.\n"
+                   "         All existing tables in the database '%s' on '%s'\n"
+                   "         will be deleted!\n\n", fDB->GetDB(), fDB->GetHost());
+        }
+        printf("Are you sure to continue? (yes/no) : ");
+        scanf("%s", answer);
+        if (strcmp(answer, "yes"))
+        {
+            printf("Aborted.\n");
+            return kFALSE;
+        }
     }
-    else
-    {
-        printf("\nWARNING: You are about to initialize a new CaLib database.\n"
-               "         All existing tables in the database '%s' on '%s'\n"
-               "         will be deleted!\n\n", fDB->GetDB(), fDB->GetHost());
-    }
-    printf("Are you sure to continue? (yes/no) : ");
-    scanf("%s", answer);
-    if (strcmp(answer, "yes")) 
-    {
-        printf("Aborted.\n");
-        return kFALSE;
-    }
-    
+
     // create the main table
     CreateMainTable();
 
@@ -3512,5 +3516,98 @@ void TCMySQLManager::Import(const Char_t* filename, Bool_t runs, Bool_t calibrat
 
     // clean-up
     delete c;
+}
+
+//______________________________________________________________________________
+Bool_t TCMySQLManager::ExportDatabase(const Char_t* filename)
+{
+    // Export the complete database to the SQLite database 'filename'.
+
+    Char_t tmp[256];
+    Char_t fn[256];
+
+    // expand filename
+    Char_t* fnt = gSystem->ExpandPathName(filename);
+    strcpy(fn, fnt);
+    delete fnt;
+
+    // check if file exists
+    if (!gSystem->AccessPathName(fn))
+    {
+        if (!fSilence) Error("ExportDatabase", "File '%s' exists already!", fn);
+        return kFALSE;
+    }
+
+    // open SQLite database
+    sprintf(tmp, "sqlite://%s", fn);
+    TSQLServer* db = TSQLServer::Connect(tmp, "", "");
+
+    // check DB connection
+    if (!db || db->IsZombie())
+    {
+        if (!fSilence) Error("ExportDatabase", "Cannot connect to the database '%s'!", fn);
+        return kFALSE;
+    }
+
+    // create new container
+    TCContainer* container = new TCContainer(TCConfig::kCaLibDumpName);
+
+    // dump runs to container
+    Int_t nRunExp = TCMySQLManager::GetManager()->DumpRuns(container);
+    if (!fSilence) Info("ExportDatabase", "Exported %d runs to '%s'", nRunExp, fn);
+
+    // get all calibrations
+    TList* c = TCMySQLManager::GetManager()->GetAllCalibrations();
+
+    // dump all calibrations to container
+    Int_t nCalibExp = 0;
+    Int_t nCalib = c->GetSize();
+    if (!fSilence) Info("ExportDatabase", "Exporting %d calibrations to '%s'", nCalib, fn);
+    for (Int_t i = 0; i < nCalib; i++)
+    {
+        TObjString* s = (TObjString*) c->At(i);
+        nCalibExp += TCMySQLManager::GetManager()->DumpAllCalibrations(container, s->GetString().Data());
+        if (!fSilence) Info("ExportDatabase", "Exported calibration '%s'", s->GetString().Data());
+    }
+
+    // backup original database config
+    TSQLServer* db_orig = fDB;
+    ServerType_t type_orig = fDBType;
+
+    // configure db connection to SQLite database
+    fDB = db;
+    fDBType = kSQLite;
+
+    // init the database
+    InitDatabase(kFALSE);
+
+    // import runs
+    Int_t nRunImp = TCMySQLManager::GetManager()->ImportRuns(container);
+
+    // import calibrations
+    Int_t nCalibImp = TCMySQLManager::GetManager()->ImportCalibrations(container);
+
+    // restore original db connection
+    fDB = db_orig;
+    fDBType = type_orig;
+
+    // clean-up
+    delete c;
+    delete container;
+    delete db;
+
+    // make some checks
+    if (nRunImp != nRunExp)
+    {
+        if (!fSilence) Error("ExportDatabase", "Could not export all runs!");
+        return kFALSE;
+    }
+    if (nCalibImp != nCalibExp)
+    {
+        if (!fSilence) Error("ExportDatabase", "Could not export all calibrations!");
+        return kFALSE;
+    }
+
+    return kTRUE;
 }
 
