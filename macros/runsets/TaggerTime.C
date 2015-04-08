@@ -11,6 +11,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 
+#if !defined(__CINT__) || defined(__MAKECINT__)
 #include "TFile.h"
 #include "TList.h"
 #include "TCanvas.h"
@@ -20,6 +21,7 @@
 #include "TCMySQLManager.h"
 #include "TLine.h"
 #include "TGraph.h"
+#endif
 
 
 TList* gFiles;
