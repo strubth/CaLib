@@ -317,7 +317,7 @@ void TCCalibPIDPhi::WriteValues()
     // overview canvas.
     
     // call parent's method
-    TCCalib::Write();
+    TCCalib::WriteValues();
 
     // save overview picture
     SaveCanvas(fCanvasResult2, "Overview2");
