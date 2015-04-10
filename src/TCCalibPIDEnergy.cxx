@@ -204,12 +204,12 @@ void TCCalibPIDEnergy::FitSlices(TH2* h)
         sprintf(tmp, "fGauss_%d", (Int_t)start);
         fFitFunc = new TF1(tmp, "expo(0)+gaus(2)");
         fFitFunc->SetLineColor(2);
-        
+
         // estimate peak position
         TSpectrum s(1);
-        s.Search(fFitHisto, 10, "goff nobackground", 0.1);
+        s.Search(fFitHisto, 10, "goff", 0.1);
         Double_t peak = TMath::MaxElement(s.GetNPeaks(), s.GetPositionX());
-        
+
         // prepare fitting function
         Double_t range;
         Double_t peak_range;
@@ -224,14 +224,14 @@ void TCCalibPIDEnergy::FitSlices(TH2* h)
             fFitFunc->SetParLimits(3, peak - peak_range, peak + peak_range);
             fFitFunc->SetParameter(4, 1);
             fFitFunc->SetParLimits(4, 0.1, 10);
-             
+
             // perform fit
             fFitHisto->Fit(fFitFunc, "RB0Q");
         }
         else
         {
-            range = 6000/start+40;
-            peak_range = 10;
+            range = 100;
+            peak_range = 80;
             fFitFunc->SetRange(peak - range, peak + range);
             fFitFunc->SetParameter(2, fFitHisto->GetXaxis()->FindBin(peak));
             fFitFunc->SetParLimits(2, 0, 100000);
