@@ -153,6 +153,7 @@ public:
     void AddRunFiles(const Char_t* path, const Char_t* target,
                      const Char_t* runPrefix = "CBTaggTAPS");
     void AddRun(Int_t run, const Char_t* target, const Char_t* desc);
+    void AddRunMC(Int_t run = 999999, const Char_t* target = 0, const Char_t* desc = "MC run");
     void AddCalibAR(CalibDetector_t det, const Char_t* calibFileAR,
                     const Char_t* calib, const Char_t* desc,
                     Int_t first_run, Int_t last_run);
