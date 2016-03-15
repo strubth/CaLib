@@ -1114,6 +1114,9 @@ Bool_t TCMySQLManager::InitDatabase(Bool_t interact)
         CreateDataTable(d->GetName(), d->GetSize());
     }
 
+    // add MC run
+    AddRunMC();
+
     return kTRUE;
 }
 
@@ -1302,6 +1305,12 @@ void TCMySQLManager::AddRun(Int_t run, const Char_t* target, const Char_t* desc)
     // Add a run to the run database using the run number 'run', the target
     // identifier 'target' and the description 'desc'.
 
+    // string arrays
+    Char_t t[256] = "";
+    Char_t d[256] = "";
+    if (target) strcpy(t, target);
+    if (desc) strcpy(d, desc);
+
     // prepare the insert query
     TString ins_query = TString::Format("INSERT INTO %s (run, description, target) "
                                         "VALUES ( "
@@ -1310,8 +1319,8 @@ void TCMySQLManager::AddRun(Int_t run, const Char_t* target, const Char_t* desc)
                                         "'%s' )",
                                         TCConfig::kCalibMainTableName,
                                         run,
-                                        desc,
-                                        target);
+                                        d,
+                                        t);
 
     // try to write data to database
     Bool_t res = SendExec(ins_query.Data());
@@ -1322,8 +1331,18 @@ void TCMySQLManager::AddRun(Int_t run, const Char_t* target, const Char_t* desc)
     else
     {
         if (!fSilence) Info("AddRun", "Run %d ('%s') for target '%s' was added to the database",
-                            run, desc, target);
+                            run, d, t);
     }
+}
+
+//______________________________________________________________________________
+void TCMySQLManager::AddRunMC(Int_t run, const Char_t* target, const Char_t* desc)
+{
+    // Add an MC run to the run database using optionally the run number 'run', the target
+    // identifier 'target' and the description 'desc'.
+
+    // add MC run
+    AddRun(run, target, desc);
 }
 
 //______________________________________________________________________________
