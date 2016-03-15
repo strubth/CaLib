@@ -1,5 +1,5 @@
 /*************************************************************************
- * Author: Dominik Werthmueller
+ * Author: Dominik Werthmueller, 2016
  *************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
@@ -12,17 +12,16 @@
 
 
 //______________________________________________________________________________
-void htmldoc()
+void htmldoc(const Char_t* parent)
 {
     gROOT->Reset();
-    if (!gROOT->GetClass("TCCalib")) gSystem->Load("libCaLib.so");
-
+    gSystem->Load("libCaLib.so");
+    gEnv->SetValue("Unix.*.Root.Html.SourceDir", TString::Format("%s/include:%s/src", parent, parent));
     THtml h;
-    h.SetInputDir(".:src:include");
     h.SetOutputDir("htmldoc");
-    h.SetAuthorTag("* Author:");
+    h.SetAuthorTag(" * Author:");
     h.SetProductName("CaLib");
-
     h.MakeAll();
+    gSystem->Exit(0);
 }
 
