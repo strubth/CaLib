@@ -1995,7 +1995,7 @@ void TCMySQLManager::CreateMainTable()
                                  "AFTER UPDATE "
                                  "ON %s "
                                  "FOR EACH ROW "
-                                 "WHEN NEW.changed < OLD.changed "
+                                 "WHEN NEW.changed <= OLD.changed "
                                  "BEGIN "
                                  "UPDATE %s SET changed = CURRENT_TIMESTAMP WHERE run = OLD.run; "
                                  "END",
@@ -2057,7 +2057,7 @@ void TCMySQLManager::CreateDataTable(const Char_t* data, Int_t nElem)
                                  "AFTER UPDATE "
                                  "ON %s "
                                  "FOR EACH ROW "
-                                 "WHEN NEW.changed < OLD.changed "
+                                 "WHEN NEW.changed <= OLD.changed "
                                  "BEGIN "
                                  "UPDATE %s SET changed = CURRENT_TIMESTAMP WHERE calibration = OLD.calibration AND first_run = old.first_run ; "
                                  "END",
