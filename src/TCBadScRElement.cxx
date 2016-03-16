@@ -17,7 +17,6 @@
 
 ClassImp(TCBadScRElement)
 
-
 //______________________________________________________________________________
 TCBadScRElement::TCBadScRElement(const TCBadScRElement &elem)
   : TCBadElement(elem)
@@ -28,7 +27,6 @@ TCBadScRElement::TCBadScRElement(const TCBadScRElement &elem)
     strcpy(fCalibData, elem.fCalibData);
     fRunNumber = elem.GetRunNumber();
 }
-
 
 //______________________________________________________________________________
 Int_t TCBadScRElement::Set(Int_t runno, Int_t nbad, const Int_t* bad, Int_t nscr)
@@ -47,4 +45,3 @@ Int_t TCBadScRElement::Set(Int_t runno, Int_t nbad, const Int_t* bad, Int_t nscr
     return SetBad(nbad, bad);
 }
 
-//finito

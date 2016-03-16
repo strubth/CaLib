@@ -14,14 +14,11 @@
 #ifndef TCCALIBCBTIMEWALK_H
 #define TCCALIBCBTIMEWALK_H
 
-#include "TCanvas.h"
-#include "TH2.h"
-#include "TLine.h"
-#include "TMath.h"
-
 #include "TCCalib.h"
-#include "TCFileManager.h"
 
+class TH1;
+class TLine;
+class TCFileManager;
 
 class TCCalibCBTimeWalk : public TCCalib
 {

@@ -14,13 +14,11 @@
 #ifndef TCCALIBENERGY_H
 #define TCCALIBENERGY_H
 
-#include "TCanvas.h"
-#include "TH2.h"
-#include "TLine.h"
-
 #include "TCCalib.h"
-#include "TCFileManager.h"
+#include "TCConfig.h"
+#include "TCReadConfig.h"
 
+class TLine;
 
 class TCCalibEnergy : public TCCalib
 {
@@ -28,7 +26,7 @@ class TCCalibEnergy : public TCCalib
 private:
     Double_t fPi0Pos;                   // pi0 position
     TLine* fLine;                       // indicator line
-    
+
     virtual void Init();
     virtual void Fit(Int_t elem);
     virtual void Calculate(Int_t elem);
@@ -42,27 +40,25 @@ public:
     ClassDef(TCCalibEnergy, 0) // Base energy calibration class
 };
 
-
 class TCCalibCBEnergy : public TCCalibEnergy
 {
-    
+
 public:
     TCCalibCBEnergy()
-        : TCCalibEnergy("CB.Energy", "CB energy calibration", 
-                        "Data.CB.E1", 
+        : TCCalibEnergy("CB.Energy", "CB energy calibration",
+                        "Data.CB.E1",
                         TCConfig::kMaxCB) { }
     virtual ~TCCalibCBEnergy() { }
 
     ClassDef(TCCalibCBEnergy, 0) // CB energy calibration
 };
 
-
 class TCCalibTAPSEnergyLG : public TCCalibEnergy
 {
-    
+
 public:
     TCCalibTAPSEnergyLG()
-        : TCCalibEnergy("TAPS.Energy.LG", "TAPS LG energy calibration", 
+        : TCCalibEnergy("TAPS.Energy.LG", "TAPS LG energy calibration",
                         "Data.TAPS.LG.E1",
                         TCReadConfig::GetReader()->GetConfigInt("TAPS.Elements")) { }
     virtual ~TCCalibTAPSEnergyLG() { }

@@ -14,14 +14,12 @@
 #ifndef TCCALIBPIDPHI_H
 #define TCCALIBPIDPHI_H
 
-#include "TCanvas.h"
-#include "TH2.h"
-#include "TLine.h"
-#include "TMath.h"
-
 #include "TCCalib.h"
-#include "TCFileManager.h"
 
+class TLine;
+class TCanvas;
+class TH1;
+class TF1;
 
 class TCCalibPIDPhi : public TCCalib
 {
@@ -36,13 +34,13 @@ private:
     virtual void Init();
     virtual void Fit(Int_t elem);
     virtual void Calculate(Int_t elem);
-    
+
     TH1* GetMappedHistogram(TH1* histo);
 
 public:
     TCCalibPIDPhi();
     virtual ~TCCalibPIDPhi();
-    
+
     virtual void WriteValues();
 
     ClassDef(TCCalibPIDPhi, 0) // PID phi calibration

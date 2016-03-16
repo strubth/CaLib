@@ -14,16 +14,12 @@
 #ifndef TCCALIBTAPSPSA_H
 #define TCCALIBTAPSPSA_H
 
-#include "TCanvas.h"
-#include "TH2.h"
-#include "TLine.h"
-#include "TMath.h"
-#include "TPolyLine.h"
-#include "TGraph.h"
-
 #include "TCCalib.h"
-#include "TCFileManager.h"
 
+class TPolyLine;
+class TGraph;
+class TH1;
+class TCFileManager;
 
 class TCCalibTAPSPSA : public TCCalib
 {
@@ -41,7 +37,7 @@ private:
     TCFileManager* fFileManager;        // file manager
     TH1* fAngleProj;                    // angle projection
     Double_t fDelay;                    // display delay
-    
+
     virtual void Init();
     virtual void Fit(Int_t elem);
     virtual void Calculate(Int_t elem);
@@ -49,7 +45,7 @@ private:
 public:
     TCCalibTAPSPSA();
     virtual ~TCCalibTAPSPSA();
-    
+
     virtual void WriteValues();
     virtual void PrintValues();
 

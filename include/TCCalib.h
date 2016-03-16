@@ -14,22 +14,11 @@
 #ifndef TCCALIB_H
 #define TCCALIB_H
 
-#include "KeySymbols.h"
-#include "TString.h"
-#include "TError.h"
-#include "TH1.h"
-#include "TF1.h"
-#include "TCanvas.h"
-#include "TTimer.h"
-#include "TSystem.h"
-#include "TTimeStamp.h"
-#include "TStyle.h"
-#include "TGClient.h"
+#include "TNamed.h"
 
-#include "TCMySQLManager.h"
-#include "TCReadConfig.h"
-#include "TCUtils.h"
-
+class TH1;
+class TF1;
+class TCanvas;
 
 class TCCalib : public TNamed
 {
@@ -48,15 +37,15 @@ protected:
     Double_t fAvrDiff;          // average difference to aimed value
     Int_t fNcalc;               // number of calculated elements
 
-    TH1* fMainHisto;            // main histogram 
+    TH1* fMainHisto;            // main histogram
     TH1* fFitHisto;             // fitting histogram
     TF1* fFitFunc;              // fitting function
 
     TH1* fOverviewHisto;        // overview result histogram
-    
+
     TCanvas* fCanvasFit;        // canvas containing the fits
     TCanvas* fCanvasResult;     // canvas containing the results
-    
+
     TTimer* fTimer;             // slow-motion timer
     Bool_t fTimerRunning;       // timer running state
 
@@ -67,31 +56,31 @@ protected:
 
 public:
     TCCalib() : TNamed(),
-                fData(), 
+                fData(),
                 fCalibration(),
-                fSet(0), fHistoName(), 
+                fSet(0), fHistoName(),
                 fNelem(0), fCurrentElem(0),
                 fOldVal(0), fNewVal(0),
                 fAvr(0), fAvrDiff(0), fNcalc(0),
                 fMainHisto(0), fFitHisto(0), fFitFunc(0),
                 fOverviewHisto(0),
-                fCanvasFit(0), fCanvasResult(0), 
+                fCanvasFit(0), fCanvasResult(0),
                 fTimer(0), fTimerRunning(kFALSE) { }
-    TCCalib(const Char_t* name, const Char_t* title, 
-            const Char_t* data, Int_t nElem) 
+    TCCalib(const Char_t* name, const Char_t* title,
+            const Char_t* data, Int_t nElem)
         : TNamed(name, title),
-          fData(data), 
+          fData(data),
           fCalibration(),
-          fSet(0), fHistoName(), 
+          fSet(0), fHistoName(),
           fNelem(nElem), fCurrentElem(0),
           fOldVal(0), fNewVal(0),
           fAvr(0), fAvrDiff(0), fNcalc(0),
           fMainHisto(0), fFitHisto(0), fFitFunc(0),
           fOverviewHisto(0),
-          fCanvasFit(0), fCanvasResult(0), 
+          fCanvasFit(0), fCanvasResult(0),
           fTimer(0), fTimerRunning(kFALSE) { }
     virtual ~TCCalib();
-    
+
     virtual void WriteValues();
     virtual void PrintValues();
     virtual void PrintValuesChanged();
@@ -103,7 +92,7 @@ public:
     void Next();
     void Ignore();
     void StopProcessing();
-    
+
     TString GetCalibData() { return fData; }
 
     void EventHandler(Int_t event, Int_t ox, Int_t oy, TObject* selected);

@@ -17,14 +17,6 @@
 #define TCCALIBRUN_H
 
 #include "TNamed.h"
-#include "TCReadConfig.h"
-#include "TCMySQLManager.h"
-#include "TCARHistoLoader.h"
-#include "TString.h"
-#include "TError.h"
-#include "KeySymbols.h"
-#include "TCanvas.h"
-
 
 class TCCalibRun : public TNamed
 {
@@ -94,3 +86,4 @@ public:
 };
 
 #endif
+

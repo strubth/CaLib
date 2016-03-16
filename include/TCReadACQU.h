@@ -14,12 +14,10 @@
 #ifndef TCREADACQU_H
 #define TCREADACQU_H
 
-#include "TList.h"
-#include "TError.h"
-#include "TSystemDirectory.h"
+#include "Rtypes.h"
 
-#include "TCACQUFile.h"
-
+class TList;
+class TCACQUFile;
 
 class TCReadACQU
 {
@@ -34,10 +32,10 @@ public:
     TCReadACQU() : fPath(0), fFiles(0) { }
     TCReadACQU(const Char_t* path, const Char_t* runPrefix);
     virtual ~TCReadACQU();
-    
+
     TList* GetFiles() const { return fFiles; }
-    Int_t GetNFiles() const { return fFiles ? fFiles->GetSize() : 0; }
-    TCACQUFile* GetFile(Int_t n) const { return fFiles ? (TCACQUFile*)fFiles->At(n) : 0; }
+    Int_t GetNFiles() const;
+    TCACQUFile* GetFile(Int_t n) const;
 
     ClassDef(TCReadACQU, 0) // ACQU raw file reader
 };

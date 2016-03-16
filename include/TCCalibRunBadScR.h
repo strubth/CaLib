@@ -18,14 +18,13 @@
 #define TCCALIBRUNBADSCR_H
 
 #include "TCCalibRun.h"
-#include "TCBadScRElement.h"
-#include "TBox.h"
-#include "TH1.h"
-#include "TH2.h"
-#include "TH3.h"
 
+class TBox;
 class TArrow;
-class TLine;
+class TH1;
+class TH2;
+class TCanvas;
+class TCBadScRElement;
 
 class TCCalibRunBadScR : public TCCalibRun
 {
@@ -57,7 +56,7 @@ protected:
     TCBadScRElement** fBadScROld;       //[fNRuns] array of pointers to the run's bad scaler reads (old)
     TCBadScRElement** fBadScRNew;       //[fNruns] array of pointers to the rus's bad scaler reads (new)
 
-    Int_t fRangeMax;                    //         maximal range of 
+    Int_t fRangeMax;                    //         maximal range of
 
     TCBadScRElement* fBadScRCurr;       //!        bad scaler reads of the current run
 

@@ -14,16 +14,14 @@
 #ifndef TCCALIBPIDDROOP_H
 #define TCCALIBPIDDROOP_H
 
-#include "TCanvas.h"
-#include "TH3.h"
-#include "TLine.h"
-#include "TMath.h"
-#include "TGraph.h"
-#include "TSpectrum.h"
-
 #include "TCCalib.h"
-#include "TCFileManager.h"
 
+class TH2;
+class TH3;
+class TGraph;
+class TLine;
+class TFile;
+class TCFileManager;
 
 class TCCalibPIDDroop : public TCCalib
 {
@@ -43,7 +41,7 @@ private:
     virtual void Init();
     virtual void Fit(Int_t elem);
     virtual void Calculate(Int_t elem);
-    
+
     Bool_t FitHisto(Double_t* outPeak);
     void FitSlices(TH3* h, Int_t elem);
 
@@ -53,7 +51,6 @@ public:
 
     virtual void WriteValues();
     virtual void PrintValues();
-
 
     ClassDef(TCCalibPIDDroop, 0) // PID droop correction
 };

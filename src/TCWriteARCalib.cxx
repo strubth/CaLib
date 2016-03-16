@@ -11,39 +11,45 @@
 //////////////////////////////////////////////////////////////////////////
 
 
+#include <fstream>
+
+#include "TError.h"
+#include "TString.h"
+
 #include "TCWriteARCalib.h"
+#include "TCMySQLManager.h"
+#include "TCReadARCalib.h"
 
 ClassImp(TCWriteARCalib)
-
 
 //______________________________________________________________________________
 TCWriteARCalib::TCWriteARCalib(CalibDetector_t det, const Char_t* templateFile)
 {
     // Constructor.
-    
+
     // init members
     fDetector = det;
     strcpy(fTemplate, templateFile);
 }
 
 //______________________________________________________________________________
-void TCWriteARCalib::Write(const Char_t* calibFile, 
+void TCWriteARCalib::Write(const Char_t* calibFile,
                            const Char_t* calibration, Int_t run)
 {
     // Write the calibration file 'calibFile' for the run 'run' using the
     // calibration 'calibration'.
-    
+
     // get MySQL manager
     TCMySQLManager* m = TCMySQLManager::GetManager();
-    
+
     // read the template file
     Bool_t isTagger = kFALSE;
     if (fDetector == kDETECTOR_TAGG) isTagger = kTRUE;
     TCReadARCalib* r = new TCReadARCalib(fTemplate, isTagger);
-     
+
     // read SG for TAPS
     TCReadARCalib* rSG = 0;
-    if (fDetector == kDETECTOR_TAPS) 
+    if (fDetector == kDETECTOR_TAPS)
         rSG = new TCReadARCalib(fTemplate, kFALSE, "TAPSSG:");
 
     // get the number of detectors
@@ -65,7 +71,7 @@ void TCWriteARCalib::Write(const Char_t* calibFile,
                 for (Int_t i = 0; i < nDet; i++) r->GetElement(i)->SetOffset(par[i]);
 
             break;
- 
+
         }
         case kDETECTOR_CB:
         {
@@ -76,7 +82,7 @@ void TCWriteARCalib::Write(const Char_t* calibFile,
             // read ADC gain
             if (m->ReadParametersRun("Data.CB.E1", calibration, run, par, nDet))
                 for (Int_t i = 0; i < nDet; i++) r->GetElement(i)->SetADCGain(par[i]);
-            
+
             if (nDetTW)
             {
                 // read time walk parameter 0
@@ -115,11 +121,11 @@ void TCWriteARCalib::Write(const Char_t* calibFile,
             // read ADC gain
             if (m->ReadParametersRun("Data.TAPS.LG.E1", calibration, run, par, nDet))
                 for (Int_t i = 0; i < nDet; i++) r->GetElement(i)->SetADCGain(par[i]);
-            
+
             // read CFD threshold
             if (m->ReadParametersRun("Data.TAPS.CFD", calibration, run, par, nDet))
                 for (Int_t i = 0; i < nDet; i++) r->GetElement(i)->SetEnergyLow(par[i]);
-             
+
             if (nDetSG)
             {
                 // read SG ADC pedestal
@@ -162,7 +168,7 @@ void TCWriteARCalib::Write(const Char_t* calibFile,
             // read TDC gain
             if (m->ReadParametersRun("Data.Veto.T1", calibration, run, par, nDet))
                 for (Int_t i = 0; i < nDet; i++) r->GetElement(i)->SetTDCGain(par[i]);
-            
+
             // read ADC pedestal
             if (m->ReadParametersRun("Data.Veto.E0", calibration, run, par, nDet))
                 for (Int_t i = 0; i < nDet; i++) r->GetElement(i)->SetPedestal(par[i]);
@@ -182,18 +188,18 @@ void TCWriteARCalib::Write(const Char_t* calibFile,
             break;
         }
     }
-    
+
     // open the template file
     std::ifstream ftemp;
     ftemp.open(fTemplate);
-        
+
     // check if file is open
     if (!ftemp.is_open())
     {
         Error("Write", "Could not open template AcquRoot calibration file!");
         return;
     }
- 
+
     // open the output file
     FILE* fout = fopen(calibFile, "w");
     if (!fout)
@@ -206,13 +212,13 @@ void TCWriteARCalib::Write(const Char_t* calibFile,
     Int_t nElem = 0;
     Int_t nElemTW = 0;
     Int_t nElemSG = 0;
-    
+
     // read the file
     while (ftemp.good())
     {
         TString line;
         line.ReadLine(ftemp, kFALSE);
-            
+
         // check for element line
         if(line.BeginsWith("Element:"))
         {

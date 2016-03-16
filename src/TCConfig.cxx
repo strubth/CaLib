@@ -13,7 +13,6 @@
 
 #include "TCConfig.h"
 
-
 namespace TCConfig
 {
     // detector elements

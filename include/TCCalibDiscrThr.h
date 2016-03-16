@@ -14,14 +14,13 @@
 #ifndef TCCALIBDISCRTHR_H
 #define TCCALIBDISCRTHR_H
 
-#include "TCanvas.h"
-#include "TH2.h"
-#include "TLine.h"
-#include "TMath.h"
-
 #include "TCCalib.h"
-#include "TCFileManager.h"
+#include "TCConfig.h"
+#include "TCReadConfig.h"
 
+class TH2;
+class TLine;
+class TCFileManager;
 
 class TCCalibDiscrThr : public TCCalib
 {
@@ -39,9 +38,9 @@ private:
     virtual void Init();
     virtual void Fit(Int_t elem);
     virtual void Calculate(Int_t elem);
-    
+
     void ReadADC();
-    
+
 public:
     TCCalibDiscrThr() : TCCalib(), fADC(0), fFileManager(0),
                         fPed(0), fGain(0),
@@ -53,13 +52,12 @@ public:
     ClassDef(TCCalibDiscrThr, 0) // Discriminator threshold calibration base class
 };
 
-
 class TCCalibCBLED : public TCCalibDiscrThr
 {
 
 public:
     TCCalibCBLED()
-        : TCCalibDiscrThr("CB.LED", "CB LED calibration", 
+        : TCCalibDiscrThr("CB.LED", "CB LED calibration",
                           "Data.CB.LED",
                      TCConfig::kMaxCB) { }
     virtual ~TCCalibCBLED() { }
@@ -67,13 +65,12 @@ public:
     ClassDef(TCCalibCBLED, 0) // CB LED calibration
 };
 
-
 class TCCalibTAPSLED1 : public TCCalibDiscrThr
 {
 
 public:
     TCCalibTAPSLED1()
-        : TCCalibDiscrThr("TAPS.LED1", "TAPS LED1 calibration", 
+        : TCCalibDiscrThr("TAPS.LED1", "TAPS LED1 calibration",
                           "Data.TAPS.LED1",
                      TCReadConfig::GetReader()->GetConfigInt("TAPS.Elements")) { }
     virtual ~TCCalibTAPSLED1() { }
@@ -81,13 +78,12 @@ public:
     ClassDef(TCCalibTAPSLED1, 0) // TAPS LED1 calibration
 };
 
-
 class TCCalibTAPSLED2 : public TCCalibDiscrThr
 {
 
 public:
     TCCalibTAPSLED2()
-        : TCCalibDiscrThr("TAPS.LED2", "TAPS LED2 calibration", 
+        : TCCalibDiscrThr("TAPS.LED2", "TAPS LED2 calibration",
                           "Data.TAPS.LED2",
                      TCReadConfig::GetReader()->GetConfigInt("TAPS.Elements")) { }
     virtual ~TCCalibTAPSLED2() { }
@@ -100,7 +96,7 @@ class TCCalibTAPSCFD : public TCCalibDiscrThr
 
 public:
     TCCalibTAPSCFD()
-        : TCCalibDiscrThr("TAPS.CFD", "TAPS CFD calibration", 
+        : TCCalibDiscrThr("TAPS.CFD", "TAPS CFD calibration",
                           "Data.TAPS.CFD",
                      TCReadConfig::GetReader()->GetConfigInt("TAPS.Elements")) { }
     virtual ~TCCalibTAPSCFD() { }
@@ -113,7 +109,7 @@ class TCCalibVetoLED : public TCCalibDiscrThr
 
 public:
     TCCalibVetoLED()
-        : TCCalibDiscrThr("Veto.LED", "Veto LED calibration", 
+        : TCCalibDiscrThr("Veto.LED", "Veto LED calibration",
                           "Data.Veto.LED",
                      TCReadConfig::GetReader()->GetConfigInt("Veto.Elements")) { }
     virtual ~TCCalibVetoLED() { }

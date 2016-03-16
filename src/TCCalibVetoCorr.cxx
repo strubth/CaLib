@@ -11,14 +11,20 @@
 //////////////////////////////////////////////////////////////////////////
 
 
+#include "TH2.h"
+#include "TCanvas.h"
+
 #include "TCCalibVetoCorr.h"
+#include "TCReadConfig.h"
+#include "TCReadARCalib.h"
+#include "TCFileManager.h"
+#include "TCUtils.h"
 
 ClassImp(TCCalibVetoCorr)
 
-
 //______________________________________________________________________________
 TCCalibVetoCorr::TCCalibVetoCorr()
-    : TCCalib("Veto.Correlation", "Veto correlation", "Data.Veto.E0", 
+    : TCCalib("Veto.Correlation", "Veto correlation", "Data.Veto.E0",
               TCReadConfig::GetReader()->GetConfigInt("TAPS.Elements"))
 {
     // Empty constructor.
@@ -31,7 +37,7 @@ TCCalibVetoCorr::TCCalibVetoCorr()
 //______________________________________________________________________________
 TCCalibVetoCorr::~TCCalibVetoCorr()
 {
-    // Destructor. 
+    // Destructor.
 
     if (fARCalib) delete fARCalib;
 }
@@ -40,7 +46,7 @@ TCCalibVetoCorr::~TCCalibVetoCorr()
 void TCCalibVetoCorr::Init()
 {
     // Init the module.
-    
+
     // init members
     fMax = 0;
     fARCalib = 0;
@@ -55,10 +61,10 @@ void TCCalibVetoCorr::Init()
         return;
     }
     else fHistoName = *TCReadConfig::GetReader()->GetConfig("Veto.Correlation.Histo.Fit.Name");
-    
+
     // sum up all files contained in this runset
     TCFileManager f(fData, fCalibration.Data(), fNset, fSet);
-    
+
     // get the main calibration histogram
     fMainHisto = f.GetHistogram(fHistoName.Data());
     if (!fMainHisto)
@@ -66,7 +72,7 @@ void TCCalibVetoCorr::Init()
         Error("Init", "Main histogram does not exist!\n");
         return;
     }
-    
+
     // draw main histogram
     fCanvasFit->Divide(1, 2, 0.001, 0.001);
     fCanvasFit->cd(1)->SetLogz();
@@ -78,21 +84,21 @@ void TCCalibVetoCorr::Init()
 void TCCalibVetoCorr::Fit(Int_t elem)
 {
     // Perform the fit of the element 'elem'.
-    
+
     Char_t tmp[256];
-    
+
     // create histogram projection for this element
     sprintf(tmp, "ProjHisto_%i", elem);
     TH2* h2 = (TH2*) fMainHisto;
     if (fFitHisto) delete fFitHisto;
     fFitHisto = (TH1D*) h2->ProjectionX(tmp, elem+1, elem+1, "e");
-    
+
     // check for sufficient statistics
     if (fFitHisto->GetEntries())
     {
         // get the veto element with maximum number of hits
         fMax = fFitHisto->GetMaximumBin() - 1;
-    
+
         // set range
         fFitHisto->GetXaxis()->SetRangeUser(fMax - 10, fMax + 10);
     }
@@ -102,7 +108,7 @@ void TCCalibVetoCorr::Fit(Int_t elem)
     fCanvasFit->cd(2);
     TCUtils::FormatHistogram(fFitHisto, "Veto.Correlation.Histo.Fit");
     fFitHisto->Draw("hist");
-    
+
     // update canvas
     fCanvasFit->Update();
 }
@@ -111,22 +117,22 @@ void TCCalibVetoCorr::Fit(Int_t elem)
 void TCCalibVetoCorr::Calculate(Int_t elem)
 {
     // Calculate the new value of the element 'elem'.
-    
+
     // check if fit was performed
     if (fFitHisto->GetEntries())
     {
         // get number of TAPS elements
         Int_t maxTAPS = TCReadConfig::GetReader()->GetConfigInt("TAPS.Elements");
 
-        // 
+        //
         // check if veto in front of element has maximum hits
         //
-        
+
         Bool_t inFront = kFALSE;
         if (fMax == TCUtils::GetVetoInFrontOfElement(elem, maxTAPS)) inFront = kTRUE;
-    
+
         // user info
-        if (inFront) 
+        if (inFront)
         {
             printf("Element: %03d : Veto in front fired\n", elem);
             return;
@@ -135,10 +141,10 @@ void TCCalibVetoCorr::Calculate(Int_t elem)
         //
         // check if veto of neighbouring element has maximum hits
         //
-        
+
         Bool_t neighbr = kFALSE;
         TCARNeighbours* n = fARCalib->GetNeighbour(elem);
-        
+
         // loop over neighbours
         for (Int_t i = 0; i < n->GetNneighbours(); i++)
         {
@@ -146,15 +152,15 @@ void TCCalibVetoCorr::Calculate(Int_t elem)
             Int_t veto = TCUtils::GetVetoInFrontOfElement(n->GetNeighbour(i), maxTAPS);
 
             // check this veto
-            if (fMax == veto) 
+            if (fMax == veto)
             {
                 neighbr = kTRUE;
                 break;
             }
         }
-        
+
         // user info
-        if (neighbr) 
+        if (neighbr)
         {
             printf("Element: %03d : Veto of neighbour fired\n", elem);
             return;
@@ -168,14 +174,14 @@ void TCCalibVetoCorr::Calculate(Int_t elem)
     {
         printf("Element: %03d : no hits found!\n", elem);
     }
-}   
+}
 
 //______________________________________________________________________________
 void TCCalibVetoCorr::ReadNeighbours()
 {
     // Read the detector neighbours of each element from the data file registered in the
     // configuration.
-    
+
     Char_t tmp[256];
     const Char_t* filename;
 
@@ -187,7 +193,7 @@ void TCCalibVetoCorr::ReadNeighbours()
         return;
     }
     else filename = TCReadConfig::GetReader()->GetConfig(tmp)->Data();
-    
+
     // read the calibration file with the correct element identifier
     fARCalib = new TCReadARCalib(filename, kFALSE, "Element:", "Next-TAPS:");
 
@@ -199,7 +205,7 @@ void TCCalibVetoCorr::ReadNeighbours()
                                 fARCalib->GetNelements(), fNelem);
         return;
     }
-} 
+}
 
 //______________________________________________________________________________
 void TCCalibVetoCorr::WriteValues()

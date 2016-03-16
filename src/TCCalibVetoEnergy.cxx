@@ -11,10 +11,22 @@
 //////////////////////////////////////////////////////////////////////////
 
 
+#include "TLine.h"
+#include "TH2.h"
+#include "TF1.h"
+#include "TSpectrum.h"
+#include "TMath.h"
+#include "TFile.h"
+#include "TCanvas.h"
+#include "TSystem.h"
+
 #include "TCCalibVetoEnergy.h"
+#include "TCReadConfig.h"
+#include "TCFileManager.h"
+#include "TCMySQLManager.h"
+#include "TCUtils.h"
 
 ClassImp(TCCalibVetoEnergy)
-
 
 //______________________________________________________________________________
 TCCalibVetoEnergy::TCCalibVetoEnergy()
@@ -35,8 +47,8 @@ TCCalibVetoEnergy::TCCalibVetoEnergy()
 //______________________________________________________________________________
 TCCalibVetoEnergy::~TCCalibVetoEnergy()
 {
-    // Destructor. 
-    
+    // Destructor.
+
     if (fFileManager) delete fFileManager;
     if (fLine) delete fLine;
     if (fMCHisto) delete fMCHisto;
@@ -47,7 +59,7 @@ TCCalibVetoEnergy::~TCCalibVetoEnergy()
 void TCCalibVetoEnergy::Init()
 {
     // Init the module.
-    
+
     // init members
     fFileManager = new TCFileManager(fData, fCalibration.Data(), fNset, fSet);
     fPeak = 0;
@@ -67,7 +79,7 @@ void TCCalibVetoEnergy::Init()
         return;
     }
     else fHistoName = *TCReadConfig::GetReader()->GetConfig("Veto.Energy.Histo.Fit.Name");
-    
+
     // get MC histogram file
     TString fileMC;
     if (!TCReadConfig::GetReader()->GetConfig("Veto.Energy.MC.File"))
@@ -76,7 +88,7 @@ void TCCalibVetoEnergy::Init()
         return;
     }
     else fileMC = *TCReadConfig::GetReader()->GetConfig("Veto.Energy.MC.File");
-    
+
     // get MC histogram name
     TString histoMC;
     if (!TCReadConfig::GetReader()->GetConfig("Veto.Energy.Histo.MC.Name"))
@@ -88,15 +100,15 @@ void TCCalibVetoEnergy::Init()
 
     // read old parameters (only from first set)
     TCMySQLManager::GetManager()->ReadParameters(fData, fCalibration.Data(), fSet[0], fOldVal, fNelem);
-    
+
     // copy to new parameters
     for (Int_t i = 0; i < fNelem; i++) fNewVal[i] = fOldVal[i];
-    
+
     // create the overview histogram
     fOverviewHisto = new TH1F("Overview", ";Element;proton peak position [MeV]", fNelem, 0, fNelem);
     fOverviewHisto->SetMarkerStyle(2);
     fOverviewHisto->SetMarkerColor(4);
- 
+
     // draw main histogram
     fCanvasFit->Divide(1, 2, 0.001, 0.001);
     fCanvasFit->cd(1)->SetLogz();
@@ -121,16 +133,16 @@ void TCCalibVetoEnergy::Init()
         Error("Init", "Could not open MC histogram!");
         return;
     }
-    
+
     // draw main histogram
     fCanvasFit->cd(1);
     fMCHisto->Draw("colz");
-    
+
     // draw the overview histogram
     fCanvasResult->cd();
     TCUtils::FormatHistogram(fOverviewHisto, "Veto.Energy.Histo.Overview");
     fOverviewHisto->Draw("P");
-    
+
     // user information
     Info("Init", "Fitting MC data");
 
@@ -147,13 +159,13 @@ void TCCalibVetoEnergy::Init()
 void TCCalibVetoEnergy::FitSlice(TH2* h, Int_t elem)
 {
     // Fit the energy slice of the dE vs E histogram 'h' of the element 'elem'.
-    
+
     Char_t tmp[256];
 
     // get configuration
     Double_t lowLimit, highLimit;
     TCReadConfig::GetReader()->GetConfigDoubleDouble("Veto.Energy.Fit.Range", &lowLimit, &highLimit);
-    
+
     // create projection
     sprintf(tmp, "Proj_%d", elem);
     Int_t firstBin = h->GetXaxis()->FindBin(lowLimit);
@@ -161,19 +173,19 @@ void TCCalibVetoEnergy::FitSlice(TH2* h, Int_t elem)
     if (fFitHisto) delete fFitHisto;
     fFitHisto = (TH1D*) h->ProjectionY(tmp, firstBin, lastBin, "e");
     if (h != fMCHisto) TCUtils::FormatHistogram(fFitHisto, "Veto.Energy.Histo.Fit");
-        
+
     // create fitting function
     if (fFitFunc) delete fFitFunc;
     sprintf(tmp, "fFunc_%d", elem);
     fFitFunc = new TF1(tmp, "expo(0)+gaus(2)");
     fFitFunc->SetLineColor(2);
-        
+
     // estimate peak position
     TSpectrum s;
     if (h == fMCHisto) s.Search(fFitHisto, 5, "goff nobackground", 0.03);
     else s.Search(fFitHisto, 5, "goff nobackground", 0.05);
     fPeak = TMath::MaxElement(s.GetNPeaks(), s.GetPositionX());
-        
+
     // prepare fitting function
     Double_t range = 30./lowLimit+0.3;
     Double_t peak_range = 0.2;
@@ -184,7 +196,7 @@ void TCCalibVetoEnergy::FitSlice(TH2* h, Int_t elem)
     fFitFunc->SetParLimits(3, fPeak - peak_range, fPeak + peak_range);
     fFitFunc->SetParameter(4, 1);
     fFitFunc->SetParLimits(4, 0.1, 10);
-     
+
     // perform first fit
     fFitHisto->Fit(fFitFunc, "RB0Q");
 
@@ -194,7 +206,7 @@ void TCCalibVetoEnergy::FitSlice(TH2* h, Int_t elem)
 
     // perform second fit
     fFitHisto->Fit(fFitFunc, "RB0Q");
-    
+
     // get peak
     fPeak = fFitFunc->GetParameter(3);
 
@@ -203,7 +215,7 @@ void TCCalibVetoEnergy::FitSlice(TH2* h, Int_t elem)
     fLine->SetY2(fFitHisto->GetMaximum() + 20);
     fLine->SetX1(fPeak);
     fLine->SetX2(fPeak);
-    
+
     // save peak position
     if (h == fMCHisto) fPeakMC = fPeak;
 
@@ -219,12 +231,12 @@ void TCCalibVetoEnergy::FitSlice(TH2* h, Int_t elem)
 void TCCalibVetoEnergy::Fit(Int_t elem)
 {
     // Perform the fit of the element 'elem'.
-    
+
     Char_t tmp[256];
-    
+
     // create histogram name
     sprintf(tmp, "%s_%03d", fHistoName.Data(), elem);
-   
+
     // delete old histogram
     if (fMainHisto) delete fMainHisto;
 
@@ -235,26 +247,26 @@ void TCCalibVetoEnergy::Fit(Int_t elem)
         Error("Init", "Main histogram does not exist!\n");
         return;
     }
-    
+
     // draw main histogram
     fCanvasFit->cd(1);
     TCUtils::FormatHistogram(fMainHisto, "Veto.Energy.Histo.Fit");
     fMainHisto->Draw("colz");
     fCanvasFit->Update();
- 
+
     // check for sufficient statistics
     if (fMainHisto->GetEntries())
-    {   
+    {
         // fit the energy slice
         FitSlice((TH2*)fMainHisto, elem);
-        
+
         // update overview
         if (elem % 20 == 0)
         {
             fCanvasResult->cd();
             fOverviewHisto->Draw("E1");
             fCanvasResult->Update();
-        }   
+        }
 
     } // if: sufficient statistics
 }
@@ -263,7 +275,7 @@ void TCCalibVetoEnergy::Fit(Int_t elem)
 void TCCalibVetoEnergy::Calculate(Int_t elem)
 {
     // Calculate the new value of the element 'elem'.
-    
+
     Bool_t unchanged = kFALSE;
 
     // check if fit was performed
@@ -271,12 +283,12 @@ void TCCalibVetoEnergy::Calculate(Int_t elem)
     {
         // check if line position was modified by hand
         if (fLine->GetX1() != fPeak) fPeak = fLine->GetX1();
-        
+
         // calculate the new gain
         fNewVal[elem] = fOldVal[elem] * (fPeakMC / fPeak);
-    
+
         // if new value is negative take old
-        if (fNewVal[elem] < 0) 
+        if (fNewVal[elem] < 0)
         {
             fNewVal[elem] = fOldVal[elem];
             unchanged = kTRUE;
@@ -287,7 +299,7 @@ void TCCalibVetoEnergy::Calculate(Int_t elem)
         fOverviewHisto->SetBinError(elem+1, 0.0000001);
     }
     else
-    {   
+    {
         // do not change old value
         fNewVal[elem] = fOldVal[elem];
         unchanged = kTRUE;
@@ -300,5 +312,5 @@ void TCCalibVetoEnergy::Calculate(Int_t elem)
            TCUtils::GetDiffPercent(fOldVal[elem], fNewVal[elem]));
     if (unchanged) printf("    -> unchanged");
     printf("\n");
-}   
+}
 

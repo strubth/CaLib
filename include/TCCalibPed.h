@@ -14,16 +14,11 @@
 #ifndef TCCALIBPED_H
 #define TCCALIBPED_H
 
-#include <cstdlib>
-
-#include "TCanvas.h"
-#include "TH2.h"
-#include "TLine.h"
-
 #include "TCCalib.h"
-#include "TCReadARCalib.h"
-#include "TCFileManager.h"
+#include "TCReadConfig.h"
 
+class TLine;
+class TCFileManager;
 
 class TCCalibPed : public TCCalib
 {
@@ -33,7 +28,7 @@ private:
     TCFileManager* fFileManager;        // file manager
     Double_t fMean;                     // mean position
     TLine* fLine;                       // indicator line
-    
+
     virtual void Init();
     virtual void Fit(Int_t elem);
     virtual void Calculate(Int_t elem);
@@ -49,45 +44,42 @@ public:
     ClassDef(TCCalibPed, 0) // Base pedestal calibration class
 };
 
-
 class TCCalibTAPSPedLG : public TCCalibPed
 {
 
 public:
-    TCCalibTAPSPedLG() 
+    TCCalibTAPSPedLG()
         : TCCalibPed("TAPS.Ped.LG", "TAPS LG pedestal calibration",
                      "Data.TAPS.LG.E0",
                      TCReadConfig::GetReader()->GetConfigInt("TAPS.Elements")) { }
     virtual ~TCCalibTAPSPedLG() { }
-    
+
     ClassDef(TCCalibTAPSPedLG, 0) // TAPS LG pedestal calibration class
 };
-
 
 class TCCalibTAPSPedSG : public TCCalibPed
 {
 
 public:
-    TCCalibTAPSPedSG() 
+    TCCalibTAPSPedSG()
         : TCCalibPed("TAPS.Ped.SG", "TAPS SG pedestal calibration",
                      "Data.TAPS.SG.E0",
                      TCReadConfig::GetReader()->GetConfigInt("TAPS.Elements")) { }
     virtual ~TCCalibTAPSPedSG() { }
-    
+
     ClassDef(TCCalibTAPSPedSG, 0) // TAPS SG pedestal calibration class
 };
-
 
 class TCCalibTAPSPedVeto : public TCCalibPed
 {
 
 public:
-    TCCalibTAPSPedVeto() 
+    TCCalibTAPSPedVeto()
         : TCCalibPed("TAPS.Ped.Veto", "Veto pedestal calibration",
                      "Data.Veto.E0",
                      TCReadConfig::GetReader()->GetConfigInt("Veto.Elements")) { }
     virtual ~TCCalibTAPSPedVeto() { }
-    
+
     ClassDef(TCCalibTAPSPedVeto, 0) // Veto pedestal calibration class
 };
 

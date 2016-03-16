@@ -11,10 +11,19 @@
 //////////////////////////////////////////////////////////////////////////
 
 
+#include "TH1.h"
+#include "TF1.h"
+#include "TLine.h"
+#include "TCanvas.h"
+#include "TList.h"
+
 #include "TCCalibPed.h"
+#include "TCFileManager.h"
+#include "TCReadARCalib.h"
+#include "TCMySQLManager.h"
+#include "TCUtils.h"
 
 ClassImp(TCCalibPed)
-
 
 //______________________________________________________________________________
 TCCalibPed::TCCalibPed(const Char_t* name, const Char_t* title, const Char_t* data,
@@ -22,7 +31,7 @@ TCCalibPed::TCCalibPed(const Char_t* name, const Char_t* title, const Char_t* da
     : TCCalib(name, title, data, nElem)
 {
     // Constructor.
-    
+
     // init members
     fADC = 0;
     fFileManager = 0;
@@ -33,8 +42,8 @@ TCCalibPed::TCCalibPed(const Char_t* name, const Char_t* title, const Char_t* da
 //______________________________________________________________________________
 TCCalibPed::~TCCalibPed()
 {
-    // Destructor. 
-    
+    // Destructor.
+
     if (fADC) delete [] fADC;
     if (fFileManager) delete fFileManager;
     if (fLine) delete fLine;
@@ -44,7 +53,7 @@ TCCalibPed::~TCCalibPed()
 void TCCalibPed::Init()
 {
     // Init the module.
-    
+
     Char_t tmp[256];
 
     // init members
@@ -53,17 +62,17 @@ void TCCalibPed::Init()
     fFileManager = new TCFileManager(fData, fCalibration.Data(), fNset, fSet);
     fMean = 0;
     fLine = new TLine();
-    
+
     // configure line
     fLine->SetLineColor(4);
     fLine->SetLineWidth(3);
-  
+
     // read ADC numbers
     ReadADC();
 
     // read old parameters (only from first set)
     TCMySQLManager::GetManager()->ReadParameters(fData, fCalibration.Data(), fSet[0], fOldVal, fNelem);
-    
+
     // copy to new parameters
     for (Int_t i = 0; i < fNelem; i++) fNewVal[i] = fOldVal[i];
 
@@ -71,29 +80,29 @@ void TCCalibPed::Init()
     fOverviewHisto = new TH1F("Overview", ";Element;Pedestal position [Channel]", fNelem, 0, fNelem);
     fOverviewHisto->SetMarkerStyle(2);
     fOverviewHisto->SetMarkerColor(4);
-    
+
     // prepare main canvas
     fCanvasFit->Divide(1, 2, 0.001, 0.001);
-    
+
     // draw the overview histogram
     fCanvasResult->cd();
     sprintf(tmp, "%s.Histo.Overview", GetName());
     TCUtils::FormatHistogram(fOverviewHisto, tmp);
     fOverviewHisto->Draw("P");
-}    
+}
 
 //______________________________________________________________________________
 void TCCalibPed::Fit(Int_t elem)
 {
     // Perform the fit of the element 'elem'.
-    
+
     Char_t tmp[256];
-    
+
     // load the pedestal histogram
     if (fFitHisto) delete fFitHisto;
     sprintf(tmp, "ADC%d", fADC[elem]);
     fFitHisto = fFileManager->GetHistogram(tmp);
-    
+
     // skip empty channels
     if (!fFitHisto) return;
 
@@ -108,28 +117,28 @@ void TCCalibPed::Fit(Int_t elem)
         sprintf(tmp, "fPed_%i", elem);
         fFitFunc = new TF1(tmp, "gaus");
         fFitFunc->SetLineColor(2);
-        
+
         // estimate peak position
         TH1* hDeriv = TCUtils::DeriveHistogram(fFitHisto);
         hDeriv->GetXaxis()->SetRangeUser(0, 1000);
         fMean = hDeriv->GetBinCenter(hDeriv->GetMaximumBin());
         delete hDeriv;
-        
+
         // configure fitting function
         fFitFunc->SetRange(fMean - 5, fMean + 2);
         fFitFunc->SetLineColor(2);
         fFitFunc->SetParameters(1, fMean, 0.1);
-	fFitFunc->SetParLimits(2, 0.001, 5);
+        fFitFunc->SetParLimits(2, 0.001, 5);
         fFitHisto->Fit(fFitFunc, "RB0Q");
-	
+
         // final results
-        fMean = fFitFunc->GetParameter(1); 
+        fMean = fFitFunc->GetParameter(1);
 
         // draw mean indicator line
         fLine->SetY1(0);
         fFitHisto->GetXaxis()->SetRange(0, fFitHisto->GetNbinsX());
         fLine->SetY2(fFitHisto->GetMaximum() + 20);
-        
+
         // set indicator line
         fLine->SetX1(fMean);
         fLine->SetX2(fMean);
@@ -140,32 +149,32 @@ void TCCalibPed::Fit(Int_t elem)
     fCanvasFit->cd(2);
     fFitHisto->GetXaxis()->SetRangeUser(fMean-10, fMean+30);
     fFitHisto->Draw("hist");
-    
+
     // draw fitting function
     if (fFitFunc) fFitFunc->Draw("same");
-    
+
     // draw indicator line
     fLine->Draw();
-    
+
     // update canvas
     fCanvasFit->Update();
-    
+
     // update overview
     if (elem % 20 == 0)
     {
         fCanvasResult->cd();
         fOverviewHisto->Draw("E1");
         fCanvasResult->Update();
-    }   
+    }
 }
 
 //______________________________________________________________________________
 void TCCalibPed::Calculate(Int_t elem)
 {
     // Calculate the new value of the element 'elem'.
-    
+
     Bool_t unchanged = kFALSE;
-    
+
     // check if histogram was loaded
     if (!fFitHisto)
     {
@@ -183,12 +192,12 @@ void TCCalibPed::Calculate(Int_t elem)
     {
         // check if line position was modified by hand
         if (fLine->GetX1() != fMean) fMean = fLine->GetX1();
- 
+
         // save pedestal position
         fNewVal[elem] = fMean;
-    
+
         // if new value is negative take old
-        if (fNewVal[elem] < 0) 
+        if (fNewVal[elem] < 0)
         {
             fNewVal[elem] = fOldVal[elem];
             unchanged = kTRUE;
@@ -199,7 +208,7 @@ void TCCalibPed::Calculate(Int_t elem)
         fOverviewHisto->SetBinError(elem+1, 0.0000001);
     }
     else
-    {   
+    {
         // do not change old value
         fNewVal[elem] = fOldVal[elem];
         unchanged = kTRUE;
@@ -212,14 +221,14 @@ void TCCalibPed::Calculate(Int_t elem)
            TCUtils::GetDiffPercent(fOldVal[elem], fNewVal[elem]));
     if (unchanged) printf("    -> unchanged");
     printf("\n");
-}   
+}
 
 //______________________________________________________________________________
 void TCCalibPed::ReadADC()
 {
     // Read the ADC number of each element from the data file registered in the
     // configuration.
-    
+
     Char_t tmp[256];
     const Char_t* filename;
 
@@ -231,7 +240,7 @@ void TCCalibPed::ReadADC()
         return;
     }
     else filename = TCReadConfig::GetReader()->GetConfig(tmp)->Data();
-    
+
     // read the calibration file with the correct element identifier
     if (this->InheritsFrom("TCCalibTAPSPedSG")) strcpy(tmp, "TAPSSG:");
     else strcpy(tmp, "Element:");
@@ -252,5 +261,5 @@ void TCCalibPed::ReadADC()
     TCARElement* e;
     Int_t n = 0;
     while ((e = (TCARElement*)next())) fADC[n++] = atoi(e->GetADC());
-} 
+}
 

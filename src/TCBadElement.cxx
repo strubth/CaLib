@@ -17,7 +17,6 @@
 
 ClassImp(TCBadElement)
 
-
 //______________________________________________________________________________
 TCBadElement::TCBadElement(const TCBadElement &elem)
 {
@@ -44,7 +43,6 @@ TCBadElement::TCBadElement(Int_t nbad, const Int_t* bad, Int_t nelem)
     // add the bad elements
     AddBad(nbad, bad);
 }
-
 
 //______________________________________________________________________________
 Int_t TCBadElement::MergeNSort(Int_t nbad, const Int_t* bad, Int_t* &bad_sort, Int_t nelem)
@@ -74,7 +72,7 @@ Int_t TCBadElement::MergeNSort(Int_t nbad, const Int_t* bad, Int_t* &bad_sort, I
                 // check for first larger entry
                 if(lastentry == nextentry) nextentry = bad[j];
 
-                // check for smaller next entry 
+                // check for smaller next entry
                 else if (bad[j] < nextentry) nextentry = bad[j];
             }
         }
@@ -115,10 +113,9 @@ Int_t TCBadElement::MergeNSort(Int_t nbad, const Int_t* bad, Int_t* &bad_sort, I
 
     // set pointer to result array & return
     bad_sort = bad_new;
- 
+
     return nbad_new;
 }
-
 
 //______________________________________________________________________________
 Bool_t TCBadElement::IsBad(Int_t bad) const
@@ -138,7 +135,6 @@ Bool_t TCBadElement::IsBad(Int_t bad) const
     return kFALSE;
 }
 
-
 //______________________________________________________________________________
 Int_t TCBadElement::SetBad(Int_t nbad, const Int_t* bad)
 {
@@ -146,7 +142,7 @@ Int_t TCBadElement::SetBad(Int_t nbad, const Int_t* bad)
     // of bad elements 'bad' to 'fBad'. Old values will be overwritten. Returns
     // the new number of bad scaler reads.
 
-    // reset number of bad elements 
+    // reset number of bad elements
     fNBad = 0;
 
     // delete old bad element array
@@ -156,7 +152,6 @@ Int_t TCBadElement::SetBad(Int_t nbad, const Int_t* bad)
     // add the bad scaler reads
     return AddBad(nbad, bad);
 }
-
 
 //______________________________________________________________________________
 Int_t TCBadElement::SetNElem(Int_t nelem)
@@ -187,7 +182,6 @@ Int_t TCBadElement::SetNElem(Int_t nelem)
     return fNElem;
 }
 
-
 //______________________________________________________________________________
 Int_t TCBadElement::AddBad(Int_t bad)
 {
@@ -198,7 +192,6 @@ Int_t TCBadElement::AddBad(Int_t bad)
 
     return AddBad(1, &bad_tmp);
 }
-
 
 //______________________________________________________________________________
 Int_t TCBadElement::AddBad(Int_t nbad, const Int_t* bad)
@@ -238,7 +231,6 @@ Int_t TCBadElement::AddBad(Int_t nbad, const Int_t* bad)
     return fNBad;
 }
 
-
 //______________________________________________________________________________
 Int_t TCBadElement::RemBad(Int_t &bad)
 {
@@ -268,7 +260,6 @@ Int_t TCBadElement::RemBad(Int_t &bad)
     return --fNBad;
 }
 
-
 //______________________________________________________________________________
 void TCBadElement::RemBad()
 {
@@ -280,4 +271,3 @@ void TCBadElement::RemBad()
     fBad = 0;
 }
 
-//finito

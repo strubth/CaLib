@@ -11,20 +11,26 @@
 //////////////////////////////////////////////////////////////////////////
 
 
+#include "TList.h"
+#include "TFile.h"
+#include "TH1.h"
+#include "TError.h"
+
 #include "TCFileManager.h"
+#include "TCReadConfig.h"
+#include "TCMySQLManager.h"
 
 ClassImp(TCFileManager)
 
-
 //______________________________________________________________________________
-TCFileManager::TCFileManager(const Char_t* data, const Char_t* calibration, 
+TCFileManager::TCFileManager(const Char_t* data, const Char_t* calibration,
                              Int_t nSet, Int_t* set, const Char_t* filePat)
 {
     // Constructor using the calibration data 'data', the calibration identifier
     // 'calibration' and the 'nSet' sets in the array 'set'.
     // If filePat is non-zero use this file pattern instead of the one written
     // in the configuration file.
-    
+
     // init members
     fCalibData = data;
     fCalibration = calibration;
@@ -41,7 +47,7 @@ TCFileManager::TCFileManager(const Char_t* data, const Char_t* calibration,
         if (TString* f = TCReadConfig::GetReader()->GetConfig("File.Input.Rootfiles"))
         {
             fInputFilePatt = *f;
-            
+
             // check file pattern
             if (!fInputFilePatt.Contains("RUN"))
             {
@@ -73,7 +79,7 @@ TCFileManager::~TCFileManager()
 void TCFileManager::BuildFileList()
 {
     // Build the list of files belonging to the runsets.
-    
+
     // loop over sets
     for (Int_t i = 0; i < fNset; i++)
     {
@@ -93,10 +99,10 @@ void TCFileManager::BuildFileList()
 
             // open the file
             TFile* f = TFile::Open(filename.Data());
-            
+
             // check nonexisting file
-            if (!f) 
-            {   
+            if (!f)
+            {
                 Warning("BuildFileList", "Could not open file '%s'", filename.Data());
                 continue;
             }
@@ -134,7 +140,7 @@ TH1* TCFileManager::GetHistogram(const Char_t* name)
         Error("GetHistogram", "ROOT file list is empty!");
         return 0;
     }
-    
+
     // do not keep histograms in memory
     TH1::AddDirectory(kFALSE);
 
@@ -151,15 +157,15 @@ TH1* TCFileManager::GetHistogram(const Char_t* name)
         if (h)
         {
             // correct destroying
-            h->ResetBit(kMustCleanup);  
+            h->ResetBit(kMustCleanup);
 
             // check if object is really a histogram
             if (h->InheritsFrom("TH1"))
             {
                 // check if it is the first one
-                if (first) 
+                if (first)
                 {
-                    hOut = (TH1*) h->Clone();      
+                    hOut = (TH1*) h->Clone();
                     first = kFALSE;
                 }
                 else hOut->Add(h);

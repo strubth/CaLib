@@ -11,10 +11,24 @@
 //////////////////////////////////////////////////////////////////////////
 
 
+#include "TH2.h"
+#include "TH3.h"
+#include "TF1.h"
+#include "TCanvas.h"
+#include "TLine.h"
+#include "TFile.h"
+#include "TSystem.h"
+#include "TSpectrum.h"
+#include "TMath.h"
+
 #include "TCCalibPIDEnergyTrad.h"
+#include "TCConfig.h"
+#include "TCFileManager.h"
+#include "TCUtils.h"
+#include "TCReadConfig.h"
+#include "TCMySQLManager.h"
 
 ClassImp(TCCalibPIDEnergyTrad)
-
 
 //______________________________________________________________________________
 TCCalibPIDEnergyTrad::TCCalibPIDEnergyTrad()
@@ -42,8 +56,8 @@ TCCalibPIDEnergyTrad::TCCalibPIDEnergyTrad()
 //______________________________________________________________________________
 TCCalibPIDEnergyTrad::~TCCalibPIDEnergyTrad()
 {
-    // Destructor. 
- 
+    // Destructor.
+
     if (fFileManager) delete fFileManager;
     if (fPed) delete [] fPed;
     if (fGain) delete [] fGain;
@@ -59,7 +73,7 @@ TCCalibPIDEnergyTrad::~TCCalibPIDEnergyTrad()
 void TCCalibPIDEnergyTrad::Init()
 {
     // Init the module.
-    
+
     // init members
     fFileManager = new TCFileManager(fData, fCalibration.Data(), fNset, fSet);
     fPed = new Double_t[fNelem];
@@ -87,7 +101,7 @@ void TCCalibPIDEnergyTrad::Init()
         return;
     }
     else fHistoName = *TCReadConfig::GetReader()->GetConfig("PID.Energy.Trad.Histo.Fit.Name");
-    
+
     // get MC histogram file
     TString fileMC;
     if (!TCReadConfig::GetReader()->GetConfig("PID.Energy.Trad.MC.File"))
@@ -96,7 +110,7 @@ void TCCalibPIDEnergyTrad::Init()
         return;
     }
     else fileMC = *TCReadConfig::GetReader()->GetConfig("PID.Energy.Trad.MC.File");
-    
+
     // get MC histogram name
     TString histoMC;
     if (!TCReadConfig::GetReader()->GetConfig("PID.Energy.Trad.Histo.MC.Name"))
@@ -137,28 +151,28 @@ void TCCalibPIDEnergyTrad::Init()
         Error("Init", "Could not open MC histogram!");
         return;
     }
-    
+
     // draw main histogram
     fCanvasFit->cd(1);
     fMCHisto->Draw("colz");
-    
+
     // create the pion position overview histogram
     fPionPos = new TH1F("Pion position overview", ";Element;pion peak position [MeV]", fNelem, 0, fNelem);
     fPionPos->SetMarkerStyle(2);
     fPionPos->SetMarkerColor(4);
-    
+
     // create the proton position overview histogram
     fProtonPos = new TH1F("Proton position overview", ";Element;proton peak position [MeV]", fNelem, 0, fNelem);
     fProtonPos->SetMarkerStyle(2);
     fProtonPos->SetMarkerColor(4);
-    
+
     // draw the overview histograms
     fCanvasResult->Divide(1, 2, 0.001, 0.001);
     fCanvasResult->cd(1);
     fPionPos->Draw("P");
     fCanvasResult->cd(2);
     fProtonPos->Draw("P");
- 
+
     // user information
     Info("Init", "Fitting MC data");
 
@@ -176,7 +190,7 @@ void TCCalibPIDEnergyTrad::Init()
 void TCCalibPIDEnergyTrad::FitSlice(TH2* h)
 {
     // Fit the energy slice of the dE vs E histogram 'h'.
-    
+
     Char_t tmp[256];
 
     // get configuration
@@ -184,27 +198,27 @@ void TCCalibPIDEnergyTrad::FitSlice(TH2* h)
     TCReadConfig::GetReader()->GetConfigDoubleDouble("PID.Energy.Trad.Fit.Range", &lowLimit, &highLimit);
     Int_t firstBin = h->GetXaxis()->FindBin(lowLimit);
     Int_t lastBin = h->GetXaxis()->FindBin(highLimit);
-     
+
     // create projection
     sprintf(tmp, "%s_Proj", h->GetName());
     if (fFitHisto) delete fFitHisto;
     fFitHisto = (TH1D*) h->ProjectionY(tmp, firstBin, lastBin, "e");
-    
+
     // look for peaks
     TSpectrum s;
     s.Search(fFitHisto, 10, "goff nobackground", 0.05);
     fPionData = TMath::MinElement(s.GetNPeaks(), s.GetPositionX());
     fProtonData = TMath::MaxElement(s.GetNPeaks(), s.GetPositionX());
-    
+
     // create fitting function
     if (fFitFunc) delete fFitFunc;
     sprintf(tmp, "fFunc_%s", h->GetName());
     fFitFunc = new TF1(tmp, "expo(0)+landau(2)+gaus(5)", 0.2*fPionData, fProtonData+5);
     fFitFunc->SetLineColor(2);
-    
+
     // prepare fitting function
-    fFitFunc->SetParameters(9.25568, -3.76050e-01, 
-                            5e+03, fPionData, 2.62472e-01, 
+    fFitFunc->SetParameters(9.25568, -3.76050e-01,
+                            5e+03, fPionData, 2.62472e-01,
                             6e+03, fProtonData, 5.82477);
     fFitFunc->SetParLimits(2, 0, 1e6);
     fFitFunc->SetParLimits(3, 0.85*fPionData, 1.15*fPionData);
@@ -212,37 +226,37 @@ void TCCalibPIDEnergyTrad::FitSlice(TH2* h)
     fFitFunc->SetParLimits(5, 0, 1e5);
     fFitFunc->SetParLimits(4, 0.1, 5);
     fFitFunc->SetParLimits(7, 0.1, 10);
-    
+
     // fit
     for (Int_t i = 0; i < 10; i++)
         if (!fFitHisto->Fit(fFitFunc, "RB0Q")) break;
-    
+
     // reset range for second fit
     Double_t start;
     if (h == fMCHisto) start = 0.05;
     else start = fFitFunc->GetParameter(3) - 2.5*fFitFunc->GetParameter(4);
     fFitFunc->SetRange(start, fFitFunc->GetParameter(6) + 4*fFitFunc->GetParameter(7));
-    
+
     // second fit
     for (Int_t i = 0; i < 10; i++)
         if (!fFitHisto->Fit(fFitFunc, "RB0Q")) break;
- 
+
     // get positions
     fPionData = fFitFunc->GetParameter(3);
     fProtonData = fFitFunc->GetParameter(6);
-    
+
     // format line
     fLine->SetY1(0);
     fLine->SetY2(fFitHisto->GetMaximum() + 20);
     fLine->SetX1(fPionData);
     fLine->SetX2(fPionData);
-    
+
     // format line
     fLine2->SetY1(0);
     fLine2->SetY2(fFitHisto->GetMaximum() + 20);
     fLine2->SetX1(fProtonData);
     fLine2->SetX2(fProtonData);
-           
+
     // plot histogram and line
     fCanvasFit->cd(2);
     fFitHisto->GetXaxis()->SetRangeUser(0, fFitFunc->GetParameter(6) + 4*fFitFunc->GetParameter(7));
@@ -250,7 +264,7 @@ void TCCalibPIDEnergyTrad::FitSlice(TH2* h)
     fFitFunc->Draw("same");
     fLine->Draw();
     fLine2->Draw();
-    
+
     // save MC data
     if (h == fMCHisto)
     {
@@ -265,12 +279,12 @@ void TCCalibPIDEnergyTrad::FitSlice(TH2* h)
 void TCCalibPIDEnergyTrad::Fit(Int_t elem)
 {
     // Perform the fit of the element 'elem'.
-    
+
     Char_t tmp[256];
-    
+
     // create histogram name
     sprintf(tmp, "%s_%03d", fHistoName.Data(), elem);
-   
+
     // get histogram
     TH3* h3 = (TH3*) fFileManager->GetHistogram(tmp);
     if (!h3)
@@ -278,27 +292,27 @@ void TCCalibPIDEnergyTrad::Fit(Int_t elem)
         Error("Init", "Main histogram does not exist!\n");
         return;
     }
-    
+
     // create 2D projection
     if (fMainHisto) delete fMainHisto;
     sprintf(tmp, "%02d_yxe", elem);
     fMainHisto = (TH2D*) h3->Project3D(tmp);
     fMainHisto->SetTitle(tmp);
     delete h3;
- 
+
     // draw main histogram
     fCanvasFit->cd(1);
     TCUtils::FormatHistogram(fMainHisto, "PID.Energy.Trad.Histo.Fit");
     fMainHisto->Draw("colz");
     fCanvasFit->Update();
- 
+
     // check for sufficient statistics
     if (fMainHisto->GetEntries())
-    {   
+    {
         // fit the energy slices
         FitSlice((TH2*)fMainHisto);
-    } 
-    
+    }
+
     // update overview
     fCanvasResult->cd(1);
     fPionPos->Draw("E1");
@@ -311,7 +325,7 @@ void TCCalibPIDEnergyTrad::Fit(Int_t elem)
 void TCCalibPIDEnergyTrad::Calculate(Int_t elem)
 {
     // Calculate the new value of the element 'elem'.
-    
+
     Bool_t noval = kFALSE;
 
     // check if fit was performed
@@ -320,7 +334,7 @@ void TCCalibPIDEnergyTrad::Calculate(Int_t elem)
         // check if line position was modified by hand
         if (fLine->GetX1() != fPionData) fPionData = fLine->GetX1();
         if (fLine2->GetX1() != fProtonData) fProtonData = fLine2->GetX1();
-        
+
         // calculate peak differences
         Double_t diffMC = fProtonMC - fPionMC;
         Double_t diffData = fProtonData - fPionData;
@@ -330,7 +344,7 @@ void TCCalibPIDEnergyTrad::Calculate(Int_t elem)
 
         // calculate gain
         fGain[elem] = 0.01 * diffMC / diffData;
-    
+
         // update overview histograms
         fPionPos->SetBinContent(elem+1, fPionData);
         fPionPos->SetBinError(elem+1, 0.0000001);
@@ -349,7 +363,7 @@ void TCCalibPIDEnergyTrad::Calculate(Int_t elem)
            elem, fPionData, fProtonData, fPed[elem], fGain[elem]);
     if (noval) printf("    -> no fit");
     printf("\n");
-}   
+}
 
 //______________________________________________________________________________
 void TCCalibPIDEnergyTrad::PrintValues()
@@ -368,14 +382,14 @@ void TCCalibPIDEnergyTrad::PrintValues()
 void TCCalibPIDEnergyTrad::WriteValues()
 {
     // Write the obtained calibration values to the database.
-    
+
     // write values to database
     for (Int_t i = 0; i < fNset; i++)
     {
         TCMySQLManager::GetManager()->WriteParameters("Data.PID.E0", fCalibration.Data(), fSet[i], fPed, fNelem);
         TCMySQLManager::GetManager()->WriteParameters("Data.PID.E1", fCalibration.Data(), fSet[i], fGain, fNelem);
     }
-    
+
     // save overview canvas
     SaveCanvas(fCanvasResult, "Overview");
 }

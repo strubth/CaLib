@@ -14,26 +14,25 @@
 #ifndef TCCALIBTYPE_H
 #define TCCALIBTYPE_H
 
-#include "TList.h"
+#include "TNamed.h"
 
-#include "TCCalibData.h"
-
+class TCCalibData;
 
 class TCCalibType : public TNamed
 {
 
 private:
     TList* fData;                   // list of associated data (enties not owned)
-    
+
 public:
     TCCalibType() : TNamed() { }
     TCCalibType(const Char_t* name, const Char_t* title);
     virtual ~TCCalibType();
- 
-    TList* GetData() const { return fData; }
-    TCCalibData* GetData(Int_t n) { return fData ? (TCCalibData*)fData->At(n) : 0; }
 
-    void AddData(TCCalibData* data) { if (fData) fData->Add(data); }
+    TList* GetData() const { return fData; }
+    TCCalibData* GetData(Int_t n);
+
+    void AddData(TCCalibData* data);
     virtual void Print(Option_t* option = "") const;
 
     ClassDef(TCCalibType, 1) // Calibration type class

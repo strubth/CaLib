@@ -11,15 +11,13 @@
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef TCFILEMANAGER_H 
+#ifndef TCFILEMANAGER_H
 #define TCFILEMANAGER_H
 
-#include "TFile.h"
-#include "TH1.h"
+#include "TString.h"
 
-#include "TCReadConfig.h"
-#include "TCMySQLManager.h"
-
+class TList;
+class TH1;
 
 class TCFileManager
 {
@@ -31,13 +29,13 @@ private:
     TString fCalibration;                   // calibration identifier
     Int_t fNset;                            // number of sets
     Int_t* fSet;                            //[fNset] array of set numbers
-    
+
     void BuildFileList();
 
 public:
-    TCFileManager() : fInputFilePatt(0), fFiles(0), 
+    TCFileManager() : fInputFilePatt(0), fFiles(0),
                       fCalibData(), fCalibration(), fNset(0), fSet(0) { }
-    TCFileManager(const Char_t* data, const Char_t* calibration, 
+    TCFileManager(const Char_t* data, const Char_t* calibration,
                   Int_t nSet, Int_t* set, const Char_t* filePat = 0);
     virtual ~TCFileManager();
 

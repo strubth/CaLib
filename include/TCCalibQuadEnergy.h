@@ -14,14 +14,13 @@
 #ifndef TCCALIBQUADENERGY_H
 #define TCCALIBQUADENERGY_H
 
-#include "TCanvas.h"
-#include "TH2.h"
-#include "TLine.h"
-#include "TMath.h"
-
 #include "TCCalib.h"
-#include "TCFileManager.h"
+#include "TCConfig.h"
+#include "TCReadConfig.h"
 
+class TH1;
+class TH2;
+class TLine;
 
 class TCCalibQuadEnergy : public TCCalib
 {
@@ -52,7 +51,7 @@ private:
 
 public:
     TCCalibQuadEnergy() : TCCalib(), fPar0(0), fPar1(0),
-                          fMainHisto2(0), fMainHisto3(0), 
+                          fMainHisto2(0), fMainHisto3(0),
                           fFitHisto1b(0), fFitHisto2(0), fFitHisto3(0),
                           fFitFunc1b(0),
                           fPi0Pos(0), fEtaPos(0), fPi0MeanE(0), fEtaMeanE(0),
@@ -61,35 +60,33 @@ public:
     TCCalibQuadEnergy(const Char_t* name, const Char_t* title, const Char_t* data,
                       Int_t nElem);
     virtual ~TCCalibQuadEnergy();
-    
+
     virtual void WriteValues();
     virtual void PrintValues();
 
     ClassDef(TCCalibQuadEnergy, 0) // Base quadratic energy correction class
 };
 
-
 class TCCalibCBQuadEnergy : public TCCalibQuadEnergy
 {
-    
+
 public:
     TCCalibCBQuadEnergy()
-        : TCCalibQuadEnergy("CB.QuadEnergy", "CB quadratic energy correction", 
-                            "Data.CB.Energy.Quad.Par0", 
+        : TCCalibQuadEnergy("CB.QuadEnergy", "CB quadratic energy correction",
+                            "Data.CB.Energy.Quad.Par0",
                             TCConfig::kMaxCB) { }
     virtual ~TCCalibCBQuadEnergy() { }
 
     ClassDef(TCCalibCBQuadEnergy, 0) // CB quadratic energy correction
 };
 
-
 class TCCalibTAPSQuadEnergy : public TCCalibQuadEnergy
 {
-    
+
 public:
     TCCalibTAPSQuadEnergy()
-        : TCCalibQuadEnergy("TAPS.QuadEnergy", "TAPS quadratic energy correction", 
-                            "Data.TAPS.Energy.Quad.Par0", 
+        : TCCalibQuadEnergy("TAPS.QuadEnergy", "TAPS quadratic energy correction",
+                            "Data.TAPS.Energy.Quad.Par0",
                             TCReadConfig::GetReader()->GetConfigInt("TAPS.Elements")) { }
     virtual ~TCCalibTAPSQuadEnergy() { }
 

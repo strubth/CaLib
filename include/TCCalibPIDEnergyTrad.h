@@ -14,17 +14,12 @@
 #ifndef TCCALIBPIDENERGYTRAD_H
 #define TCCALIBPIDENERGYTRAD_H
 
-#include "TCanvas.h"
-#include "TH2.h"
-#include "TH3.h"
-#include "TLine.h"
-#include "TMath.h"
-#include "TGraph.h"
-#include "TSpectrum.h"
-
 #include "TCCalib.h"
-#include "TCFileManager.h"
 
+class TLine;
+class TH2;
+class TFile;
+class TCFileManager;
 
 class TCCalibPIDEnergyTrad : public TCCalib
 {
@@ -48,7 +43,7 @@ private:
     virtual void Init();
     virtual void Fit(Int_t elem);
     virtual void Calculate(Int_t elem);
-    
+
     void FitSlice(TH2* h);
 
 public:
@@ -57,7 +52,6 @@ public:
 
     virtual void WriteValues();
     virtual void PrintValues();
-
 
     ClassDef(TCCalibPIDEnergyTrad, 0) // PID energy calibration (traditional method)
 };

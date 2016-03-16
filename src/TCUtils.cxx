@@ -11,8 +11,11 @@
 //////////////////////////////////////////////////////////////////////////
 
 
-#include "TCUtils.h"
+#include "TH2.h"
+#include "TMath.h"
 
+#include "TCUtils.h"
+#include "TCReadConfig.h"
 
 //______________________________________________________________________________
 void TCUtils::FindBackground(TH1* h, Double_t peak, Double_t low, Double_t high,
@@ -38,23 +41,23 @@ TH1* TCUtils::DeriveHistogram(TH1* inH)
     // Return the derivative of the histogram 'inH'.
 
     Char_t tmp[256];
-    
+
     // get the number of bins
     Int_t nBins = inH->GetNbinsX();
 
     // create new histogram
     sprintf(tmp, "%s_Derivative", inH->GetName());
     TH1* h = new TH1D(tmp, tmp, nBins, inH->GetXaxis()->GetXmin(), inH->GetXaxis()->GetXmax());
-    
+
     // loop over bins
     for (Int_t i = 1; i <= nBins-1; i++)
-    {   
+    {
         // x-difference
         Double_t xdiff = inH->GetBinCenter(i+1) - inH->GetBinCenter(i);
 
         // y-difference
         Double_t ydiff = inH->GetBinContent(i+1) - inH->GetBinContent(i);
-        
+
         // fill derived histogram
         h->SetBinContent(i, ydiff / xdiff);
     }
@@ -66,7 +69,7 @@ TH1* TCUtils::DeriveHistogram(TH1* inH)
 void TCUtils::ZeroBins(TH1* inH, Double_t th)
 {
     // Set all bins of the histogram 'inH' that are lower than the value 'th' to zero.
-    
+
     // get number of bins
     Int_t nbinsX = inH->GetNbinsX();
     Int_t nbinsY = inH->GetNbinsY();
@@ -108,7 +111,7 @@ Double_t TCUtils::Pi0Func(Double_t* x, Double_t* par)
     Double_t G = TMath::Exp(-4. * TMath::Log(par[4]) * eDiff * eDiff / par[2] / par[2]);
     Double_t out = par[5] + par[6]*x[0] + par[7]*x[0]*x[0] + par[8]*x[0]*x[0]*x[0];
 
-    if (x[0] >= par[1]) return out + par[0] * G;                                  // above peak position 
+    if (x[0] >= par[1]) return out + par[0] * G;                                  // above peak position
     else return out + par[0] * (G + TMath::Exp(eDiff / par[3]) * (1. - G));       // below peak position -> tail
 }
 
@@ -125,7 +128,7 @@ Double_t TCUtils::GetHistogramMinimum(TH1* h)
     {
         // get bin content
         Double_t c = h->GetBinContent(i);
-        
+
         // check bin content
         if (c < min && c != 0) min = c;
     }
@@ -150,9 +153,9 @@ Double_t TCUtils::GetHistogramMinimumPosition(TH1* h)
 
         // get position
         Double_t pos = h->GetBinCenter(i);
-        
+
         // check bin content
-        if (c < min && c != 0) 
+        if (c < min && c != 0)
         {
             min = c;
             minPos = pos;
@@ -167,18 +170,18 @@ void TCUtils::FormatHistogram(TH1* h, const Char_t* ident)
 {
     // Apply the formatting read from the configuration file for the identifier
     // 'ident' to the histogram 'h'.
-    
+
     Char_t key[256];
-    
+
     // rebin
     sprintf(key, "%s.Rebin", ident);
     if (TString* value = TCReadConfig::GetReader()->GetConfig(key))
     {
         Int_t rebin = atoi(value->Data());
-        if (rebin > 1) 
+        if (rebin > 1)
         {
             // check for 2d-histogram
-            if (h->InheritsFrom("TH2")) 
+            if (h->InheritsFrom("TH2"))
             {
                 TH2* h2 = (TH2*) h;
                 h2->RebinX(rebin);
@@ -195,7 +198,7 @@ void TCUtils::FormatHistogram(TH1* h, const Char_t* ident)
         sscanf(value->Data(), "%lf%lf", &min, &max);
         h->GetXaxis()->SetRangeUser(min, max);
     }
-    
+
     // y-axis range
     sprintf(key, "%s.Yaxis.Range", ident);
     if (TString* value = TCReadConfig::GetReader()->GetConfig(key))
@@ -214,12 +217,12 @@ Bool_t TCUtils::IsCBHole(Int_t elem)
     Int_t nholes = 48;
     Int_t cb_holes[] = {26, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 40,
                         311, 315, 316, 318, 319,
-                        353, 354, 355, 356, 357, 358, 359, 
+                        353, 354, 355, 356, 357, 358, 359,
                         360, 361, 362, 363, 364, 365, 366,
                         400, 401, 402, 405, 408,
                         679, 681, 682, 683, 684, 685, 686, 687, 688, 689,
                         691, 692};
-    
+
     // loop over holes
     for (Int_t i = 0; i < nholes; i++)
     {
@@ -235,7 +238,7 @@ Int_t TCUtils::GetVetoInFrontOfElement(Int_t id, Int_t maxTAPS)
     // Return the index of the veto that is installed in front of the
     // BaF2 or PWO element with the index 'id' depending on the TAPS setup
     // configured by the number of TAPS elements 'maxTAPS'.
-    
+
     // check TAPS setup
     switch (maxTAPS)
     {
@@ -252,7 +255,7 @@ Int_t TCUtils::GetVetoInFrontOfElement(Int_t id, Int_t maxTAPS)
             if (id >= 201 && id <= 204) return 192;
             if (id >= 268 && id <= 271) return 256;
             if (id >= 335 && id <= 338) return 320;
-            
+
             // other elements
             else return id - 3*(id/67 + 1);
         }
@@ -265,7 +268,7 @@ Int_t TCUtils::GetVetoInFrontOfElement(Int_t id, Int_t maxTAPS)
             if (id >= 219 && id <= 222) return 192;
             if (id >= 292 && id <= 295) return 256;
             if (id >= 365 && id <= 368) return 320;
-            
+
             // 2nd PWO ring
             if (id >=   4 && id <=   7) return   1;
             if (id >=   8 && id <=  11) return   2;
@@ -279,7 +282,7 @@ Int_t TCUtils::GetVetoInFrontOfElement(Int_t id, Int_t maxTAPS)
             if (id >= 300 && id <= 303) return 258;
             if (id >= 369 && id <= 372) return 321;
             if (id >= 373 && id <= 376) return 322;
-            
+
             // other elements
             else return id - 9*(id/73 + 1);
         }
