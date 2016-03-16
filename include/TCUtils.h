@@ -30,6 +30,7 @@ namespace TCUtils
     void FormatHistogram(TH1* h, const Char_t* ident);
     Bool_t IsCBHole(Int_t elem);
     Int_t GetVetoInFrontOfElement(Int_t id, Int_t maxTAPS);
+    Int_t GetTAPSRing(Int_t id, Int_t maxTAPS);
     Double_t GetDiffPercent(Double_t oldValue, Double_t newValue);
 }
 
