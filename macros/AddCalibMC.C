@@ -17,7 +17,7 @@ void AddCalibMC()
 {
     // load CaLib
     gSystem->Load("libCaLib.so");
- 
+
     // macro configuration: just change here for your beamtime and leave
     // the other parts of the code unchanged
     const Char_t target[]           = "LD2";
@@ -32,34 +32,34 @@ void AddCalibMC()
 
     // add raw files to the database
     TCMySQLManager::GetManager()->AddRun(dummyRun, target, calibDesc);
-    
+
     // read AcquRoot calibration of tagger
     TCMySQLManager::GetManager()->AddCalibAR(kDETECTOR_TAGG, calibFileTagger,
                                              calibName, calibDesc,
                                              dummyRun, dummyRun);
-    
+
     // read AcquRoot calibration of CB
     TCMySQLManager::GetManager()->AddCalibAR(kDETECTOR_CB, calibFileCB,
                                              calibName, calibDesc,
                                              dummyRun, dummyRun);
-    
+
     // init CB quadratic energy correction
     TCMySQLManager::GetManager()->AddSet("Type.CB.Energy.Quad", calibName, calibDesc,
                                          dummyRun, dummyRun, 0);
-    
+
     // init CB LED calibration
     TCMySQLManager::GetManager()->AddSet("Type.CB.LED", calibName, calibDesc,
                                          dummyRun, dummyRun, 0);
-    
+
     // read AcquRoot calibration of TAPS
     TCMySQLManager::GetManager()->AddCalibAR(kDETECTOR_TAPS, calibFileTAPS,
                                              calibName, calibDesc,
                                              dummyRun, dummyRun);
-    
+
     // init TAPS quadratic energy correction
     TCMySQLManager::GetManager()->AddSet("Type.TAPS.Energy.Quad", calibName, calibDesc,
                                          dummyRun, dummyRun, 0);
- 
+
     // init TAPS LED calibration
     TCMySQLManager::GetManager()->AddSet("Type.TAPS.LED1", calibName, calibDesc,
                                          dummyRun, dummyRun, 0);
@@ -70,12 +70,12 @@ void AddCalibMC()
     TCMySQLManager::GetManager()->AddCalibAR(kDETECTOR_PID, calibFilePID,
                                              calibName, calibDesc,
                                              dummyRun, dummyRun);
-    
-    // read AcquRoot calibration of Veto 
+
+    // read AcquRoot calibration of Veto
     TCMySQLManager::GetManager()->AddCalibAR(kDETECTOR_VETO, calibFileVeto,
                                              calibName, calibDesc,
                                              dummyRun, dummyRun);
-    
+
     gSystem->Exit(0);
 }
 

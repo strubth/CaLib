@@ -16,7 +16,7 @@ void AddMCRun()
 {
     // load CaLib
     gSystem->Load("libCaLib.so");
- 
+
     // macro configuration: just change here for your beamtime and leave
     // the other parts of the code unchanged
     const Char_t target[]           = "H-Butanol";
@@ -25,7 +25,7 @@ void AddMCRun()
 
     // add raw files to the database
     TCMySQLManager::GetManager()->AddRun(dummyRun, target, calibDesc);
-    
+
     gSystem->Exit(0);
 }
 

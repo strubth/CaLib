@@ -16,7 +16,7 @@ void AddSet()
 {
     // load CaLib
     gSystem->Load("libCaLib.so");
- 
+
     // macro configuration: just change here for your beamtime and leave
     // the other parts of the code unchanged
     const Int_t firstRun            = 13089;
@@ -27,7 +27,7 @@ void AddSet()
 
     // add set
     TCMySQLManager::GetManager()->AddSet(calibType, calibName, calibDesc, firstRun, lastRun, 0);
-     
+
     gSystem->Exit(0);
 }
 

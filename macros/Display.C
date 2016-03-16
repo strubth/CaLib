@@ -16,12 +16,12 @@ void Display()
 {
     // load CaLib
     gSystem->Load("libCaLib.so");
-    
+
     // configuration
     const Int_t nSet = 1;
-    const Int_t nPar = 384;
-    const Char_t data[] = "Data.Veto.E0";
-    const Char_t calibration[] = "LD2_May_09";
+    const Int_t nPar = 720;
+    const Char_t data[] = "Data.CB.Walk.Par0";
+    const Char_t calibration[] = "LH2_Jul_14";
 
     // data array
     Double_t par[nSet][nPar];
@@ -29,7 +29,7 @@ void Display()
     // read sets
     for (Int_t i = 0; i < nSet; i++)
         TCMySQLManager::GetManager()->ReadParameters(data, calibration, i, par[i], nPar);
-    
+
     // display parameters
     // loop over parameters
     for (Int_t i = 0; i < nPar; i++)

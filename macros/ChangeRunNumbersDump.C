@@ -16,7 +16,7 @@ void ChangeRunNumbersDump(const Char_t* filename)
 {
     // load CaLib
     gSystem->Load("libCaLib.so");
-    
+
     // macro configuration
     const Int_t newFirstRun = 50000;
     const Int_t newLastRun  = 50381;
@@ -24,7 +24,7 @@ void ChangeRunNumbersDump(const Char_t* filename)
     // load CaLib container
     TFile f(filename);
     TCContainer* c = (TCContainer*) f.Get("CaLib_Dump");
-    
+
     // user info
     printf("Updating first/last runs of calibration sets to %d/%d\n", newFirstRun, newLastRun);
 
@@ -33,15 +33,15 @@ void ChangeRunNumbersDump(const Char_t* filename)
     {
         // get calibration
         TCCalibration* cal = c->GetCalibration(i);
-        
+
         // set new first and last runs
         cal->SetFirstRun(newFirstRun);
         cal->SetLastRun(newLastRun);
-    
+
         // user info
         printf("Updated calibration '%s'\n", cal->GetCalibData());
     }
-    
+
     // construct new file name
     TString s(filename);
     s.ReplaceAll(".root", "");

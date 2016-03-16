@@ -23,9 +23,7 @@
 #include "TGraph.h"
 #endif
 
-
 TList* gFiles;
-
 
 //______________________________________________________________________________
 void CheckEnergy(const Char_t* loc)
@@ -52,16 +50,16 @@ void CheckEnergy(const Char_t* loc)
         sprintf(t, "%03d", i);
         fROOTout->mkdir(t);
     }
-    
+
     TF1* func = new TF1("func", "gaus(0)+pol1(3)", -1000 , 1000);
 
     // loop over runs
     const Int_t nAdd = 20;
     for (Int_t i = 0; i < nRuns-nAdd; i=i+nAdd)
-    {   
+    {
         // get the file
         TFile* f[nAdd];
-        for (Int_t j = 0; j < nAdd; j++) 
+        for (Int_t j = 0; j < nAdd; j++)
             f[j] = (TFile*) gFiles->At(i+j);
 
         // extract run number
@@ -93,18 +91,18 @@ void CheckEnergy(const Char_t* loc)
                     TH1* hProj = h2[k]->ProjectionY(t, h2[k]->GetXaxis()->FindBin(0.), h2[k]->GetXaxis()->FindBin(50.));
                     hProj->Rebin(2);
                     if (h == 0) h = hProj;
-                    else 
+                    else
                     {
                         h->Add(hProj);
                         delete hProj;
                     }
                 }
             }
-            
+
             sprintf(t, "Run_%d", runNumber);
             TCanvas* c = new TCanvas(t, t);
             TLine* tline = 0;
-            
+
             // check entries
             //if (h->GetEntries())
             //{
@@ -122,7 +120,7 @@ void CheckEnergy(const Char_t* loc)
 
             //    h->GetXaxis()->SetRangeUser(maxPos - 10, maxPos + 10);
             //    h->Draw();
-            //    
+            //
             //    tline = new TLine(maxPos, 0, maxPos, 10000);
             //    tline->SetLineColor(kRed);
             //    tline->SetLineWidth(2);
@@ -134,35 +132,35 @@ void CheckEnergy(const Char_t* loc)
             //}
 
             c->Write(c->GetName(), TObject::kOverwrite);
-    
+
             if (h) delete h;
             for (Int_t k = 0; k < nAdd; k++) if (h2[k]) delete h2[k];
             delete c;
             if (tline) delete tline;
         }
-        
+
     }
-    
+
     // create pedestal evolution graphs
     fROOTout->cd();
-    
+
     // loop over channels
     for (Int_t j = 0; j < nCh; j++)
     {
         printf("Creating time graph for channel %d\n", j);
-        
+
         TGraph* g = new TGraph(nRuns, runNumbersD, pedPos[j]);
         sprintf(t, "Overview_%03d", j);
         g->SetName(t);
         g->SetTitle(t);
         //g->GetYaxis()->SetRangeUser(1200, 1300);
         g->Write(g->GetName(), TObject::kOverwrite);
-        
+
         delete g;
     }
 
     printf("Saving output file\n");
-    
+
     delete fROOTout;
 
     // cleanup
@@ -175,12 +173,12 @@ void CheckEnergy(const Char_t* loc)
 void VetoEnergy()
 {
     // Main method.
-    
+
     Char_t tmp[256];
-    
+
     // load CaLib
     gSystem->Load("libCaLib.so");
-    
+
     // general configuration
     Bool_t watch = kFALSE;
     const Char_t* data = "Data.Veto.E1";
@@ -193,14 +191,14 @@ void VetoEnergy()
     // configuration (February 2009)
     //const Char_t calibration[] = "LD2_Feb_09";
     //const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/Feb_09/AR/out/ADC";
-    
+
     // configuration (May 2009)
     const Char_t calibration[] = "LD2_May_09";
     const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/May_09/AR/out";
 
     // get number of sets
     Int_t nSets = TCMySQLManager::GetManager()->GetNsets(data, calibration);
-    
+
     // file array
     gFiles = new TList();
     gFiles->SetOwner(kTRUE);
@@ -211,7 +209,7 @@ void VetoEnergy()
         // get runs of set
         Int_t nRuns;
         Int_t* runs = TCMySQLManager::GetManager()->GetRunsOfSet(data, calibration, i, &nRuns);
-    
+
         // loop over runs
         for (Int_t j = 0; j < nRuns; j++)
         {
@@ -230,12 +228,12 @@ void VetoEnergy()
         // clean-up
         delete runs;
     }
- 
+
     // check energy
     CheckEnergy(fLoc);
 
     printf("%d runs analyzed.\n", gFiles->GetSize());
-    
+
     // clean-up
     delete gFiles;
 

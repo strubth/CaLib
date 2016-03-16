@@ -23,9 +23,7 @@
 #include "TGraph.h"
 #endif
 
-
 TList* gFiles;
-
 
 //______________________________________________________________________________
 void CheckTime(const Char_t* loc)
@@ -52,12 +50,12 @@ void CheckTime(const Char_t* loc)
         sprintf(t, "%03d", i);
         fROOTout->mkdir(t);
     }
-    
+
     TF1* func = new TF1("func", "gaus(0)+pol1(3)", -1000 , 1000);
 
     // loop over runs
     for (Int_t i = 0; i < nRuns; i++)
-    {   
+    {
         // get the file
         TFile* f = (TFile*) gFiles->At(i);
 
@@ -70,7 +68,7 @@ void CheckTime(const Char_t* loc)
         printf("Processing run %d (%d/%d)\n", runNumber, i+1, nRuns);
 
         fROOTout->cd();
-        
+
         TH2* h2 = (TH2*) f->Get("CaLib_Tagger_Time");
 
         // loop over channels
@@ -82,11 +80,11 @@ void CheckTime(const Char_t* loc)
             sprintf(t, "%d_%d", i, j);
             TH1* h = h2->ProjectionX(t, j+1, j+1);
             h->Rebin(2);
-            
+
             sprintf(t, "Run_%d", runNumber);
             TCanvas* c = new TCanvas(t, t);
             TLine* tline = 0;
-            
+
             // check entries
             if (h->GetEntries())
             {
@@ -104,7 +102,7 @@ void CheckTime(const Char_t* loc)
 
                 h->GetXaxis()->SetRangeUser(maxPos - 10, maxPos + 10);
                 h->Draw();
-                
+
                 tline = new TLine(maxPos, 0, maxPos, 10000);
                 tline->SetLineColor(kRed);
                 tline->SetLineWidth(2);
@@ -116,35 +114,35 @@ void CheckTime(const Char_t* loc)
             }
 
             c->Write(c->GetName(), TObject::kOverwrite);
-    
+
             delete h;
             delete c;
             if (tline) delete tline;
         }
-        
+
         delete h2;
     }
-    
+
     // create pedestal evolution graphs
     fROOTout->cd();
-    
+
     // loop over channels
     for (Int_t j = 0; j < nCh; j++)
     {
         printf("Creating time graph for channel %d\n", j);
-        
+
         TGraph* g = new TGraph(nRuns, runNumbersD, pedPos[j]);
         sprintf(t, "Overview_%03d", j);
         g->SetName(t);
         g->SetTitle(t);
         //g->GetYaxis()->SetRangeUser(1200, 1300);
         g->Write(g->GetName(), TObject::kOverwrite);
-        
+
         delete g;
     }
 
     printf("Saving output file\n");
-    
+
     delete fROOTout;
 
     // cleanup
@@ -157,12 +155,12 @@ void CheckTime(const Char_t* loc)
 void TaggerTime()
 {
     // Main method.
-    
+
     Char_t tmp[256];
-    
+
     // load CaLib
     gSystem->Load("libCaLib.so");
-    
+
     // general configuration
     Bool_t watch = kFALSE;
     const Char_t* data = "Data.Tagger.T0";
@@ -175,14 +173,14 @@ void TaggerTime()
     // configuration (February 2009)
     //const Char_t calibration[] = "LD2_Feb_09";
     //const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/Feb_09/AR/out/ADC";
-    
+
     // configuration (May 2009)
     //const Char_t calibration[] = "LD2_May_09";
     //const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/May_09/AR/out/ADC";
 
     // get number of sets
     Int_t nSets = TCMySQLManager::GetManager()->GetNsets(data, calibration);
-    
+
     // file array
     gFiles = new TList();
     gFiles->SetOwner(kTRUE);
@@ -193,7 +191,7 @@ void TaggerTime()
         // get runs of set
         Int_t nRuns;
         Int_t* runs = TCMySQLManager::GetManager()->GetRunsOfSet(data, calibration, i, &nRuns);
-    
+
         // loop over runs
         for (Int_t j = 0; j < nRuns; j++)
         {
@@ -212,12 +210,12 @@ void TaggerTime()
         // clean-up
         delete runs;
     }
- 
+
     // check time
     CheckTime(fLoc);
 
     printf("%d runs analyzed.\n", gFiles->GetSize());
-    
+
     // clean-up
     delete gFiles;
 

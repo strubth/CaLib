@@ -20,10 +20,10 @@
 void WriteNScRtoDB()
 {
     // Main method.
-    
+
     // macro configuration (to be adapted by the user)
-    const Char_t* calibration = "LH2_Apr_09";
-    
+    const Char_t* calibration = "LH2_Jul_14";
+
     // get configuration ///////////////////////////////////////////////////////
 
     // get input file pattern from config file
@@ -55,7 +55,7 @@ void WriteNScRtoDB()
     Int_t nruns = 0;
     Int_t* runs = 0;
 
-    // init list of runs variables for the individual sets 
+    // init list of runs variables for the individual sets
     Int_t* nruns_set = new Int_t[nsets];
     Int_t** runs_set = new Int_t*[nsets];
 
@@ -177,7 +177,7 @@ void WriteNScRtoDB()
     Char_t answer[128];
     printf("Write values to database of calibration '%s'? (yes/no) : ", calibration);
     scanf("%s", answer);
-    if (strcmp(answer, "yes")) 
+    if (strcmp(answer, "yes"))
     {
         printf("Info: Aborted.\n");
         gSystem->Exit(0);
@@ -188,7 +188,7 @@ void WriteNScRtoDB()
     {
         printf("Write default value '-1' for not existing runs? (yes/no) : ");
         scanf("%s", answer);
-        if (strcmp(answer, "yes")) 
+        if (strcmp(answer, "yes"))
             kWriteDefault = kFALSE;
         else
             kWriteDefault = kTRUE;
@@ -234,6 +234,4 @@ void WriteNScRtoDB()
         gSystem->Exit(0);
     }
 }
-
-// finito
 

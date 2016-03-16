@@ -34,7 +34,6 @@ class TCReadARCalib;
 TCReadARCalib* gReadAR;
 TList* gFiles;
 
-
 //______________________________________________________________________________
 void CheckPedestals(const Char_t* loc)
 {
@@ -64,10 +63,10 @@ void CheckPedestals(const Char_t* loc)
     }
 
     TF1* func = new TF1("gausfunc", "gaus", 0 , 200);
-    
+
     // loop over runs
     for (Int_t i = 0; i < nRuns; i++)
-    {   
+    {
         // get the file
         TFile* f = (TFile*) gFiles->At(i);
 
@@ -89,50 +88,50 @@ void CheckPedestals(const Char_t* loc)
             fROOTout->cd(t);
             sprintf(t, "ADC%s", gReadAR->GetElement(j)->GetADC());
             TH1D* h = (TH1D*) f->Get(t);
-            
+
             // fit gaussian to pedestal
-            //if (j == 20201 || j == 21201) h->GetXaxis()->SetRange(90, 115);
+            h->GetXaxis()->SetRange(90, 107);
             //else h->GetXaxis()->SetRange(90, 115);
             //if (j == 27112) h->GetXaxis()->SetRange(60, 110);
             //else h->GetXaxis()->SetRange(60, 99);
-            h->GetXaxis()->SetRangeUser(40, 120);
+            //h->GetXaxis()->SetRangeUser(40, 120);
 
             Double_t maxPos = h->GetXaxis()->GetBinCenter(h->GetMaximumBin());
-            Double_t MaxCont = h->GetBinContent(h->GetMaximumBin()); 
-            if(h->GetEntries()<5) 
+            Double_t MaxCont = h->GetBinContent(h->GetMaximumBin());
+            if(h->GetEntries()<5)
             {
                 maxPos = 0;
                 MaxCont = 0;
             }
             else if(h->GetEntries()>50)
             {
-	        // find first big jump
-	        for(int u=10; u<200; u++)
-	        {
+                // find first big jump
+                for(int u=10; u<200; u++)
+                {
                     Double_t BinMin = 10;
                     Double_t BinDiff = 5;
                     if(h->GetEntries()<150)
                     {
                         BinMin = 2;
-                        BinDiff =1; 
+                        BinDiff =1;
 
                     }
-                    else if(h->GetEntries()<2000) 
+                    else if(h->GetEntries()<2000)
                     {
                         BinMin = 3;
-                        BinDiff =2; 
+                        BinDiff =2;
                     }
 
                     if(h->GetBinContent(u) > BinMin &&
-	               h->GetBinContent(u) > BinDiff*h->GetBinContent(u-3) && 
-	               h->GetBinContent(u) > BinDiff*h->GetBinContent(u+3))
-	            {
+                       h->GetBinContent(u) > BinDiff*h->GetBinContent(u-3) &&
+                       h->GetBinContent(u) > BinDiff*h->GetBinContent(u+3))
+                    {
                         //Printf("%i", i);
-	                Double_t fTotMaxPos = u;
-	                maxPos = h->GetBinCenter( fTotMaxPos );
+                        Double_t fTotMaxPos = u;
+                        maxPos = h->GetBinCenter( fTotMaxPos );
                         MaxCont= h->GetBinContent(fTotMaxPos );
-	                break;
-	            }
+                        break;
+                    }
                 }
                 if(TMath::Abs(maxPos-(h->GetXaxis()->GetBinCenter(h->GetMaximumBin())))<5.) maxPos = h->GetXaxis()->GetBinCenter(h->GetMaximumBin());
                 //Printf("%5.3f", maxPos);
@@ -141,35 +140,35 @@ void CheckPedestals(const Char_t* loc)
                 func->SetRange(maxPos - 3, maxPos + 3);
                 h->Fit(func, "RBQ");
                 maxPos = func->GetParameter(1);
-            }    
+            }
             // save position in file and memory
             pedPos[j][i] = maxPos;
-        
+
             sprintf(t, "Run_%d", runNumber);
             TCanvas* c = new TCanvas(t, t);
             h->Draw();
-            
+
             TLine* tline = new TLine(maxPos, 0, maxPos, func->GetParameter(0));
             tline->SetLineColor(kRed);
             tline->SetLineWidth(2);
             tline->Draw();
-            
+
             c->Write(c->GetName(), TObject::kOverwrite);
-    
+
             delete h;
             delete c;
             delete tline;
         }
     }
-    
+
     // create pedestal evolution graphs
     fROOTout->cd();
-    
+
     // loop over channels
     for (Int_t j = 0; j < nCh; j++)
     {
         printf("Creating pedestal graph for channel %d\n", j);
-        
+
         TGraph* g = new TGraph(nRuns, runNumbersD, pedPos[j]);
         sprintf(t, "Overview_%03d_%s", j, gReadAR->GetElement(j)->GetADC());
         g->SetName(t);
@@ -177,7 +176,7 @@ void CheckPedestals(const Char_t* loc)
         g->Write(g->GetName(), TObject::kOverwrite);
         for(Int_t i = 0; i<g->GetN(); i++)
         {
-            if(TMath::Abs((g->GetY()[i]-g->GetY()[i-1]))>5. && g->GetY()[i]>0. && g->GetY()[i-1]>0 && i>0) 
+            if(TMath::Abs((g->GetY()[i]-g->GetY()[i-1]))>5. && g->GetY()[i]>0. && g->GetY()[i-1]>0 && i>0)
                 printf("-%i \n %i", g->GetX()[i-1],g->GetX()[i]);
                 //cout << "-"<< g->GetX()[i-1] << endl << g->GetX()[i];
         }
@@ -187,7 +186,7 @@ void CheckPedestals(const Char_t* loc)
     }
 
     printf("Saving output file\n");
-    
+
     delete fROOTout;
 
     // cleanup
@@ -200,23 +199,23 @@ void CheckPedestals(const Char_t* loc)
 void TAPSPed()
 {
     // Main method.
-    
+
     Char_t tmp[256];
-    
+
     // load CaLib
     gSystem->Load("libCaLib.so");
-    
+
     // general configuration
     Bool_t watch = kFALSE;
-    const Char_t* data = "Data.TAPS.LG.E0";
+    const Char_t* data = "Data.Veto.E0";
     const Char_t* elemDesc = "Element:";
     //const Char_t* elemDesc = "TAPSSG:";
     Double_t yMin = 110;
     Double_t yMax = 160;
-    
-    const Char_t calibration[] = "H-Butanol_Nov_13";
-    const Char_t* fLoc = "/usr/ocelot_scratch1/witth/Nov13/presort/";
-    const Char_t* fAR = "/usr/users/witth/AcquRoot/acqu/acqu/data/Nov_13/TAPS/BaF2_PWO.dat";
+
+    const Char_t calibration[] = "2014-07_EPT_Prod_Neiser_OldCluster";
+    const Char_t* fLoc = "/w/work14/werthm/A2/Jul_14/presort/data/";
+    const Char_t* fAR = "/home/werthm/src/ROOT/acqu/acqu_user/data/Jul_14/TAPS/Veto.dat";
 
     // read the calibration file with the correct element identifier
     gReadAR = new TCReadARCalib(fAR, kFALSE, elemDesc);
@@ -226,7 +225,7 @@ void TAPSPed()
 
     // get number of sets
     Int_t nSets = TCMySQLManager::GetManager()->GetNsets(data, calibration);
-    
+
     // file array
     gFiles = new TList();
     gFiles->SetOwner(kTRUE);
@@ -237,7 +236,7 @@ void TAPSPed()
         // get runs of set
         Int_t nRuns;
         Int_t* runs = TCMySQLManager::GetManager()->GetRunsOfSet(data, calibration, i, &nRuns);
-    
+
         // loop over runs
         for (Int_t j = 0; j < nRuns; j++)
         {
@@ -256,12 +255,12 @@ void TAPSPed()
         // clean-up
         delete runs;
     }
- 
+
     // check pedestals
     CheckPedestals(fLoc);
 
     printf("%d runs analyzed.\n", gFiles->GetSize());
-    
+
     // clean-up
     delete gFiles;
 

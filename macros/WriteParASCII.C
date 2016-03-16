@@ -16,11 +16,11 @@ void WriteParASCII()
 {
     // load CaLib
     gSystem->Load("libCaLib.so");
-    
+
     // configuration
-    const Char_t inputFile[] = "gain.dat";
-    const Char_t data[] = "Data.TAPS.SG.E1";
-    const Char_t calibration[] = "LD2_Dec_07";
+    const Char_t inputFile[] = "tdc_baf2.dat";
+    const Char_t data[] = "Data.TAPS.T1";
+    const Char_t calibration[] = "LH2_Jul_14";
     Int_t set = 0;
 
     // par array
@@ -36,13 +36,13 @@ void WriteParASCII()
     // show paramters
     for (Int_t i = 0; i < nPar; i++) printf("Par %03d : %lf\n", i, par[i]);
     printf("Read %d paramters\n", nPar);
-    
+
     // ask user
     Char_t answer[128];
-    printf("Write to set %d of calibration '%s'? (yes/no) : ", 
+    printf("Write to set %d of calibration '%s'? (yes/no) : ",
            set, calibration);
     scanf("%s", answer);
-    if (strcmp(answer, "yes")) 
+    if (strcmp(answer, "yes"))
     {
         printf("Aborted.\n");
         gSystem->Exit(0);
@@ -50,7 +50,7 @@ void WriteParASCII()
 
     // write to database
     TCMySQLManager::GetManager()->WriteParameters(data, calibration, set, par, nPar);
-  
+
     gSystem->Exit(0);
 }
 

@@ -17,7 +17,6 @@
 #include "TString.h"
 #include "TError.h"
 
-
 // MySQL configuration (old database)
 const Char_t* gDBHostOld = "phys-jaguar";
 const Char_t* gDBNameOld = "acqu";
@@ -34,7 +33,6 @@ const Char_t* gDBPassNew = "basel_write";
 TSQLServer* gDBOld;
 TSQLServer* gDBNew;
 
-
 //______________________________________________________________________________
 Bool_t IsConnected(TSQLServer* db)
 {
@@ -48,7 +46,7 @@ TSQLResult* SendQuery(TSQLServer* db, const Char_t* query, Bool_t delRes = kTRUE
 {
     // Send a query to the database 'db' and return the result.
     // Delete the result (and return 0) if 'delRes' is kTRUE.
-    
+
     // check server connection
     if (!IsConnected(db))
     {
@@ -58,7 +56,7 @@ TSQLResult* SendQuery(TSQLServer* db, const Char_t* query, Bool_t delRes = kTRUE
 
     // execute query
     TSQLResult* res = db->Query(query);
-    
+
     // return the query
     if (delRes)
     {
@@ -87,10 +85,10 @@ void ConvertMainTable(const Char_t* targPre)
     {
         // get row
         TSQLRow* row = res->Next();
-        
+
         // run number
         Int_t run = atoi(row->GetField(0));
-        
+
         // path and filename
         Char_t filename[256];
         sprintf(filename, "%s%s", row->GetField(1), row->GetField(2));
@@ -141,7 +139,7 @@ void ConvertDataTable(const Char_t* parTable, const Char_t* setTable,
                       const Char_t* parTableNew,
                       Int_t nPar)
 {
-    // Convert 'nPar' parameters of the data table 'parTable' using the set 
+    // Convert 'nPar' parameters of the data table 'parTable' using the set
     // definitions from the table 'setTable' into the new data table 'parTableNew'.
 
     // user information
@@ -149,19 +147,19 @@ void ConvertDataTable(const Char_t* parTable, const Char_t* setTable,
 
     // read sets
     TSQLResult* set_res = SendQuery(gDBOld, TString::Format("SELECT DISTINCT * FROM %s ORDER BY start_run", setTable).Data(), kFALSE);
-    
+
     // get number of sets
     Int_t nSets = set_res->GetRowCount();
 
     // user information
     printf("-> %d sets found\n", nSets);
-    
+
     // loop over runsets
     for (Int_t i = 0; i < nSets; i++)
     {
         // get row
         TSQLRow* set_row = set_res->Next();
- 
+
         // get runset number
         Int_t runset = atoi(set_row->GetField(0));
 
@@ -170,11 +168,11 @@ void ConvertDataTable(const Char_t* parTable, const Char_t* setTable,
         Int_t stop_run = atoi(set_row->GetField(2));
 
         // read data for this runset
-        TSQLResult* data_res = SendQuery(gDBOld, 
+        TSQLResult* data_res = SendQuery(gDBOld,
                                          TString::Format("SELECT filled FROM %s WHERE runset = %d "
                                          "ORDER BY filled DESC LIMIT 1", parTable, runset).Data(),
                                          kFALSE);
-        
+
         // get filled date
         TSQLRow* data_row = data_res->Next();
         Char_t filled[256];
@@ -184,23 +182,23 @@ void ConvertDataTable(const Char_t* parTable, const Char_t* setTable,
 
         // user information
         printf("   -> Converting set %d (latest iteration: %s)\n", runset, filled);
-        
+
         // prepare query for reading all parameters
         TString query("SELECT ");
-        for (Int_t j = 0; j < nPar; j++) 
+        for (Int_t j = 0; j < nPar; j++)
         {
             query.Append(TString::Format("par_%03d", j+1));
             if (j != nPar - 1) query.Append(",");
         }
         query.Append(TString::Format(" FROM %s WHERE runset = %d AND filled = '%s'", parTable, runset, filled));
-        
+
         // read all parameters and write them to new query
         data_res = SendQuery(gDBOld, query.Data(), kFALSE);
         data_row = data_res->Next();
-        query = TString::Format("INSERT INTO %s SET calibration = 'LD2_Domi', first_run = %d, last_run = %d, changed = '%s',", 
+        query = TString::Format("INSERT INTO %s SET calibration = 'LD2_Domi', first_run = %d, last_run = %d, changed = '%s',",
                                 parTableNew, start_run, stop_run, filled);
-        for (Int_t j = 0; j < nPar; j++) 
-        {   
+        for (Int_t j = 0; j < nPar; j++)
+        {
             // try to convert the parameter value
             Double_t val = 0;
             const Char_t* val_s = data_row->GetField(j);
@@ -210,7 +208,7 @@ void ConvertDataTable(const Char_t* parTable, const Char_t* setTable,
             query.Append(TString::Format("par_%03d = %f", j, val));
             if (j != nPar - 1) query.Append(",");
         }
-    
+
         // send insert query to the new database
         SendQuery(gDBNew, query.Data());
 
@@ -230,7 +228,7 @@ void ConvertDataTable(const Char_t* parTable, const Char_t* setTable,
 void ConvertCaLib()
 {
     // Main function.
-    
+
     Char_t tmp[256];
 
     // connect to the old SQL server
@@ -255,7 +253,7 @@ void ConvertCaLib()
         return;
     }
 
-    // convert the main table 
+    // convert the main table
     ConvertMainTable("LD2");
 
     //
@@ -264,7 +262,7 @@ void ConvertCaLib()
 
     // time offset
     ConvertDataTable("LD2_tagger_Toffset", "LD2_tagger_Toffset_sets", "tagg_t0", 352);
-    
+
 
     //
     // convert CB tables
@@ -272,7 +270,7 @@ void ConvertCaLib()
 
     // energy gain
     ConvertDataTable("LD2_cb_Ecalib", "LD2_sets_main", "cb_e1", 720);
-    
+
     // time offset
     ConvertDataTable("LD2_cb_Toffset", "LD2_cb_Toffset_sets", "cb_t0", 720);
 
@@ -297,16 +295,16 @@ void ConvertCaLib()
 
     // SG energy pedestal
     ConvertDataTable("LD2_taps_Eoffset_sg", "LD2_taps_Eoffset_sets", "taps_sg_e0", 438);
-    
+
     // LG energy gain
     ConvertDataTable("LD2_taps_Ecalib_lg", "LD2_taps_Ecalib_sets", "taps_lg_e1", 438);
 
     // SG energy gain
     ConvertDataTable("LD2_taps_Ecalib_sg", "LD2_taps_Ecalib_sets", "taps_sg_e1", 438);
-    
+
     // time offset
     ConvertDataTable("LD2_taps_Toffset", "LD2_taps_Toffset_sets", "taps_t0", 438);
-    
+
     // time gain
     ConvertDataTable("LD2_taps_Tcalib", "LD2_taps_Tcalib_sets", "taps_t1", 438);
 
@@ -316,13 +314,13 @@ void ConvertCaLib()
 
     // energy pedestal
     ConvertDataTable("LD2_pid_Eoffset", "LD2_pid_Eoffset_sets", "pid_e0", 24);
-    
+
     // energy gain
     ConvertDataTable("LD2_pid_Ecalib", "LD2_pid_Ecalib_sets", "pid_e1", 24);
 
     // time gain
     ConvertDataTable("LD2_pid_Toffset", "LD2_pid_Toffset_sets", "pid_t0", 24);
-    
+
     // disconnect from server
     delete gDBOld;
     delete gDBNew;
