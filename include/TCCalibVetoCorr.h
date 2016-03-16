@@ -14,14 +14,9 @@
 #ifndef TCCALIBVETOCORR_H
 #define TCCALIBVETOCORR_H
 
-#include "TCanvas.h"
-#include "TH2.h"
-#include "TLine.h"
-
 #include "TCCalib.h"
-#include "TCFileManager.h"
-#include "TCReadARCalib.h"
 
+class TCReadARCalib;
 
 class TCCalibVetoCorr : public TCCalib
 {

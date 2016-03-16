@@ -19,7 +19,6 @@
 
 #include "TCCalibRunBadScR.h"
 
-
 class TCCalibRunBadScR_NaI : public TCCalibRunBadScR
 {
 
@@ -32,7 +31,6 @@ public:
 
     ClassDef(TCCalibRunBadScR_NaI, 0) // NaI bad scaler read calibration class
 };
-
 
 class TCCalibRunBadScR_PID : public TCCalibRunBadScR
 {
@@ -47,7 +45,6 @@ public:
     ClassDef(TCCalibRunBadScR_PID, 0) // PID bad scaler read calibration class
 };
 
-
 class TCCalibRunBadScR_BaF2PWO : public TCCalibRunBadScR
 {
 
@@ -60,7 +57,6 @@ public:
 
     ClassDef(TCCalibRunBadScR_BaF2PWO, 0) // BaF2PWO bad scaler read calibration class
 };
-
 
 class TCCalibRunBadScR_BaF2 : public TCCalibRunBadScR
 {
@@ -75,7 +71,6 @@ public:
     ClassDef(TCCalibRunBadScR_BaF2, 0) // BaF2 bad scaler read calibration class
 };
 
-
 class TCCalibRunBadScR_PWO : public TCCalibRunBadScR
 {
 
@@ -88,7 +83,6 @@ public:
 
     ClassDef(TCCalibRunBadScR_PWO, 0) // PWO bad scaler read calibration class
 };
-
 
 class TCCalibRunBadScR_Veto : public TCCalibRunBadScR
 {
@@ -103,7 +97,6 @@ public:
     ClassDef(TCCalibRunBadScR_Veto, 0) // Veto bad scaler read calibration class
 };
 
-
 class TCCalibRunBadScR_Ladder : public TCCalibRunBadScR
 {
 
@@ -117,7 +110,6 @@ public:
     ClassDef(TCCalibRunBadScR_Ladder, 0) // Ladder bad scaler read calibration class
 };
 
-
 class TCCalibRunBadScR_LadderScalers : public TCCalibRunBadScR
 {
 
@@ -130,7 +122,6 @@ public:
 
     ClassDef(TCCalibRunBadScR_LadderScalers, 0) // Ladder scalers bad scaler read calibration class
 };
-
 
 #endif
 

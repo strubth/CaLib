@@ -11,10 +11,25 @@
 //////////////////////////////////////////////////////////////////////////
 
 
+#include "TLine.h"
+#include "TF1.h"
+#include "TH2.h"
+#include "TH3.h"
+#include "TGraphErrors.h"
+#include "TCanvas.h"
+#include "TFile.h"
+#include "TSpectrum.h"
+#include "TSystem.h"
+#include "TMath.h"
+
 #include "TCCalibPIDEnergy.h"
+#include "TCConfig.h"
+#include "TCFileManager.h"
+#include "TCReadConfig.h"
+#include "TCMySQLManager.h"
+#include "TCUtils.h"
 
 ClassImp(TCCalibPIDEnergy)
-
 
 //______________________________________________________________________________
 TCCalibPIDEnergy::TCCalibPIDEnergy()
@@ -41,8 +56,8 @@ TCCalibPIDEnergy::TCCalibPIDEnergy()
 //______________________________________________________________________________
 TCCalibPIDEnergy::~TCCalibPIDEnergy()
 {
-    // Destructor. 
-    
+    // Destructor.
+
     if (fFileManager) delete fFileManager;
     if (fPed) delete [] fPed;
     if (fGain) delete [] fGain;
@@ -60,7 +75,7 @@ TCCalibPIDEnergy::~TCCalibPIDEnergy()
 void TCCalibPIDEnergy::Init()
 {
     // Init the module.
-    
+
     // init members
     fFileManager = new TCFileManager(fData, fCalibration.Data(), fNset, fSet);
     fPed = new Double_t[fNelem];
@@ -87,7 +102,7 @@ void TCCalibPIDEnergy::Init()
         return;
     }
     else fHistoName = *TCReadConfig::GetReader()->GetConfig("PID.Energy.Histo.Fit.Name");
-    
+
     // get MC histogram file
     TString fileMC;
     if (!TCReadConfig::GetReader()->GetConfig("PID.Energy.MC.File"))
@@ -96,7 +111,7 @@ void TCCalibPIDEnergy::Init()
         return;
     }
     else fileMC = *TCReadConfig::GetReader()->GetConfig("PID.Energy.MC.File");
-    
+
     // get MC histogram name
     TString histoMC;
     if (!TCReadConfig::GetReader()->GetConfig("PID.Energy.Histo.MC.Name"))
@@ -137,11 +152,11 @@ void TCCalibPIDEnergy::Init()
         Error("Init", "Could not open MC histogram!");
         return;
     }
-    
+
     // draw main histogram
     fCanvasFit->cd(1);
     fMCHisto->Draw("colz");
-    
+
     // user information
     Info("Init", "Fitting MC data");
 
@@ -160,32 +175,32 @@ void TCCalibPIDEnergy::Init()
 void TCCalibPIDEnergy::FitSlices(TH2* h)
 {
     // Fit the energy slices of the dE vs E histogram 'h'.
-    
+
     Char_t tmp[256];
 
     // get configuration
     Double_t lowLimit, highLimit;
     TCReadConfig::GetReader()->GetConfigDoubleDouble("PID.Energy.Fit.Range", &lowLimit, &highLimit);
     Double_t interval = TCReadConfig::GetReader()->GetConfigDouble("PID.Energy.Fit.Interval");
-    
+
     // count points
     fNpeak = (highLimit - lowLimit) / interval;
-    
+
     // prepare arrays
-    if (h == fMCHisto) 
+    if (h == fMCHisto)
     {
         fPeakMC = new Double_t[fNpeak];
         fPeakMC_Err = new Double_t[fNpeak];
     }
     else
     {
-        if (!fPeak) 
+        if (!fPeak)
         {
             fPeak = new Double_t[fNpeak];
             fPeak_Err = new Double_t[fNpeak];
         }
     }
-    
+
     // loop over energy slices
     Double_t start = lowLimit;
     Int_t nfit = 0;
@@ -198,7 +213,7 @@ void TCCalibPIDEnergy::FitSlices(TH2* h)
         if (fFitHisto) delete fFitHisto;
         fFitHisto = (TH1D*) h->ProjectionY(tmp, firstBin, lastBin, "e");
         if (h != fMCHisto) TCUtils::FormatHistogram(fFitHisto, "PID.Energy.Histo.Fit");
-        
+
         // create fitting function
         if (fFitFunc) delete fFitFunc;
         sprintf(tmp, "fGauss_%d", (Int_t)start);
@@ -239,7 +254,7 @@ void TCCalibPIDEnergy::FitSlices(TH2* h)
             fFitFunc->SetParLimits(3, peak - peak_range, peak + peak_range);
             fFitFunc->SetParameter(4, 20);
             fFitFunc->SetParLimits(4, 18, 100);
-             
+
             // perform first fit
             fFitHisto->Fit(fFitFunc, "RB0Q");
 
@@ -251,7 +266,7 @@ void TCCalibPIDEnergy::FitSlices(TH2* h)
             for (Int_t i = 0; i < 20; i++)
                 if (!fFitHisto->Fit(fFitFunc, "RBQ0") && fFitFunc->GetParError(3) > 0) break;
         }
-        
+
         // get peak
         peak = fFitFunc->GetParameter(3);
         Double_t peak_err = fFitFunc->GetParError(3);
@@ -262,20 +277,20 @@ void TCCalibPIDEnergy::FitSlices(TH2* h)
         fLine->SetY2(fFitHisto->GetMaximum() + 20);
         fLine->SetX1(peak);
         fLine->SetX2(peak);
-        
+
         // save peak position
-        if (h == fMCHisto) 
+        if (h == fMCHisto)
         {
             fPeakMC[nfit] = peak;
             fPeakMC_Err[nfit] = peak_err;
         }
-        else 
+        else
         {
             fPeak[nfit] = peak;
             fPeak_Err[nfit] = peak_err;
         }
 
-        // plot projection fit  
+        // plot projection fit
         if (fDelay > 0)
         {
             fCanvasFit->cd(2);
@@ -290,7 +305,7 @@ void TCCalibPIDEnergy::FitSlices(TH2* h)
         // increment loop variables
         start += interval;
         nfit++;
-        
+
     } // while: loop over energy slices
 }
 
@@ -298,12 +313,12 @@ void TCCalibPIDEnergy::FitSlices(TH2* h)
 void TCCalibPIDEnergy::Fit(Int_t elem)
 {
     // Perform the fit of the element 'elem'.
-    
+
     Char_t tmp[256];
-    
+
     // create histogram name
     sprintf(tmp, "%s_%03d", fHistoName.Data(), elem);
-   
+
     // get histogram
     TH3* h3 = (TH3*) fFileManager->GetHistogram(tmp);
     if (!h3)
@@ -311,23 +326,23 @@ void TCCalibPIDEnergy::Fit(Int_t elem)
         Error("Init", "Main histogram does not exist!\n");
         return;
     }
-    
+
     // create 2D projection
     if (fMainHisto) delete fMainHisto;
     sprintf(tmp, "%02d_yxe", elem);
     fMainHisto = (TH2D*) h3->Project3D(tmp);
     fMainHisto->SetTitle(tmp);
     delete h3;
- 
+
     // draw main histogram
     fCanvasFit->cd(1);
     TCUtils::FormatHistogram(fMainHisto, "PID.Energy.Histo.Fit");
     fMainHisto->Draw("colz");
     fCanvasFit->Update();
- 
+
     // check for sufficient statistics
     if (fMainHisto->GetEntries())
-    {   
+    {
         // fit the energy slices
         FitSlices((TH2*)fMainHisto);
 
@@ -339,15 +354,15 @@ void TCCalibPIDEnergy::Fit(Int_t elem)
         fLinPlot->SetTitle(tmp);
         fLinPlot->GetXaxis()->SetTitle("MC peak position [MeV]");
         fLinPlot->GetYaxis()->SetTitle("Data peak position [Channel]");
-        
+
         // create linear fitting function
         if (fFitFunc) delete fFitFunc;
         sprintf(tmp, "Func_%d", elem);
         fFitFunc = new TF1(tmp, "pol1");
         fFitFunc->SetLineColor(kRed);
-        
+
         // fit linear plot
-        fFitFunc->SetRange(0.9*TMath::MinElement(fNpeak, fPeakMC), 
+        fFitFunc->SetRange(0.9*TMath::MinElement(fNpeak, fPeakMC),
                            1.1*TMath::MaxElement(fNpeak, fPeakMC));
         fLinPlot->Fit(fFitFunc, "RB0Q");
 
@@ -364,7 +379,7 @@ void TCCalibPIDEnergy::Fit(Int_t elem)
 void TCCalibPIDEnergy::Calculate(Int_t elem)
 {
     // Calculate the new value of the element 'elem'.
-    
+
     Bool_t noval = kFALSE;
 
     // check if fit was performed
@@ -388,12 +403,12 @@ void TCCalibPIDEnergy::Calculate(Int_t elem)
            elem, fPed[elem], fGain[elem]);
     if (noval) printf("    -> no fit");
     printf("\n");
- 
+
     // save canvas
     Char_t tmp[256];
     sprintf(tmp, "Elem_%d", elem);
     SaveCanvas(fCanvasResult, tmp);
-}   
+}
 
 //______________________________________________________________________________
 void TCCalibPIDEnergy::PrintValues()
@@ -412,7 +427,7 @@ void TCCalibPIDEnergy::PrintValues()
 void TCCalibPIDEnergy::WriteValues()
 {
     // Write the obtained calibration values to the database.
-    
+
     // write values to database
     for (Int_t i = 0; i < fNset; i++)
     {

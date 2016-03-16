@@ -13,12 +13,13 @@
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef TCARFILELOADER_H 
+#ifndef TCARFILELOADER_H
 #define TCARFILELOADER_H
 
-#include "TFile.h"
-#include "TCReadConfig.h"
+#include "Rtypes.h"
 
+class TFile;
+class TString;
 
 class TCARFileLoader
 {
@@ -56,7 +57,7 @@ public:
 
     void SetRuns(Int_t nruns, Int_t* runs);
     void SetInputFilePatt(const Char_t* inputfilepathpatt);
-    const Char_t* GetImputFilePatt() { return fInputFilePathPatt ? fInputFilePathPatt->Data() : 0; };
+    const Char_t* GetImputFilePatt();
 
     Bool_t LoadFiles() { return fFiles ? kTRUE : CreateFileList(); };
 
@@ -80,3 +81,4 @@ public:
 };
 
 #endif
+

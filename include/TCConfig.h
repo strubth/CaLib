@@ -16,7 +16,6 @@
 
 #include "Rtypes.h"
 
-
 // detector enumeration
 enum ECalibDetector
 {
@@ -29,9 +28,8 @@ enum ECalibDetector
 };
 typedef ECalibDetector CalibDetector_t;
 
-
 namespace TCConfig
-{   
+{
     // detector elements
     extern const Int_t kMaxCrystal;
     extern const Int_t kMaxCB;
@@ -39,13 +37,13 @@ namespace TCConfig
     extern const Int_t kMaxPID;
     extern const Int_t kMaxVeto;
     extern const Int_t kMaxTAGGER;
-    
+
     // database format definitions
     extern const Char_t* kCalibMainTableName;
-    extern const Char_t* kCalibMainTableFormat; 
+    extern const Char_t* kCalibMainTableFormat;
     extern const Char_t* kCalibDataTableHeader;
     extern const Char_t* kCalibDataTableSettings;
-     
+
     // version numbers etc.
     extern const Char_t kCaLibVersion[];
     extern const Int_t kContainerFormatVersion;

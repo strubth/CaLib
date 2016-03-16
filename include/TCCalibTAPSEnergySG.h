@@ -14,14 +14,10 @@
 #ifndef TCCALIBTAPSENERGYSG_H
 #define TCCALIBTAPSENERGYSG_H
 
-#include "TCanvas.h"
-#include "TH2.h"
-#include "TLine.h"
-#include "TMath.h"
-
 #include "TCCalib.h"
-#include "TCFileManager.h"
 
+class TLine;
+class TCFileManager;
 
 class TCCalibTAPSEnergySG : public TCCalib
 {
@@ -50,7 +46,7 @@ private:
 public:
     TCCalibTAPSEnergySG();
     virtual ~TCCalibTAPSEnergySG();
-    
+
     virtual void WriteValues();
     virtual void PrintValues();
 

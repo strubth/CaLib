@@ -13,10 +13,14 @@
 //////////////////////////////////////////////////////////////////////////
 
 
+#include "TString.h"
+#include "TFile.h"
+#include "TError.h"
+
 #include "TCARFileLoader.h"
+#include "TCReadConfig.h"
 
 ClassImp(TCARFileLoader)
-
 
 //______________________________________________________________________________
 TCARFileLoader::TCARFileLoader(Int_t nruns, const Int_t* runs, const Char_t* inputfilepathpatt)
@@ -38,7 +42,6 @@ TCARFileLoader::TCARFileLoader(Int_t nruns, const Int_t* runs, const Char_t* inp
     if (inputfilepathpatt) fInputFilePathPatt = new TString(inputfilepathpatt);
 }
 
-
 //______________________________________________________________________________
 TCARFileLoader::~TCARFileLoader()
 {
@@ -53,7 +56,6 @@ TCARFileLoader::~TCARFileLoader()
     }
     if (fInputFilePathPatt) delete fInputFilePathPatt;
 }
-
 
 //______________________________________________________________________________
 void TCARFileLoader::ResetFileList()
@@ -77,7 +79,6 @@ void TCARFileLoader::ResetFileList()
     fNOpenFiles = 0;
 
 }
-
 
 //______________________________________________________________________________
 Bool_t TCARFileLoader::CreateFileList()
@@ -171,7 +172,6 @@ Bool_t TCARFileLoader::CreateFileList()
     return kTRUE;
 }
 
-
 //______________________________________________________________________________
 void TCARFileLoader::SetRuns(Int_t nruns, Int_t* runs)
 {
@@ -191,7 +191,6 @@ void TCARFileLoader::SetRuns(Int_t nruns, Int_t* runs)
         fRuns[i] = runs[i];
 }
 
-
 //______________________________________________________________________________
 void TCARFileLoader::SetInputFilePatt(const Char_t* inputfilepathpatt)
 {
@@ -210,6 +209,13 @@ void TCARFileLoader::SetInputFilePatt(const Char_t* inputfilepathpatt)
     if (inputfilepathpatt) fInputFilePathPatt = new TString(inputfilepathpatt);
 }
 
+//______________________________________________________________________________
+const Char_t* TCARFileLoader::GetImputFilePatt()
+{
+    // Return the input file pattern.
+
+    return fInputFilePathPatt ? fInputFilePathPatt->Data() : 0;
+}
 
 //______________________________________________________________________________
 Bool_t TCARFileLoader::IsGood()
@@ -228,7 +234,6 @@ Bool_t TCARFileLoader::IsGood()
         return kFALSE;
 }
 
-
 //______________________________________________________________________________
 TFile* TCARFileLoader::NextFile()
 {
@@ -245,7 +250,6 @@ TFile* TCARFileLoader::NextFile()
         return 0;
     }
 }
-
 
 //______________________________________________________________________________
 TFile* TCARFileLoader::NextOpenFile()
@@ -276,7 +280,6 @@ Int_t TCARFileLoader::GetRun()
 }
 */
 
-
 //______________________________________________________________________________
 Int_t TCARFileLoader::FindRunIndex(Int_t run)
 {
@@ -290,4 +293,3 @@ Int_t TCARFileLoader::FindRunIndex(Int_t run)
     return -1;
 }
 
-//finito

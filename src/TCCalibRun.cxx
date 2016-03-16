@@ -13,10 +13,13 @@
 //////////////////////////////////////////////////////////////////////////
 
 
+#include "KeySymbols.h"
+#include "Buttons.h"
+
 #include "TCCalibRun.h"
+#include "TCMySQLManager.h"
 
 ClassImp(TCCalibRun)
-
 
 //______________________________________________________________________________
 TCCalibRun::~TCCalibRun()
@@ -27,7 +30,6 @@ TCCalibRun::~TCCalibRun()
     if (fCalibData) delete fCalibData;
     if (fRuns) delete [] fRuns;
 }
-
 
 //______________________________________________________________________________
 Bool_t TCCalibRun::SetConfig()
@@ -40,7 +42,6 @@ Bool_t TCCalibRun::SetConfig()
     return kTRUE;
 }
 
-
 //______________________________________________________________________________
 Bool_t TCCalibRun::Init()
 {
@@ -51,7 +52,6 @@ Bool_t TCCalibRun::Init()
 
     return kTRUE;
 }
-
 
 //______________________________________________________________________________
 Bool_t TCCalibRun::Start(Int_t nruns, const Int_t* runs)
@@ -93,7 +93,6 @@ Bool_t TCCalibRun::Start(Int_t nruns, const Int_t* runs)
 
     return kTRUE;
 }
-
 
 //______________________________________________________________________________
 Bool_t TCCalibRun::Start(const Char_t* calibration)
@@ -137,7 +136,6 @@ Bool_t TCCalibRun::Start(const Char_t* calibration)
     return kTRUE;
 }
 
-
 //______________________________________________________________________________
 void TCCalibRun::Process(Int_t index)
 {
@@ -161,7 +159,7 @@ void TCCalibRun::Process(Int_t index)
     CleanUpCurr();
 
     // set current run index
-    fIndex = index; 
+    fIndex = index;
 
     // setup current run
     PrepareCurr();
@@ -172,7 +170,6 @@ void TCCalibRun::Process(Int_t index)
     // update canvas
     UpdateCanvas();
 }
-
 
 //______________________________________________________________________________
 void TCCalibRun::Previous()
@@ -190,11 +187,10 @@ void TCCalibRun::Previous()
     Process(fIndex - 1);
 }
 
-
 //______________________________________________________________________________
 void TCCalibRun::Next()
 {
-    // Saves calibration values for current run and processes the next run. 
+    // Saves calibration values for current run and processes the next run.
 
     if (!fIsStarted)
     {
@@ -208,7 +204,6 @@ void TCCalibRun::Next()
     // process next run in list
     Process(fIndex + 1);
 }
-
 
 //______________________________________________________________________________
 void TCCalibRun::Skip()
@@ -225,12 +220,11 @@ void TCCalibRun::Skip()
     Process(fIndex + 1);
 }
 
-
 //______________________________________________________________________________
 void TCCalibRun::EventHandler(Int_t event, Int_t ox, Int_t oy, TObject* selected)
 {
     // Event handler method.
-    
+
     // catch key events ????
     if (event == kKeyPress)
     {
@@ -241,7 +235,4 @@ void TCCalibRun::EventHandler(Int_t event, Int_t ox, Int_t oy, TObject* selected
         if (oy == kKey_s) Next();
     }
 }
-
-
-//finito
 

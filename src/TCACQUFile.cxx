@@ -11,17 +11,19 @@
 //////////////////////////////////////////////////////////////////////////
 
 
+#include "TString.h"
+#include "TSystem.h"
+
 #include "TCACQUFile.h"
 
 ClassImp(TCACQUFile)
 
-
 //______________________________________________________________________________
-TCACQUFile::TCACQUFile() 
+TCACQUFile::TCACQUFile()
     : TObject()
 {
     // Constructor.
-    
+
     // init members
     fFormat = kRawUnknown;
     fTime[0] = '\0';
@@ -41,16 +43,16 @@ RawFileType_t TCACQUFile::CheckFileType(const Char_t* file)
     Char_t header[6];
     const unsigned char hGZ[3] = { 0x1f, 0x8b, 0x08 };
     const unsigned char hXZ[6] = { 0xfd, 0x37, 0x7a, 0x58, 0x5a, 0x00 };
-    
+
     // open the file
     FILE* f = fopen(file, "r");
-    
+
     // check file opening
     if (f)
     {
         // read 6 bytes
-        fread(header, 1, 6, f);
-        
+        size_t nr = fread(header, 1, 6, f);
+
         // close the file
         fclose(f);
 
@@ -58,7 +60,7 @@ RawFileType_t TCACQUFile::CheckFileType(const Char_t* file)
         if (!memcmp(header, hGZ, 3)) return kFileGZ;
         else if (!memcmp(header, hXZ, 6)) return kFileXZ;
         else return kFileUnComp;
-    } 
+    }
     else return kFileBad;
 }
 
@@ -78,14 +80,14 @@ RawFileFormat_t TCACQUFile::CheckFileFormat(const Char_t* hdr)
     for (Int_t i = 0; i < 4; i++)
         if (hdr[i] == 0x10) n++;
     if (n == 4) return kRawMk1;
-    
+
     // other cases
     return kRawUnknown;
 }
 
 //______________________________________________________________________________
 void TCACQUFile::RemoveControlChars(Char_t* string)
-{            
+{
     // Remove various control characters from the string 'string'.
 
     TString s(string);
@@ -102,14 +104,14 @@ void TCACQUFile::RemoveControlChars(Char_t* string)
 void TCACQUFile::ReadFile(const Char_t* path, const Char_t* fname)
 {
     // Read the file 'fname' located in 'path'.
-    
+
     // ACQU record length
     const UInt_t recLength = 32768;
 
     // some variables
     Char_t buffer[recLength];
     UInt_t* datum;
-    
+
     // set full file name
     Char_t filename[256];
     sprintf(filename, "%s/%s", path, fname);
@@ -119,36 +121,36 @@ void TCACQUFile::ReadFile(const Char_t* path, const Char_t* fname)
 
     // identify file type
     RawFileType_t ftype = CheckFileType(filename);
-  
+
     // open the file
     FILE* file = OpenFile(filename, ftype);
-    
+
     // check if file was opened
     if (!file)
     {
         Error("ReadFile", "Could not open '%s'", filename);
         return;
     }
-  
+
     // read the complete file
     while (1)
     {
         // try to read a record
         if (fread(buffer, 1, recLength, file) != recLength) break;
-        
+
         // set 4 byte datum pointer
         datum = (UInt_t*) buffer;
-        
+
         // identify header buffer
         if (*datum == 0x10101010)
         {
             // check if format is Mk2 or Mk1 and parse the header
-            if (*(datum+1) == 0x10101010) 
+            if (*(datum+1) == 0x10101010)
             {
                 fFormat = kRawMk2;
                 ParseHeader(buffer+kMk2Marker, fFormat);
             }
-            else 
+            else
             {
                 fFormat = kRawMk1;
                 ParseHeader(buffer+kMk1Marker, fFormat);
@@ -157,7 +159,7 @@ void TCACQUFile::ReadFile(const Char_t* path, const Char_t* fname)
             break;
         }
         //// identify Mk1/Mk2 data buffer record (from EnumConst.h in acqu_core/AcquRoot)
-        //else if (*datum == 0x20202020 || *datum == 0x70707070) 
+        //else if (*datum == 0x20202020 || *datum == 0x70707070)
         //{
         //    datum++;
 
@@ -184,7 +186,7 @@ FILE* TCACQUFile::OpenFile(const Char_t* file, RawFileType_t type)
 {
     // Open the file 'file' having the type 'type' and return the file pointer.
     // Return 0 if the file could not be opened.
-    
+
     Char_t tmp[256];
 
     // try to open the file
@@ -211,7 +213,7 @@ void TCACQUFile::CloseFile(FILE* file, RawFileType_t type)
     else if (type == kFileGZ) pclose(file);
     else if (type == kFileXZ) pclose(file);
 }
- 
+
 //______________________________________________________________________________
 void TCACQUFile::ParseHeader(const Char_t* buffer, RawFileFormat_t format)
 {
@@ -223,7 +225,7 @@ void TCACQUFile::ParseHeader(const Char_t* buffer, RawFileFormat_t format)
     Int_t sDesc = format == kRawMk1 ? (Int_t)kMk1SizeDesc : (Int_t)kMk2SizeDesc;
     Int_t sRNote = format == kRawMk1 ? (Int_t)kMk1SizeRNote : (Int_t)kMk2SizeRNote;
     Int_t sFName = format == kRawMk1 ? (Int_t)kMk1SizeFName : (Int_t)kMk2SizeFName;
-    
+
     // start parsing
     const Char_t* pos = buffer;
 
@@ -231,12 +233,12 @@ void TCACQUFile::ParseHeader(const Char_t* buffer, RawFileFormat_t format)
     memcpy(fTime, pos, sTime);
     pos += sTime;
     RemoveControlChars(fTime);
-    
+
     // read description
     memcpy(fDescription, pos, sDesc);
     pos += sDesc;
     RemoveControlChars(fDescription);
-    
+
     // read run note
     memcpy(fRunNote, pos, sRNote);
     pos += sRNote;
@@ -248,7 +250,7 @@ void TCACQUFile::ParseHeader(const Char_t* buffer, RawFileFormat_t format)
     RemoveControlChars(fOutFile);
 
     // read run number
-    if (format == kRawMk1) 
+    if (format == kRawMk1)
     {
         UShort_t r;
         memcpy(&r, pos, sizeof(UShort_t));

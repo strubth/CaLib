@@ -11,15 +11,10 @@
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef TCCONTAINER_H 
+#ifndef TCCONTAINER_H
 #define TCCONTAINER_H
 
 #include "TNamed.h"
-#include "TFile.h"
-#include "TList.h"
-
-#include "TCConfig.h"
-
 
 class TCRun : public TObject
 {
@@ -89,7 +84,7 @@ public:
     Double_t GetTargetPolDeg() const { return fTargetPolDeg; }
     const Char_t* GetBeamPol() const { return fBeamPol; }
     Double_t GetBeamPolDeg() const { return fBeamPolDeg; }
-    
+
     virtual void Print(Option_t* option = "") const
     {
         printf("CaLib Run Information\n");
@@ -113,7 +108,6 @@ public:
     ClassDef(TCRun, 1) // Run storage class
 };
 
-
 class TCCalibration : public TObject
 {
 
@@ -128,7 +122,7 @@ private:
     Double_t* fPar;                     //[fNpar] parameters
 
 public:
-    TCCalibration() : TObject() 
+    TCCalibration() : TObject()
     {
         fData[0] = '\0';
         fCalibration[0] = '\0';
@@ -163,7 +157,7 @@ public:
     const Char_t* GetChangeTime() const { return fChangeTime; }
     Int_t GetNParameters() const { return fNpar; }
     Double_t* GetParameters() const { return fPar; }
-    
+
     virtual void Print(Option_t* option = "") const
     {
         printf("CaLib Calibration Information\n");
@@ -178,10 +172,9 @@ public:
         printf("\n");
         printf("\n");
     }
-    
+
     ClassDef(TCCalibration, 1) // Calibration storage class
 };
-
 
 class TCContainer : public TNamed
 {
@@ -195,19 +188,19 @@ public:
     TCContainer() : TNamed(), fVersion(0), fRuns(0), fCalibrations(0) { }
     TCContainer(const Char_t* name);
     virtual ~TCContainer();
-    
+
     Int_t GetVersion() const { return fVersion; }
     TList* GetRuns() const { return fRuns; }
-    Int_t GetNRuns() const { return fRuns ? fRuns->GetSize() : 0; }
-    TCRun* GetRun(Int_t n) const { return fRuns ? (TCRun*)fRuns->At(n) : 0; }
+    Int_t GetNRuns() const;
+    TCRun* GetRun(Int_t n) const;
     TList* GetCalibrations() const { return fCalibrations; }
-    Int_t GetNCalibrations() const { return fCalibrations ? fCalibrations->GetSize() : 0; }
-    TCCalibration* GetCalibration(Int_t n) const { return fCalibrations ? (TCCalibration*)fCalibrations->At(n) : 0; }
+    Int_t GetNCalibrations() const;
+    TCCalibration* GetCalibration(Int_t n) const;
 
     TCRun* AddRun(Int_t run);
     TCCalibration* AddCalibration(const Char_t* calibration);
     Bool_t Save(const Char_t* filename, Bool_t silence = kFALSE);
- 
+
     virtual void Print(Option_t* option = "") const;
     void ShowRuns();
     void ShowCalibrations();

@@ -14,17 +14,12 @@
 #ifndef TCCALIBVETOENERGY_H
 #define TCCALIBVETOENERGY_H
 
-#include "TCanvas.h"
-#include "TH2.h"
-#include "TH3.h"
-#include "TLine.h"
-#include "TMath.h"
-#include "TGraph.h"
-#include "TSpectrum.h"
-
 #include "TCCalib.h"
-#include "TCFileManager.h"
 
+class TCFileManager;
+class TLine;
+class TFile;
+class TH2;
 
 class TCCalibVetoEnergy : public TCCalib
 {
@@ -40,7 +35,7 @@ private:
     virtual void Init();
     virtual void Fit(Int_t elem);
     virtual void Calculate(Int_t elem);
-    
+
     void FitSlice(TH2* h, Int_t elem);
 
 public:

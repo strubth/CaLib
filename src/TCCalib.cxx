@@ -11,16 +11,28 @@
 //////////////////////////////////////////////////////////////////////////
 
 
+#include "TH1.h"
+#include "TF1.h"
+#include "TCanvas.h"
+#include "TStyle.h"
+#include "TTimer.h"
+#include "TTimeStamp.h"
+#include "TSystem.h"
+#include "TGClient.h"
+#include "KeySymbols.h"
+
 #include "TCCalib.h"
+#include "TCUtils.h"
+#include "TCMySQLManager.h"
+#include "TCReadConfig.h"
 
 ClassImp(TCCalib)
-
 
 //______________________________________________________________________________
 TCCalib::~TCCalib()
 {
     // Destructor.
-     
+
     if (fSet) delete [] fSet;
     if (fOldVal) delete [] fOldVal;
     if (fNewVal) delete [] fNewVal;
@@ -36,9 +48,9 @@ TCCalib::~TCCalib()
 //______________________________________________________________________________
 void TCCalib::Start(const Char_t* calibration, Int_t nSet, Int_t* set)
 {
-    // Start the calibration module for the 'nSet' sets in 'set' using the calibration 
+    // Start the calibration module for the 'nSet' sets in 'set' using the calibration
     // identifier 'calibration'.
-    
+
     // init members
     fCalibration = calibration;
     fNset = nSet;
@@ -55,7 +67,7 @@ void TCCalib::Start(const Char_t* calibration, Int_t nSet, Int_t* set)
 
     fCanvasFit = 0;
     fCanvasResult = 0;
-    
+
     fAvr = 0;
     fAvrDiff = 0;
     fNcalc = 0;
@@ -75,7 +87,7 @@ void TCCalib::Start(const Char_t* calibration, Int_t nSet, Int_t* set)
         fOldVal[i] = 0;
         fNewVal[i] = 0;
     }
-    
+
     // user information
     Info("Start", "Starting calibration module %s", GetName());
     Info("Start", "Module description: %s", GetTitle());
@@ -99,14 +111,14 @@ void TCCalib::Start(const Char_t* calibration, Int_t nSet, Int_t* set)
 
     // draw the fitting canvas
     fCanvasFit = new TCanvas("Fitting", "Fitting", 0, 0, 400, 800);
-    
+
     // connect event handler
-    fCanvasFit->Connect("ProcessedEvent(Int_t, Int_t, Int_t, TObject*)", "TCCalib", this, 
+    fCanvasFit->Connect("ProcessedEvent(Int_t, Int_t, Int_t, TObject*)", "TCCalib", this,
                         "EventHandler(Int_t, Int_t, Int_t, TObject*)");
 
     // draw the result canvas
     fCanvasResult = new TCanvas("Result", "Result", gClient->GetDisplayWidth() - 900, 0, 900, 400);
-    
+
     // init sub-class
     Init();
 
@@ -118,7 +130,7 @@ void TCCalib::Start(const Char_t* calibration, Int_t nSet, Int_t* set)
 void TCCalib::EventHandler(Int_t event, Int_t ox, Int_t oy, TObject* selected)
 {
     // Event handler method.
-    
+
     // catch key events
     if (event == kKeyPress)
     {
@@ -129,14 +141,14 @@ void TCCalib::EventHandler(Int_t event, Int_t ox, Int_t oy, TObject* selected)
         if (oy == kKey_s) Next();
 
         // space
-        if (oy == kKey_Space) 
+        if (oy == kKey_Space)
         {
-            if (fTimerRunning) 
+            if (fTimerRunning)
             {
                 fTimer->Stop();
                 fTimerRunning = kFALSE;
             }
-            else 
+            else
             {
                 fTimer->Start();
                 fTimerRunning = kTRUE;
@@ -159,7 +171,7 @@ void TCCalib::ProcessElement(Int_t elem, Bool_t ignorePrev)
         fTimerRunning = kFALSE;
 
         // calculate last element and update result canvas
-        if (elem == fNelem) 
+        if (elem == fNelem)
         {
             if (!ignorePrev) Calculate(fCurrentElem);
             else printf("Ignoring element %d\n", fCurrentElem);
@@ -169,7 +181,7 @@ void TCCalib::ProcessElement(Int_t elem, Bool_t ignorePrev)
         // exit
         return;
     }
-    
+
     // calculate previous element
     if (elem != fCurrentElem)
     {
@@ -188,7 +200,7 @@ void TCCalib::ProcessElement(Int_t elem, Bool_t ignorePrev)
 void TCCalib::ProcessAll(Int_t msecDelay)
 {
     // Process all elements using 'msecDelay' milliseconds delay.
-    
+
     // check for delay
     if (msecDelay > 0)
     {
@@ -215,7 +227,7 @@ void TCCalib::Previous()
 void TCCalib::Next()
 {
     // Process the next element.
-    
+
     ProcessElement(fCurrentElem + 1);
 }
 
@@ -224,7 +236,7 @@ void TCCalib::Ignore()
 {
     // Process the next element while skipping the calculation of the previous
     // element.
-    
+
     ProcessElement(fCurrentElem + 1, kTRUE);
 }
 
@@ -232,7 +244,7 @@ void TCCalib::Ignore()
 void TCCalib::StopProcessing()
 {
     // Stop processing when in automatic mode.
-    
+
     // stop timer when it was active
     fTimer->Stop();
     fTimerRunning = kFALSE;
@@ -277,11 +289,11 @@ void TCCalib::PrintValuesChanged()
 void TCCalib::WriteValues()
 {
     // Write the obtained calibration values to the database.
-    
+
     // write values to database
     for (Int_t i = 0; i < fNset; i++)
         TCMySQLManager::GetManager()->WriteParameters(fData.Data(), fCalibration.Data(), fSet[i], fNewVal, fNelem);
-        
+
     // save overview picture
     SaveCanvas(fCanvasResult, "Overview");
 }
@@ -290,7 +302,7 @@ void TCCalib::WriteValues()
 void TCCalib::SaveCanvas(TCanvas* c, const Char_t* name)
 {
     // Save the canvas 'c' to disk using the name 'name'.
-    
+
     // get log directory
     if (TString* path = TCReadConfig::GetReader()->GetConfig("Log.Images"))
     {
@@ -300,7 +312,7 @@ void TCCalib::SaveCanvas(TCanvas* c, const Char_t* name)
         // create directory
         sprintf(tmp, "%s/%s", path->Data(), GetName());
         gSystem->mkdir(tmp, kTRUE);
-        
+
         // format time stamp
         UInt_t day, month, year;
         UInt_t hour, min;
@@ -310,7 +322,7 @@ void TCCalib::SaveCanvas(TCanvas* c, const Char_t* name)
         sprintf(date, "%d-%02d-%02d_%02d.%02d", year, month, day, hour, min);
 
         // save canvas (only for first set)
-        sprintf(tmp, "%s/%s/%s_Set_%d_%s_%s.png", 
+        sprintf(tmp, "%s/%s/%s_Set_%d_%s_%s.png",
                 path->Data(), GetName(), name, fSet[0], fCalibration.Data(), date);
         c->SaveAs(tmp);
     }

@@ -15,13 +15,22 @@
 
 
 #include "TGClient.h"
+#include "TBox.h"
+#include "TCanvas.h"
 #include "TArrow.h"
 #include "TStyle.h"
-#include "TCCalibRunBadScR.h"
 #include "TROOT.h"
+#include "TH2.h"
+#include "TFile.h"
+#include "KeySymbols.h"
+
+#include "TCCalibRunBadScR.h"
+#include "TCBadScRElement.h"
+#include "TCReadConfig.h"
+#include "TCARHistoLoader.h"
+#include "TCMySQLManager.h"
 
 ClassImp(TCCalibRunBadScR)
-
 
 //______________________________________________________________________________
 TCCalibRunBadScR::~TCCalibRunBadScR()
@@ -87,7 +96,6 @@ TCCalibRunBadScR::~TCCalibRunBadScR()
     if (fCanvasOverview) delete fCanvasOverview;
 }
 
-
 //______________________________________________________________________________
 Bool_t TCCalibRunBadScR::SetConfig()
 {
@@ -146,7 +154,6 @@ Bool_t TCCalibRunBadScR::SetConfig()
 
     return kTRUE;
 }
-
 
 //______________________________________________________________________________
 Bool_t TCCalibRunBadScR::Init()
@@ -220,7 +227,7 @@ Bool_t TCCalibRunBadScR::Init()
     {
         // init pointer
         fProjHistos[i] = 0;
-  
+
         // check for main histo
         if(!fMainHistos[i]) continue;
 
@@ -299,7 +306,7 @@ Bool_t TCCalibRunBadScR::Init()
                 fProjNormHistos[i]->SetBinContent(j+1, fProjNormHistos[i]->GetBinContent(j+1) / norm);
             else
                 fProjNormHistos[i]->SetBinContent(j+1, 0.);
-        } 
+        }
     }
 
 
@@ -393,7 +400,7 @@ Bool_t TCCalibRunBadScR::Init()
 
 
     // prepare overview histo --------------------------------------------------
-    
+
     // init overview histo
     fOverviewHisto = new TH1F("OverviewHisto", "Overview histogram", fNRuns, 0, fNRuns);
     fOverviewNormHisto = new TH1F("OverviewNormHisto", "Normalized overview histogram", fNRuns, 0, fNRuns);
@@ -453,7 +460,6 @@ Bool_t TCCalibRunBadScR::Init()
     return kTRUE;
 }
 
-
 //______________________________________________________________________________
 void TCCalibRunBadScR::PrepareCurr()
 {
@@ -476,7 +482,7 @@ void TCCalibRunBadScR::PrepareCurr()
     // user info
     printf("Processing run %05d:\n", fRuns[fIndex]);
 
-    // set standatd user range 
+    // set standatd user range
     fMainHistos[fIndex]->GetXaxis()->SetRangeUser(0, fMainHistos[fIndex]->GetXaxis()->GetBinUpEdge(fRangeMax));
     fProjHistos[fIndex]->GetXaxis()->SetRangeUser(0, fProjHistos[fIndex]->GetXaxis()->GetBinUpEdge(fRangeMax));
 
@@ -503,7 +509,6 @@ void TCCalibRunBadScR::PrepareCurr()
     fLastReadMarker->SetY2(fMainHistos[fIndex]->GetYaxis()->GetXmax()/2);
 }
 
-
 //______________________________________________________________________________
 void TCCalibRunBadScR::ProcessCurr()
 {
@@ -528,7 +533,7 @@ void TCCalibRunBadScR::ProcessCurr()
     }
     mean /= ngood;
 
-    // 
+    //
     while (kTRUE)
     {
         Int_t scr = -1;
@@ -537,7 +542,7 @@ void TCCalibRunBadScR::ProcessCurr()
         // loop over scaler reads
         for (Int_t i = 0; i < fBadScRCurr->GetNElem(); i++)
         {
- 
+
             // continue if already bad
             if (fBadScRCurr->IsBad(i)) continue;
 
@@ -566,7 +571,6 @@ void TCCalibRunBadScR::ProcessCurr()
         }
     }
 }
-
 
 //______________________________________________________________________________
 void TCCalibRunBadScR::UpdateCanvas()
@@ -673,7 +677,6 @@ void TCCalibRunBadScR::UpdateCanvas()
     fCanvasOverview->Update();
 }
 
-
 //______________________________________________________________________________
 void TCCalibRunBadScR::SaveValCurr()
 {
@@ -699,7 +702,6 @@ void TCCalibRunBadScR::SaveValCurr()
     }
 }
 
-
 //______________________________________________________________________________
 void TCCalibRunBadScR::SetBadScalerReads(Int_t bscr1, Int_t bscr2)
 {
@@ -708,7 +710,6 @@ void TCCalibRunBadScR::SetBadScalerReads(Int_t bscr1, Int_t bscr2)
     // loop over scaler reads and (un)set each of them
     for (Int_t i = bscr1; i <= bscr2; i++) SetBadScalerRead(i);
 }
-
 
 //______________________________________________________________________________
 void TCCalibRunBadScR::SetBadScalerRead(Int_t bscr)
@@ -750,7 +751,6 @@ void TCCalibRunBadScR::SetBadScalerRead(Int_t bscr)
     }
 }
 
-
 //______________________________________________________________________________
 void TCCalibRunBadScR::CleanUpCurr()
 {
@@ -777,7 +777,6 @@ void TCCalibRunBadScR::CleanUpCurr()
     // reset curr
     fBadScRCurr = 0;
 }
-
 
 //______________________________________________________________________________
 void TCCalibRunBadScR::UpdateOverviewHisto()
@@ -818,7 +817,6 @@ void TCCalibRunBadScR::UpdateOverviewHisto()
     return;
 }
 
-
 //______________________________________________________________________________
 Bool_t TCCalibRunBadScR::Write()
 {
@@ -856,7 +854,7 @@ Bool_t TCCalibRunBadScR::Write()
                 // an error occurred
                 Error("Write", "Could not write bad scaler reads for run '%i' to the database!", fRuns[i]);
                 errors++;
-            }            
+            }
         }
         else
         {
@@ -877,7 +875,6 @@ Bool_t TCCalibRunBadScR::Write()
     return kTRUE;
 }
 
-
 //______________________________________________________________________________
 void TCCalibRunBadScR::ChangeInterval(Int_t key)
 {
@@ -897,7 +894,7 @@ void TCCalibRunBadScR::ChangeInterval(Int_t key)
     // proccess keys
     switch (key)
     {
-        // zoom in/out 
+        // zoom in/out
         case kKey_Insert:
         {
             if (axis_max - axis_min == fUserInterval - 1)
@@ -952,7 +949,7 @@ void TCCalibRunBadScR::ChangeInterval(Int_t key)
         // do something I cannot remenber what
         case kKey_o:
         {
-            
+
         }
         default:
             return;
@@ -965,7 +962,6 @@ void TCCalibRunBadScR::ChangeInterval(Int_t key)
 
     return;
 }
-
 
 //______________________________________________________________________________
 void TCCalibRunBadScR::EventHandler(Int_t event, Int_t ox, Int_t oy, TObject* selected)
@@ -1045,4 +1041,3 @@ void TCCalibRunBadScR::EventHandler(Int_t event, Int_t ox, Int_t oy, TObject* se
     }
 }
 
-// finito

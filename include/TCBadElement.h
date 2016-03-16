@@ -17,8 +17,6 @@
 #define TCBADELEMENT_H
 
 #include "Rtypes.h"
-#include "TError.h"
-
 
 class TCBadElement
 {
@@ -60,3 +58,4 @@ public:
 };
 
 #endif
+

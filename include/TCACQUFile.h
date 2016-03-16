@@ -15,31 +15,26 @@
 #define TCACQUFILE_H
 
 #include "TObject.h"
-#include "TString.h"
-#include "TSystem.h"
-
 
 // Mk1 format header field sizes
 enum EMk1HeaderSize
 {
     kMk1Marker    =   4,
-    kMk1SizeTime  =  26, 
-    kMk1SizeDesc  = 133, 
-    kMk1SizeRNote = 133, 
-    kMk1SizeFName =  40  
+    kMk1SizeTime  =  26,
+    kMk1SizeDesc  = 133,
+    kMk1SizeRNote = 133,
+    kMk1SizeFName =  40
 };
-
 
 // Mk2 format header field sizes
 enum EMk2HeaderSize
-{ 
+{
     kMk2Marker    =   8,
-    kMk2SizeTime  =  32, 
-    kMk2SizeDesc  = 256, 
-    kMk2SizeRNote = 256, 
+    kMk2SizeTime  =  32,
+    kMk2SizeDesc  = 256,
+    kMk2SizeRNote = 256,
     kMk2SizeFName = 128
 };
-
 
 // type of raw files
 enum ERawFileType
@@ -51,7 +46,6 @@ enum ERawFileType
 };
 typedef ERawFileType RawFileType_t;
 
-
 // types of raw file formats
 enum ERawFileFormat
 {
@@ -60,7 +54,6 @@ enum ERawFileFormat
     kRawMk2
 };
 typedef ERawFileFormat RawFileFormat_t;
-
 
 class TCACQUFile : public TObject
 {
@@ -81,22 +74,22 @@ private:
     void CloseFile(FILE* file, RawFileType_t type);
     void RemoveControlChars(Char_t* string);
     void ParseHeader(const Char_t* buffer, RawFileFormat_t format);
- 
+
 public:
     TCACQUFile();
     virtual ~TCACQUFile() { }
-   
+
     void ReadFile(const Char_t* path, const Char_t* fname);
     virtual void Print(Option_t* option = "") const;
     void PrintListing() { printf("%s\t%s\t%s\t%s\t%lld\n", fFileName, fTime, fDescription, fRunNote, fSize); }
-    
+
     Bool_t IsGoodDataFile()
     {
         if (fFormat == kRawMk1) return kTRUE;
         else if (fFormat == kRawMk2) return kTRUE;
         else return kFALSE;
     }
- 
+
     const Char_t* GetTime() const { return fTime; }
     const Char_t* GetDescription() const { return fDescription; }
     const Char_t* GetRunNote() const { return fRunNote; }
@@ -104,7 +97,7 @@ public:
     UShort_t GetRun() const { return fRun; }
     Long64_t GetSize() const { return fSize; }
     const Char_t* GetFileName() const { return fFileName; }
-   
+
     ClassDef(TCACQUFile, 0) // ACQU file class
 };
 

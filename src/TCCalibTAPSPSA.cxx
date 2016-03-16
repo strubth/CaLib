@@ -11,10 +11,20 @@
 //////////////////////////////////////////////////////////////////////////
 
 
+#include "TH2.h"
+#include "TF1.h"
+#include "TGraph.h"
+#include "TPolyLine.h"
+#include "TCanvas.h"
+#include "TSystem.h"
+#include "TFile.h"
+
 #include "TCCalibTAPSPSA.h"
+#include "TCReadConfig.h"
+#include "TCFileManager.h"
+#include "TCUtils.h"
 
 ClassImp(TCCalibTAPSPSA)
-
 
 //______________________________________________________________________________
 TCCalibTAPSPSA::TCCalibTAPSPSA()
@@ -41,8 +51,8 @@ TCCalibTAPSPSA::TCCalibTAPSPSA()
 //______________________________________________________________________________
 TCCalibTAPSPSA::~TCCalibTAPSPSA()
 {
-    // Destructor. 
-    
+    // Destructor.
+
     if (fRadiusMean) delete [] fRadiusMean;
     if (fRadiusSigma) delete [] fRadiusSigma;
     if (fMean) delete [] fMean;
@@ -67,7 +77,7 @@ TCCalibTAPSPSA::~TCCalibTAPSPSA()
 void TCCalibTAPSPSA::Init()
 {
     // Init the module.
-    
+
     // init members
     fNpoints = 0;
     fRadiusMean = new Double_t[100];
@@ -94,7 +104,7 @@ void TCCalibTAPSPSA::Init()
         return;
     }
     else fHistoName = *TCReadConfig::GetReader()->GetConfig("TAPS.PSA.Histo.Fit.Name");
-    
+
     // get projection fit display delay
     fDelay = TCReadConfig::GetReader()->GetConfigInt("TAPS.PSA.Fit.Delay");
 
@@ -106,20 +116,20 @@ void TCCalibTAPSPSA::Init()
 void TCCalibTAPSPSA::Fit(Int_t elem)
 {
     // Perform the fit of the element 'elem'.
-    
+
     Char_t tmp[256];
-    
+
     // get configuration
     Double_t lowLimitX, highLimitX, lowLimitY, highLimitY;
     TCReadConfig::GetReader()->GetConfigDoubleDouble("TAPS.PSA.Histo.Fit.Xaxis.Range", &lowLimitX, &highLimitX);
     TCReadConfig::GetReader()->GetConfigDoubleDouble("TAPS.PSA.Histo.Fit.Yaxis.Range", &lowLimitY, &highLimitY);
-  
+
     // create histogram name
     sprintf(tmp, "%s_%03d", fHistoName.Data(), elem);
-   
+
     // delete old histogram
     if (fMainHisto) delete fMainHisto;
-  
+
     // get histogram
     fMainHisto = fFileManager->GetHistogram(tmp);
     if (!fMainHisto)
@@ -127,13 +137,13 @@ void TCCalibTAPSPSA::Fit(Int_t elem)
         Error("Init", "Main histogram does not exist!\n");
         return;
     }
-    
+
     // draw main histogram
     fCanvasFit->cd();
     TCUtils::FormatHistogram(fMainHisto, "TAPS.PSA.Histo.Fit");
     fMainHisto->Draw("colz");
     fCanvasFit->Update();
-    
+
     // reset points
     fNpoints = 0;
 
@@ -146,29 +156,29 @@ void TCCalibTAPSPSA::Fit(Int_t elem)
         // prepare stuff for adding
         Int_t added = 0;
         Double_t added_r[500];
-        
+
         // get bins for fitting range
         Int_t startBin = h2->GetYaxis()->FindBin(lowLimitY);
         Int_t endBin = h2->GetYaxis()->FindBin(highLimitY);
 
         // loop over energy bins
         for (Int_t i = startBin; i <= endBin; i++)
-        {   
+        {
             // create angle projection
             sprintf(tmp, "ProjAngle_%d_%d", elem, i);
             TH1* proj = (TH1D*) h2->ProjectionX(tmp, i, i, "e");
-            
+
             // check if in adding mode
             if (added)
             {
                 // add projection
                 fAngleProj->Add(proj);
                 delete proj;
-                 
+
                 // save bin contribution
                 added_r[added++] = h2->GetYaxis()->GetBinCenter(i);
             }
-            else 
+            else
             {
                 if (fAngleProj) delete fAngleProj;
                 fAngleProj = proj;
@@ -193,30 +203,30 @@ void TCCalibTAPSPSA::Fit(Int_t elem)
             else
             {
                 Double_t radius = 0;
-                
+
                 // finish adding mode
                 if (added)
                 {
                     // calculate energy
                     for (Int_t j = 0; j < added; j++) radius += added_r[j];
                     radius /= (Double_t)added;
-                    
+
                     added = 0;
                 }
                 else
                 {
                     radius = h2->GetYaxis()->GetBinCenter(i);
                 }
-                
+
                 // skip point in punch-through region
                 if (radius > 140 && radius < 310) continue;
-                
+
                 // rebin
                 fAngleProj->Rebin(2);
-                            
+
                 // find peaks
                 Double_t peakPhoton = 45;
-                 
+
                 // create fitting function
                 if (fFitFunc) delete fFitFunc;
                 sprintf(tmp, "fFunc_%i", elem);
@@ -236,7 +246,7 @@ void TCCalibTAPSPSA::Fit(Int_t elem)
                 // second iteration
                 fFitFunc->SetRange(fFitFunc->GetParameter(1) - 4*fFitFunc->GetParameter(2),
                                    fFitFunc->GetParameter(1) + 4*fFitFunc->GetParameter(2));
-                
+
                 // perform fit
                 for (Int_t i = 0; i < 10; i++)
                     if (!fAngleProj->Fit(fFitFunc, "RB0Q")) break;
@@ -249,7 +259,7 @@ void TCCalibTAPSPSA::Fit(Int_t elem)
                 fSigma[fNpoints] = fFitFunc->GetParameter(2);
                 fNpoints++;
 
-                // plot projection fit  
+                // plot projection fit
                 if (fDelay > 0)
                 {
                     fCanvasResult->cd();
@@ -259,11 +269,11 @@ void TCCalibTAPSPSA::Fit(Int_t elem)
                     fCanvasFit->Update();
                     gSystem->Sleep(fDelay);
                 }
-            
+
             } // if: projection has sufficient statistics
-        
+
         } // for: loop over energy bins
-        
+
         // add last dummy point
         fRadiusMean[fNpoints] = 600;
         fRadiusSigma[fNpoints] = 600;
@@ -272,7 +282,7 @@ void TCCalibTAPSPSA::Fit(Int_t elem)
         fNpoints++;
 
 
-        // 
+        //
         // create lines
         //
 
@@ -290,7 +300,7 @@ void TCCalibTAPSPSA::Fit(Int_t elem)
             fLMean->SetPoint(i, fMean[i], fRadiusMean[i]);
             fLSigma->SetPoint(i, fMean[i] - 3*fSigma[i], fRadiusSigma[i]);
         }
-        
+
         // draw lines
         fCanvasFit->cd();
         fLMean->Draw();
@@ -313,7 +323,7 @@ void TCCalibTAPSPSA::Fit(Int_t elem)
 void TCCalibTAPSPSA::Calculate(Int_t elem)
 {
     // Calculate the new value of the element 'elem'.
-    
+
     Bool_t unchanged = kFALSE;
 
     // check if fit was performed
@@ -330,7 +340,7 @@ void TCCalibTAPSPSA::Calculate(Int_t elem)
             fRadiusSigma[i] = fLSigma->GetY()[i];
             fSigma[i] = (fMean[i] - fLSigma->GetX()[i]) / 3;
         }
-        
+
         // create graphs
         if (fGMean[elem]) delete fGMean[elem];
         fGMean[elem] = new TGraph(fNpoints, fRadiusMean, fMean);
@@ -346,13 +356,13 @@ void TCCalibTAPSPSA::Calculate(Int_t elem)
     printf("Element: %03d    processed ", elem);
     if (unchanged) printf("    -> unchanged");
     printf("\n");
-}   
+}
 
 //______________________________________________________________________________
 void TCCalibTAPSPSA::PrintValues()
 {
     // Disable this method.
-    
+
     Info("PrintValues", "Not implemented in this module");
 }
 
@@ -360,14 +370,14 @@ void TCCalibTAPSPSA::PrintValues()
 void TCCalibTAPSPSA::WriteValues()
 {
     // Write the obtained calibration values to the database.
-    
+
     Char_t tmp[256];
     Int_t nSave = 0;
 
     // open output file
     sprintf(tmp, "PSA_%s.root", fCalibration.Data());
     TFile f(tmp, "recreate");
-    
+
     // save graphs
     f.cd();
     for (Int_t i = 0; i < fNelem; i++)
@@ -381,7 +391,7 @@ void TCCalibTAPSPSA::WriteValues()
             nSave++;
         }
     }
-    
+
     Info("Write", "%d PSA graphs were written to '%s'", nSave, f.GetName());
 }
 

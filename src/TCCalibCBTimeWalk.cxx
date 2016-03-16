@@ -11,10 +11,22 @@
 //////////////////////////////////////////////////////////////////////////
 
 
+#include "TH1.h"
+#include "TH2.h"
+#include "TF1.h"
+#include "TLine.h"
+#include "TCanvas.h"
+#include "TMath.h"
+#include "TSystem.h"
+
 #include "TCCalibCBTimeWalk.h"
+#include "TCConfig.h"
+#include "TCMySQLManager.h"
+#include "TCFileManager.h"
+#include "TCReadConfig.h"
+#include "TCUtils.h"
 
 ClassImp(TCCalibCBTimeWalk)
-
 
 //______________________________________________________________________________
 TCCalibCBTimeWalk::TCCalibCBTimeWalk()
@@ -37,8 +49,8 @@ TCCalibCBTimeWalk::TCCalibCBTimeWalk()
 //______________________________________________________________________________
 TCCalibCBTimeWalk::~TCCalibCBTimeWalk()
 {
-    // Destructor. 
-    
+    // Destructor.
+
     if (fFileManager) delete fFileManager;
     if (fPar0) delete [] fPar0;
     if (fPar1) delete [] fPar1;
@@ -53,7 +65,7 @@ TCCalibCBTimeWalk::~TCCalibCBTimeWalk()
 void TCCalibCBTimeWalk::Init()
 {
     // Init the module.
-    
+
     // init members
     fFileManager = new TCFileManager(fData.Data(), fCalibration.Data(), fNset, fSet);
     fPar0 = new Double_t[fNelem];
@@ -76,7 +88,7 @@ void TCCalibCBTimeWalk::Init()
         return;
     }
     else fHistoName = *TCReadConfig::GetReader()->GetConfig("CB.TimeWalk.Histo.Fit.Name");
-    
+
     // get projection fit display delay
     fDelay = TCReadConfig::GetReader()->GetConfigInt("CB.TimeWalk.Fit.Delay");
 
@@ -98,19 +110,19 @@ void TCCalibCBTimeWalk::Init()
 void TCCalibCBTimeWalk::Fit(Int_t elem)
 {
     // Perform the fit of the element 'elem'.
-    
+
     Char_t tmp[256];
-    
+
     // get configuration
     Double_t lowLimit, highLimit;
     TCReadConfig::GetReader()->GetConfigDoubleDouble("CB.TimeWalk.Histo.Fit.Xaxis.Range", &lowLimit, &highLimit);
-     
+
     // create histogram name
     sprintf(tmp, "%s_%03d", fHistoName.Data(), elem);
-   
+
     // delete old histogram
     if (fMainHisto) delete fMainHisto;
-  
+
     // get histogram
     fMainHisto = fFileManager->GetHistogram(tmp);
     if (!fMainHisto)
@@ -118,14 +130,14 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
         Error("Init", "Main histogram does not exist!\n");
         return;
     }
-    
+
     // draw main histogram
     if (fMainHisto->GetEntries() > 0) fCanvasFit->cd(1)->SetLogz(1);
     else fCanvasFit->cd(1)->SetLogz(0);
     TCUtils::FormatHistogram(fMainHisto, "CB.TimeWalk.Histo.Fit");
     fMainHisto->Draw("colz");
     fCanvasFit->Update();
- 
+
     // check for sufficient statistics
     if (fMainHisto->GetEntries() > 1000)
     {
@@ -138,29 +150,29 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
         // prepare stuff for adding
         Int_t added = 0;
         Double_t added_e[300];
-        
+
         // get bins for fitting range
         Int_t startBin = h2->GetXaxis()->FindBin(lowLimit);
         Int_t endBin = h2->GetXaxis()->FindBin(highLimit);
 
         // loop over energy bins
         for (Int_t i = startBin; i <= endBin; i++)
-        {   
+        {
             // create time projection
             sprintf(tmp, "ProjTime_%d_%d", elem, i);
             TH1* proj = (TH1D*) h2->ProjectionY(tmp, i, i, "e");
-            
+
             // check if in adding mode
             if (added)
             {
                 // add projection
                 fTimeProj->Add(proj);
                 delete proj;
-                 
+
                 // save bin contribution
                 added_e[added++] = h2->GetXaxis()->GetBinCenter(i);
             }
-            else 
+            else
             {
                 if (fTimeProj) delete fTimeProj;
                 fTimeProj = proj;
@@ -189,7 +201,7 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
                     // calculate energy
                     for (Int_t j = 0; j < added; j++) energy += added_e[j];
                     energy /= (Double_t)added;
-                    
+
                     added = 0;
                 }
                 else
@@ -200,7 +212,7 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
                 //
                 // fit time projection
                 //
-                
+
                 // create fitting function
                 if (fFitFunc) delete fFitFunc;
                 sprintf(tmp, "fWalkProfile_%i", elem);
@@ -216,7 +228,7 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
                 fFitFunc->SetParLimits(1, 0, 10000); // peak
                 fFitFunc->SetParLimits(2, -1000, 1000); // peak position
                 fFitFunc->SetParLimits(3, 0.1, 20.0); // sigma
-                
+
                 // perform fit
                 fTimeProj->Fit(fFitFunc, "RBQ0");
 
@@ -238,7 +250,7 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
                     fEnergyProj->SetBinError(bin, error);
                 }
 
-                // plot projection fit  
+                // plot projection fit
                 if (fDelay > 0)
                 {
                     fCanvasFit->cd(2);
@@ -249,34 +261,34 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
                     fCanvasFit->Update();
                     gSystem->Sleep(fDelay);
                 }
-            
+
             } // if: projection has sufficient statistics
-        
+
         } // for: loop over energy bins
 
         //
         // fit profile
         //
-        
+
         // create fitting function
         sprintf(tmp, "fTWalk_%d", elem);
         if (fFitFunc) delete fFitFunc;
-        fFitFunc = new TF1(tmp, this, &TCCalibCBTimeWalk::TWFunc, 
-                           lowLimit, highLimit, 4, 
+        fFitFunc = new TF1(tmp, this, &TCCalibCBTimeWalk::TWFunc,
+                           lowLimit, highLimit, 4,
                            "TCCalibCBTimeWalk", "TWFunc");
 
         // prepare fitting function
         fFitFunc->SetLineColor(2);
-	fFitFunc->SetParameters(3.55e+01, 6.77e+01, 2.43e-01, 1.66e-01);
-	//fFitFunc->SetParLimits(0, 30, 80);
-	fFitFunc->SetParLimits(1, 30, 320);
-	fFitFunc->SetParLimits(2, 1e-5, 10);
-	fFitFunc->SetParLimits(3, 0, 1);
-	
+        fFitFunc->SetParameters(3.55e+01, 6.77e+01, 2.43e-01, 1.66e-01);
+        //fFitFunc->SetParLimits(0, 30, 80);
+        fFitFunc->SetParLimits(1, 30, 320);
+        fFitFunc->SetParLimits(2, 1e-5, 10);
+        fFitFunc->SetParLimits(3, 0, 1);
+
         // perform fit
         for (Int_t i = 0; i < 10; i++)
             if (!fEnergyProj->Fit(fFitFunc, "RB0Q")) break;
-    
+
         // read parameters
         fPar0[elem] = fFitFunc->GetParameter(0);
         fPar1[elem] = fFitFunc->GetParameter(1);
@@ -298,7 +310,7 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
 
 //______________________________________________________________________________
 Double_t TCCalibCBTimeWalk::TWFunc(Double_t* x, Double_t* par)
-{   
+{
     // Time walk fitting function.
 
     return par[0] + par[1] / TMath::Power(x[0] + par[2], par[3]);
@@ -308,9 +320,9 @@ Double_t TCCalibCBTimeWalk::TWFunc(Double_t* x, Double_t* par)
 void TCCalibCBTimeWalk::Calculate(Int_t elem)
 {
     // Calculate the new value of the element 'elem'.
-    
+
     Bool_t noval = kFALSE;
-    
+
     // check no fits
     if (fPar0[elem] == 0 && fPar1[elem] == 0 &&
         fPar2[elem] == 0 && fPar3[elem] == 0) noval = kTRUE;
@@ -322,7 +334,7 @@ void TCCalibCBTimeWalk::Calculate(Int_t elem)
     if (noval) printf("    -> no fit");
     if (TCUtils::IsCBHole(elem)) printf(" (hole)");
     printf("\n");
-}   
+}
 
 //______________________________________________________________________________
 void TCCalibCBTimeWalk::PrintValues()
@@ -342,7 +354,7 @@ void TCCalibCBTimeWalk::PrintValues()
 void TCCalibCBTimeWalk::WriteValues()
 {
     // Write the obtained calibration values to the database.
-    
+
     // write values to database
     for (Int_t i = 0; i < fNset; i++)
     {

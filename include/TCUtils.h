@@ -14,11 +14,9 @@
 #ifndef TCUTILS_H
 #define TCUTILS_H
 
-#include "TH2.h"
-#include "TMath.h"
+#include "Rtypes.h"
 
-#include "TCReadConfig.h"
-
+class TH1;
 
 namespace TCUtils
 {

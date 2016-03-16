@@ -11,10 +11,13 @@
 //////////////////////////////////////////////////////////////////////////
 
 
+#include "TList.h"
+#include "TFile.h"
+
 #include "TCContainer.h"
+#include "TCConfig.h"
 
 ClassImp(TCContainer)
-
 
 //______________________________________________________________________________
 TCContainer::TCContainer(const Char_t* name)
@@ -34,9 +37,41 @@ TCContainer::TCContainer(const Char_t* name)
 TCContainer::~TCContainer()
 {
     // Destructor.
-    
+
     if (fRuns) delete fRuns;
     if (fCalibrations) delete fCalibrations;
+}
+
+//______________________________________________________________________________
+Int_t TCContainer::GetNRuns() const
+{
+    // Return the number of runs.
+
+    return fRuns ? fRuns->GetSize() : 0;
+}
+
+//______________________________________________________________________________
+TCRun* TCContainer::GetRun(Int_t n) const
+{
+    // Return the run at index 'n'.
+
+    return fRuns ? (TCRun*)fRuns->At(n) : 0;
+}
+
+//______________________________________________________________________________
+Int_t TCContainer::GetNCalibrations() const
+{
+    // Return the number of calibrations.
+
+    return fCalibrations ? fCalibrations->GetSize() : 0;
+}
+
+//______________________________________________________________________________
+TCCalibration* TCContainer::GetCalibration(Int_t n) const
+{
+    // Return the calibration at index 'n'.
+
+    return fCalibrations ? (TCCalibration*)fCalibrations->At(n) : 0;
 }
 
 //______________________________________________________________________________
@@ -44,7 +79,7 @@ TCRun* TCContainer::AddRun(Int_t run)
 {
     // Add a new run using the run number 'run' to the list of runs and return
     // the created run object.
-    
+
     // create the run
     TCRun* r = new TCRun();
 
@@ -62,7 +97,7 @@ TCCalibration* TCContainer::AddCalibration(const Char_t* calibration)
 {
     // Add a new calibration using the name 'calibration' to the list of
     // calibrations and return the created calibration object.
-    
+
     // create the calibration
     TCCalibration* c = new TCCalibration();
 
@@ -96,7 +131,7 @@ Bool_t TCContainer::Save(const Char_t* filename, Bool_t silence)
 
     // save me
     this->Write();
-    
+
     // user information
     if (!silence) Info("Save", "CaLib data was saved to '%s'", filename);
 

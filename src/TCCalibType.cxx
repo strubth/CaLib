@@ -11,17 +11,19 @@
 //////////////////////////////////////////////////////////////////////////
 
 
+#include "TList.h"
+
 #include "TCCalibType.h"
+#include "TCCalibData.h"
 
 ClassImp(TCCalibType)
-
 
 //______________________________________________________________________________
 TCCalibType::TCCalibType(const Char_t* name, const Char_t* title)
     : TNamed(name, title)
 {
     // Constructor.
-    
+
     fData = new TList();
 }
 
@@ -34,10 +36,26 @@ TCCalibType::~TCCalibType()
 }
 
 //______________________________________________________________________________
+TCCalibData* TCCalibType::GetData(Int_t n)
+{
+    // Return calibration data at index 'n'.
+
+    return fData ? (TCCalibData*)fData->At(n) : 0;
+}
+
+//______________________________________________________________________________
+void TCCalibType::AddData(TCCalibData* data)
+{
+    // Add calibration data 'data'.
+
+    if (fData) fData->Add(data);
+}
+
+//______________________________________________________________________________
 void TCCalibType::Print(Option_t* option) const
 {
     // Print the content of this class.
-    
+
     printf("CaLib Type Information\n");
     printf("Name           : %s\n", GetName());
     printf("Title          : %s\n", GetTitle());

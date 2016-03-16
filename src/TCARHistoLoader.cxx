@@ -13,10 +13,14 @@
 //////////////////////////////////////////////////////////////////////////
 
 
+#include "TFile.h"
+#include "TH2.h"
+#include "TH3.h"
+#include "TError.h"
+
 #include "TCARHistoLoader.h"
 
 ClassImp(TCARHistoLoader)
-
 
 //______________________________________________________________________________
 TH1** TCARHistoLoader::CreateHistoArray(const Char_t* hname, Int_t& nhistos)
@@ -34,7 +38,6 @@ TH1** TCARHistoLoader::CreateHistoArray(const Char_t* hname, Int_t& nhistos)
    // return array
    return h;
 }
-
 
 //______________________________________________________________________________
 TH1** TCARHistoLoader::CreateHistoArray(const Char_t* hname)
@@ -55,7 +58,7 @@ TH1** TCARHistoLoader::CreateHistoArray(const Char_t* hname)
     // create histogram array
     TH1** hOut =  new TH1*[fNRuns];
 
-    // init histo found flag 
+    // init histo found flag
     Bool_t isFound = kFALSE;
 
     // loop over files
@@ -110,7 +113,6 @@ TH1** TCARHistoLoader::CreateHistoArray(const Char_t* hname)
 
     return hOut;
 }
-
 
 //______________________________________________________________________________
 TH2D* TCARHistoLoader::CreateHistoOfProj(const Char_t* hname, const Char_t projaxis)
@@ -243,7 +245,7 @@ TH2D* TCARHistoLoader::CreateHistoOfProj(const Char_t* hname, const Char_t proja
             if (isX) sprintf(axistitle, h->GetXaxis()->GetTitle());
             if (isY) sprintf(axistitle, h->GetYaxis()->GetTitle());
             if (isZ) sprintf(axistitle, h->GetZaxis()->GetTitle());
-             
+
             Char_t newtitle[256];
             sprintf(newtitle, "%s;%s;Run index", h->GetTitle(), axistitle);
             hOut = new TH2D(name, newtitle, hp->GetNbinsX(), hp->GetBinLowEdge(1), hp->GetBinLowEdge(hp->GetNbinsX() + 1), fNRuns, 0, fNRuns);
@@ -275,6 +277,4 @@ TH2D* TCARHistoLoader::CreateHistoOfProj(const Char_t* hname, const Char_t proja
 
     return hOut;
 }
-
-// finito
 

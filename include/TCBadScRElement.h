@@ -18,7 +18,6 @@
 
 #include "TCBadElement.h"
 
-
 class TCBadScRElement : public TCBadElement
 {
 
@@ -32,10 +31,10 @@ public:
         fCalibData(),
         fRunNumber(0) { };
     TCBadScRElement(const TCBadScRElement &elem);
-    TCBadScRElement(Int_t runno, Int_t nscr = -1) 
+    TCBadScRElement(Int_t runno, Int_t nscr = -1)
       : TCBadElement(0, 0, nscr),
         fCalibData(),
-        fRunNumber(runno) { }; 
+        fRunNumber(runno) { };
     TCBadScRElement(Int_t runno, Int_t nbad, const Int_t* bad, Int_t nscr = -1)
       : TCBadElement(nbad, bad, nscr),
         fCalibData(),
@@ -54,7 +53,8 @@ public:
     Int_t SetNScR(Int_t nscr) { return SetNElem(nscr); };
     void UnSNScR() { UnSNElem(); };
 
-    ClassDef(TCBadScRElement, 0) // Bad scaler read class 
+    ClassDef(TCBadScRElement, 0) // Bad scaler read class
 };
 
 #endif
+

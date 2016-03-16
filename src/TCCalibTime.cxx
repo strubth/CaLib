@@ -11,10 +11,17 @@
 //////////////////////////////////////////////////////////////////////////
 
 
+#include "TLine.h"
+#include "TH2.h"
+#include "TF1.h"
+#include "TCanvas.h"
+
 #include "TCCalibTime.h"
+#include "TCMySQLManager.h"
+#include "TCFileManager.h"
+#include "TCUtils.h"
 
 ClassImp(TCCalibTime)
-
 
 //______________________________________________________________________________
 TCCalibTime::TCCalibTime(const Char_t* name, const Char_t* title, const Char_t* data,
@@ -33,8 +40,8 @@ TCCalibTime::TCCalibTime(const Char_t* name, const Char_t* title, const Char_t* 
 //______________________________________________________________________________
 TCCalibTime::~TCCalibTime()
 {
-    // Destructor. 
-    
+    // Destructor.
+
     if (fTimeGain) delete [] fTimeGain;
     if (fLine) delete fLine;
 }
@@ -43,17 +50,17 @@ TCCalibTime::~TCCalibTime()
 void TCCalibTime::Init()
 {
     // Init the module.
-    
+
     Char_t tmp[256];
 
     // init members
     fMean = 0;
     fLine = new TLine();
-    
+
     // configure line
     fLine->SetLineColor(4);
     fLine->SetLineWidth(3);
- 
+
     // get histogram name
     sprintf(tmp, "%s.Histo.Fit.Name", GetName());
     if (!TCReadConfig::GetReader()->GetConfig(tmp))
@@ -62,7 +69,7 @@ void TCCalibTime::Init()
         return;
     }
     else fHistoName = *TCReadConfig::GetReader()->GetConfig(tmp);
-    
+
     // get time gain for TDCs
     if (this->InheritsFrom("TCCalibTAPSTime"))
     {
@@ -90,13 +97,13 @@ void TCCalibTime::Init()
 
     // read old parameters (only from first set)
     TCMySQLManager::GetManager()->ReadParameters(fData, fCalibration.Data(), fSet[0], fOldVal, fNelem);
-    
+
     // copy to new parameters
     for (Int_t i = 0; i < fNelem; i++) fNewVal[i] = fOldVal[i];
 
     // sum up all files contained in this runset
     TCFileManager f(fData, fCalibration.Data(), fNset, fSet);
-    
+
     // get the main calibration histogram
     fMainHisto = f.GetHistogram(fHistoName.Data());
     if (!fMainHisto)
@@ -104,12 +111,12 @@ void TCCalibTime::Init()
         Error("Init", "Main histogram does not exist!\n");
         return;
     }
-    
+
     // create the overview histogram
     fOverviewHisto = new TH1F("Overview", ";Element;Time peak position [ns]", fNelem, 0, fNelem);
     fOverviewHisto->SetMarkerStyle(2);
     fOverviewHisto->SetMarkerColor(4);
-    
+
     // draw main histogram
     fCanvasFit->Divide(1, 2, 0.001, 0.001);
     fCanvasFit->cd(1)->SetLogz();
@@ -128,26 +135,26 @@ void TCCalibTime::Init()
 void TCCalibTime::Fit(Int_t elem)
 {
     // Perform the fit of the element 'elem'.
-    
+
     Char_t tmp[256];
-    
+
     // create histogram projection for this element
     sprintf(tmp, "ProjHisto_%i", elem);
     TH2* h2 = (TH2*) fMainHisto;
     if (fFitHisto) delete fFitHisto;
     fFitHisto = (TH1D*) h2->ProjectionX(tmp, elem+1, elem+1, "e");
-    
+
     // init variables
     Double_t factor = 2.5;
     Double_t range = 3.8;
-    
+
     // draw histogram
     fFitHisto->SetFillColor(35);
     fCanvasFit->cd(2);
     sprintf(tmp, "%s.Histo.Fit", GetName());
     TCUtils::FormatHistogram(fFitHisto, tmp);
     fFitHisto->Draw("hist");
- 
+
     // check for sufficient statistics
     if (fFitHisto->GetEntries())
     {
@@ -155,34 +162,34 @@ void TCCalibTime::Fit(Int_t elem)
         if (fFitFunc) delete fFitFunc;
         sprintf(tmp, "fTime_%i", elem);
 
-	// the fit function
-	fFitFunc = new TF1("fFitFunc", "pol1(0)+gaus(2)");
-	fFitFunc->SetLineColor(2);
-	
-	// get important parameter positionsa
-        fFitHisto->GetXaxis()->SetRange(2, fFitHisto->GetNbinsX()-1);
-	Double_t fMean = fFitHisto->GetXaxis()->GetBinCenter(fFitHisto->GetMaximumBin());
-	Double_t max = fFitHisto->GetBinContent(fFitHisto->GetMaximumBin());
+        // the fit function
+        fFitFunc = new TF1("fFitFunc", "pol1(0)+gaus(2)");
+        fFitFunc->SetLineColor(2);
 
-	// configure fitting function
-	fFitFunc->SetParameters(1, 0.1, max, fMean, 8);
-	fFitFunc->SetParLimits(2, 0.1, max*10);
-	fFitFunc->SetParLimits(3, fMean - 2, fMean + 2);
-	fFitFunc->SetParLimits(4, 0, 20);                  
-    
+        // get important parameter positions
+        fFitHisto->GetXaxis()->SetRange(2, fFitHisto->GetNbinsX()-1);
+        Double_t fMean = fFitHisto->GetXaxis()->GetBinCenter(fFitHisto->GetMaximumBin());
+        Double_t max = fFitHisto->GetBinContent(fFitHisto->GetMaximumBin());
+
+        // configure fitting function
+        fFitFunc->SetParameters(1, 0.1, max, fMean, 8);
+        fFitFunc->SetParLimits(2, 0.1, max*10);
+        fFitFunc->SetParLimits(3, fMean - 2, fMean + 2);
+        fFitFunc->SetParLimits(4, 0, 20);
+
         // special configuration for certain classes
-         if (!this->InheritsFrom("TCCalibTaggerTime") && 
-             !this->InheritsFrom("TCCalibTAPSTime")   && 
+         if (!this->InheritsFrom("TCCalibTaggerTime") &&
+             !this->InheritsFrom("TCCalibTAPSTime")   &&
              !this->InheritsFrom("TCCalibVetoTime")   &&
              !this->InheritsFrom("TCCalibCBRiseTime"))
-        {   
+        {
             // only gaussian
             fFitFunc->FixParameter(0, 0);
             fFitFunc->FixParameter(1, 0);
         }
         if (this->InheritsFrom("TCCalibTAPSTime"))
         {
-	    fFitFunc->SetParLimits(4, 0.001, 1);                  
+            fFitFunc->SetParLimits(4, 0.001, 1);
             range = 3;
             factor = 1.5;
         }
@@ -198,13 +205,13 @@ void TCCalibTime::Fit(Int_t elem)
         {
             range = 5;
             factor = 10;
-	    fFitFunc->SetParLimits(4, 0.01, 2);                  
+            fFitFunc->SetParLimits(4, 0.01, 2);
         }
 
         // first iteration
-	fFitFunc->SetRange(fMean - range, fMean + range);
-	fFitHisto->Fit(fFitFunc, "RBQ0");
-	fMean = fFitFunc->GetParameter(3);
+        fFitFunc->SetRange(fMean - range, fMean + range);
+        fFitHisto->Fit(fFitFunc, "RBQ0");
+        fMean = fFitFunc->GetParameter(3);
 
         // second iteration
         Double_t sigma = fFitFunc->GetParameter(4);
@@ -213,38 +220,38 @@ void TCCalibTime::Fit(Int_t elem)
             if(!fFitHisto->Fit(fFitFunc, "RBQ0")) break;
 
         // final results
-        fMean = fFitFunc->GetParameter(3); 
+        fMean = fFitFunc->GetParameter(3);
 
         // draw mean indicator line
         fLine->SetY1(0);
         fLine->SetY2(fFitHisto->GetMaximum() + 20);
         fLine->SetX1(fMean);
         fLine->SetX2(fMean);
-   
+
         // draw fitting function
         if (fFitFunc) fFitFunc->Draw("same");
-    
+
         // draw indicator line
         fLine->Draw();
     }
 
     // update canvas
     fCanvasFit->Update();
-    
+
     // update overview
     if (elem % 20 == 0)
     {
         fCanvasResult->cd();
         fOverviewHisto->Draw("E1");
         fCanvasResult->Update();
-    }   
+    }
 }
 
 //______________________________________________________________________________
 void TCCalibTime::Calculate(Int_t elem)
 {
     // Calculate the new value of the element 'elem'.
-    
+
     Char_t tmp[256];
     Bool_t unchanged = kFALSE;
 
@@ -257,18 +264,18 @@ void TCCalibTime::Calculate(Int_t elem)
         // calculate the new offset
         if (this->InheritsFrom("TCCalibCBRiseTime")) fNewVal[elem] = fOldVal[elem] + fMean;
         else fNewVal[elem] = fOldVal[elem] + fMean / fTimeGain[elem];
-        
+
         // update overview histogram
         fOverviewHisto->SetBinContent(elem + 1, fMean);
         fOverviewHisto->SetBinError(elem + 1, 0.0000001);
-        
+
         // update average calculation
         fAvr += fMean;
         fAvrDiff += TMath::Abs(fMean);
         fNcalc++;
     }
     else
-    {   
+    {
         // do not change old value
         fNewVal[elem] = fOldVal[elem];
         unchanged = kTRUE;
@@ -283,9 +290,9 @@ void TCCalibTime::Calculate(Int_t elem)
            elem, fMean, tmp, fOldVal[elem], tmp, fNewVal[elem],
            TCUtils::GetDiffPercent(fOldVal[elem], fNewVal[elem]));
     if (unchanged) printf("    -> unchanged");
-    
+
     if (this->InheritsFrom("TCCalibCBTime") ||
-        this->InheritsFrom("TCCalibCBRiseTime")) 
+        this->InheritsFrom("TCCalibCBRiseTime"))
     {
         if (TCUtils::IsCBHole(elem)) printf(" (hole)");
     }

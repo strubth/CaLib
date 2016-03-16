@@ -13,13 +13,13 @@
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef TCARHISTOLOADER_H 
+#ifndef TCARHISTOLOADER_H
 #define TCARHISTOLOADER_H
 
 #include "TCARFileLoader.h"
-#include "TH2.h"
-#include "TH3.h"
 
+class TH1;
+class TH2D;
 
 class TCARHistoLoader : public TCARFileLoader
 {
@@ -33,7 +33,7 @@ public:
 
     TH1** CreateHistoArray(const Char_t* hname, Int_t& nhistos);
     TH1** CreateHistoArray(const Char_t* hname);
-    TH2D* CreateHistoOfProj(const Char_t* hname, const Char_t projaxis = 'X'); 
+    TH2D* CreateHistoOfProj(const Char_t* hname, const Char_t projaxis = 'X');
 
     ClassDef(TCARHistoLoader, 0) // AR histogram loading class
 };
