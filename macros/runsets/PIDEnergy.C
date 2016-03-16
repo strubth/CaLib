@@ -21,14 +21,13 @@ TLine* gLine;
 Double_t gMin;
 Double_t gMax;
 
-
 //______________________________________________________________________________
 void Fit(Int_t run)
 {
     // Perform fit.
-    
+
     Char_t tmp[256];
-    
+
     // delete old function
     if (gFitFunc) delete gFitFunc;
 
@@ -37,12 +36,12 @@ void Fit(Int_t run)
     sprintf(tmp, "fGauss_%d", run);
     gFitFunc = new TF1(tmp, "expo(0)+gaus(2)");
     gFitFunc->SetLineColor(2);
-    
+
     // estimate peak position
     TSpectrum s;
     s.Search(gH, 10, "goff nobackground", 0.05);
     Double_t peak = TMath::MaxElement(s.GetNPeaks(), s.GetPositionX());
-    
+
     // prepare fitting function
     gFitFunc->SetRange(gMin, gMax);
     gFitFunc->SetParameter(2, gH->GetXaxis()->FindBin(peak));
@@ -50,10 +49,10 @@ void Fit(Int_t run)
     gFitFunc->SetParameter(3, peak);
     gFitFunc->SetParameter(4, 20);
     gFitFunc->SetParLimits(4, 18, 100);
-    
+
     for (Int_t i = 0; i < 10; i++)
         if (!gH->Fit(gFitFunc, "RBQ0")) break;
-    
+
     // get peak
     peak = gFitFunc->GetParameter(3);
 
@@ -63,7 +62,7 @@ void Fit(Int_t run)
     gLine->SetY1(0);
     gLine->SetY2(gH->GetMaximum());
 
-    // draw 
+    // draw
     gCFit->cd();
     gH->GetXaxis()->SetRangeUser(0, 2000);
     gH->Draw();
@@ -79,12 +78,12 @@ void Fit(Int_t run)
 void PIDEnergy()
 {
     // Main method.
-    
+
     Char_t tmp[256];
-    
+
     // load CaLib
     gSystem->Load("libCaLib.so");
-    
+
     // general configuration
     Bool_t watch = kTRUE;
     const Char_t* data = "Data.PID.E1";
@@ -101,7 +100,7 @@ void PIDEnergy()
     // configuration (February 2009)
     //const Char_t calibration[] = "LD2_Feb_09";
     //const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/Feb_09/AR/out/droop";
-    
+
     // configuration (May 2009)
     const Char_t calibration[] = "LD2_May_09";
     const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/May_09/AR/out/droop";
@@ -111,7 +110,7 @@ void PIDEnergy()
     TCanvas* cOverview = new TCanvas();
     gHOverview->GetYaxis()->SetRangeUser(yMin, yMax);
     gHOverview->Draw("E1");
-    
+
     // create line
     gLine = new TLine();
     gLine->SetLineColor(kBlue);
@@ -119,13 +118,13 @@ void PIDEnergy()
 
     // init fitting function
     gFitFunc = 0;
-    
+
     // create fitting canvas
     gCFit = new TCanvas();
-    
+
     // get number of sets
     Int_t nSets = TCMySQLManager::GetManager()->GetNsets(data, calibration);
-    
+
     // total number of runs
     Int_t nTotRuns = 0;
 
@@ -138,7 +137,7 @@ void PIDEnergy()
         // get runs of set
         Int_t nRuns;
         Int_t* runs = TCMySQLManager::GetManager()->GetRunsOfSet(data, calibration, i, &nRuns);
-    
+
         // loop over runs
         for (Int_t j = 0; j < nRuns; j++)
         {
@@ -176,7 +175,7 @@ void PIDEnergy()
 
             // fit the histogram
             Fit(runs[j]);
-            
+
             // update canvases and sleep
             if (watch)
             {
@@ -184,7 +183,7 @@ void PIDEnergy()
                 gCFit->Update();
                 //gSystem->Sleep(10);
             }
-     
+
             // count run
             nTotRuns++;
         }
@@ -194,7 +193,7 @@ void PIDEnergy()
 
         // draw runset markers
         cOverview->cd();
-        
+
         // get first run of set
         Int_t frun = TCMySQLManager::GetManager()->GetFirstRunOfSet(data, calibration, i);
 
@@ -204,7 +203,7 @@ void PIDEnergy()
         aLine->SetLineWidth(2);
         aLine->Draw("same");
     }
-    
+
     // adjust axis
     gHOverview->GetXaxis()->SetRangeUser(first_run-10, last_run+10);
 

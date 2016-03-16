@@ -15,7 +15,7 @@
 void Fit(TH1* h, Double_t* outPos, Double_t* outFWHM)
 {
     // Perform fit.
-    
+
     Char_t tmp[256];
 
     Double_t x1 = 100;
@@ -27,7 +27,7 @@ void Fit(TH1* h, Double_t* outPos, Double_t* outFWHM)
     func->SetParLimits(1, 130, 145);
     func->SetParLimits(2, 1, 15);
     h->Fit(func, "RBQO");
-    
+
     // get position and FWHM
     fPi0Pos = func->GetParameter(1);
     *outPos = fPi0Pos;
@@ -47,7 +47,7 @@ void Fit(TH1* h, Double_t* outPos, Double_t* outFWHM)
 
     gPad->SetLogy();
 
-    // draw 
+    // draw
     h->GetXaxis()->SetRangeUser(0, 300);
     h->Draw();
     func->Draw("same");
@@ -59,12 +59,12 @@ void Fit(TH1* h, Double_t* outPos, Double_t* outFWHM)
 void TAPSEnergy()
 {
     // Main method.
-    
+
     Char_t tmp[256];
-    
+
     // load CaLib
     gSystem->Load("libCaLib.so");
-    
+
     // general configuration
     const Char_t* data = "Data.TAPS.LG.E1";
     //const Char_t* hName = "CaLib_TAPS_IM_Neut";
@@ -86,7 +86,7 @@ void TAPSEnergy()
     //const Char_t filePat[] = "/usr/puma_scratch0/werthm/A2/May_09/AR/out/ARHistograms_CB_RUN.root";
     //const Char_t filePat[] = "/Users/fulgur/Desktop/calib/May_09/ARHistograms_CB_RUN.root";
     //const Char_t filePat[] = "/Users/fulgur/Desktop/calib/May_09/ARHistograms_CB_RUN.root";
-    
+
     // get number of sets
     Int_t nSets = TCMySQLManager::GetManager()->GetNsets(data, calibration);
 
@@ -94,30 +94,30 @@ void TAPSEnergy()
     Int_t n = TMath::Sqrt(nSets);
     TCanvas* cOverview = new TCanvas();
     cOverview->Divide(n, nSets / n + 1);
-    
+
     // create arrays
     Double_t* pos = new Double_t[nSets+1];
     Double_t* fwhm = new Double_t[nSets+1];
-    
+
     // total sum histogram
     TH1* hTot = 0;
 
     // loop over sets
     for (Int_t i = 0; i < nSets; i++)
-    { 
+    {
         // create file manager
         TCFileManager m(data, calibration, 1, &i, filePat);
-        
+
         // get histo
         TH2* h2 = (TH2*) m.GetHistogram(hName);
-        
+
         // skip empty histo
         if (!h2) continue;
-        
+
         // project histo
         sprintf(tmp, "Proj_%d", i);
         TH1* h = (TH1*) h2->ProjectionX(tmp);
-        
+
         // add to total histogram
         if (!hTot) hTot = (TH1*) h->Clone();
         else hTot->Add(h);

@@ -23,9 +23,7 @@
 #include "TGraph.h"
 #endif
 
-
 TList* gFiles;
-
 
 //______________________________________________________________________________
 void CheckEnergy(const Char_t* loc)
@@ -52,18 +50,18 @@ void CheckEnergy(const Char_t* loc)
         sprintf(t, "%03d", i);
         fROOTout->mkdir(t);
     }
-    
+
     TF1* func = new TF1("func", "gaus(0)", 0 , 90);
 
     // loop over runs
     for (Int_t i = 0; i < nRuns; i++)
-    {   
+    {
         // get the file
         TFile* f = (TFile*) gFiles->At(i);
 
         // extract run number
         Int_t runNumber;
-        sprintf(t, "%s/ARHistograms_CB_%%d.root", loc);
+        sprintf(t, "%s/ARHistograms_CBTaggTAPS_%%d.root", loc);
         sscanf(f->GetName(), t, &runNumber);
         runNumbersD[i] = (Double_t)runNumber;
 
@@ -82,11 +80,11 @@ void CheckEnergy(const Char_t* loc)
             if (!h2) continue;
             sprintf(t, "%d_%d", i, j);
             TH1* h = h2->ProjectionX(t, h2->GetYaxis()->FindBin(400.), h2->GetYaxis()->FindBin(600.));
-            
+
             sprintf(t, "Run_%d", runNumber);
             TCanvas* c = new TCanvas(t, t);
             TLine* tline = 0;
-            
+
             // check entries
             //if (h->GetEntries())
             //{
@@ -104,7 +102,7 @@ void CheckEnergy(const Char_t* loc)
 
             //    h->GetXaxis()->SetRangeUser(maxPos - 10, maxPos + 10);
             //    h->Draw();
-            //    
+            //
             //    tline = new TLine(maxPos, 0, maxPos, 10000);
             //    tline->SetLineColor(kRed);
             //    tline->SetLineWidth(2);
@@ -116,35 +114,35 @@ void CheckEnergy(const Char_t* loc)
             //}
 
             c->Write(c->GetName(), TObject::kOverwrite);
-    
+
             delete h;
             delete h2;
             delete c;
             if (tline) delete tline;
         }
-        
+
     }
-    
+
     // create pedestal evolution graphs
     fROOTout->cd();
-    
+
     // loop over channels
     for (Int_t j = 0; j < nCh; j++)
     {
         printf("Creating time graph for channel %d\n", j);
-        
+
         TGraph* g = new TGraph(nRuns, runNumbersD, pedPos[j]);
         sprintf(t, "Overview_%03d", j);
         g->SetName(t);
         g->SetTitle(t);
         //g->GetYaxis()->SetRangeUser(1200, 1300);
         g->Write(g->GetName(), TObject::kOverwrite);
-        
+
         delete g;
     }
 
     printf("Saving output file\n");
-    
+
     delete fROOTout;
 
     // cleanup
@@ -157,12 +155,12 @@ void CheckEnergy(const Char_t* loc)
 void TAPSSG()
 {
     // Main method.
-    
+
     Char_t tmp[256];
-    
+
     // load CaLib
     gSystem->Load("libCaLib.so");
-    
+
     // general configuration
     Bool_t watch = kFALSE;
     const Char_t* data = "Data.TAPS.SG.E1";
@@ -176,15 +174,15 @@ void TAPSSG()
     //const Char_t calibration[] = "LD2_Feb_09";
     //const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/Feb_09/AR/out/ADC";
     //const Char_t* fLoc = "/Users/fulgur/Desktop/calib/Feb_09";
-    
+
     // configuration (May 2009)
-    const Char_t calibration[] = "LD2_May_09";
+    const Char_t calibration[] = "2014-07_EPT_Prod_Neiser_OldCluster";
     //const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/May_09/AR/out/ADC";
-    const Char_t* fLoc = "/Users/fulgur/Desktop/calib/May_09";
+    const Char_t* fLoc = "/w/work14/werthm/A2/Jul_14/presort/data/00";
 
     // get number of sets
     Int_t nSets = TCMySQLManager::GetManager()->GetNsets(data, calibration);
-    
+
     // file array
     gFiles = new TList();
     gFiles->SetOwner(kTRUE);
@@ -195,12 +193,12 @@ void TAPSSG()
         // get runs of set
         Int_t nRuns;
         Int_t* runs = TCMySQLManager::GetManager()->GetRunsOfSet(data, calibration, i, &nRuns);
-    
+
         // loop over runs
         for (Int_t j = 0; j < nRuns; j++)
         {
             // load ROOT file
-            sprintf(tmp, "%s/ARHistograms_CB_%d.root", fLoc, runs[j]);
+            sprintf(tmp, "%s/ARHistograms_CBTaggTAPS_%d.root", fLoc, runs[j]);
             TFile* f = new TFile(tmp);
 
             // check file
@@ -214,12 +212,12 @@ void TAPSSG()
         // clean-up
         delete runs;
     }
- 
+
     // check energy
     CheckEnergy(fLoc);
 
     printf("%d runs analyzed.\n", gFiles->GetSize());
-    
+
     // clean-up
     delete gFiles;
 

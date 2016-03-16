@@ -16,7 +16,7 @@ void WriteARCalibration()
 {
     // load CaLib
     gSystem->Load("libCaLib.so");
-    
+
     // write tagger calibration file
     TCWriteARCalib w(kDETECTOR_TAGG, "FP.dat");
     w.Write("new_FP.dat", "LD2_Dec_07", 13840);

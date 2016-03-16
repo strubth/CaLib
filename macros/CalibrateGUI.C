@@ -20,8 +20,7 @@ void* gCurrentModule;
 Bool_t gCalibSelected;
 ButtonWindow* gMainWindow;
 
-
-class ButtonWindow : public TGMainFrame 
+class ButtonWindow : public TGMainFrame
 {
 
 private:
@@ -55,25 +54,24 @@ public:
     void DoModulSelection(Int_t);
 };
 
-
 //______________________________________________________________________________
-ButtonWindow::ButtonWindow() 
+ButtonWindow::ButtonWindow()
     : TGMainFrame(gClient->GetRoot(), 600, 500)
 {
     // Main test window.
     SetWindowName("CaLib Control Panel");
-    
+
     // ---------------------------------------------------------------------------------
     TGGroupFrame* config_frame = new TGGroupFrame(this, "Calibration and set configuration", kHorizontalFrame);
     config_frame->SetTitlePos(TGGroupFrame::kLeft);
-    
+
     TGVerticalFrame* ver_frame_1 = new TGVerticalFrame(config_frame);
-    
+
     // calibration selection
     fCBox_Calibration = new TGComboBox(ver_frame_1, "Choose calibration");
     fCBox_Calibration->Resize(260, 25);
     ver_frame_1->AddFrame(fCBox_Calibration, new TGLayoutHints(kLHintsLeft, 0, 5, 10, 0));
-      
+
     // fill calibrations
     gCalibrations = TCMySQLManager::GetManager()->GetAllCalibrations();
     for (Int_t i = 0; i < gCalibrations->GetSize(); i++)
@@ -81,14 +79,14 @@ ButtonWindow::ButtonWindow()
         TObjString* s = (TObjString*) gCalibrations->At(i);
         fCBox_Calibration->AddEntry(s->GetString().Data(), i);
     }
-    
+
     fCBox_Calibration->Connect("Selected(Int_t)", "ButtonWindow", this, "EnableModuleSelection(Int_t)");
 
     // calibration module selection
     fCBox_Module = new TGComboBox(ver_frame_1, "Choose calibration module");
     fCBox_Module->Resize(260, 25);
     ver_frame_1->AddFrame(fCBox_Module, new TGLayoutHints(kLHintsLeft, 0, 5, 10, 0));
-  
+
     // fill modules
     for (Int_t i = 0; i < gCaLibModules->GetSize(); i++)
     {
@@ -97,26 +95,26 @@ ButtonWindow::ButtonWindow()
     }
 
     fCBox_Module->Connect("Selected(Int_t)", "ButtonWindow", this, "ReadRunsets(Int_t)");
-    
+
     config_frame->AddFrame(ver_frame_1, new TGLayoutHints(kLHintsFillX));
-    
+
     TGVerticalFrame* ver_frame_2 = new TGVerticalFrame(config_frame);
-    
+
     // runset selection
     fLB_RunSet = new TGListBox(ver_frame_2);
     fLB_RunSet->SetMultipleSelections(kTRUE);
     fLB_RunSet->Resize(120, 60);
     ver_frame_2->AddFrame(fLB_RunSet, new TGLayoutHints(kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 5, 0, 10, 0));
-    
+
     config_frame->AddFrame(ver_frame_2, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY));
     AddFrame(config_frame, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, 5, 5, 5, 5));
 
     // ---------------------------------------------------------------------------------
-    
+
     // control buttons
     TGGroupFrame* control_frame = new TGGroupFrame(this, "Calibration control", kHorizontalFrame);
     control_frame->SetTitlePos(TGGroupFrame::kLeft);
-    
+
     fTB_Init = new TGTextButton(control_frame, "Start module");
     ResizeFrame(fTB_Init);
     fTB_Init->Connect("Clicked()", "ButtonWindow", this, "StartModule()");
@@ -141,13 +139,13 @@ ButtonWindow::ButtonWindow()
     ResizeFrame(fTB_Quit);
     fTB_Quit->Connect("Clicked()", "ButtonWindow", this, "Quit()");
     control_frame->AddFrame(fTB_Quit, new TGLayoutHints(kLHintsExpandX, 0, 0, 10, 0));
-    
+
     AddFrame(control_frame, new TGLayoutHints(kLHintsExpandX, 5, 5, 0, 5));
 
     // ---------------------------------------------------------------------------------
-    
+
     TGHorizontalFrame* nav_main_frame = new TGHorizontalFrame(this);
-    
+
     // manual navigation
     TGGroupFrame* nav_man_frame = new TGGroupFrame(nav_main_frame, "Manual navigation", kHorizontalFrame);
     nav_man_frame->SetTitlePos(TGGroupFrame::kLeft);
@@ -157,13 +155,13 @@ ButtonWindow::ButtonWindow()
     fTB_Prev->SetToolTipText("Go to previous element", 200);
     fTB_Prev->Connect("Clicked()", "ButtonWindow", this, "DoPrev()");
     nav_man_frame->AddFrame(fTB_Prev, new TGLayoutHints(kLHintsLeft, 0, 0, 10, 0));
-    
+
     fTB_Next = new TGTextButton(nav_man_frame, "   Next   ");
     ResizeFrame(fTB_Next);
     fTB_Next->SetToolTipText("Go to next element", 200);
     fTB_Next->Connect("Clicked()", "ButtonWindow", this, "DoNext()");
     nav_man_frame->AddFrame(fTB_Next, new TGLayoutHints(kLHintsLeft, 0, 0, 10, 0));
-    
+
     fTB_Ignore = new TGTextButton(nav_man_frame, "   Ignore   ");
     ResizeFrame(fTB_Ignore);
     fTB_Ignore->SetToolTipText("Go to next element and ignore current one", 200);
@@ -175,12 +173,12 @@ ButtonWindow::ButtonWindow()
     fTB_Goto->SetToolTipText("Go to specified element", 200);
     fTB_Goto->Connect("Released()", "ButtonWindow", this, "Goto()");
     nav_man_frame->AddFrame(fTB_Goto, new TGLayoutHints(kLHintsLeft, 0, 0, 10, 0));
-    
+
     fNE_Elem = new TGNumberEntry(nav_man_frame, 0, 3, -1, TGNumberFormat::kNESInteger,
                       TGNumberFormat::kNEAAnyNumber, TGNumberFormat::kNELLimitMinMax, 0, 719);
     ResizeFrame(fNE_Elem);
     nav_man_frame->AddFrame(fNE_Elem, new TGLayoutHints(kLHintsLeft, 0, 0, 10, 0));
-    
+
     nav_main_frame->AddFrame(nav_man_frame, new TGLayoutHints(kLHintsExpandX, 0, 0, 0, 0));
 
     // automatic navigation
@@ -207,22 +205,22 @@ ButtonWindow::ButtonWindow()
     nav_main_frame->AddFrame(nav_auto_frame, new TGLayoutHints(kLHintsLeft, 5, 0, 0, 0));
 
     AddFrame(nav_main_frame, new TGLayoutHints(kLHintsExpandX, 5, 5, 0, 5));
-     
+
     // window configuration
     Connect("CloseWindow()", "ButtonWindow", this, "Quit()");
     DontCallClose();
-    
+
     // Map all subwindows of main frame
     MapSubwindows();
 
     // Initialize the layout algorithm
     Resize(GetDefaultSize());
-    
+
     // show window
     MapRaised();
 
     // move window
-    Move(gClient->GetDisplayWidth() - GetDefaultWidth(), 
+    Move(gClient->GetDisplayWidth() - GetDefaultWidth(),
          gClient->GetDisplayHeight() - GetDefaultHeight() - 30);
 }
 
@@ -242,7 +240,7 @@ void ButtonWindow::Goto()
 
     // get the element number
     Int_t n = fNE_Elem->GetNumber();
-  
+
     if (gCurrentModule)
         ((TCCalib*)gCurrentModule)->ProcessElement(n);
 }
@@ -251,7 +249,7 @@ void ButtonWindow::Goto()
 void ButtonWindow::DoPrev()
 {
     // Go to the previous element in the current module.
-    
+
     if (gCurrentModule)
         ((TCCalib*)gCurrentModule)->Previous();
 }
@@ -260,7 +258,7 @@ void ButtonWindow::DoPrev()
 void ButtonWindow::DoNext()
 {
     // Go to the next element in the current module.
-    
+
     if (gCurrentModule)
         ((TCCalib*)gCurrentModule)->Next();
 }
@@ -269,7 +267,7 @@ void ButtonWindow::DoNext()
 void ButtonWindow::DoIgnore()
 {
     // Go to the next element in the current module and ignore current one.
-    
+
     if (gCurrentModule)
         ((TCCalib*)gCurrentModule)->Ignore();
 }
@@ -287,7 +285,7 @@ void ButtonWindow::DoWrite()
 void ButtonWindow::Print()
 {
     // Print the values obtained by the current module.
-    
+
     if (gCurrentModule)
         ((TCCalib*)gCurrentModule)->PrintValues();
 }
@@ -296,7 +294,7 @@ void ButtonWindow::Print()
 void ButtonWindow::PrintChanges()
 {
     // Print the changed values obtained by the current module.
-    
+
     if (gCurrentModule)
         ((TCCalib*)gCurrentModule)->PrintValuesChanged();
 }
@@ -305,10 +303,10 @@ void ButtonWindow::PrintChanges()
 void ButtonWindow::Quit()
 {
     // Quit the application.
-    
+
     // delete list of modules
     delete gCaLibModules;
-    
+
     // quit ROOT
     gApplication->Terminate();
 }
@@ -319,7 +317,7 @@ void ButtonWindow::DoAll()
     // Process all elements automatically.
 
     Float_t delay = fNE_Delay->GetNumber();
-    
+
     if (gCurrentModule)
         ((TCCalib*)gCurrentModule)->ProcessAll(1000*delay);
 }
@@ -337,7 +335,7 @@ void ButtonWindow::Stop()
 void ButtonWindow::EnableModuleSelection(Int_t i)
 {
     // Enable the module selection.
-    
+
     gCalibSelected = kTRUE;
 }
 
@@ -346,7 +344,7 @@ void ButtonWindow::ReadRunsets(Int_t i)
 {
     // Read the runsets for the calibration data of the 'i'-th module
     // in the module selection combo box
-    
+
     // check if calibration was selected
     if (!gCalibSelected)
     {
@@ -362,16 +360,16 @@ void ButtonWindow::ReadRunsets(Int_t i)
     // get the calibration data of the module
     TCCalib* c = (TCCalib*) gCaLibModules->At(i);
     TString data = c->GetCalibData();
-    
+
     // get the number of runsets
     Int_t nsets = TCMySQLManager::GetManager()->GetNsets(data.Data(), calibration->GetString().Data());
-    
+
     // fill the runsets into the list
     fLB_RunSet->RemoveAll();
     for (Int_t i = 0; i < nsets; i++)
     {
         // get the first and last runs
-        Char_t ctime[256];    
+        Char_t ctime[256];
         Int_t first_run = TCMySQLManager::GetManager()->GetFirstRunOfSet(data.Data(), calibration->GetString().Data(), i);
         Int_t last_run = TCMySQLManager::GetManager()->GetLastRunOfSet(data.Data(), calibration->GetString().Data(), i);
         TCMySQLManager::GetManager()->GetChangeTimeOfSet(data.Data(), calibration->GetString().Data(), i, ctime);
@@ -382,7 +380,7 @@ void ButtonWindow::ReadRunsets(Int_t i)
         sprintf(tmp, "Set %d (Run %d to %d) of %s", i, first_run, last_run, ctime);
         fLB_RunSet->AddEntry(tmp, i);
     }
-    
+
     // update list box
     fLB_RunSet->Layout();
 }
@@ -401,7 +399,7 @@ void ButtonWindow::StartModule()
 
     // fill sets
     Int_t nSet = set_list.GetSize();
-    Int_t set[999];     
+    Int_t set[999];
     for (Int_t i = 0; i < nSet; i++)
     {
         TGLBEntry* e = (TGLBEntry*) set_list.At(i);
@@ -410,10 +408,10 @@ void ButtonWindow::StartModule()
 
     // get the calibration module
     gCurrentModule = (TCCalib*) gCaLibModules->At(module);
-    
+
     // get the selected calibration
     TObjString* calibration = (TObjString*) gCalibrations->At(fCBox_Calibration->GetSelected());
-    
+
     // start the module
     ((TCCalib*)gCurrentModule)->Start(calibration->GetString().Data(), nSet, set);
 }
@@ -422,7 +420,7 @@ void ButtonWindow::StartModule()
 void CreateModuleList()
 {
     // Find all calibration modules and create a list.
-    
+
     // create the module list
     gCaLibModules = new TList();
     gCaLibModules->SetOwner(kTRUE);
@@ -462,13 +460,13 @@ void CalibrateGUI()
 
     // load CaLib
     gSystem->Load("libCaLib.so");
-    
+
     // find CaLib modules
     CreateModuleList();
-    
+
     // no current module
     gCurrentModule = 0;
-    
+
     // calibration not yet selected
     gCalibSelected = kFALSE;
 

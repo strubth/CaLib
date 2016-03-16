@@ -19,12 +19,11 @@ TFile* gRFile;
 TF1* gFitFunc;
 TLine* gLine;
 
-
 //______________________________________________________________________________
 void Fit(Int_t run)
 {
     // Perform fit.
-    
+
     Char_t tmp[256];
 
     // delete old function
@@ -32,7 +31,7 @@ void Fit(Int_t run)
     sprintf(tmp, "fTime_%i", run);
     gFitFunc = new TF1(tmp, "gaus");
     gFitFunc->SetLineColor(2);
-    
+
     // estimate peak position
     Double_t fPi0Pos = gH->GetBinCenter(gH->GetMaximumBin());
 
@@ -41,12 +40,12 @@ void Fit(Int_t run)
     gFitFunc->SetLineColor(2);
     gFitFunc->SetParameters(gH->GetMaximum(), 0, 5);
     Int_t fitres = gH->Fit(gFitFunc, "RB0Q");
-    
+
     // get position
     fPi0Pos = gFitFunc->GetParameter(1);
 
     // check failed fits
-    if (fitres) 
+    if (fitres)
     {
         printf("Run %d: fit failed\n", run);
         return;
@@ -58,7 +57,7 @@ void Fit(Int_t run)
     gLine->SetY1(0);
     gLine->SetY2(gH->GetMaximum());
 
-    // draw 
+    // draw
     gCFit->cd();
     gH->GetXaxis()->SetRangeUser(-20, 20);
     gH->Draw();
@@ -74,12 +73,12 @@ void Fit(Int_t run)
 void VetoTime()
 {
     // Main method.
-    
+
     Char_t tmp[256];
-    
+
     // load CaLib
     gSystem->Load("libCaLib.so");
-    
+
     // general configuration
     Bool_t watch = kFALSE;
     const Char_t* data = "Data.Veto.T0";
@@ -94,7 +93,7 @@ void VetoTime()
     // configuration (February 2009)
     //const Char_t calibration[] = "LD2_Feb_09";
     //const Char_t* fLoc = "/usr/panther_scratch0/werthm/A2/Feb_09/AR/out/ADC";
-    
+
     // configuration (May 2009)
     //const Char_t calibration[] = "LD2_May_09";
     //const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/May_09/AR/out";
@@ -104,7 +103,7 @@ void VetoTime()
     TCanvas* cOverview = new TCanvas();
     gHOverview->GetYaxis()->SetRangeUser(yMin, yMax);
     gHOverview->Draw("E1");
-    
+
     // create line
     gLine = new TLine();
     gLine->SetLineColor(kBlue);
@@ -112,13 +111,13 @@ void VetoTime()
 
     // init fitting function
     gFitFunc = 0;
-    
+
     // create fitting canvas
     gCFit = new TCanvas();
-    
+
     // get number of sets
     Int_t nSets = TCMySQLManager::GetManager()->GetNsets(data, calibration);
-    
+
     // total number of runs
     Int_t nTotRuns = 0;
 
@@ -131,7 +130,7 @@ void VetoTime()
         // get runs of set
         Int_t nRuns;
         Int_t* runs = TCMySQLManager::GetManager()->GetRunsOfSet(data, calibration, i, &nRuns);
-    
+
         // loop over runs
         for (Int_t j = 0; j < nRuns; j++)
         {
@@ -166,7 +165,7 @@ void VetoTime()
 
             // fit the histogram
             Fit(runs[j]);
-            
+
             // update canvases and sleep
             if (watch)
             {
@@ -174,7 +173,7 @@ void VetoTime()
                 gCFit->Update();
                 gSystem->Sleep(100);
             }
-     
+
             // count run
             nTotRuns++;
         }
@@ -184,7 +183,7 @@ void VetoTime()
 
         // draw runset markers
         cOverview->cd();
-        
+
         // get first run of set
         Int_t frun = TCMySQLManager::GetManager()->GetFirstRunOfSet(data, calibration, i);
 
@@ -194,7 +193,7 @@ void VetoTime()
         aLine->SetLineWidth(2);
         aLine->Draw("same");
     }
-    
+
     // adjust axis
     gHOverview->GetXaxis()->SetRangeUser(first_run-10, last_run+10);
 

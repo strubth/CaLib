@@ -16,10 +16,10 @@ void Upgrade_3()
 {
     // load CaLib
     gSystem->Load("libCaLib.so");
-    
+
     // perform the database upgrade
     TCMySQLManager::GetManager()->UpgradeDatabase(3);
-    
+
     gSystem->Exit(0);
 }
 

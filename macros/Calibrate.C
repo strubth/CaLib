@@ -16,7 +16,7 @@ void Calibrate()
 {
     // load CaLib
     gSystem->Load("libCaLib.so");
- 
+
     // get the calibration module
     TCCalibVetoEnergy c;
     c.Start(Domi_Calib, 0);

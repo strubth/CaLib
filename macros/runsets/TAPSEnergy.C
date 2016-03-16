@@ -19,12 +19,11 @@ TFile* gRFile;
 TF1* gFitFunc;
 TLine* gLine;
 
-
 //______________________________________________________________________________
 void Fit(Int_t run)
 {
     // Perform fit.
-    
+
     Char_t tmp[256];
 
     // delete old function
@@ -32,24 +31,24 @@ void Fit(Int_t run)
     sprintf(tmp, "fEnergy_%i", run);
     gFitFunc = new TF1(tmp, "gaus(0)+pol3(3)");
     gFitFunc->SetLineColor(2);
-    
+
     // configure fitting function
     gFitFunc->SetRange(80, 180);
     gFitFunc->SetLineColor(2);
     gFitFunc->SetParameters(gH->GetMaximum(), 135, 10, 1, 1, 1, 0.1);
-    gFitFunc->SetParLimits(0, 0, 5000);  
-    gFitFunc->SetParLimits(1, 110, 130);  
+    gFitFunc->SetParLimits(0, 0, 5000);
+    gFitFunc->SetParLimits(1, 110, 130);
     gFitFunc->SetParLimits(2, 5, 10);
     Int_t fitres;
-    
+
     for (Int_t i = 0; i < 10; i++)
         if (!(fitres = gH->Fit(gFitFunc, "RBQ0"))) break;
-  
+
     // get position
     fPi0Pos = gFitFunc->GetParameter(1);
 
     // check failed fits
-    if (fitres) 
+    if (fitres)
     {
         printf("Run %d: fit failed\n", run);
         return;
@@ -61,7 +60,7 @@ void Fit(Int_t run)
     gLine->SetY1(0);
     gLine->SetY2(gH->GetMaximum());
 
-    // draw 
+    // draw
     gCFit->cd();
     gH->GetXaxis()->SetRangeUser(70, 200);
     gH->Draw();
@@ -77,12 +76,12 @@ void Fit(Int_t run)
 void TAPSEnergy()
 {
     // Main method.
-    
+
     Char_t tmp[256];
-    
+
     // load CaLib
     gSystem->Load("libCaLib.so");
-    
+
     // general configuration
     Bool_t watch = kFALSE;
     const Char_t* data = "Data.TAPS.LG.E1";
@@ -99,7 +98,7 @@ void TAPSEnergy()
     //const Char_t calibration[] = "LD2_Feb_09";
     //const Char_t* fLoc = "/usr/puma_scratch0/werthm/A2/Feb_09/AR/out";
     //const Char_t* fLoc = "/usr/cheetah_scratch0/kaeser/CaLib/Feb_09";
-    
+
     // configuration (May 2009)
     //const Char_t calibration[] = "LD2_May_09";
     //const Char_t* fLoc = "/usr/cheetah_scratch0/oberle/CaLib/May_09";
@@ -110,7 +109,7 @@ void TAPSEnergy()
     TCanvas* cOverview = new TCanvas();
     gHOverview->GetYaxis()->SetRangeUser(yMin, yMax);
     gHOverview->Draw("E1");
-    
+
     // create line
     gLine = new TLine();
     gLine->SetLineColor(kBlue);
@@ -118,13 +117,13 @@ void TAPSEnergy()
 
     // init fitting function
     gFitFunc = 0;
-    
+
     // create fitting canvas
     gCFit = new TCanvas();
-    
+
     // get number of sets
     Int_t nSets = TCMySQLManager::GetManager()->GetNsets(data, calibration);
-    
+
     // total number of runs
     Int_t nTotRuns = 0;
 
@@ -137,7 +136,7 @@ void TAPSEnergy()
         // get runs of set
         Int_t nRuns;
         Int_t* runs = TCMySQLManager::GetManager()->GetRunsOfSet(data, calibration, i, &nRuns);
-    
+
         // loop over runs
         for (Int_t j = 0; j < nRuns; j++)
         {
@@ -172,7 +171,7 @@ void TAPSEnergy()
 
             // fit the histogram
             Fit(runs[j]);
-            
+
             // update canvases and sleep
             if (watch)
             {
@@ -180,7 +179,7 @@ void TAPSEnergy()
                 gCFit->Update();
                 gSystem->Sleep(50);
             }
-     
+
             // count run
             nTotRuns++;
         }
@@ -190,7 +189,7 @@ void TAPSEnergy()
 
         // draw runset markers
         cOverview->cd();
-        
+
         // get first run of set
         Int_t frun = TCMySQLManager::GetManager()->GetFirstRunOfSet(data, calibration, i);
 
@@ -200,7 +199,7 @@ void TAPSEnergy()
         aLine->SetLineWidth(2);
         aLine->Draw("same");
     }
-    
+
     // adjust axis
     gHOverview->GetXaxis()->SetRangeUser(first_run-10, last_run+10);
 

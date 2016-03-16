@@ -17,10 +17,10 @@ void AddTable()
 {
     // load CaLib
     gSystem->Load("libCaLib.so");
- 
+
     // create a new data table for a datatype and a number of parameters
     TCMySQLManager::GetManager()->CreateDataTable("Data.Tagger.Eff", 352);
-     
+
     gSystem->Exit(0);
 }
 
