@@ -242,9 +242,9 @@ TH2D* TCARHistoLoader::CreateHistoOfProj(const Char_t* hname, const Char_t proja
 
             // get projection axis title
             Char_t axistitle[256];
-            if (isX) sprintf(axistitle, h->GetXaxis()->GetTitle());
-            if (isY) sprintf(axistitle, h->GetYaxis()->GetTitle());
-            if (isZ) sprintf(axistitle, h->GetZaxis()->GetTitle());
+            if (isX) strcpy(axistitle, h->GetXaxis()->GetTitle());
+            if (isY) strcpy(axistitle, h->GetYaxis()->GetTitle());
+            if (isZ) strcpy(axistitle, h->GetZaxis()->GetTitle());
 
             Char_t newtitle[256];
             sprintf(newtitle, "%s;%s;Run index", h->GetTitle(), axistitle);
