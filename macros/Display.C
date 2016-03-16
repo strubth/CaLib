@@ -19,8 +19,10 @@ void Display()
 
     // configuration
     const Int_t nSet = 1;
-    const Int_t nPar = 720;
-    const Char_t data[] = "Data.CB.Walk.Par0";
+    const Int_t nPar = 438;
+    const Char_t data[] = "Data.TAPS.T1";
+    //const Int_t nPar = 384;
+    //const Char_t data[] = "Data.Veto.T1";
     const Char_t calibration[] = "LH2_Jul_14";
 
     // data array
