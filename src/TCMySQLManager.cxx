@@ -551,7 +551,8 @@ Bool_t TCMySQLManager::SearchSetEntry(const Char_t* data, const Char_t* calibrat
     // get the data table
     if (!SearchTable(data, table))
     {
-        if (!fSilence) Error("SearchSetEntry", "No data table found!");
+        if (!fSilence) Error("SearchSetEntry", "No data table for '%s' in calibration '%s' found!",
+                                               data, calibration);
         return kFALSE;
     }
 
@@ -568,7 +569,8 @@ Bool_t TCMySQLManager::SearchSetEntry(const Char_t* data, const Char_t* calibrat
     // check result
     if (!res)
     {
-        if (!fSilence) Error("SearchSetEntry", "No runset %d found in table '%s'!", set, table);
+        if (!fSilence) Error("SearchSetEntry", "No runset %d found in table '%s' of '%s' in calibration '%s'!",
+                                               set, table, data, calibration);
         return kFALSE;
     }
 
@@ -578,7 +580,8 @@ Bool_t TCMySQLManager::SearchSetEntry(const Char_t* data, const Char_t* calibrat
     // check row
     if (!row)
     {
-        if (!fSilence) Error("SearchSetEntry", "No runset %d found in table '%s'!", set, table);
+        if (!fSilence) Error("SearchSetEntry", "No runset %d found in table '%s' of '%s' in calibration '%s'!",
+                                               set, table, data, calibration);
         return kFALSE;
     }
 
@@ -1157,14 +1160,23 @@ Bool_t TCMySQLManager::InitDatabase(Bool_t interact)
     // create the data tables
     TIter next(fData);
     TCCalibData* d;
+    Bool_t err = kFALSE;
     while ((d = (TCCalibData*)next()))
     {
         // create the data table
-        CreateDataTable(d->GetName(), d->GetSize());
+        if (!CreateDataTable(d->GetName(), d->GetSize()))
+            err = kTRUE;
     }
 
     // add MC run
     AddRunMC();
+
+    // check for errors
+    if (err)
+    {
+        if (!fSilence) Error("InitDatabase", "An error occurred during database initialization!");
+        return kFALSE;
+    }
 
     return kTRUE;
 }
@@ -2118,7 +2130,7 @@ void TCMySQLManager::CreateMainTable()
 }
 
 //______________________________________________________________________________
-void TCMySQLManager::CreateDataTable(const Char_t* data, Int_t nElem)
+Bool_t TCMySQLManager::CreateDataTable(const Char_t* data, Int_t nElem)
 {
     // Create the table for the calibration data 'data' for 'nElem' elements.
 
@@ -2128,7 +2140,7 @@ void TCMySQLManager::CreateDataTable(const Char_t* data, Int_t nElem)
     if (!SearchTable(data, table))
     {
         if (!fSilence) Error("CreateDataTable", "No data table found!");
-        return;
+        return kFALSE;
     }
 
     if (!fSilence) Info("CreateDataTable", "Adding data table '%s' for %d elements", table, nElem);
@@ -2152,7 +2164,11 @@ void TCMySQLManager::CreateDataTable(const Char_t* data, Int_t nElem)
     query.Append(" )");
 
     // submit the query
-    SendExec(query.Data());
+    if (!SendExec(query.Data()))
+    {
+        if (!fSilence) Error("CreateDataTable", "An error occurred during data table creation for '%s'!", data);
+        return kFALSE;
+    }
 
     // add timestamp update mechanism
     if (fDBType == kMySQL)
@@ -2177,6 +2193,8 @@ void TCMySQLManager::CreateDataTable(const Char_t* data, Int_t nElem)
                                  "END",
                                  table, table, table).Data());
     }
+
+    return kTRUE;
 }
 
 //______________________________________________________________________________
@@ -2422,9 +2440,14 @@ Bool_t TCMySQLManager::AddSet(const Char_t* type, const Char_t* calibration, con
 
     // get calibration type and data list
     TCCalibType* t = (TCCalibType*) fTypes->FindObject(type);
-    TList* data = t->GetData();
+    if (!t)
+    {
+        if (!fSilence) Error("AddSet", "No calibration data found for calibration type '%s'!", type);
+        return kFALSE;
+    }
 
     // loop over calibration data of this calibration type
+    TList* data = t->GetData();
     TIter next(data);
     TCCalibData* d;
     while ((d = (TCCalibData*)next()))

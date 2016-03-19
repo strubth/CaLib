@@ -86,7 +86,7 @@ public:
     THashList* GetTypeTable() const { return fTypes; }
 
     void CreateMainTable();
-    void CreateDataTable(const Char_t* data, Int_t nElem);
+    Bool_t CreateDataTable(const Char_t* data, Int_t nElem);
 
     TList* GetAllCalibrations(const Char_t* data = "Data.Tagger.T0");
     TList* GetAllTargets();
