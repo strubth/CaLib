@@ -1290,8 +1290,17 @@ Bool_t TCMySQLManager::AddNewDataTable(const Char_t* data)
 
     Char_t tmp[256];
 
-    // add data table
+    // get calibration data
     TCCalibData* d = (TCCalibData*)fData->FindObject(data);
+
+    // check if table exists already
+    if (SendExec(TString::Format("SELECT 1 from %s LIMIT 1", d->GetTableName())))
+    {
+        if (!fSilence) Error("AddNewDataTable", "Data table for '%s' exists already!", data);
+        return kFALSE;
+    }
+
+    // add data table
     if (CreateDataTable(d->GetName(), d->GetSize()))
     {
         if (!fSilence) Info("AddNewDataTable", "Added data table for '%s'", data);
@@ -1321,14 +1330,13 @@ Bool_t TCMySQLManager::AddNewDataTable(const Char_t* data)
     while ((s = (TObjString*)next()))
     {
         // get set configuration from the Data.Tagger.T0 data table
-        const Char_t* calib = s->GetString().Data();
-        GetDescriptionOfSet("Data.Tagger.T0", calib, 0, tmp);
-        Int_t first_run = GetFirstRunOfSet("Data.Tagger.T0", calib, 0);
-        Int_t last_run = GetLastRunOfSet("Data.Tagger.T0", calib, GetNsets("Data.Tagger.T0", calib)-1);
-        if (!fSilence) Info("AddNewDataTable", "Adding set [%d,%d] for calibration '%s'", first_run, last_run, calib);
+        GetDescriptionOfSet("Data.Tagger.T0", s->GetString().Data(), 0, tmp);
+        Int_t first_run = GetFirstRunOfSet("Data.Tagger.T0", s->GetString().Data(), 0);
+        Int_t last_run = GetLastRunOfSet("Data.Tagger.T0", s->GetString().Data(), GetNsets("Data.Tagger.T0", s->GetString().Data())-1);
+        if (!fSilence) Info("AddNewDataTable", "Adding set [%d,%d] for calibration '%s'", first_run, last_run, s->GetString().Data());
 
         // add set
-        if (!AddDataSet(data, calib, tmp, first_run, last_run, 0.0))
+        if (!AddDataSet(data, s->GetString().Data(), tmp, first_run, last_run, 0.0))
         {
             if (!fSilence) Error("AddNewDataTable", "Could not add set to data table '%s'!", data);
             ret = kFALSE;
