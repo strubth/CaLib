@@ -1175,37 +1175,6 @@ Bool_t TCMySQLManager::UpgradeDatabase(Int_t version)
     // Upgrade the CaLib database to version 'version'.
     // Return kTRUE on success, otherwise kFALSE.
 
-    // create queries (update only this part in the future)
-    Int_t nQuery = 0;
-    Char_t query[3][256];
-    switch (version)
-    {
-        // version 3:
-        // - add two columns in run_main for bad scaler reads
-        // - remove livetime table
-        case 3:
-        {
-            nQuery = 3;
-            strcpy(query[0], "ALTER TABLE run_main ADD scr_n INT DEFAULT -1 AFTER size");
-            strcpy(query[1], "ALTER TABLE run_main ADD scr_bad VARCHAR(512) AFTER scr_n");
-            strcpy(query[2], "DROP TABLE IF EXISTS livetime");
-            break;
-        }
-        // version 4:
-        // - change type of table scr_bad to TEXT
-        case 4:
-        {
-            nQuery = 1;
-            strcpy(query[0], "ALTER TABLE run_main MODIFY scr_bad TEXT");
-            break;
-        }
-        default:
-        {
-            Error("UpgradeDatabase", "Database upgrade to version %d not implemented!", version);
-            return kFALSE;
-        }
-    }
-
     // check server connection
     if (!IsConnected())
     {
@@ -1235,6 +1204,43 @@ Bool_t TCMySQLManager::UpgradeDatabase(Int_t version)
         return kFALSE;
     }
 
+    // create queries (update only this part in the future)
+    Int_t nQuery = 0;
+    Char_t query[3][256];
+    switch (version)
+    {
+        // version 3:
+        // - add two columns in run_main for bad scaler reads
+        // - remove livetime table
+        case 3:
+        {
+            nQuery = 3;
+            strcpy(query[0], "ALTER TABLE run_main ADD scr_n INT DEFAULT -1 AFTER size");
+            strcpy(query[1], "ALTER TABLE run_main ADD scr_bad VARCHAR(512) AFTER scr_n");
+            strcpy(query[2], "DROP TABLE IF EXISTS livetime");
+            break;
+        }
+        // version 4:
+        // - change type of table scr_bad to TEXT
+        // - add Data.Tagger.Pol data table
+        case 4:
+        {
+            nQuery = 1;
+            strcpy(query[0], "ALTER TABLE run_main MODIFY scr_bad TEXT");
+
+            // add Data.Tagger.Pol data table
+            if (!AddNewDataTable("Data.Tagger.Pol"))
+                Error("UpgradeDatabase", "Some errors occurred while adding data table for 'Data.Tagger.Pol'!");
+
+            break;
+        }
+        default:
+        {
+            Error("UpgradeDatabase", "Database upgrade to version %d not implemented!", version);
+            return kFALSE;
+        }
+    }
+
     // loop over queries
     Int_t queryOk = 0;
     for (Int_t i = 0; i < nQuery; i++)
@@ -1259,9 +1265,68 @@ Bool_t TCMySQLManager::UpgradeDatabase(Int_t version)
     }
     else
     {
-        Error("UpgradeDatabase", "Could not perform upgrade of database!");
+        Error("UpgradeDatabase", "Some errors occurred during database upgrade - please check the consistency of your database!");
         return kFALSE;
     }
+}
+
+//______________________________________________________________________________
+Bool_t TCMySQLManager::AddNewDataTable(const Char_t* data)
+{
+    // Add a new table for the calibration data 'data' to the database including
+    // a default calibration set for all calibrations found in the database.
+
+    Char_t tmp[256];
+
+    // add data table
+    TCCalibData* d = (TCCalibData*)fData->FindObject(data);
+    if (CreateDataTable(d->GetName(), d->GetSize()))
+    {
+        if (!fSilence) Info("AddNewDataTable", "Added data table for '%s'", data);
+    }
+    else
+    {
+        if (!fSilence) Error("AddNewDataTable", "Could not add data table for '%s'!", data);
+        return kFALSE;
+    }
+
+    //
+    // create default set for all calibrations
+    //
+
+    // get all calibrations
+    TList* list = GetAllCalibrations();
+    if (!list)
+    {
+        if (!fSilence) Warning("AddNewDataTable", "No default set added because no calibration was found!");
+        return kTRUE;
+    }
+
+    // loop over all calibrations
+    Bool_t ret = kTRUE;
+    TIter next(list);
+    TObjString* s;
+    while ((s = (TObjString*)next()))
+    {
+        // get set configuration from the Data.Tagger.T0 data table
+        const Char_t* calib = s->GetString().Data();
+        GetDescriptionOfSet("Data.Tagger.T0", calib, 0, tmp);
+        Int_t first_run = GetFirstRunOfSet("Data.Tagger.T0", calib, 0);
+        Int_t last_run = GetLastRunOfSet("Data.Tagger.T0", calib, GetNsets("Data.Tagger.T0", calib)-1);
+        if (!fSilence) Info("AddNewDataTable", "Adding set [%d,%d] for calibration '%s'", first_run, last_run, calib);
+
+        // add set
+        if (!AddDataSet(data, calib, tmp, first_run, last_run, 0.0))
+        {
+            if (!fSilence) Error("AddNewDataTable", "Could not add set to data table '%s'!", data);
+            ret = kFALSE;
+        }
+    }
+
+    // clean-up
+    delete list;
+
+    return ret;
 }
 
 //______________________________________________________________________________

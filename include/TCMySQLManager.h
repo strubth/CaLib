@@ -150,6 +150,7 @@ public:
 
     Bool_t InitDatabase(Bool_t interact = kTRUE);
     Bool_t UpgradeDatabase(Int_t version);
+    Bool_t AddNewDataTable(const Char_t* data);
 
     TCContainer* LoadContainer(const Char_t* filename);
 

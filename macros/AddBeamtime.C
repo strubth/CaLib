@@ -44,6 +44,10 @@ void AddBeamtime()
     TCMySQLManager::GetManager()->AddSet("Type.Tagger.Eff", calibName, calibDesc,
                                          firstRun, lastRun, 0);
 
+    // init beam polarization table
+    TCMySQLManager::GetManager()->AddSet("Type.Tagger.Pol", calibName, calibDesc,
+                                         firstRun, lastRun, 0);
+
     // read AcquRoot calibration of CB
     TCMySQLManager::GetManager()->AddCalibAR(kDETECTOR_CB, calibFileCB,
                                              calibName, calibDesc,
