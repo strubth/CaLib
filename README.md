@@ -51,15 +51,17 @@ and modify it according to your setup.
 
 ### Documentation
 
-The ROOT html documentation in htmldoc gives an overview of the 
-CaLib library and its classes.
-Further information and examples can be found in macros.
+The ROOT html documentation can be built by setting the cmake variable -DDOCS=ON.
+Located in the directory htmldoc it gives an overview of the CaLib library and 
+all of its classes.
+Further information and examples can be found in the macros directory.
 
 ### Changelog
 
 #### 0.3.0beta
 * added SQLite support
 * improved support for bad scaler reads
+* added data type for the beam polarization
 * use CMake building
 * bugfixes
 
