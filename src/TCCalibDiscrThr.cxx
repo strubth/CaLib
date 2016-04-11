@@ -221,38 +221,61 @@ void TCCalibDiscrThr::Fit(Int_t elem)
     {
         if (fFitHisto->GetEntries())
         {
-
             // derive histogram
             if (fDeriv) delete fDeriv;
             fDeriv = TCUtils::DeriveHistogram(fFitHisto);
             TCUtils::ZeroBins(fDeriv);
 
-            // exclude pedestal
-            if (fPed)
+            // clean-up
+            if (fFitFunc)
             {
-                Int_t lastBin = fDeriv->GetXaxis()->GetLast();
-                fDeriv->GetXaxis()->SetRangeUser(fPed[elem]+7, fDeriv->GetXaxis()->GetBinCenter(lastBin));
-                sprintf(tmp, "%s.Histo.Fit", GetName());
-                TCUtils::FormatHistogram(fFitHisto, tmp);
+                delete fFitFunc;
+                fFitFunc = 0;
             }
 
-            // get maximum
-            fThr = fDeriv->GetBinCenter(fDeriv->GetMaximumBin());
+            // check for TAPS PWO
+            if (this->InheritsFrom("TCCalibTAPSCFD") && TCUtils::IsTAPSPWO(elem, fNelem))
+            {
+                // look for first filled bin
+                for (Int_t i = 1; i <= fFitHisto->GetNbinsX(); i++)
+                {
+                    // check bin content
+                    if (fFitHisto->GetBinContent(i) > 0)
+                    {
+                        fThr = fFitHisto->GetBinCenter(i);
+                        fFitHisto->GetXaxis()->SetRangeUser(fThr-7, fThr+7);
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                // exclude pedestal
+                if (fPed)
+                {
+                    Int_t lastBin = fDeriv->GetXaxis()->GetLast();
+                    fDeriv->GetXaxis()->SetRangeUser(fPed[elem]+7, fDeriv->GetXaxis()->GetBinCenter(lastBin));
+                    sprintf(tmp, "%s.Histo.Fit", GetName());
+                    TCUtils::FormatHistogram(fFitHisto, tmp);
+                }
 
-            // create fitting function
-            if (fFitFunc) delete fFitFunc;
-            sprintf(tmp, "Fitfunc_%d", elem);
-            fFitFunc = new TF1(tmp, "gaus", fThr-8, fThr+8);
-            fFitFunc->SetLineColor(kRed);
-            fFitFunc->SetParameters(fDeriv->GetMaximum(), fThr, 1);
+                // get maximum
+                fThr = fDeriv->GetBinCenter(fDeriv->GetMaximumBin());
 
-            // fit
-            fDeriv->Fit(fFitFunc, "RBQ0");
-            fThr = fFitFunc->GetParameter(1);
+                // create fitting function
+                sprintf(tmp, "Fitfunc_%d", elem);
+                fFitFunc = new TF1(tmp, "gaus", fThr-8, fThr+8);
+                fFitFunc->SetLineColor(kRed);
+                fFitFunc->SetParameters(fDeriv->GetMaximum(), fThr, 1);
 
-            // correct bad position
-            if (fThr < fDeriv->GetXaxis()->GetXmin() || fThr > fDeriv->GetXaxis()->GetXmax())
-                fThr = 0.5 * (fDeriv->GetXaxis()->GetXmin() + fDeriv->GetXaxis()->GetXmax());
+                // fit
+                fDeriv->Fit(fFitFunc, "RBQ0");
+                fThr = fFitFunc->GetParameter(1);
+
+                // correct bad position
+                if (fThr < fDeriv->GetXaxis()->GetXmin() || fThr > fDeriv->GetXaxis()->GetXmax())
+                    fThr = 0.5 * (fDeriv->GetXaxis()->GetXmin() + fDeriv->GetXaxis()->GetXmax());
+            }
 
             // draw histogram
             fCanvasFit->cd(2);
@@ -263,7 +286,7 @@ void TCCalibDiscrThr::Fit(Int_t elem)
             fDeriv->Draw("hist");
 
             // draw function
-            fFitFunc->Draw("same");
+            if (fFitFunc) fFitFunc->Draw("same");
 
             // draw indicator line
             fLine->Draw();
