@@ -329,6 +329,38 @@ Int_t TCUtils::GetTAPSRing(Int_t id, Int_t maxTAPS)
 }
 
 //______________________________________________________________________________
+Bool_t TCUtils::IsTAPSPWO(Int_t id, Int_t maxTAPS)
+{
+    // Return kTRUE if the element 'id' belongs to the PWO rings of TAPS
+    // depending on the TAPS setup configured by the number of
+    // TAPS elements 'maxTAPS', otherwise return kFALSE.
+
+    // check TAPS setup
+    switch (maxTAPS)
+    {
+        case 384:
+        {
+            return kFALSE;
+        }
+        case 402:
+        {
+            if (GetTAPSRing(id, maxTAPS) == 1) return kTRUE;
+            else return kFALSE;
+        }
+        case 438:
+        {
+            if (GetTAPSRing(id, maxTAPS) <= 2) return kTRUE;
+            else return kFALSE;
+        }
+        default:
+        {
+            ::Error("IsTAPSPWO", "TAPS type could not be identified!");
+            return kFALSE;
+        }
+    }
+}
+
+//______________________________________________________________________________
 Double_t TCUtils::GetDiffPercent(Double_t oldValue, Double_t newValue)
 {
     // Return the relative difference in percent between 'oldValue' and 'newValue'.
