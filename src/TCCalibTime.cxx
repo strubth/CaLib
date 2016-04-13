@@ -262,8 +262,12 @@ void TCCalibTime::Calculate(Int_t elem)
         if (fLine->GetX1() != fMean) fMean = fLine->GetX1();
 
         // calculate the new offset
-        if (this->InheritsFrom("TCCalibCBRiseTime")) fNewVal[elem] = fOldVal[elem] + fMean;
-        else fNewVal[elem] = fOldVal[elem] + fMean / fTimeGain[elem];
+        if (this->InheritsFrom("TCCalibCBRiseTime"))
+            fNewVal[elem] = fOldVal[elem] + fMean;
+        else if (this->InheritsFrom("TCCalibTAPSTime") && TCUtils::IsTAPSPWO(elem, fNelem))
+            fNewVal[elem] = fOldVal[elem] - fConvergenceFactor * fMean / fTimeGain[elem];
+        else
+            fNewVal[elem] = fOldVal[elem] + fConvergenceFactor * fMean / fTimeGain[elem];
 
         // update overview histogram
         fOverviewHisto->SetBinContent(elem + 1, fMean);
