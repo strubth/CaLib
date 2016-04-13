@@ -72,6 +72,13 @@ void TCCalib::Start(const Char_t* calibration, Int_t nSet, Int_t* set)
     fAvrDiff = 0;
     fNcalc = 0;
 
+    // read the convergence factor
+    Char_t tmp[256];
+    sprintf(tmp, "%s.ConvergenceFactor", GetName());
+    fConvergenceFactor = TCReadConfig::GetReader()->GetConfigDouble(tmp);
+    if (fConvergenceFactor == 0) fConvergenceFactor = 1;
+    Info("Start", "Using a convergence factor of %f", fConvergenceFactor);
+
     // create timer
     fTimer = new TTimer(100);
     fTimer->Connect("Timeout()", "TCCalib", this, "Next()");
