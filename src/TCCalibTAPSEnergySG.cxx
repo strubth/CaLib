@@ -169,6 +169,13 @@ void TCCalibTAPSEnergySG::Fit(Int_t elem)
         return;
     }
 
+    // skip PWOs
+    if (TCUtils::IsTAPSPWO(elem, fNelem))
+    {
+        Info("Fit", "Skipping PWO element %d", elem);
+        return;
+    }
+
     // draw main histogram
     fCanvasFit->cd(1);
     TCUtils::FormatHistogram(fMainHisto, "TAPS.Energy.SG.Histo.Fit");
@@ -339,6 +346,9 @@ void TCCalibTAPSEnergySG::Calculate(Int_t elem)
     // Calculate the new value of the element 'elem'.
 
     Bool_t unchanged = kFALSE;
+
+    // skip PWOs
+    if (TCUtils::IsTAPSPWO(elem, fNelem)) return;
 
     // check if fit was performed
     if (fMainHisto->GetEntries())
