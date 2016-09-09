@@ -72,6 +72,8 @@ protected:
     TCanvas* fCanvasMain;               //         main canvas
     TCanvas* fCanvasOverview;           //         overview canvas
 
+    const Char_t* fCalibMethod;         //         automatic calibration method name
+
     //---------------------------- member methods ------------------------------
 
     void SetBadScalerReads(Int_t bscr1, Int_t bscr2);
@@ -79,6 +81,8 @@ protected:
 
     inline Bool_t IsGood() { return (Bool_t) fMainHistos[fIndex]; };
     void ChangeInterval(Int_t i);
+
+    void CalibMethodDefault();
 
     void UpdateOverviewHisto();
 
@@ -110,7 +114,8 @@ public:
         fLastReadMarker(0),
         fRunMarker(0),
         fLastMouseBin(0), fUserInterval(100), fUserLastInterval(1),
-        fCanvasMain(0), fCanvasOverview(0) { };
+        fCanvasMain(0), fCanvasOverview(0),
+        fCalibMethod(0) { }
     TCCalibRunBadScR(const Char_t* name, const Char_t* title, const Char_t* data, Bool_t istruecalib)
       : TCCalibRun(name, title, data, istruecalib),
         fMainHistoName(0), fScalerHistoName(0),
@@ -125,7 +130,8 @@ public:
         fLastReadMarker(0),
         fRunMarker(0),
         fLastMouseBin(0), fUserInterval(100), fUserLastInterval(1),
-        fCanvasMain(0), fCanvasOverview(0) { };
+        fCanvasMain(0), fCanvasOverview(0),
+        fCalibMethod(0) { }
     virtual ~TCCalibRunBadScR();
 
     virtual Bool_t Write();

@@ -155,6 +155,16 @@ Bool_t TCCalibRunBadScR::SetConfig()
     if (TCReadConfig::GetReader()->GetConfig(tmp))
         fUserInterval = TCReadConfig::GetReader()->GetConfigInt(tmp);
 
+    // select calibration methode
+    sprintf(tmp, "BadScR.CalibMethod");
+    if (!TCReadConfig::GetReader()->GetConfig(tmp))
+        Info("Start", "No calibration method found.");
+    else
+    {
+        fCalibMethod = TCReadConfig::GetReader()->GetConfig(tmp)->Data();
+        Info("Start", "Using calibration method '%s'.", fCalibMethod);
+    }
+
     return kTRUE;
 }
 
@@ -517,62 +527,15 @@ void TCCalibRunBadScR::ProcessCurr()
 {
     // Preforms the current run indexed by 'fIndex'.
 
-    // nothing to do here so far.
-    return;
-
     // check for valid run
-    if (!IsGood()) return;
+    if (!IsGood() || !fCalibMethod) return;
 
-    // it follows some test code for automatic calibration ... to be finished...
+    // default calibration
+    if (strcmp(fCalibMethod, "default") == 0)
+        CalibMethodDefault();
 
-    //
-    Int_t ngood = fBadScRCurr->GetNElem() - fBadScRCurr->GetNBad();
-    Double_t mean = 0;
-    for (Int_t i = 0; i < fBadScRCurr->GetNElem(); i++)
-    {
-        // add up values for good scr
-        if (!fBadScRCurr->IsBad(i))
-            mean += fProjHistos[fIndex]->GetBinContent(i+1);
-    }
-    mean /= ngood;
-
-    //
-    while (kTRUE)
-    {
-        Int_t scr = -1;
-        Double_t value = mean;
-
-        // loop over scaler reads
-        for (Int_t i = 0; i < fBadScRCurr->GetNElem(); i++)
-        {
-
-            // continue if already bad
-            if (fBadScRCurr->IsBad(i)) continue;
-
-            // look for smaler bin value
-            if (fProjHistos[fIndex]->GetBinContent(i+1) < value)
-            {
-                scr = i;
-                value = fProjHistos[fIndex]->GetBinContent(i+1);
-            }
-
-        }
-
-        // check tolerance
-        if (scr >= 0 && value < mean *0.9)
-        {
-            // set bad scaler read
-            SetBadScalerRead(scr);
-
-            // update
-            mean = (mean*ngood - fProjHistos[fIndex]->GetBinContent(scr+1))/(ngood-1);
-            ngood--;
-        }
-        else
-        {
-            break;
-        }
-    }
+    // update overview histo
+    UpdateOverviewHisto();
 }
 
 //______________________________________________________________________________
@@ -1044,3 +1007,99 @@ void TCCalibRunBadScR::EventHandler(Int_t event, Int_t ox, Int_t oy, TObject* se
     }
 }
 
+
+//______________________________________________________________________________
+void TCCalibRunBadScR::CalibMethodDefault()
+{
+    // Rejects iteratively all scaler read intervals for which the
+    // projection of the main histogram differs more than 10% form the mean
+    // value of good scaler reads.
+
+    // calculate mean value of good scaler reads
+    Double_t mean = 0.;
+    for (Int_t i = 0; i < fBadScRCurr->GetNElem(); i++)
+    {
+        if (fBadScRCurr->IsBad(i)) continue;
+
+        // check for empty bin
+        if (fProjHistos[fIndex]->GetBinContent(i+1) == 0.)
+        {
+            // reject empty bins
+            SetBadScalerRead(i);
+            continue;
+        }
+
+        // add up values for good scr
+        mean += fProjHistos[fIndex]->GetBinContent(i+1);
+    }
+
+    // number of scaler reads
+    Int_t ngood = fBadScRCurr->GetNElem() - fBadScRCurr->GetNBad();
+
+    // calc mean
+    mean /= ngood;
+
+    for (Int_t i = 0; i < fBadScRCurr->GetNElem(); i++)
+    {
+        if (fBadScRCurr->IsBad(i)) continue;
+
+        // check for small entry
+        if (fProjHistos[fIndex]->GetBinContent(i+1) < mean/100.)
+        {
+            // reject small bin
+            SetBadScalerRead(i);
+
+            // update mean
+            mean = (mean*ngood - fProjHistos[fIndex]->GetBinContent(i+1))/(ngood-1);
+
+            // decrement no. of good scaler reads
+            ngood--;
+        }
+    }
+
+    // iterate
+    while (ngood > 0)
+    {
+        // init scaler read
+        Int_t scr = -1;
+
+        // init maximal difference to mean value
+        Double_t maxdiff = 0;
+
+        // loop over scaler reads
+        for (Int_t i = 0; i < fBadScRCurr->GetNElem(); i++)
+        {
+            // continue if already bad
+            if (fBadScRCurr->IsBad(i)) continue;
+
+            // calc deviation
+            Double_t diff = TMath::Abs(mean - fProjHistos[fIndex]->GetBinContent(i+1));
+
+            // look for higher deviation from mean value
+            if (diff > maxdiff)
+            {
+                // update
+                scr = i;
+                maxdiff = diff;
+            }
+        }
+
+        // check for success
+        if (scr == -1) break;
+
+        // check tolerance
+        if (maxdiff < mean * 0.1) break;
+
+        // set bad scaler read
+        SetBadScalerRead(scr);
+
+        // update mean
+        mean = (mean*ngood - fProjHistos[fIndex]->GetBinContent(scr+1))/(ngood-1);
+
+        // decrement no. of good scaler reads
+        ngood--;
+
+    } // iterate
+}
+
+// finito
