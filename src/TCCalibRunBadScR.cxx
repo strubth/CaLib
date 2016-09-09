@@ -109,7 +109,9 @@ Bool_t TCCalibRunBadScR::SetConfig()
 
     // get main histogram name
     sprintf(tmp, "%s.Histo.Main.Name", GetName());
-    if (!(fMainHistoName = TCReadConfig::GetReader()->GetConfig(tmp)->Data()))
+    if (TCReadConfig::GetReader()->GetConfig(tmp))
+        fMainHistoName = TCReadConfig::GetReader()->GetConfig(tmp)->Data();
+    else
     {
         Error("Start", "Main histo was not found in configuration!");
         return kFALSE;
@@ -117,17 +119,18 @@ Bool_t TCCalibRunBadScR::SetConfig()
 
     // get scaler histogram name
     sprintf(tmp, "BadScR.Histo.Scaler.Name");
-    if (!(fScalerHistoName = TCReadConfig::GetReader()->GetConfig(tmp)->Data()))
+    if (TCReadConfig::GetReader()->GetConfig(tmp))
+        fScalerHistoName = TCReadConfig::GetReader()->GetConfig(tmp)->Data();
+    else
     {
-        Error("Start", "Scaler histo was not found in configuration!");
-        return kFALSE;
+        Warning("Start", "Scaler histo was not found in configuration!");
     }
 
     // get P2 scaler number
     sprintf(tmp, "BadScR.Scaler.P2");
     if (!TCReadConfig::GetReader()->GetConfig(tmp))
     {
-        Error("Start", "P2 scaler was not found in configuration!");
+        Warning("Start", "P2 scaler was not found in configuration!");
     }
     else fScP2 = TCReadConfig::GetReader()->GetConfigInt(tmp);
 
@@ -135,7 +138,7 @@ Bool_t TCCalibRunBadScR::SetConfig()
     sprintf(tmp, "BadScR.Scaler.Free");
     if (!TCReadConfig::GetReader()->GetConfig(tmp))
     {
-        Error("Start", "Free scaler was not found in configuration!");
+        Warning("Start", "Free scaler was not found in configuration!");
     }
     else fScFree = TCReadConfig::GetReader()->GetConfigInt(tmp);
 
@@ -143,7 +146,7 @@ Bool_t TCCalibRunBadScR::SetConfig()
     sprintf(tmp, "BadScR.Scaler.Live");
     if (!TCReadConfig::GetReader()->GetConfig(tmp))
     {
-        Error("Start", "Live scaler was not found in configuration!");
+        Warning("Start", "Live scaler was not found in configuration!");
     }
     else fScLive = TCReadConfig::GetReader()->GetConfigInt(tmp);
 
@@ -210,7 +213,7 @@ Bool_t TCCalibRunBadScR::Init()
     Info("Init", "Loading scaler histograms...");
 
     // load scaler histograms
-    if (!(fScalerHistos = (TH2**) rhl.CreateHistoArray(fScalerHistoName)))
+    if (!fScalerHistoName || !(fScalerHistos = (TH2**) rhl.CreateHistoArray(fScalerHistoName)))
     {
         Warning("Init", "Could not load any scaler histograms named '%s'!", fScalerHistoName);
         Warning("Init", "Histograms will not be normalized!");
