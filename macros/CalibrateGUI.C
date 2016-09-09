@@ -27,6 +27,7 @@ private:
     TGTextButton* fTB_Init;
     TGTextButton* fTB_Prev;
     TGTextButton* fTB_Next;
+    TGTextButton* fTB_ReFit;
     TGTextButton* fTB_Ignore;
     TGTextButton* fTB_Print;
     TGTextButton* fTB_PrintChanges;
@@ -48,6 +49,7 @@ public:
     void ResizeFrame(TGFrame* f);
     void Goto();
     void DoNext();
+    void DoReFit();
     void DoIgnore();
     void DoPrev();
     void DoAll();
@@ -168,6 +170,12 @@ ButtonWindow::ButtonWindow()
     fTB_Ignore->Connect("Clicked()", "ButtonWindow", this, "DoIgnore()");
     nav_man_frame->AddFrame(fTB_Ignore, new TGLayoutHints(kLHintsLeft, 0, 20, 10, 0));
 
+    fTB_ReFit = new TGTextButton(nav_man_frame, "   (Re)Fit   ");
+    ResizeFrame(fTB_ReFit);
+    fTB_ReFit->SetToolTipText("(Re-)Fit current element", 200);
+    fTB_ReFit->Connect("Clicked()", "ButtonWindow", this, "DoReFit()");
+    nav_man_frame->AddFrame(fTB_ReFit, new TGLayoutHints(kLHintsLeft, 0, 0, 10, 0));
+
     fTB_Goto = new TGTextButton(nav_man_frame, "Go to");
     ResizeFrame(fTB_Goto);
     fTB_Goto->SetToolTipText("Go to specified element", 200);
@@ -261,6 +269,15 @@ void ButtonWindow::DoNext()
 
     if (gCurrentModule)
         ((TCCalib*)gCurrentModule)->Next();
+}
+
+//______________________________________________________________________________
+void ButtonWindow::DoReFit()
+{
+    // Go to the next element in the current module.
+    
+    if (gCurrentModule)
+        ((TCCalib*)gCurrentModule)->ReFit();
 }
 
 //______________________________________________________________________________

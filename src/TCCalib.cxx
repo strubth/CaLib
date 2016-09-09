@@ -239,6 +239,21 @@ void TCCalib::Next()
 }
 
 //______________________________________________________________________________
+void TCCalib::ReFit()
+{
+    // Perform the fit of the current element 'fCurrentElem', but with the
+    // 'fIsReFit' flag set.
+
+    // set re-fit flag
+    fIsReFit = kTRUE;
+
+    // do fit
+    Fit(fCurrentElem);
+
+    // unset re-fit flag
+    fIsReFit = kFALSE;
+}
+//______________________________________________________________________________
 void TCCalib::Ignore()
 {
     // Process the next element while skipping the calculation of the previous

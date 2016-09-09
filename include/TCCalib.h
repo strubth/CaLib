@@ -50,6 +50,8 @@ protected:
     TTimer* fTimer;                 // slow-motion timer
     Bool_t fTimerRunning;           // timer running state
 
+    Bool_t fIsReFit;                // re-fit flag
+
     virtual void Init() = 0;
     virtual void Fit(Int_t elem) = 0;
     virtual void Calculate(Int_t elem) = 0;
@@ -67,7 +69,8 @@ public:
                 fMainHisto(0), fFitHisto(0), fFitFunc(0),
                 fOverviewHisto(0),
                 fCanvasFit(0), fCanvasResult(0),
-                fTimer(0), fTimerRunning(kFALSE) { }
+                fTimer(0), fTimerRunning(kFALSE),
+                fIsReFit(kFALSE) { }
     TCCalib(const Char_t* name, const Char_t* title,
             const Char_t* data, Int_t nElem)
         : TNamed(name, title),
@@ -80,7 +83,8 @@ public:
           fMainHisto(0), fFitHisto(0), fFitFunc(0),
           fOverviewHisto(0),
           fCanvasFit(0), fCanvasResult(0),
-          fTimer(0), fTimerRunning(kFALSE) { }
+          fTimer(0), fTimerRunning(kFALSE),
+          fIsReFit(kFALSE) { }
     virtual ~TCCalib();
 
     virtual void WriteValues();
@@ -92,6 +96,7 @@ public:
     void ProcessElement(Int_t elem, Bool_t ignorePrev = kFALSE);
     void Previous();
     void Next();
+    virtual void ReFit();
     void Ignore();
     void StopProcessing();
 
