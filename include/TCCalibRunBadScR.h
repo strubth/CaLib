@@ -40,7 +40,9 @@ protected:
     TH1** fProjHistos;                  //[fNRuns] array of pointers to projected main histos
     TH1** fProjNormHistos;              //[fNRuns] array of pointers to projected, normalized main histos
 
-    TH2** fScalerHistos;                //[fNRuns] array of pointers to the run's scaler histo ...
+    TH1** fScalerLiveHistos;            //[fNRuns] array of pointers to the run's scaler histo ...
+    TH1** fScalerFreeHistos;            //[fNRuns] array of pointers to the run's scaler histo ...
+    TH1** fScalerP2Histos;              //[fNRuns] array of pointers to the run's scaler histo ...
                                         //         ... (scalers vs. scaler reads)
     TH2* fEmptyMainHisto;               //         empty main histo (dummy)
     TH1* fEmptyProjHisto;               //         empty projected main histo (dummy)
@@ -103,7 +105,8 @@ public:
     TCCalibRunBadScR()
       : TCCalibRun(),
         fMainHistoName(0), fScalerHistoName(0),
-        fMainHistos(0), fProjHistos(0), fProjNormHistos(0),fScalerHistos(0),
+        fMainHistos(0), fProjHistos(0), fProjNormHistos(0),
+        fScalerP2Histos(0), fScalerLiveHistos(), fScalerFreeHistos(0),
         fEmptyMainHisto(0), fEmptyProjHisto(0), fEmptyProjNormHisto(0),
         fOverviewHisto(0), fOverviewNormHisto(0),
         fScP2(-1), fScFree(-1), fScLive(-1),
@@ -119,7 +122,8 @@ public:
     TCCalibRunBadScR(const Char_t* name, const Char_t* title, const Char_t* data, Bool_t istruecalib)
       : TCCalibRun(name, title, data, istruecalib),
         fMainHistoName(0), fScalerHistoName(0),
-        fMainHistos(0), fProjHistos(0), fProjNormHistos(0), fScalerHistos(0),
+        fMainHistos(0), fProjHistos(0), fProjNormHistos(0),
+        fScalerP2Histos(0), fScalerLiveHistos(), fScalerFreeHistos(0),
         fEmptyMainHisto(0), fEmptyProjHisto(0), fEmptyProjNormHisto(0),
         fOverviewHisto(0), fOverviewNormHisto(0),
         fScP2(-1), fScFree(-1), fScLive(-1),
