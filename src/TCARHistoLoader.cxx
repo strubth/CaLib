@@ -182,6 +182,7 @@ TH1** TCARHistoLoader::GetHistos(const TFile* f, const Char_t* hpatt, Int_t& nhi
 
     // get list of histos
     TList* list = f->GetListOfKeys();
+    list->Sort();
 
     // get maximal number of histograms
     Int_t nmaxhistos = list->GetSize();;
@@ -645,7 +646,6 @@ TH1** TCARHistoLoader::CreateHistoArrayOfProj(const Char_t* hname, const Char_t 
                 if (isX) lastbin1 = ((TH2*) h)->GetNbinsY();
                 if (isY) lastbin1 = ((TH2*) h)->GetNbinsX();
             }
-
             if      (isX) hp = (TH1D*) ((TH2*) h)->ProjectionX(hpname, fbin1, lastbin1, option);
             else if (isY) hp = (TH1D*) ((TH2*) h)->ProjectionY(hpname, fbin1, lastbin1, option);
             else
@@ -674,10 +674,9 @@ TH1** TCARHistoLoader::CreateHistoArrayOfProj(const Char_t* hname, const Char_t 
             if (isX) hp = (TH1D*) ((TH3*) h)->ProjectionX(hpname, fbin1, lastbin1, fbin2, lastbin2, option);
             if (isY) hp = (TH1D*) ((TH3*) h)->ProjectionY(hpname, fbin1, lastbin1, fbin2, lastbin2, option);
             if (isZ) hp = (TH1D*) ((TH3*) h)->ProjectionZ(hpname, fbin1, lastbin1, fbin2, lastbin2, option);
-        }
+        } // end if dimension 1,2 or 3
 
         TH1::AddDirectory(status);
-
 
         // set directory
         if (TH1::AddDirectoryStatus())
@@ -691,7 +690,8 @@ TH1** TCARHistoLoader::CreateHistoArrayOfProj(const Char_t* hname, const Char_t 
 
         // clean up (except for ProjectionX of 1D histogramm)
         if (h != hp) delete h;
-    }
+
+    } // end loop over runs
 
     // reset output array if no histogram was loaded
     if (!isFound)
