@@ -25,12 +25,16 @@ class TH1;
 class TH2;
 class TCanvas;
 class TCBadScRElement;
+class TCARHistoLoader;
 
 class TCCalibRunBadScR : public TCCalibRun
 {
 
 protected:
     //----------------------------- data members -------------------------------
+
+    TCARHistoLoader* fHistoLoader;      //         histo loader
+    Bool_t fLoadHistosInAdvance;        //         load histos in advance (and keep in memory)
 
     const Char_t* fMainHistoName;       //         name of main histo
     const Char_t* fScalerHistoName;     //         name of scaler histo
@@ -78,6 +82,11 @@ protected:
 
     //---------------------------- member methods ------------------------------
 
+    void CleanUp();
+    void LoadHistos(Int_t i);
+    void LoadScalerHistos(Int_t i);
+    void NormalizeHisto(Int_t i);
+
     void SetBadScalerReads(Int_t bscr1, Int_t bscr2);
     void SetBadScalerRead(Int_t bscr);
 
@@ -104,6 +113,7 @@ protected:
 public:
     TCCalibRunBadScR()
       : TCCalibRun(),
+        fHistoLoader(0), fLoadHistosInAdvance(kTRUE),
         fMainHistoName(0), fScalerHistoName(0),
         fMainHistos(0), fProjHistos(0), fProjNormHistos(0),
         fScalerP2Histos(0), fScalerLiveHistos(), fScalerFreeHistos(0),
@@ -121,6 +131,7 @@ public:
         fCalibMethod(0) { }
     TCCalibRunBadScR(const Char_t* name, const Char_t* title, const Char_t* data, Bool_t istruecalib)
       : TCCalibRun(name, title, data, istruecalib),
+        fHistoLoader(0), fLoadHistosInAdvance(kTRUE),
         fMainHistoName(0), fScalerHistoName(0),
         fMainHistos(0), fProjHistos(0), fProjNormHistos(0),
         fScalerP2Histos(0), fScalerLiveHistos(), fScalerFreeHistos(0),

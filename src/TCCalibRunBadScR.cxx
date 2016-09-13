@@ -39,58 +39,7 @@ TCCalibRunBadScR::~TCCalibRunBadScR()
 
     // not owned by this class: fMainHistoName, fScalerHistoName
 
-    if (fMainHistos)
-    {
-        for (Int_t i = 0; i < fNRuns; i++)
-            if (fMainHistos[i]) delete fMainHistos[i];
-        delete [] fMainHistos;
-    }
-    if (fProjHistos)
-    {
-        for (Int_t i = 0; i < fNRuns; i++)
-            if (fProjHistos[i]) delete fProjHistos[i];
-        delete [] fProjHistos;
-    }
-    if (fProjNormHistos)
-    {
-        for (Int_t i = 0; i < fNRuns; i++)
-            if (fProjNormHistos[i]) delete fProjNormHistos[i];
-        delete [] fProjNormHistos;
-    }
-    if (fScalerP2Histos)
-    {
-        for (Int_t i = 0; i < fNRuns; i++)
-            if (fScalerP2Histos[i]) delete fScalerP2Histos[i];
-        delete [] fScalerP2Histos;
-    }
-    if (fScalerLiveHistos)
-    {
-        for (Int_t i = 0; i < fNRuns; i++)
-            if (fScalerLiveHistos[i]) delete fScalerLiveHistos[i];
-        delete [] fScalerLiveHistos;
-    }
-    if (fScalerFreeHistos)
-    {
-        for (Int_t i = 0; i < fNRuns; i++)
-            if (fScalerFreeHistos[i]) delete fScalerFreeHistos[i];
-        delete [] fScalerFreeHistos;
-    }
-
-    if (fOverviewHisto) delete fOverviewHisto;
-    if (fOverviewNormHisto) delete fOverviewNormHisto;
-
-    if (fBadScROld)
-    {
-        for (Int_t i = 0; i < fNRuns; i++)
-            if (fBadScROld[i]) delete fBadScROld[i];
-        delete [] fBadScROld;
-    }
-    if (fBadScRNew)
-    {
-        for (Int_t i = 0; i < fNRuns; i++)
-            if (fBadScRNew[i]) delete fBadScRNew[i];
-        delete [] fBadScRNew;
-    }
+    CleanUp();
 
     if (fBadScRCurrBox)
     {
@@ -106,6 +55,86 @@ TCCalibRunBadScR::~TCCalibRunBadScR()
 
     if (fCanvasMain) delete fCanvasMain;
     if (fCanvasOverview) delete fCanvasOverview;
+}
+
+//______________________________________________________________________________
+void TCCalibRunBadScR::CleanUp()
+{
+    // Clean up
+
+    if (fHistoLoader)
+    {
+        delete fHistoLoader;
+        fHistoLoader = 0;
+    }
+    if (fMainHistos)
+    {
+        for (Int_t i = 0; i < fNRuns; i++)
+            if (fMainHistos[i]) delete fMainHistos[i];
+        delete [] fMainHistos;
+        fMainHistos = 0;
+    }
+    if (fProjHistos)
+    {
+        for (Int_t i = 0; i < fNRuns; i++)
+            if (fProjHistos[i]) delete fProjHistos[i];
+        delete [] fProjHistos;
+        fProjHistos = 0;
+    }
+    if (fProjNormHistos)
+    {
+        for (Int_t i = 0; i < fNRuns; i++)
+            if (fProjNormHistos[i]) delete fProjNormHistos[i];
+        delete [] fProjNormHistos;
+        fProjNormHistos = 0;
+    }
+    if (fScalerP2Histos)
+    {
+        for (Int_t i = 0; i < fNRuns; i++)
+            if (fScalerP2Histos[i]) delete fScalerP2Histos[i];
+        delete [] fScalerP2Histos;
+        fScalerP2Histos = 0;
+    }
+    if (fScalerLiveHistos)
+    {
+        for (Int_t i = 0; i < fNRuns; i++)
+            if (fScalerLiveHistos[i]) delete fScalerLiveHistos[i];
+        delete [] fScalerLiveHistos;
+        fScalerLiveHistos = 0;
+    }
+    if (fScalerFreeHistos)
+    {
+        for (Int_t i = 0; i < fNRuns; i++)
+            if (fScalerFreeHistos[i]) delete fScalerFreeHistos[i];
+        delete [] fScalerFreeHistos;
+        fScalerFreeHistos = 0;
+    }
+
+    if (fOverviewHisto)
+    {
+        delete fOverviewHisto;
+        fOverviewHisto = 0;
+    }
+    if (fOverviewNormHisto)
+    {
+        delete fOverviewNormHisto;
+        fOverviewNormHisto = 0;
+    }
+
+    if (fBadScROld)
+    {
+        for (Int_t i = 0; i < fNRuns; i++)
+            if (fBadScROld[i]) delete fBadScROld[i];
+        delete [] fBadScROld;
+        fBadScROld = 0;
+    }
+    if (fBadScRNew)
+    {
+        for (Int_t i = 0; i < fNRuns; i++)
+            if (fBadScRNew[i]) delete fBadScRNew[i];
+        delete [] fBadScRNew;
+        fBadScRNew = 0;
+    }
 }
 
 //______________________________________________________________________________
@@ -177,6 +206,13 @@ Bool_t TCCalibRunBadScR::SetConfig()
         Info("Start", "Using calibration method '%s'.", fCalibMethod);
     }
 
+    // load histos in advance
+    sprintf(tmp, "BadScR.LoadHistosInAdvance");
+    if (TCReadConfig::GetReader()->GetConfig(tmp))
+    {
+        fLoadHistosInAdvance = (Bool_t) TCReadConfig::GetReader()->GetConfigInt(tmp);
+    }
+
     return kTRUE;
 }
 
@@ -204,52 +240,90 @@ Bool_t TCCalibRunBadScR::Init()
     // load & prepare histos ---------------------------------------------------
 
     // init histo loader
-    TCARHistoLoader rhl(fNRuns, fRuns);
+    fHistoLoader = new TCARHistoLoader(fNRuns, fRuns);
 
     // user info
     Info("Init", "Loading files...");
 
     // load files
-    if (!rhl.LoadFiles())
+    if (!fHistoLoader->LoadFiles())
     {
         Error("Init", "Could not load any files!");
+        CleanUp();
         return kFALSE;
     }
-    else if (!rhl.GetNOpenFiles())
+    else if (!fHistoLoader->GetNOpenFiles())
     {
         Error("Init", "Could not load any files!");
+        CleanUp();
         return kFALSE;
     }
 
-    // user info
-    Info("Init", "Loading main histograms...");
-
-    // load main histograms
-    if (!(fMainHistos = (TH2**) rhl.CreateHistoArray(fMainHistoName)))
-    {
-        Error("Init", "Could not load any main histograms named '%s'!", fMainHistoName);
-        return kFALSE;
-    }
-
-    // load scaler histograms (1D)
+    // create and init scaler histo arrays
     if (fScalerHistoName)
     {
-        // user info
-        Info("Init", "Loading scaler histograms...");
+        if (fScP2 >= 0)
+            fScalerP2Histos = new TH1*[fNRuns];
 
-        if (fScP2 >= 0 && !(fScalerP2Histos = (TH1**) rhl.CreateHistoArrayOfProj(fScalerHistoName, 'X', fScP2+1, fScP2+1)))
+        if (fScFree >= 0 && fScLive >= 0)
         {
-            Warning("Init", "Could not load any scaler histograms named '%s'!", fScalerHistoName);
+            fScalerLiveHistos = new TH1*[fNRuns];
+            fScalerFreeHistos = new TH1*[fNRuns];
         }
-        if ((fScFree >= 0 && fScLive >= 0) &&
-            !(fScalerLiveHistos = (TH1**) rhl.CreateHistoArrayOfProj(fScalerHistoName, 'X', fScLive+1, fScLive+1)))
+
+        // init arrays
+        for (Int_t i = 0; i < fNRuns; i++)
         {
-            Warning("Init", "Could not load any scaler histograms named '%s'!", fScalerHistoName);
+            if (fScalerP2Histos) fScalerP2Histos[i] = 0;
+            if (fScalerLiveHistos) fScalerLiveHistos[i] = 0;
+            if (fScalerFreeHistos) fScalerFreeHistos[i] = 0;
         }
-        if ((fScFree >= 0 && fScLive >= 0) &&
-            !(fScalerFreeHistos = (TH1**) rhl.CreateHistoArrayOfProj(fScalerHistoName, 'X', fScFree+1, fScFree+1)))
+    }
+
+    // load histos
+    if (!fLoadHistosInAdvance)
+    {
+        // only create and init main histo array
+        fMainHistos = new TH2*[fNRuns];
+
+        for (Int_t i = 0; i < fNRuns; i++)
+            fMainHistos[i] = 0;
+    }
+    else
+    {
+        // user info
+        Info("Init", "Loading main histograms...");
+
+        // load main histograms (--> can eat up a lot of memory)
+        if (!(fMainHistos = (TH2**) fHistoLoader->CreateHistoArray(fMainHistoName)))
         {
-            Warning("Init", "Could not load any scaler histograms named '%s'!", fScalerHistoName);
+            Error("Init", "Could not load any main histograms named '%s'!", fMainHistoName);
+            CleanUp();
+            return kFALSE;
+        }
+
+        // load scaler histograms (--> can take a lot of time)
+        if (fScalerP2Histos || fScalerFreeHistos || fScalerFreeHistos)
+        {
+            // user info
+            Info("Init", "Loading scaler histograms...");
+
+            Int_t dper = 5;
+            Int_t per = dper;
+            Int_t c = 0;
+            for (Int_t i = 0; i < fNRuns; i++)
+            {
+                // load histos
+                LoadScalerHistos(i);
+
+                // print progress
+                if (fHistoLoader->GetFiles()[i]) c++;
+                if (Double_t(c+1) / Double_t(fHistoLoader->GetNOpenFiles()) >= Double_t(per)/100.)
+                {
+                    printf("Progress %d%%...\n", per);
+                    per += dper;
+                }
+            }
         }
     }
 
@@ -257,82 +331,34 @@ Bool_t TCCalibRunBadScR::Init()
     Info("Init", "Projecting main histograms...");
 
     // load projection histograms
-    if (!(fProjHistos = (TH1**) rhl.CreateHistoArrayOfProj(fMainHistoName, 'X')))
+    if (!(fProjHistos = (TH1**) fHistoLoader->CreateHistoArrayOfProj(fMainHistoName, 'X')))
     {
         Error("Init", "Could not load any projection of histograms named '%s'!", fMainHistoName);
+        CleanUp();
         return kFALSE;
     }
 
-    // create normalized projection array
+    // create and init normalized projection array
     fProjNormHistos = new TH1*[fNRuns];
-
-    // user infos
-    Info("Init", "Normalizing projection histograms...");
-
-    // check whether scaler histos were loaded
-    if (!fScalerP2Histos)
-            Warning("Init", "Histograms will not be P2 corrected.");
-
-    if (!(fScalerFreeHistos && fScalerLiveHistos))
-            Warning("Init", "Histograms will not be livetime corrected.");
-
-    // loop over runs
     for (Int_t i = 0; i < fNRuns; i++)
-    {
-        // init pointer
         fProjNormHistos[i] = 0;
 
-        // check for histo
-        if (!fProjHistos[i]) continue;
+    if (fScalerP2Histos || fScalerFreeHistos || fScalerLiveHistos)
+    {
+        // user infos
+        Info("Init", "Normalizing projection histograms...");
 
-        // clone it
-        Char_t tmp[256];
-        sprintf(tmp, "%s_%s", fProjHistos[i]->GetName(), "_norm");
-        fProjNormHistos[i] = (TH1D*) fProjHistos[i]->Clone(tmp);
-        fProjNormHistos[i]->UseCurrentStyle();//SetLabelSize(0.06);
+        // check whether scaler histos were loaded
+        if (!fScalerP2Histos)
+                Warning("Init", "Histograms will not be P2 corrected.");
 
-        // check whether scaler histo was loaded
-        if (!fScalerP2Histos && !(fScalerP2Histos && fScalerP2Histos)) continue;
+        if (!(fScalerFreeHistos && fScalerLiveHistos))
+                Warning("Init", "Histograms will not be livetime corrected.");
 
-        // check for scaler histos
-        if (!fScalerP2Histos[i] && !(fScalerP2Histos[i] && fScalerP2Histos[i]))
-        {
-            Warning("Init", "No scaler histogram for run '%i'. Will not be normalized.", fRuns[i]);
-            continue;
-        }
-
-        // loop over scaler reads
-        for (Int_t j = 0; j < fProjNormHistos[i]->GetNbinsX(); j++)
-        {
-            // init scalers
-            Double_t p2 = 1.;
-            Double_t lt = 1.;
-
-            // get p2 scaler
-            if (fScalerP2Histos && fScalerP2Histos[i])
-                p2 = fScalerP2Histos[i]->GetBinContent(j+1);
-
-            // get livetime
-            if (fScalerLiveHistos && fScalerLiveHistos[i] &&
-                fScalerFreeHistos && fScalerFreeHistos[i])
-            {
-                if (fScalerFreeHistos[i]->GetBinContent(j+1) > 0.)
-                    lt = fScalerLiveHistos[i]->GetBinContent(j+1) / fScalerFreeHistos[i]->GetBinContent(j+1);
-                else
-                    lt = 0.;
-            }
-
-            // normalization factor
-            Double_t norm = p2 * lt;
-
-            // normalize histo
-            if (norm > 0.)
-                fProjNormHistos[i]->SetBinContent(j+1, fProjNormHistos[i]->GetBinContent(j+1) / norm);
-            else
-                fProjNormHistos[i]->SetBinContent(j+1, 0.);
-        }
+        // loop over runs
+        for (Int_t i = 0; i < fNRuns; i++)
+            if (fLoadHistosInAdvance) NormalizeHisto(i);
     }
-
 
     // load & prepare bad scaler reads -----------------------------------------
 
@@ -354,10 +380,10 @@ Bool_t TCCalibRunBadScR::Init()
         Int_t nscr = TCMySQLManager::GetManager()->GetRunNScR(fRuns[i]);
 
         // get number of scaler reads from event info histo
-        if (rhl.GetFiles()[i])
+        if (fHistoLoader->GetFiles()[i])
         {
             // get the event info histo for this run
-            TH1* h = (TH1*) rhl.GetFiles()[i]->Get("EventInfo");
+            TH1* h = (TH1*) fHistoLoader->GetFiles()[i]->Get("EventInfo");
 
             // check for same number of scaler reads
             if (h && nscr != h->GetBinContent(TCConfig::kNScREventHBin))
@@ -407,19 +433,28 @@ Bool_t TCCalibRunBadScR::Init()
     // creat empty histos
     for (Int_t i = 0; i < fNRuns; i++)
     {
-        if (fMainHistos[i])
+        TH2* h = (TH2*) fHistoLoader->GetHistoForIndex(fMainHistoName, i, "EmptyMainHisto");
+        if (h)
         {
-            fEmptyMainHisto = (TH2*) fMainHistos[i]->Clone("EmptyMainHisto");
+            fEmptyMainHisto = h;
             fEmptyMainHisto->GetXaxis()->SetRange(1, fRangeMax);
             fEmptyMainHisto->Reset();
-            fEmptyProjHisto = (TH1D*) fProjHistos[i]->Clone("EmptyProjHisto");
+            fEmptyProjHisto = (TH1D*) h->ProjectionX("EmptyProjHisto");
             fEmptyProjHisto->GetXaxis()->SetRange(1, fRangeMax);
             fEmptyProjHisto->Reset();
-            fEmptyProjNormHisto = (TH1D*) fProjNormHistos[i]->Clone("EmptyProjNormHisto");
+            fEmptyProjNormHisto = (TH1D*) fProjHistos[i]->Clone("EmptyProjNormHisto");
             fEmptyProjNormHisto->GetXaxis()->SetRange(1, fRangeMax);
             fEmptyProjNormHisto->Reset();
             break;
         }
+    }
+
+    // check
+    if (!fEmptyMainHisto)
+    {
+        Error("Init", "Could not load any main histograms named '%s'!", fMainHistoName);
+        CleanUp();
+        return kFALSE;
     }
 
 
@@ -459,7 +494,6 @@ Bool_t TCCalibRunBadScR::Init()
     fRunMarker->SetLineWidth(2);
     fRunMarker->SetLineColor(kRed);
 
-
     // setup main canvas
     fCanvasMain = new TCanvas("Main", "Main", 0, 0, gClient->GetDisplayWidth(), gClient->GetDisplayHeight()/2.+50);
     fCanvasMain->Divide(1, 3, 0.001, 0.001);
@@ -485,6 +519,139 @@ Bool_t TCCalibRunBadScR::Init()
 }
 
 //______________________________________________________________________________
+void TCCalibRunBadScR::NormalizeHisto(Int_t i)
+{
+    // Normalizes the projection histo i
+
+    // check
+    if (!fProjHistos[i] || fProjNormHistos[i]) return;
+
+    // clone histo
+    Char_t tmp[256];
+    sprintf(tmp, "%s_%s", fProjHistos[i]->GetName(), "_norm");
+    fProjNormHistos[i] = (TH1D*) fProjHistos[i]->Clone(tmp);
+    fProjNormHistos[i]->UseCurrentStyle();
+
+    // check whether scaler histos were loaded
+    if (!fScalerP2Histos && !(fScalerLiveHistos && fScalerFreeHistos)) return;
+
+    // check for scaler histos
+    if ((fScalerP2Histos && !fScalerP2Histos[i] )   ||
+        (fScalerLiveHistos && !fScalerLiveHistos[i]) ||
+        (fScalerFreeHistos && !fScalerFreeHistos[i]))
+    {
+        Warning("NormalizeHisto", "No scaler histogram for run '%i'. Will not be normalized.", fRuns[i]);
+        return;
+    }
+
+    // loop over scaler reads
+    for (Int_t j = 0; j < fProjNormHistos[i]->GetNbinsX(); j++)
+    {
+        // init scalers
+        Double_t p2 = 1.;
+        Double_t lt = 1.;
+
+        // get p2 scaler
+        if (fScalerP2Histos && fScalerP2Histos[i])
+            p2 = fScalerP2Histos[i]->GetBinContent(j+1);
+
+        // get livetime
+        if (fScalerLiveHistos && fScalerLiveHistos[i] &&
+            fScalerFreeHistos && fScalerFreeHistos[i])
+        {
+            if (fScalerFreeHistos[i]->GetBinContent(j+1) > 0.)
+                lt = fScalerLiveHistos[i]->GetBinContent(j+1) / fScalerFreeHistos[i]->GetBinContent(j+1);
+            else
+                lt = 0.;
+        }
+
+        // normalization factor
+        Double_t norm = p2 * lt;
+
+        // normalize histo
+        if (norm > 0.)
+            fProjNormHistos[i]->SetBinContent(j+1, fProjHistos[i]->GetBinContent(j+1) / norm);
+        else
+            fProjNormHistos[i]->SetBinContent(j+1, 0.);
+    }
+}
+
+//______________________________________________________________________________
+void TCCalibRunBadScR::LoadScalerHistos(Int_t i)
+{
+    // Loads and creates all histos for the index i
+
+    // check for missing histos
+    if ((!fScalerP2Histos   || fScalerP2Histos[i]  ) &&
+        (!fScalerLiveHistos || fScalerLiveHistos[i]) &&
+        (!fScalerFreeHistos || fScalerLiveHistos[i])) return;
+
+    if (!fHistoLoader->GetFiles()[i]) return;
+
+    // get the histo
+    TH2* hsc = (TH2*) fHistoLoader->GetHistoForIndex(fScalerHistoName, i);
+
+    if (!hsc)
+    {
+        Error("LoadScalerHistos", "Could not load scaler histogram named '%s' for index %d!", fScalerHistoName, i);
+        return;
+    }
+    else
+    {
+        // p2
+        if (fScP2 >= 0 && !fScalerP2Histos[i])
+        {
+            fScalerP2Histos[i] = hsc->ProjectionX(TString::Format("%s_%d_px", fScalerHistoName, fRuns[i]), fScP2+1, fScP2+1);
+            fScalerP2Histos[i]->SetDirectory(0);
+        }
+        // live time
+        if (fScFree >= 0 && fScLive >= 0)
+        {
+            if (!fScalerLiveHistos[i])
+            {
+                fScalerLiveHistos[i] =  hsc->ProjectionX(TString::Format("%s_%d_px", fScalerHistoName, fRuns[i]), fScLive+1, fScLive+1);
+                fScalerLiveHistos[i]->SetDirectory(0);
+            }
+            if (!fScalerFreeHistos[i])
+            {
+                fScalerFreeHistos[i] =  hsc->ProjectionX(TString::Format("%s_%d_px", fScalerHistoName, fRuns[i]), fScFree+1, fScFree+1);
+                fScalerFreeHistos[i]->SetDirectory(0);
+            }
+        }
+
+        // clean up
+        if (hsc) delete hsc;
+    }
+}
+
+//______________________________________________________________________________
+void TCCalibRunBadScR::LoadHistos(Int_t i)
+{
+    // Loads and creates all histos for the index i
+
+    // get the histogram
+    if (!fMainHistos[i])
+        fMainHistos[i] = (TH2*) fHistoLoader->GetHistoForIndex(fMainHistoName, i);
+
+    // check
+    if (!fMainHistos[i])
+    {
+        Error("LoadHistos", "Could not load main histogram named '%s' for index %d!", fMainHistoName, i);
+        return;
+    }
+
+    // load scaler histo
+    LoadScalerHistos(i);
+
+    // load projection histograms
+    if (!fProjHistos[i])
+        fProjHistos[i] = (TH1*) fMainHistos[i]->ProjectionX("_px");
+
+    // create normalized histos
+    NormalizeHisto(i);
+}
+
+//______________________________________________________________________________
 void TCCalibRunBadScR::PrepareCurr()
 {
     // Prepares everything to process the current run
@@ -494,6 +661,9 @@ void TCCalibRunBadScR::PrepareCurr()
     fRunMarker->SetX2(fIndex+0.5);
     fRunMarker->SetY1(0);
     fRunMarker->SetY2(fOverviewHisto->GetMaximum());
+
+    // load histos
+    TCCalibRunBadScR::LoadHistos(fIndex);
 
     // check for valid run
     if (!IsGood())
@@ -751,6 +921,13 @@ void TCCalibRunBadScR::CleanUpCurr()
     // update overview histo
     UpdateOverviewHisto();
 
+    // clear main histo
+    if (!fLoadHistosInAdvance)
+    {
+       if (fMainHistos[fIndex]) delete fMainHistos[fIndex];
+       fMainHistos[fIndex] = 0;
+    }
+
     // reset curr
     fBadScRCurr = 0;
 }
@@ -767,17 +944,19 @@ void TCCalibRunBadScR::UpdateOverviewHisto()
     fOverviewHisto->SetBinContent(fIndex+1, 0);
     fOverviewNormHisto->SetBinContent(fIndex+1, 0);
 
-    // check for valid run
-    if (!IsGood()) return;
-
     // loop over scaler reads
     for (Int_t j = 1; j < fBadScRCurr->GetNElem(); j++)
     {
         // fill overview histo, i.e., add up (normalized) counts for good scaler reads
         if (!fBadScRCurr->IsBad(j))
         {
-            fOverviewHisto->AddBinContent(fIndex+1, fProjHistos[fIndex]->GetBinContent(j+1));
-            fOverviewNormHisto->AddBinContent(fIndex+1, fProjNormHistos[fIndex]->GetBinContent(j+1));
+            if (fProjHistos[fIndex])
+            {
+                fOverviewHisto->AddBinContent(fIndex+1, fProjHistos[fIndex]->GetBinContent(j+1));
+
+                if (fProjNormHistos[fIndex])
+                    fOverviewNormHisto->AddBinContent(fIndex+1, fProjNormHistos[fIndex]->GetBinContent(j+1));
+            }
         }
     }
 
