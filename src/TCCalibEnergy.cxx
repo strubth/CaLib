@@ -20,6 +20,7 @@
 #include "TCMySQLManager.h"
 #include "TCFileManager.h"
 #include "TCUtils.h"
+#include "TCLine.h"
 
 ClassImp(TCCalibEnergy)
 
@@ -52,7 +53,7 @@ void TCCalibEnergy::Init()
 
     // init members
     fPi0Pos = 0;
-    fLine = new TLine();
+    fLine = new TCLine();
 
     // configure line
     fLine->SetLineColor(4);
@@ -165,10 +166,7 @@ void TCCalibEnergy::Fit(Int_t elem)
         if (fPi0Pos < 80 || fPi0Pos > 200) fPi0Pos = 135;
 
         // set indicator line
-        fLine->SetY1(0);
-        fLine->SetY2(fFitHisto->GetMaximum() + 20);
-        fLine->SetX1(fPi0Pos);
-        fLine->SetX2(fPi0Pos);
+        fLine->SetPos(fPi0Pos);
 
         // draw fitting function
         if (fFitFunc) fFitFunc->Draw("same");
@@ -200,7 +198,7 @@ void TCCalibEnergy::Calculate(Int_t elem)
     if (fFitHisto->GetEntries() > 500)
     {
         // check if line position was modified by hand
-        if (fLine->GetX1() != fPi0Pos) fPi0Pos = fLine->GetX1();
+        if (fLine->GetPos() != fPi0Pos) fPi0Pos = fLine->GetPos();
 
         // calculate the new offset
         Double_t a = TCConfig::kPi0Mass / fPi0Pos;

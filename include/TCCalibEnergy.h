@@ -18,14 +18,14 @@
 #include "TCConfig.h"
 #include "TCReadConfig.h"
 
-class TLine;
+class TCLine;
 
 class TCCalibEnergy : public TCCalib
 {
 
 private:
     Double_t fPi0Pos;                   // pi0 position
-    TLine* fLine;                       // indicator line
+    TCLine* fLine;                      // indicator line
 
     virtual void Init();
     virtual void Fit(Int_t elem);
