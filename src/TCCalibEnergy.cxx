@@ -133,9 +133,17 @@ void TCCalibEnergy::Fit(Int_t elem)
         fFitFunc = new TF1(tmp, "gaus(0)+pol3(3)");
         fFitFunc->SetLineColor(2);
 
-        // estimate peak position
-        fPi0Pos = fFitHisto->GetBinCenter(fFitHisto->GetMaximumBin());
-        if (fPi0Pos < 100 || fPi0Pos > 160) fPi0Pos = 135;
+        // set peak position
+        if (fIsReFit)
+        {
+            fPi0Pos = fLine->GetPos();
+        }
+        else
+        {
+            // estimate peak position
+            fPi0Pos = fFitHisto->GetBinCenter(fFitHisto->GetMaximumBin());
+            if (fPi0Pos < 100 || fPi0Pos > 160) fPi0Pos = 135;
+        }
 
         // configure fitting function
         if (this->InheritsFrom("TCCalibCBEnergy"))
@@ -155,6 +163,9 @@ void TCCalibEnergy::Fit(Int_t elem)
             fFitFunc->FixParameter(6, 0);
         }
 
+        // set +/- 3% peak position limits
+        if (fIsReFit) fFitFunc->SetParLimits(1, (1. - 0.03)*fPi0Pos, (1. + 0.03)*fPi0Pos);
+
         // fit
         for (Int_t i = 0; i < 10; i++)
             if (!fFitHisto->Fit(fFitFunc, "RBQ0")) break;
@@ -163,7 +174,7 @@ void TCCalibEnergy::Fit(Int_t elem)
         fPi0Pos = fFitFunc->GetParameter(1);
 
         // check if mass is in normal range
-        if (fPi0Pos < 80 || fPi0Pos > 200) fPi0Pos = 135;
+        if (!fIsReFit && (fPi0Pos < 80 || fPi0Pos > 200)) fPi0Pos = 135;
 
         // set indicator line
         fLine->SetPos(fPi0Pos);
