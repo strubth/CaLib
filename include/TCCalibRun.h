@@ -34,7 +34,7 @@ protected:
 
     Int_t fIndex;                   //! // index of current item performed
 
-    Bool_t fIsStarted;                  // is started flag
+    static Bool_t fIsStarted;           // is started flag
 
 
     //---------------------------- member methods ------------------------------
@@ -56,11 +56,11 @@ public:
     TCCalibRun()
         : TNamed(),
           fCalibration(0), fCalibData(0), fIsTrueCalib(kFALSE),
-          fNRuns(0), fRuns(0), fIndex(0), fIsStarted(kFALSE) { };
+          fNRuns(0), fRuns(0), fIndex(0) { };
     TCCalibRun(const Char_t* name, const Char_t* title, const Char_t* data, Bool_t istruecalib = kFALSE)
         : TNamed(name, title),
           fCalibration(0), fCalibData(new TString(data)), fIsTrueCalib(istruecalib),
-          fNRuns(0), fRuns(0), fIndex(0), fIsStarted(kFALSE) { };
+          fNRuns(0), fRuns(0), fIndex(0) { };
     virtual ~TCCalibRun();
 
     void SetIsTrueCalib(Bool_t istruecalib = kTRUE) { fIsTrueCalib = istruecalib; };

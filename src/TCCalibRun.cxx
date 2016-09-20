@@ -21,6 +21,9 @@
 
 ClassImp(TCCalibRun)
 
+// init static variable
+Bool_t TCCalibRun::fIsStarted = kFALSE;
+
 //______________________________________________________________________________
 TCCalibRun::~TCCalibRun()
 {
