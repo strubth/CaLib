@@ -21,6 +21,7 @@
 
 class TBox;
 class TArrow;
+class TLine;
 class TH1;
 class TH2;
 class TCanvas;
@@ -44,9 +45,9 @@ protected:
     TH1** fProjHistos;                  //[fNRuns] array of pointers to projected main histos
     TH1** fProjNormHistos;              //[fNRuns] array of pointers to projected, normalized main histos
 
+    TH1** fScalerP2Histos;              //[fNRuns] array of pointers to the run's scaler histo ...
     TH1** fScalerLiveHistos;            //[fNRuns] array of pointers to the run's scaler histo ...
     TH1** fScalerFreeHistos;            //[fNRuns] array of pointers to the run's scaler histo ...
-    TH1** fScalerP2Histos;              //[fNRuns] array of pointers to the run's scaler histo ...
                                         //         ... (scalers vs. scaler reads)
     TH2* fEmptyMainHisto;               //         empty main histo (dummy)
     TH1* fEmptyProjHisto;               //         empty projected main histo (dummy)
