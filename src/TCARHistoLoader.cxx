@@ -400,7 +400,7 @@ TH1* TCARHistoLoader::CreateHistoSum(const Char_t* hname, const Char_t* houtname
         // get histogram detached
         Bool_t status = TH1::AddDirectoryStatus();
         TH1::AddDirectory(kFALSE);
-        TH1* h = GetHistoForIndex(hname, i, houtnamepatt);
+        TH1* h = GetHistoForIndex(hname, i, kFALSE);
         TH1::AddDirectory(status);
 
         // check for histo
@@ -595,7 +595,7 @@ TH1** TCARHistoLoader::CreateHistoArrayOfProj(const Char_t* hname, const Char_t 
         // get histogram detached
         Bool_t status = TH1::AddDirectoryStatus();
         TH1::AddDirectory(kFALSE);
-        TH1* h = GetHistoForIndex(hname, i, houtnamepatt);
+        TH1* h = GetHistoForIndex(hname, i, kFALSE);
         TH1::AddDirectory(status);
 
         // check for histo
