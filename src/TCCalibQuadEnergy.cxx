@@ -1,5 +1,5 @@
 /*************************************************************************
- * Author: Dominik Werthmueller
+ * Author: Dominik Werthmueller, Thomas Strub
  *************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
@@ -267,7 +267,7 @@ void TCCalibQuadEnergy::Fit(Int_t elem)
         fFitFunc = new TF1(tmp, "gaus(0)+pol2(3)", 100, 170);
         fFitFunc->SetLineColor(2);
 
-        // create pi0 fitting function
+        // create eta fitting function
         sprintf(tmp, "fEta_%i", elem);
         fFitFunc1b = new TF1(tmp, "gaus(0)+pol3(3)", 450, 650);
         fFitFunc1b->SetLineColor(2);
@@ -281,21 +281,38 @@ void TCCalibQuadEnergy::Fit(Int_t elem)
         Double_t fMaxEta = fFitHisto1b->GetBinCenter(fFitHisto1b->GetMaximumBin());
         fFitHisto1b->GetXaxis()->SetRangeUser(xmin, xmax);
 
+        // init peak positions
+        fPi0Pos = 135.;
+        fEtaPos = fMaxEta;
+
+        if (fIsReFit)
+        {
+            fPi0Pos = fLinePi0->GetPos();
+            fEtaPos = fLineEta->GetPos();
+        }
+
         // configure fitting functions
         // pi0
-        fFitFunc->SetParameters(fFitHisto->GetMaximum(), 135, 10, 1, 1, 1);
-        fFitFunc->SetParLimits(0, 0, 1e6);
-        fFitFunc->SetParLimits(1, 120, 140);
-        fFitFunc->SetParLimits(2, 0, 40);
+        fFitFunc->SetParameters(fFitHisto->GetMaximum(), fPi0Pos, 10, 1, 1, 1);
+        fFitFunc->SetParLimits(0, 0.1*fFitHisto->GetMaximum(), 1.5*fFitHisto->GetMaximum());
+        fFitFunc->SetParLimits(1, fPi0Pos - 15., fPi0Pos+15.);
+        fFitFunc->SetParLimits(2, 2, 40);
 
         // eta
-        fFitFunc1b->SetParameters(fFitHisto1b->GetMaximum(), fMaxEta, 15, 1, 1, 1, 0.1);
-        fFitFunc1b->SetParLimits(0, 1, fFitHisto1b->GetMaximum()+1);
-        fFitFunc1b->SetParLimits(1, 520, 580);
+        fFitFunc1b->SetParameters(fFitHisto1b->GetMaximum(), fEtaPos, 15, 1, 1, 1, 0.1);
+        fFitFunc1b->SetParLimits(0, 0.1*fFitHisto1b->GetMaximum(), 1.5*fFitHisto1b->GetMaximum());
+        fFitFunc1b->SetParLimits(1, fEtaPos - 30, fEtaPos + 30);
         fFitFunc1b->SetParLimits(2, 1, 50);
         //fFitFunc1b->SetParLimits(3, 0, 100);
         //fFitFunc1b->SetParLimits(4, -1, 0);
         //fFitFunc1b->SetParLimits(5, -1, 0);//0, 50
+
+        // set strict 3% limits for refitting
+        if (fIsReFit)
+        {
+            fFitFunc->SetParLimits(1, (1 - 0.03)*fPi0Pos, (1 + 0.03)*fPi0Pos);
+            fFitFunc1b->SetParLimits(1, (1 - 0.03)*fEtaPos, (1 + 0.03)*fEtaPos);
+        }
 
         // fit peaks
         for (Int_t i = 0; i < 10; i++)
@@ -310,8 +327,11 @@ void TCCalibQuadEnergy::Fit(Int_t elem)
         fEtaMeanE = fFitHisto3->GetMean();
 
         // check if mass is in normal range
-        if (fPi0Pos < 80 || fPi0Pos > 200) fPi0Pos = 135;
-        if (fEtaPos < 450 || fEtaPos > 650) fEtaPos = 547;
+        if (!fIsReFit)
+        {
+            if (fPi0Pos < 80 || fPi0Pos > 200) fPi0Pos = 135;
+            if (fEtaPos < 450 || fEtaPos > 650) fEtaPos = 547;
+        }
 
         // set indicator lines
         fLinePi0->SetPos(fPi0Pos);
