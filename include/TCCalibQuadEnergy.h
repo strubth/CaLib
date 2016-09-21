@@ -20,7 +20,7 @@
 
 class TH1;
 class TH2;
-class TLine;
+class TCLine;
 
 class TCCalibQuadEnergy : public TCCalib
 {
@@ -38,10 +38,10 @@ private:
     Double_t fEtaPos;                       // eta position
     Double_t fPi0MeanE;                     // pi0 mean energy
     Double_t fEtaMeanE;                     // eta mean energy
-    TLine* fLinePi0;                        // pi0 indicator line
-    TLine* fLineEta;                        // eta indicator line
-    TLine* fLineMeanEPi0;                   // pi0 mean photon energy indicator line
-    TLine* fLineMeanEEta;                   // eta mean photon energy indicator line
+    TCLine* fLinePi0;                       // pi0 indicator line
+    TCLine* fLineEta;                       // eta indicator line
+    TCLine* fLineMeanEPi0;                  // pi0 mean photon energy indicator line
+    TCLine* fLineMeanEEta;                  // eta mean photon energy indicator line
     TH1* fPi0PosHisto;                      // histogram of pi0 positions
     TH1* fEtaPosHisto;                      // histogram of eta positions
 

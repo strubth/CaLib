@@ -13,7 +13,7 @@
 
 #include "TH2.h"
 #include "TF1.h"
-#include "TLine.h"
+#include "TCLine.h"
 #include "TCanvas.h"
 #include "TMath.h"
 
@@ -91,10 +91,10 @@ void TCCalibQuadEnergy::Init()
     fEtaPos = 0;
     fPi0MeanE = 0;
     fEtaMeanE = 0;
-    fLinePi0 = new TLine();
-    fLineEta = new TLine();
-    fLineMeanEPi0 = new TLine();
-    fLineMeanEEta = new TLine();
+    fLinePi0 = new TCLine();
+    fLineEta = new TCLine();
+    fLineMeanEPi0 = new TCLine();
+    fLineMeanEEta = new TCLine();
 
     // configure lines
     fLinePi0->SetLineColor(4);
@@ -309,33 +309,17 @@ void TCCalibQuadEnergy::Fit(Int_t elem)
         fPi0MeanE = fFitHisto2->GetMean();
         fEtaMeanE = fFitHisto3->GetMean();
 
-        // draw pi0 position indicator line
-        fLinePi0->SetY1(0);
-        fLinePi0->SetY2(fFitHisto->GetMaximum() + 20);
-
-        // draw eta position indicator line
-        fLineEta->SetY1(0);
-        fLineEta->SetY2(fFitHisto->GetMaximum() + 20);
-
         // check if mass is in normal range
         if (fPi0Pos < 80 || fPi0Pos > 200) fPi0Pos = 135;
         if (fEtaPos < 450 || fEtaPos > 650) fEtaPos = 547;
 
         // set indicator lines
-        fLinePi0->SetX1(fPi0Pos);
-        fLinePi0->SetX2(fPi0Pos);
-        fLineEta->SetX1(fEtaPos);
-        fLineEta->SetX2(fEtaPos);
+        fLinePi0->SetPos(fPi0Pos);
+        fLineEta->SetPos(fEtaPos);
 
         // set lines
-        fLineMeanEPi0->SetX1(fPi0MeanE);
-        fLineMeanEPi0->SetX2(fPi0MeanE);
-        fLineMeanEPi0->SetY1(0);
-        fLineMeanEPi0->SetY2(fFitHisto2->GetMaximum());
-        fLineMeanEEta->SetX1(fEtaMeanE);
-        fLineMeanEEta->SetX2(fEtaMeanE);
-        fLineMeanEEta->SetY1(0);
-        fLineMeanEEta->SetY2(fFitHisto3->GetMaximum());
+        fLineMeanEPi0->SetPos(fPi0MeanE);
+        fLineMeanEEta->SetPos(fEtaMeanE);
 
         // draw pi0
         fCanvasFit->cd(1);
@@ -381,10 +365,12 @@ void TCCalibQuadEnergy::Calculate(Int_t elem)
     if (fFitHisto->GetEntries())
     {
         // check if pi0 line position was modified by hand
-        if (fLinePi0->GetX1() != fPi0Pos) fPi0Pos = fLinePi0->GetX1();
+        if (fLinePi0->GetPos() != fPi0Pos) fPi0Pos = fLinePi0->GetPos();
+        if (fLineMeanEPi0->GetPos() != fPi0MeanE) fPi0MeanE = fLineMeanEPi0->GetPos();
 
         // check if etaline position was modified by hand
-        if (fLineEta->GetX1() != fEtaPos) fEtaPos = fLineEta->GetX1();
+        if (fLineEta->GetPos() != fEtaPos) fEtaPos = fLineEta->GetPos();
+        if (fLineMeanEEta->GetPos() != fEtaMeanE) fEtaMeanE = fLineMeanEEta->GetPos();
 
         // calculate quadratic correction factors
         Double_t mean_E_ratio = fEtaMeanE / fPi0MeanE;
