@@ -227,7 +227,7 @@ void TCCalib::Previous()
 {
     // Process the previous element.
 
-    ProcessElement(fCurrentElem - 1);
+    ProcessElement(fCurrentElem - 1, kTRUE);
 }
 
 //______________________________________________________________________________
