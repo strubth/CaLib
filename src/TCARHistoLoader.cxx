@@ -400,7 +400,7 @@ TH1* TCARHistoLoader::CreateHistoSum(const Char_t* hname, const Char_t* houtname
         // get histogram detached
         Bool_t status = TH1::AddDirectoryStatus();
         TH1::AddDirectory(kFALSE);
-        TH1* h = GetHistoForIndex(hname, i, kFALSE);
+        TH1* h = GetHistoForIndex(hname, i);
         TH1::AddDirectory(status);
 
         // check for histo
@@ -595,7 +595,7 @@ TH1** TCARHistoLoader::CreateHistoArrayOfProj(const Char_t* hname, const Char_t 
         // get histogram detached
         Bool_t status = TH1::AddDirectoryStatus();
         TH1::AddDirectory(kFALSE);
-        TH1* h = GetHistoForIndex(hname, i, kFALSE);
+        TH1* h = GetHistoForIndex(hname, i);
         TH1::AddDirectory(status);
 
         // check for histo
@@ -746,8 +746,11 @@ TH2D* TCARHistoLoader::CreateHistoOfProj(const Char_t* hname, const Char_t proja
         // check for file
         if (!fFiles[i]) continue;
 
-        // get histogram
-        TH1* h = (TH1*) fFiles[i]->Get(hname);
+        // get histogram detached
+        Bool_t status = TH1::AddDirectoryStatus();
+        TH1::AddDirectory(kFALSE);
+        TH1* h = GetHistoForIndex(hname, i);
+        TH1::AddDirectory(status);
 
         // check for histogram
         if (!h)
@@ -868,6 +871,10 @@ TH2D* TCARHistoLoader::CreateHistoOfProj(const Char_t* hname, const Char_t proja
 
     // clean up
     if (href) delete href;
+
+    // set directory
+    if (TH1::AddDirectoryStatus())
+        hOut->SetDirectory(fHistoDirectory);
 
     return hOut;
 }
