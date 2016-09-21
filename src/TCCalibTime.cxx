@@ -11,7 +11,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 
-#include "TLine.h"
+#include "TCLine.h"
 #include "TH2.h"
 #include "TF1.h"
 #include "TCanvas.h"
@@ -55,7 +55,7 @@ void TCCalibTime::Init()
 
     // init members
     fMean = 0;
-    fLine = new TLine();
+    fLine = new TCLine();
 
     // configure line
     fLine->SetLineColor(4);
@@ -223,10 +223,7 @@ void TCCalibTime::Fit(Int_t elem)
         fMean = fFitFunc->GetParameter(3);
 
         // draw mean indicator line
-        fLine->SetY1(0);
-        fLine->SetY2(fFitHisto->GetMaximum() + 20);
-        fLine->SetX1(fMean);
-        fLine->SetX2(fMean);
+        fLine->SetPos(fMean);
 
         // draw fitting function
         if (fFitFunc) fFitFunc->Draw("same");
@@ -259,7 +256,7 @@ void TCCalibTime::Calculate(Int_t elem)
     if (fFitHisto->GetEntries())
     {
         // check if line position was modified by hand
-        if (fLine->GetX1() != fMean) fMean = fLine->GetX1();
+        if (fLine->GetPos() != fMean) fMean = fLine->GetPos();
 
         // calculate the new offset
         if (this->InheritsFrom("TCCalibCBRiseTime"))

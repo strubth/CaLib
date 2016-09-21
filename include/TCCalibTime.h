@@ -18,7 +18,7 @@
 #include "TCConfig.h"
 #include "TCReadConfig.h"
 
-class TLine;
+class TCLine;
 
 class TCCalibTime : public TCCalib
 {
@@ -26,7 +26,7 @@ class TCCalibTime : public TCCalib
 private:
     Double_t* fTimeGain;                // TDC gain array
     Double_t fMean;                     // mean time position
-    TLine* fLine;                       // indicator line
+    TCLine* fLine;                      // indicator line
 
     virtual void Init();
     virtual void Fit(Int_t elem);
