@@ -250,7 +250,7 @@ void ButtonWindow::Goto()
     Int_t n = fNE_Elem->GetNumber();
 
     if (gCurrentModule)
-        ((TCCalib*)gCurrentModule)->ProcessElement(n);
+        ((TCCalib*)gCurrentModule)->ProcessElement(n, kTRUE);
 }
 
 //______________________________________________________________________________
@@ -275,7 +275,7 @@ void ButtonWindow::DoNext()
 void ButtonWindow::DoReFit()
 {
     // Go to the next element in the current module.
-    
+
     if (gCurrentModule)
         ((TCCalib*)gCurrentModule)->ReFit();
 }
