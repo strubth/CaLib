@@ -1,5 +1,5 @@
 /*************************************************************************
- * Author: Dominik Werthmueller, Irakli Keshelashvili
+ * Author: Dominik Werthmueller, Irakli Keshelashvili, Thomas Strub
  *************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
@@ -406,6 +406,33 @@ void ButtonWindow::ReadRunsets(Int_t i)
 void ButtonWindow::StartModule()
 {
     // Start the selected module.
+
+    // check for selected calibration
+    if (fCBox_Calibration->GetSelected() < 0)
+    {
+        TGMsgBox* msg = new TGMsgBox(gClient->GetRoot(), gMainWindow, "Error", "Please select first "
+                                     "the calibration you want to work with!",
+                                     kMBIconStop, kMBOk, 0, kFitWidth | kFitHeight, kTextLeft);
+        return;
+    }
+
+    // check for selected calibration module
+    if (fCBox_Module->GetSelected() < 0)
+    {
+        TGMsgBox* msg = new TGMsgBox(gClient->GetRoot(), gMainWindow, "Error", "Please select first "
+                                     "the calibration module you want to work with!",
+                                     kMBIconStop, kMBOk, 0, kFitWidth | kFitHeight, kTextLeft);
+        return;
+    }
+
+    // check for selected calibration sets
+    if (fLB_RunSet->GetSelected() < 0)
+    {
+        TGMsgBox* msg = new TGMsgBox(gClient->GetRoot(), gMainWindow, "Error", "Please select first "
+                                     "the calibration sets you want to work with!",
+                                     kMBIconStop, kMBOk, 0, kFitWidth | kFitHeight, kTextLeft);
+        return;
+    }
 
     // get the selected module
     Int_t module = fCBox_Module->GetSelected();
