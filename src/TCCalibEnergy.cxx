@@ -1,5 +1,5 @@
 /*************************************************************************
- * Author: Irakli Keshelashvili, Dominik Werthmueller
+ * Author: Irakli Keshelashvili, Dominik Werthmueller, Thomas Strub
  *************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
@@ -199,6 +199,55 @@ void TCCalibEnergy::Fit(Int_t elem)
 }
 
 //______________________________________________________________________________
+void TCCalibEnergy::ReCalculateAll()
+{
+    // Alternative calculation of new gains. No need for a convergence factor.
+    //
+    // Invariant mass m for two elements i != j with gains g_i, g_j and adc
+    // values A_i, A_j (i.e., energie E = g*A):
+    //
+    //     m   \propto \sqrt(E_i * E_j) = \sqrt(g_i*A_i * g_j*A_j)
+    //  => m^2 \propto g_i*A_i * g_j*A_j
+    //
+    // Let m_{mean} = mean value of peak pos for j != i. Then
+    //
+    //     g_i(new) = g_i(old) * m0^2/m^2 * m_{mean}/m0
+    //
+    // Special cases:
+    //
+    //    1) m_{mean} == m0:    g_i(new) = g_i(old) * m0^2/m^2
+    //    2) m_{mean} == m:     g_i(new) = g_i(old) * m0  /m
+    //
+    // Case #2 matches standart TAPS energy calibration (1 CB hit, 1 TAPS hit)
+    // because the photon in CB is already calibrated.
+
+    // get sum of pi0 positions
+    Double_t sum = 0.;
+    for (Int_t i = 0; i < fNelem; i++)
+    {
+        if (fOverviewHisto->GetBinContent(i+1) > 0.)
+            sum += fOverviewHisto->GetBinContent(i+1);
+        else
+            sum += TCConfig::kPi0Mass;
+    }
+
+    // loop over all elements and set new gain
+    for (Int_t i = 0; i < fNelem; i++)
+    {
+        Double_t pi0pos = fOverviewHisto->GetBinContent(i+1);
+
+        if (pi0pos > 0.)
+        {
+            // get average of all except i
+            Double_t mean = (sum - pi0pos) / (fNelem - 1);
+
+            // calculate
+            fNewVal[i] = fOldVal[i] * (TCConfig::kPi0Mass * TCConfig::kPi0Mass) / (pi0pos * pi0pos) * (mean / TCConfig::kPi0Mass);
+        }
+    }
+}
+
+//______________________________________________________________________________
 void TCCalibEnergy::Calculate(Int_t elem)
 {
     // Calculate the new value of the element 'elem'.
@@ -214,6 +263,7 @@ void TCCalibEnergy::Calculate(Int_t elem)
         // calculate the new offset
         Double_t a = TCConfig::kPi0Mass / fPi0Pos;
         //Double_t a = TCConfig::kPi0Mass*TCConfig::kPi0Mass / fPi0Pos / fPi0Pos;
+
         Double_t b = a - 1.;
         fNewVal[elem] = fOldVal[elem] + fOldVal[elem]*b*fConvergenceFactor;
 
@@ -262,3 +312,14 @@ void TCCalibEnergy::Calculate(Int_t elem)
     }
 }
 
+//______________________________________________________________________________
+void TCCalibEnergy::WriteValues()
+{
+    // Write the obtained calibration values to the database.
+
+    // recalculate all gains
+    if (this->InheritsFrom("TCCalibCBEnergy")) ReCalculateAll();
+
+    // call parent's function
+    TCCalib::WriteValues();
+}

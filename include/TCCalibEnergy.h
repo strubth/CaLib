@@ -1,5 +1,5 @@
 /*************************************************************************
- * Author: Irakli Keshelashvili, Dominik Werthmueller
+ * Author: Irakli Keshelashvili, Dominik Werthmueller, Thomas Strub
  *************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
@@ -30,12 +30,15 @@ private:
     virtual void Init();
     virtual void Fit(Int_t elem);
     virtual void Calculate(Int_t elem);
+    virtual void ReCalculateAll();
 
 public:
     TCCalibEnergy() : TCCalib(), fPi0Pos(0), fLine(0) { }
     TCCalibEnergy(const Char_t* name, const Char_t* title, const Char_t* data,
                   Int_t nElem);
     virtual ~TCCalibEnergy();
+
+    virtual void WriteValues();
 
     ClassDef(TCCalibEnergy, 0) // Base energy calibration class
 };
