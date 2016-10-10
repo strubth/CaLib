@@ -32,8 +32,10 @@ TCCalibQuadEnergy::TCCalibQuadEnergy(const Char_t* name, const Char_t* title, co
     // Constructor.
 
     // init members
-    fPar0 = 0;
-    fPar1 = 0;
+    fPar0Old = 0;
+    fPar1Old = 0;
+    fPar0New = 0;
+    fPar1New = 0;
     fMainHisto2 = 0;
     fMainHisto3 = 0;
     fFitHisto1b = 0;
@@ -50,6 +52,8 @@ TCCalibQuadEnergy::TCCalibQuadEnergy(const Char_t* name, const Char_t* title, co
     fLineMeanEEta = 0;
     fPi0PosHisto = 0;
     fEtaPosHisto = 0;
+    fPi0MeanEHisto = 0;
+    fEtaMeanEHisto = 0;
 }
 
 //______________________________________________________________________________
@@ -57,8 +61,10 @@ TCCalibQuadEnergy::~TCCalibQuadEnergy()
 {
     // Destructor.
 
-    if (fPar0) delete [] fPar0;
-    if (fPar1) delete [] fPar1;
+    if (fPar0Old) delete [] fPar0Old;
+    if (fPar1Old) delete [] fPar1Old;
+    if (fPar0New) delete [] fPar0New;
+    if (fPar1New) delete [] fPar1New;
     if (fMainHisto2) delete fMainHisto2;
     if (fMainHisto3) delete fMainHisto3;
     if (fFitHisto1b) delete fFitHisto1b;
@@ -71,6 +77,8 @@ TCCalibQuadEnergy::~TCCalibQuadEnergy()
     if (fLineMeanEEta) delete fLineMeanEEta;
     if (fPi0PosHisto) delete fPi0PosHisto;
     if (fEtaPosHisto) delete fEtaPosHisto;
+    if (fPi0MeanEHisto) delete fPi0MeanEHisto;
+    if (fEtaMeanEHisto) delete fEtaMeanEHisto;
 }
 
 //______________________________________________________________________________
@@ -81,8 +89,10 @@ void TCCalibQuadEnergy::Init()
     Char_t tmp[256];
 
     // init members
-    fPar0 = new Double_t[fNelem];
-    fPar1 = new Double_t[fNelem];
+    fPar0Old = new Double_t[fNelem];
+    fPar1Old = new Double_t[fNelem];
+    fPar0New = new Double_t[fNelem];
+    fPar1New = new Double_t[fNelem];
     fFitHisto1b = 0;
     fFitHisto2 = 0;
     fFitHisto3 = 0;
@@ -138,13 +148,20 @@ void TCCalibQuadEnergy::Init()
     // read old parameters (only from first set)
     if (this->InheritsFrom("TCCalibCBQuadEnergy"))
     {
-        TCMySQLManager::GetManager()->ReadParameters("Data.CB.Energy.Quad.Par0", fCalibration.Data(), fSet[0], fPar0, fNelem);
-        TCMySQLManager::GetManager()->ReadParameters("Data.CB.Energy.Quad.Par1", fCalibration.Data(), fSet[0], fPar1, fNelem);
+        TCMySQLManager::GetManager()->ReadParameters("Data.CB.Energy.Quad.Par0", fCalibration.Data(), fSet[0], fPar0Old, fNelem);
+        TCMySQLManager::GetManager()->ReadParameters("Data.CB.Energy.Quad.Par1", fCalibration.Data(), fSet[0], fPar1Old, fNelem);
     }
     else if (this->InheritsFrom("TCCalibTAPSQuadEnergy"))
     {
-        TCMySQLManager::GetManager()->ReadParameters("Data.TAPS.Energy.Quad.Par0", fCalibration.Data(), fSet[0], fPar0, fNelem);
-        TCMySQLManager::GetManager()->ReadParameters("Data.TAPS.Energy.Quad.Par1", fCalibration.Data(), fSet[0], fPar1, fNelem);
+        TCMySQLManager::GetManager()->ReadParameters("Data.TAPS.Energy.Quad.Par0", fCalibration.Data(), fSet[0], fPar0Old, fNelem);
+        TCMySQLManager::GetManager()->ReadParameters("Data.TAPS.Energy.Quad.Par1", fCalibration.Data(), fSet[0], fPar1Old, fNelem);
+    }
+
+    // copy parameters
+    for (Int_t i = 0; i < fNelem; i++)
+    {
+        fPar0New[i] = fPar0Old[i];
+        fPar1New[i] = fPar1Old[i];
     }
 
     // sum up all files contained in this runset
@@ -187,6 +204,9 @@ void TCCalibQuadEnergy::Init()
     fEtaPosHisto->SetMarkerColor(4);
     sprintf(tmp, "%s.Histo.Overview.Eta", GetName());
     TCUtils::FormatHistogram(fEtaPosHisto, tmp);
+
+    fPi0MeanEHisto = new TH1F("Pi0MeanE", ";Element;Mean photon energy [MeV]", fNelem, 0, fNelem);
+    fEtaMeanEHisto = new TH1F("EtaMeanE", ";Element;Mean photon energy [MeV]", fNelem, 0, fNelem);
 
     // prepare fit histogram canvas
     fCanvasFit->Divide(1, 4, 0.001, 0.001);
@@ -302,7 +322,7 @@ void TCCalibQuadEnergy::Fit(Int_t elem)
         fFitFunc1b->SetParameters(fFitHisto1b->GetMaximum(), fEtaPos, 15, 1, 1, 1, 0.1);
         fFitFunc1b->SetParLimits(0, 0.1*fFitHisto1b->GetMaximum(), 1.5*fFitHisto1b->GetMaximum());
         fFitFunc1b->SetParLimits(1, fEtaPos - 30, fEtaPos + 30);
-        fFitFunc1b->SetParLimits(2, 1, 50);
+        fFitFunc1b->SetParLimits(2, 10, 50);
         //fFitFunc1b->SetParLimits(3, 0, 100);
         //fFitFunc1b->SetParLimits(4, -1, 0);
         //fFitFunc1b->SetParLimits(5, -1, 0);//0, 50
@@ -375,6 +395,147 @@ void TCCalibQuadEnergy::Fit(Int_t elem)
 }
 
 //______________________________________________________________________________
+void TCCalibQuadEnergy::CalculateNewPar(Double_t& par0, Double_t& par1,
+                                        Double_t pi0Pos, Double_t pi0_mean_e,
+                                        Double_t etaPos, Double_t eta_mean_e,
+                                        Double_t pi0_factor /*= 1.*/,
+                                        Double_t eta_factor /*= 1.*/)
+{
+    // Calculates new parameters from old ones and returns them via the first
+    // two arguments.
+
+    // Denote
+    //   E0          energy w/o quadratic correction
+    //   m0          theoretical mass of meson
+    //   m           mass of meson with old quad. corr
+    //   E , a , b   energy and parameters of old quad. corr
+    //   E', a', b'  energy and parameters of new quad. corr
+    //
+    //   E  = a  E0 + b  E0^2
+    //   E' = a' E0 + b' E0^2
+    //
+    //   if b == 0  =>  E0 = E/a
+    //   if b != 0  =>  E0 = (sqrt(a^2 + 4 b E) - a) / (2 b)
+    //
+    // Then,
+    //   a  E0 + b  E0^2  propto  m^2
+    //   a' E0 + b' E0^2  propto  m0^2
+    //
+    // gives together
+    //   a' E0 + b' E0^2 = (a E0 + b E0^2) (m0/m)^2
+    //   a'    + b' E0   = E/E0 * (m0/m)^2
+    //
+    // Define
+    //   R :=  E/E0 * (m0/m)^2
+    //
+    //   a'    + b' E0  = R
+    //
+    // For two equations, e.g. eta & pion,
+    // solve:
+    //
+    //   a' +  b' E0_1 = R_1      (1)
+    //   a' +  b' E0_2 = R_2      (2)
+    //
+    // Solve (2) for b gives
+    //  b' = (R_2 - a') / E0_2   (2')
+    //
+    // Insert (2') into (1)
+    //  a' = [ R1 - (E0_1/E0_2)*R2 ] / [ 1 - E0_1/E0_2 ]
+
+
+    // get mean energy of photons (E from above)
+    Double_t e0pi0 = pi0_mean_e;
+    Double_t e0eta = eta_mean_e;
+
+    // undo quadratic energy correction (E0 from above)
+    if (par1 == 0.)
+    {
+        e0pi0 = pi0_mean_e / par0;
+        e0eta = eta_mean_e / par0;
+    }
+    else
+    {
+        e0pi0 = (TMath::Sqrt(par0*par0 + 4.*par1*pi0_mean_e) - par0) / (2.* par1);
+        e0eta = (TMath::Sqrt(par0*par0 + 4.*par1*eta_mean_e) - par0) / (2.* par1);
+    }
+
+    // energy ratio (E0_1/E0_2 from above):
+    Double_t mean_E_ratio = e0eta / e0pi0;
+
+    // calculate ratios (R1 and R2 from above)
+    Double_t pion_im_ratio = (TCConfig::kPi0Mass * TCConfig::kPi0Mass) / (pi0Pos * pi0Pos) * (pi0_mean_e / e0pi0) * pi0_factor;
+    Double_t eta_im_ratio =  (TCConfig::kEtaMass * TCConfig::kEtaMass) / (etaPos * etaPos) * (eta_mean_e / e0eta) * eta_factor;
+
+    // set new parameters (a', b' from above)
+    Double_t par0new = (eta_im_ratio - mean_E_ratio*pion_im_ratio) / (1. - mean_E_ratio);
+    Double_t par1new = (pion_im_ratio - par0new) / e0pi0;
+
+    // return variables
+    par0 = par0new;
+    par1 = par1new;
+
+    return;
+}
+
+//______________________________________________________________________________
+void TCCalibQuadEnergy::ReCalculateAll()
+{
+    // Re-calculates all elements taking in account the peak position mean
+    // values of all elements. Results in good convergence of the calibration.
+
+    // init mean positions
+    Double_t pi0_aver = 0;
+    Double_t eta_aver = 0;
+
+    // loop over all elements
+    for (Int_t i = 0; i < fNelem; i++)
+    {
+        // calc mean values
+        if (fPi0PosHisto->GetBinContent(i+1) != 0.)
+            pi0_aver += fPi0PosHisto->GetBinContent(i+1);
+        else
+            pi0_aver += TCConfig::kPi0Mass;
+
+        if (fEtaPosHisto->GetBinContent(i+1) != 0.)
+            eta_aver += fEtaPosHisto->GetBinContent(i+1);
+        else
+            eta_aver += TCConfig::kEtaMass;
+    }
+
+    // calculate mean value
+    pi0_aver /= fNelem;
+    eta_aver /= fNelem;
+
+    // loop over all elements
+    for (Int_t i = 0; i < fNelem; i++)
+    {
+        // check whether element was calibrated
+        if (fPi0PosHisto->GetBinContent(i+1) == 0.) continue;
+
+        // get (old) parameter
+        Double_t par0 = fPar0Old[i];
+        Double_t par1 = fPar1Old[i];
+
+        // get fit values
+        Double_t pi0pos  = fPi0PosHisto->GetBinContent(i+1);
+        Double_t etapos  = fEtaPosHisto->GetBinContent(i+1);
+        Double_t pi0mean_e  = fPi0MeanEHisto->GetBinContent(i+1);
+        Double_t etamean_e  = fEtaMeanEHisto->GetBinContent(i+1);
+
+        // calculate convergence factors
+        Double_t pi0_factor = (pi0_aver * fNelem - fPi0PosHisto->GetBinContent(i+1)) / (fNelem - 1) / TCConfig::kPi0Mass;
+        Double_t eta_factor = (eta_aver * fNelem - fEtaPosHisto->GetBinContent(i+1)) / (fNelem - 1) / TCConfig::kEtaMass;
+
+        // re-calculate element
+        CalculateNewPar(par0, par1, pi0pos, pi0mean_e, etapos, etamean_e, pi0_factor, eta_factor);
+
+        // set result
+        fPar0New[i] = par0;
+        fPar1New[i] = par1;
+    }
+}
+
+//______________________________________________________________________________
 void TCCalibQuadEnergy::Calculate(Int_t elem)
 {
     // Calculate the new value of the element 'elem'.
@@ -392,38 +553,72 @@ void TCCalibQuadEnergy::Calculate(Int_t elem)
         if (fLineEta->GetPos() != fEtaPos) fEtaPos = fLineEta->GetPos();
         if (fLineMeanEEta->GetPos() != fEtaMeanE) fEtaMeanE = fLineMeanEEta->GetPos();
 
+        /* obsolete
         // calculate quadratic correction factors
         Double_t mean_E_ratio = fEtaMeanE / fPi0MeanE;
         Double_t pion_im_ratio = TCConfig::kPi0Mass / fPi0Pos;
         Double_t eta_im_ratio = TCConfig::kEtaMass / fEtaPos;
         fPar0[elem] = (eta_im_ratio - mean_E_ratio*pion_im_ratio) / (1. - mean_E_ratio);
         fPar1[elem] = (pion_im_ratio - fPar0[elem]) / fPi0MeanE;
+        */
 
-        // check values
-        if (TMath::IsNaN(fPar0[elem]) || TMath::IsNaN(fPar1[elem]))
+        // correct for wrong initial db value
+        if (fPar0Old[elem] == 0.)
         {
-            fPar0[elem] = 1;
-            fPar1[elem] = 0;
-            no_corr = kTRUE;
+            fPar0Old[elem] = 1.;
+            fPar0New[elem] = 1.;
         }
 
-        // update overview histograms
-        fPi0PosHisto->SetBinContent(elem+1, fPi0Pos);
-        fPi0PosHisto->SetBinError(elem+1, 0.0000001);
-        fEtaPosHisto->SetBinContent(elem+1, fEtaPos);
-        fEtaPosHisto->SetBinError(elem+1, 0.0000001);
+        // get old parameters
+        Double_t par0 = fPar0Old[elem];
+        Double_t par1 = fPar1Old[elem];
+
+        // calculate new values (returned via first two args) --> c.f. also ReCalculateAll()
+        if (this->InheritsFrom("TCCalibCBQuadEnergy"))
+        {
+            // standard calculation for an IM mass from two CB photons (first iteration)
+            CalculateNewPar(par0, par1, fPi0Pos, fPi0MeanE, fEtaPos, fEtaMeanE, fPi0Pos/TCConfig::kPi0Mass, fEtaPos/TCConfig::kEtaMass);
+        }
+        if (this->InheritsFrom("TCCalibTAPSQuadEnergy"))
+        {
+            // standard calculation for an IM mass from one CB photon and one TAPS photon (CB already calibrated)
+            CalculateNewPar(par0, par1, fPi0Pos, fPi0MeanE, fEtaPos, fEtaMeanE);
+        }
+
+        // set result
+        fPar0New[elem] = par0;
+        fPar1New[elem] = par1;
+
+        // check values
+        if (TMath::IsNaN(fPar0New[elem]) || TMath::IsNaN(fPar1New[elem]))
+        {
+            fPar0New[elem] = fPar0Old[elem];
+            fPar1New[elem] = fPar1Old[elem];
+            no_corr = kTRUE;
+        }
+        else
+        {
+            // update histograms
+            fPi0PosHisto->SetBinContent(elem+1, fPi0Pos);
+            fPi0PosHisto->SetBinError(elem+1, 0.0000001);
+            fEtaPosHisto->SetBinContent(elem+1, fEtaPos);
+            fEtaPosHisto->SetBinError(elem+1, 0.0000001);
+
+            fPi0MeanEHisto->SetBinContent(elem+1, fPi0MeanE);
+            fEtaMeanEHisto->SetBinContent(elem+1, fEtaMeanE);
+        }
     }
-    else
+    else //needed???
     {
-        fPar0[elem] = 1;
-        fPar1[elem] = 0;
+        fPar0New[elem] = fPar0Old[elem];
+        fPar1New[elem] = fPar1Old[elem];
         no_corr = kTRUE;
     }
 
     // user information
     printf("Element: %03d    Pi0 Pos.: %6.2f    Pi0 ME: %6.2f    "
-           "Eta Pos.: %6.2f    Eta ME: %6.2f    Par0: %12.8f    Par1: %e",
-           elem, fPi0Pos, fPi0MeanE, fEtaPos, fEtaMeanE, fPar0[elem], fPar1[elem]);
+           "Eta Pos.: %6.2f    Eta ME: %6.2f    Par0 old: %7.6f  new: %7.6f    Par1 old: %+4.3e  new: %+4.3e",
+           elem, fPi0Pos, fPi0MeanE, fEtaPos, fEtaMeanE, fPar0Old[elem], fPar0New[elem], fPar1Old[elem], fPar1New[elem]);
     if (no_corr) printf("    -> no correction");
     if (this->InheritsFrom("TCCalibCBQuadEnergy"))
     {
@@ -440,9 +635,9 @@ void TCCalibQuadEnergy::PrintValues()
     // loop over elements
     for (Int_t i = 0; i < fNelem; i++)
     {
-        printf("Element: %03d    Par0: %12.8f    "
-               "Par1: %12.8f\n",
-               i, fPar0[i], fPar1[i]);
+        printf("Element: %03d    Par0Old: %7.6f    Par0New: %7.6f    "
+                                "Par1Old: %+4.3e    Par1New: %+4.3e\n",
+               i, fPar0Old[i], fPar0New[i], fPar1Old[i], fPar1New[i]);
     }
 }
 
@@ -451,18 +646,21 @@ void TCCalibQuadEnergy::WriteValues()
 {
     // Write the obtained calibration values to the database.
 
+    // re-calculate gains for all elements
+    if (this->InheritsFrom("TCCalibCBQuadEnergy")) ReCalculateAll();
+
     // write values to database
     for (Int_t i = 0; i < fNset; i++)
     {
         if (this->InheritsFrom("TCCalibCBQuadEnergy"))
         {
-            TCMySQLManager::GetManager()->WriteParameters("Data.CB.Energy.Quad.Par0", fCalibration.Data(), fSet[i], fPar0, fNelem);
-            TCMySQLManager::GetManager()->WriteParameters("Data.CB.Energy.Quad.Par1", fCalibration.Data(), fSet[i], fPar1, fNelem);
+            TCMySQLManager::GetManager()->WriteParameters("Data.CB.Energy.Quad.Par0", fCalibration.Data(), fSet[i], fPar0New, fNelem);
+            TCMySQLManager::GetManager()->WriteParameters("Data.CB.Energy.Quad.Par1", fCalibration.Data(), fSet[i], fPar1New, fNelem);
         }
         else if (this->InheritsFrom("TCCalibTAPSQuadEnergy"))
         {
-            TCMySQLManager::GetManager()->WriteParameters("Data.TAPS.Energy.Quad.Par0", fCalibration.Data(), fSet[i], fPar0, fNelem);
-            TCMySQLManager::GetManager()->WriteParameters("Data.TAPS.Energy.Quad.Par1", fCalibration.Data(), fSet[i], fPar1, fNelem);
+            TCMySQLManager::GetManager()->WriteParameters("Data.TAPS.Energy.Quad.Par0", fCalibration.Data(), fSet[i], fPar0New, fNelem);
+            TCMySQLManager::GetManager()->WriteParameters("Data.TAPS.Energy.Quad.Par1", fCalibration.Data(), fSet[i], fPar1New, fNelem);
         }
     }
 

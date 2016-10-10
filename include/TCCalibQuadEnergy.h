@@ -1,5 +1,5 @@
 /*************************************************************************
- * Author: Dominik Werthmueller
+ * Author: Dominik Werthmueller, Thomas Strub
  *************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
@@ -26,8 +26,10 @@ class TCCalibQuadEnergy : public TCCalib
 {
 
 private:
-    Double_t* fPar0;                        // correction parameter 0
-    Double_t* fPar1;                        // correction parameter 1
+    Double_t* fPar0Old;                     // old correction parameter 0
+    Double_t* fPar1Old;                     // old correction parameter 1
+    Double_t* fPar0New;                     // new correction parameter 0
+    Double_t* fPar1New;                     // new correction parameter 1
     TH2* fMainHisto2;                       // histogram with mean photon energy of pi0
     TH2* fMainHisto3;                       // histogram with mean photon energy of eta
     TH1* fFitHisto1b;                       // fitting histogram
@@ -44,22 +46,31 @@ private:
     TCLine* fLineMeanEEta;                  // eta mean photon energy indicator line
     TH1* fPi0PosHisto;                      // histogram of pi0 positions
     TH1* fEtaPosHisto;                      // histogram of eta positions
+    TH1* fPi0MeanEHisto;                    // histogram of mean pi0 photon energy
+    TH1* fEtaMeanEHisto;                    // histogram of mean eta photon energy
 
     virtual void Init();
     virtual void Fit(Int_t elem);
     virtual void Calculate(Int_t elem);
+    virtual void ReCalculateAll();
 
 public:
-    TCCalibQuadEnergy() : TCCalib(), fPar0(0), fPar1(0),
+    TCCalibQuadEnergy() : TCCalib(), fPar0Old(0), fPar1Old(0), fPar0New(0), fPar1New(0),
                           fMainHisto2(0), fMainHisto3(0),
                           fFitHisto1b(0), fFitHisto2(0), fFitHisto3(0),
                           fFitFunc1b(0),
                           fPi0Pos(0), fEtaPos(0), fPi0MeanE(0), fEtaMeanE(0),
                           fLinePi0(0), fLineEta(0), fLineMeanEPi0(0), fLineMeanEEta(0),
-                          fPi0PosHisto(0), fEtaPosHisto(0) { }
+                          fPi0PosHisto(0), fEtaPosHisto(0),
+                          fPi0MeanEHisto(0), fEtaMeanEHisto(0) { }
     TCCalibQuadEnergy(const Char_t* name, const Char_t* title, const Char_t* data,
                       Int_t nElem);
     virtual ~TCCalibQuadEnergy();
+    static void CalculateNewPar(Double_t& par0old, Double_t& par1old,
+                                Double_t pi0Pos, Double_t pi0_mean_e,
+                                Double_t etaPos, Double_t eta_mean_e,
+                                Double_t pi0_factor = 1.,
+                                Double_t eta_factor = 1.);
 
     virtual void WriteValues();
     virtual void PrintValues();
