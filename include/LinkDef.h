@@ -114,6 +114,8 @@
 #pragma link C++ class TCCalibRunBadScR_Veto+;
 #pragma link C++ class TCCalibRunBadScR_Ladder+;
 #pragma link C++ class TCCalibRunBadScR_LadderScalers+;
+#pragma link C++ class TCCalibRunBadScR_TimeShift+;
+#pragma link C++ class TCCalibRunBadScR_TimeShiftTagger+;
 
 #endif
 

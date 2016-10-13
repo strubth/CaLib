@@ -480,6 +480,7 @@ void CreateModuleList()
             // skip non-module (base) classes
             if (c == "TCCalibRun") continue;
             if (c == "TCCalibRunBadScR") continue;
+            if (c == "TCCalibRunBadScR_TimeShift") continue;
 
             // add module to list if it is really a module
             TClass tc(c.Data());

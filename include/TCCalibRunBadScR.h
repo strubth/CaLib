@@ -94,7 +94,7 @@ protected:
     inline Bool_t IsGood() { return (Bool_t) fMainHistos[fIndex]; };
     void ChangeInterval(Int_t i);
 
-    void CalibMethodDefault();
+    virtual void CalibMethodDefault();
 
     void UpdateOverviewHisto();
 
