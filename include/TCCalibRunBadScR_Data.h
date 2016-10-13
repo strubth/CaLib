@@ -14,8 +14,8 @@
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef TCCALIBRUNBADSCR_DATAH
-#define TCCALIBRUNBADSCR_DATAH
+#ifndef TCCALIBRUNBADSCR_DATA_H
+#define TCCALIBRUNBADSCR_DATA_H
 
 #include "TCCalibRunBadScR.h"
 
