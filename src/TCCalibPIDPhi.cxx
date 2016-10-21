@@ -259,6 +259,9 @@ void TCCalibPIDPhi::Calculate(Int_t elem)
         fFitFunc2->SetLineColor(2);
         fFitFunc2->SetParameters(1, 1);
 
+        // fix slope: 15 deg per elem
+        fFitFunc2->FixParameter(1, 15.);
+
         // fit histogram
         fOverviewHisto2->Fit(fFitFunc2, "RBQ0");
 
