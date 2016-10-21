@@ -1,5 +1,5 @@
 /*************************************************************************
- * Author: Dominik Werthmueller, Thomas Strub
+ * Authors: Dominik Werthmueller, Thomas Strub
  *************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
@@ -13,11 +13,11 @@
 
 #include "TH2.h"
 #include "TF1.h"
-#include "TLine.h"
 #include "TCanvas.h"
 #include "TMath.h"
 
 #include "TCCalibPIDPhi.h"
+#include "TCLine.h"
 #include "TCConfig.h"
 #include "TCReadConfig.h"
 #include "TCFileManager.h"
@@ -58,7 +58,7 @@ void TCCalibPIDPhi::Init()
 
     // init members
     fMean = 0;
-    fLine = new TLine();
+    fLine = new TCLine();
     fCanvasResult2 = 0;
     fOverviewHisto2 = 0;
     fFitFunc2 = 0;
@@ -135,7 +135,7 @@ void TCCalibPIDPhi::Fit(Int_t elem)
 
         // get maximum
         Double_t maxPos = fFitHisto->GetXaxis()->GetBinCenter(fFitHisto->GetMaximumBin());
-        if (fIsReFit) maxPos = fLine->GetX1();
+        if (fIsReFit) maxPos = fLine->GetPos();
 
         // perform angle interval mapping if peak is split
         if (maxPos + 20 > 180 || maxPos - 20 < -180)
@@ -169,10 +169,7 @@ void TCCalibPIDPhi::Fit(Int_t elem)
         if (!fIsReFit && TMath::Abs(fMean) > 290) fMean = 0;
 
         // draw mean indicator line
-        fLine->SetY1(0);
-        fLine->SetY2(fFitHisto->GetMaximum() + 20);
-        fLine->SetX1(fMean);
-        fLine->SetX2(fMean);
+        fLine->SetPos(fMean);
     }
 
     // draw histogram
@@ -207,7 +204,7 @@ void TCCalibPIDPhi::Calculate(Int_t elem)
     if (fFitHisto->GetEntries())
     {
         // check if line position was modified by hand
-        if (fLine->GetX1() != fMean) fMean = fLine->GetX1();
+        if (fLine->GetPos() != fMean) fMean = fLine->GetPos();
 
         // set the new phi angle
         fNewVal[elem] = fMean;

@@ -1,5 +1,5 @@
 /*************************************************************************
- * Author: Dominik Werthmueller
+ * Authors: Dominik Werthmueller, Thomas Strub
  *************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
@@ -16,7 +16,7 @@
 
 #include "TCCalib.h"
 
-class TLine;
+class TCLine;
 class TCanvas;
 class TH1;
 class TF1;
@@ -26,7 +26,7 @@ class TCCalibPIDPhi : public TCCalib
 
 private:
     Double_t fMean;                     // mean time position
-    TLine* fLine;                       // indicator line
+    TCLine* fLine;                      // indicator line
     TCanvas* fCanvasResult2;            // second result canvas
     TH1* fOverviewHisto2;               // second overview histogram
     TF1* fFitFunc2;                     // second fitting function
