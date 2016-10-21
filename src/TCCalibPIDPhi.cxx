@@ -1,5 +1,5 @@
 /*************************************************************************
- * Author: Dominik Werthmueller
+ * Author: Dominik Werthmueller, Thomas Strub
  *************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
@@ -135,6 +135,7 @@ void TCCalibPIDPhi::Fit(Int_t elem)
 
         // get maximum
         Double_t maxPos = fFitHisto->GetXaxis()->GetBinCenter(fFitHisto->GetMaximumBin());
+        if (fIsReFit) maxPos = fLine->GetX1();
 
         // perform angle interval mapping if peak is split
         if (maxPos + 20 > 180 || maxPos - 20 < -180)
@@ -154,6 +155,10 @@ void TCCalibPIDPhi::Fit(Int_t elem)
         fFitFunc->SetParameters(1, maxPos, 5);
         fFitFunc->SetRange(maxPos - 50, maxPos + 50);
 
+        // set limits
+        if (fIsReFit)
+            fFitFunc->SetParLimits(1, maxPos - 5, maxPos + 5);
+
         // fit
         fFitHisto->Fit(fFitFunc, "RBQ0");
 
@@ -161,7 +166,7 @@ void TCCalibPIDPhi::Fit(Int_t elem)
         fMean = fFitFunc->GetParameter(1);
 
         // correct bad fits
-        if (TMath::Abs(fMean) > 290) fMean = 0;
+        if (!fIsReFit && TMath::Abs(fMean) > 290) fMean = 0;
 
         // draw mean indicator line
         fLine->SetY1(0);
