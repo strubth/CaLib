@@ -130,12 +130,11 @@ void TCCalibPIDPhi::Fit(Int_t elem)
         sprintf(tmp, "fPhi_%i", elem);
 
         // the fit function
-        fFitFunc = new TF1("fFitFunc", "gaus(0)");
+        fFitFunc = new TF1("fFitFunc", "gaus(0)+pol0(3)");
         fFitFunc->SetLineColor(2);
 
         // get maximum
         Double_t maxPos = fFitHisto->GetXaxis()->GetBinCenter(fFitHisto->GetMaximumBin());
-        if (fIsReFit) maxPos = fLine->GetPos();
 
         // perform angle interval mapping if peak is split
         if (maxPos + 20 > 180 || maxPos - 20 < -180)
@@ -151,11 +150,18 @@ void TCCalibPIDPhi::Fit(Int_t elem)
             maxPos = fFitHisto->GetXaxis()->GetBinCenter(fFitHisto->GetMaximumBin());
         }
 
+        // set peak pos from indicator line
+        if (fIsReFit) maxPos = fLine->GetPos();
+
         // configure fitting function
-        fFitFunc->SetParameters(1, maxPos, 5);
+        fFitFunc->SetParameters(fFitHisto->GetMaximum(), maxPos, 7, 1);
         fFitFunc->SetRange(maxPos - 50, maxPos + 50);
 
         // set limits
+        fFitFunc->SetParLimits(0, fFitHisto->GetMaximum()*0.1, fFitHisto->GetMaximum()*1.5);
+        fFitFunc->SetParLimits(2, 4, 10);
+        fFitFunc->SetParLimits(3, 0, fFitHisto->GetMaximum()*0.5);
+
         if (fIsReFit)
             fFitFunc->SetParLimits(1, maxPos - 5, maxPos + 5);
 
