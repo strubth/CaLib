@@ -197,6 +197,10 @@ void TCCalibTime::Fit(Int_t elem)
         {
             factor = 1.5;
         }
+        if (this->InheritsFrom("TCCalibPizzaTime"))
+        {
+            factor = 1.5;
+        }
         if (this->InheritsFrom("TCCalibCBRiseTime"))
         {
             factor = 10;

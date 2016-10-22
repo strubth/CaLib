@@ -99,6 +99,9 @@
 #pragma link C++ class TCCalibVetoTime+;
 #pragma link C++ class TCCalibVetoLED+;
 
+// Pizza detector calibration classes
+#pragma link C++ class TCCalibPizzaTime+;
+
 // Run calibration classes
 #pragma link C++ class TCARFileLoader+;
 #pragma link C++ class TCARHistoLoader+;

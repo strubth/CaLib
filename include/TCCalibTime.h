@@ -119,5 +119,18 @@ public:
     ClassDef(TCCalibVetoTime, 0) // Veto time calibration class
 };
 
+class TCCalibPizzaTime : public TCCalibTime
+{
+
+public:
+    TCCalibPizzaTime()
+        : TCCalibTime("Pizza.Time", "Pizza time calibration",
+                     "Data.Pizza.T0",
+                     TCConfig::kMaxPizza) { }
+    virtual ~TCCalibPizzaTime() { }
+
+    ClassDef(TCCalibPizzaTime, 0) // Pizza detector time calibration class
+};
+
 #endif
 
