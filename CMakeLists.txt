@@ -18,9 +18,12 @@ if(APPLE)
     set(CMAKE_SHARED_LIBRARY_SUFFIX ".so")
 endif(APPLE)
 
-# use copied CMake modules from ROOT 6
-#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "$ENV{ROOTSYS}/etc/cmake/")
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
+# load ROOT CMake modules
+if (ROOT_VERSION VERSION_GREATER 6)
+    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "$ENV{ROOTSYS}/etc/cmake/")
+else()
+    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
+endif()
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 
 # adjust some paths
@@ -59,7 +62,12 @@ file(GLOB SRCS src/TC*.cxx)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 # create the dictionary
-ROOT_GENERATE_DICTIONARY(G__CaLib include/TC*.h LINKDEF LinkDef.h)
+if (ROOT_VERSION VERSION_GREATER 6)
+    ROOT_GENERATE_DICTIONARY(G__CaLib include/TC*.h LINKDEF LinkDef.h
+                             OPTIONS -rml libCaLib.so -rmf libCaLib.rootmap)
+else()
+    ROOT_GENERATE_DICTIONARY(G__CaLib include/TC*.h LINKDEF LinkDef.h)
+endif()
 
 # create the shared library
 add_library(CaLib SHARED ${SRCS} G__CaLib.cxx)
@@ -70,12 +78,14 @@ add_executable(calib_manager src/MainCaLibManager.cxx)
 target_link_libraries(calib_manager CaLib ${CURSES_LIBRARIES})
 
 # generate rootmap
-add_custom_command(TARGET CaLib POST_BUILD 
-    COMMAND rlibmap -o ${PROJECT_BINARY_DIR}/lib/libCaLib.rootmap
-                    -l ${PROJECT_BINARY_DIR}/lib/libCaLib.so
-                    -d ${ROOT_LIBRARIES}
-                    -c ${CMAKE_SOURCE_DIR}/include/LinkDef.h
-)
+if (ROOT_VERSION VERSION_LESS 6)
+    add_custom_command(TARGET CaLib POST_BUILD
+        COMMAND rlibmap -o ${PROJECT_BINARY_DIR}/lib/libCaLib.rootmap
+                        -l ${PROJECT_BINARY_DIR}/lib/libCaLib.so
+                        -d ${ROOT_LIBRARIES}
+                        -c ${CMAKE_SOURCE_DIR}/include/LinkDef.h
+    )
+endif()
 
 # generate HTML documentation
 if (DOCS)
