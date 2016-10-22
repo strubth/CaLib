@@ -15,13 +15,13 @@
 #include "TH3.h"
 #include "TF1.h"
 #include "TCanvas.h"
-#include "TLine.h"
 #include "TFile.h"
 #include "TSystem.h"
 #include "TSpectrum.h"
 #include "TMath.h"
 
 #include "TCCalibPIDEnergyTrad.h"
+#include "TCLine.h"
 #include "TCConfig.h"
 #include "TCFileManager.h"
 #include "TCUtils.h"
@@ -82,8 +82,8 @@ void TCCalibPIDEnergyTrad::Init()
     fProtonMC = 0;
     fPionData = 0;
     fProtonData = 0;
-    fLine =  new TLine();
-    fLine2 =  new TLine();
+    fLine =  new TCLine();
+    fLine2 =  new TCLine();
     fDelay = 0;
     fMCHisto = 0;
     fMCFile = 0;
@@ -246,16 +246,10 @@ void TCCalibPIDEnergyTrad::FitSlice(TH2* h)
     fProtonData = fFitFunc->GetParameter(6);
 
     // format line
-    fLine->SetY1(0);
-    fLine->SetY2(fFitHisto->GetMaximum() + 20);
-    fLine->SetX1(fPionData);
-    fLine->SetX2(fPionData);
+    fLine->SetPos(fPionData);
 
     // format line
-    fLine2->SetY1(0);
-    fLine2->SetY2(fFitHisto->GetMaximum() + 20);
-    fLine2->SetX1(fProtonData);
-    fLine2->SetX2(fProtonData);
+    fLine2->SetPos(fProtonData);
 
     // plot histogram and line
     fCanvasFit->cd(2);
@@ -345,8 +339,8 @@ void TCCalibPIDEnergyTrad::Calculate(Int_t elem)
     if (fMainHisto->GetEntries())
     {
         // check if line position was modified by hand
-        if (fLine->GetX1() != fPionData) fPionData = fLine->GetX1();
-        if (fLine2->GetX1() != fProtonData) fProtonData = fLine2->GetX1();
+        if (fLine->GetPos() != fPionData) fPionData = fLine->GetPos();
+        if (fLine2->GetPos() != fProtonData) fProtonData = fLine2->GetPos();
 
         // calculate peak differences
         Double_t diffMC = fProtonMC - fPionMC;

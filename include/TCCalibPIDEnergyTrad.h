@@ -16,7 +16,7 @@
 
 #include "TCCalib.h"
 
-class TLine;
+class TCLine;
 class TH2;
 class TFile;
 class TCFileManager;
@@ -34,8 +34,8 @@ private:
     Double_t fProtonData;               // proton position in data
     TH1* fPionPos;                      // pion peak position histogram
     TH1* fProtonPos;                    // proton peak position histogram
-    TLine* fLine;                       // mean indicator line
-    TLine* fLine2;                       // mean indicator line
+    TCLine* fLine;                      // mean indicator line
+    TCLine* fLine2;                     // mean indicator line
     Int_t fDelay;                       // projection fit display delay
     TH2* fMCHisto;                      // MC histogram
     TFile* fMCFile;                     // MC ROOT file
