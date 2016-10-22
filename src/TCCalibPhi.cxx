@@ -18,7 +18,6 @@
 
 #include "TCCalibPhi.h"
 #include "TCLine.h"
-#include "TCConfig.h"
 #include "TCReadConfig.h"
 #include "TCFileManager.h"
 #include "TCMySQLManager.h"
