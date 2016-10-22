@@ -4,9 +4,9 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// TCCalibPIDPhi                                                        //
+// TCCalibPhi                                                           //
 //                                                                      //
-// Calibration module for the PID phi angle.                            //
+// Calibration module for phi angle calibrations.                       //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
@@ -16,7 +16,7 @@
 #include "TCanvas.h"
 #include "TMath.h"
 
-#include "TCCalibPIDPhi.h"
+#include "TCCalibPhi.h"
 #include "TCLine.h"
 #include "TCConfig.h"
 #include "TCReadConfig.h"
@@ -24,13 +24,14 @@
 #include "TCMySQLManager.h"
 #include "TCUtils.h"
 
-ClassImp(TCCalibPIDPhi)
+ClassImp(TCCalibPhi)
 
 //______________________________________________________________________________
-TCCalibPIDPhi::TCCalibPIDPhi()
-    : TCCalib("PID.Phi", "PID phi angle calibration", "Data.PID.Phi", TCConfig::kMaxPID)
+TCCalibPhi::TCCalibPhi(const Char_t* name, const Char_t* title, const Char_t* data,
+                       Int_t nElem)
+    : TCCalib(name, title, data, nElem)
 {
-    // Empty constructor.
+    // Constructor.
 
     // init members
     fMean = 0;
@@ -41,7 +42,7 @@ TCCalibPIDPhi::TCCalibPIDPhi()
 }
 
 //______________________________________________________________________________
-TCCalibPIDPhi::~TCCalibPIDPhi()
+TCCalibPhi::~TCCalibPhi()
 {
     // Destructor.
 
@@ -52,9 +53,11 @@ TCCalibPIDPhi::~TCCalibPIDPhi()
 }
 
 //______________________________________________________________________________
-void TCCalibPIDPhi::Init()
+void TCCalibPhi::Init()
 {
     // Init the module.
+
+    Char_t tmp[256];
 
     // init members
     fMean = 0;
@@ -68,12 +71,13 @@ void TCCalibPIDPhi::Init()
     fLine->SetLineWidth(3);
 
     // get histogram name
-    if (!TCReadConfig::GetReader()->GetConfig("PID.Phi.Histo.Fit.Name"))
+    sprintf(tmp, "%s.Histo.Fit.Name", GetName());
+    if (!TCReadConfig::GetReader()->GetConfig(tmp))
     {
         Error("Init", "Histogram name was not found in configuration!");
         return;
     }
-    else fHistoName = *TCReadConfig::GetReader()->GetConfig("PID.Phi.Histo.Fit.Name");
+    else fHistoName = *TCReadConfig::GetReader()->GetConfig(tmp);
 
     // read old parameters (only from first set)
     TCMySQLManager::GetManager()->ReadParameters(fData, fCalibration.Data(), fSet[0], fOldVal, fNelem);
@@ -100,17 +104,19 @@ void TCCalibPIDPhi::Init()
     // draw main histogram
     fCanvasFit->Divide(1, 2, 0.001, 0.001);
     fCanvasFit->cd(1)->SetLogz();
-    TCUtils::FormatHistogram(fMainHisto, "PID.Phi.Histo.Fit");
+    sprintf(tmp, "%s.Histo.Fit", GetName());
+    TCUtils::FormatHistogram(fMainHisto, tmp);
     fMainHisto->Draw("colz");
 
     // draw the overview histogram
     fCanvasResult->cd();
-    TCUtils::FormatHistogram(fOverviewHisto, "PID.Phi.Histo.Overview");
+    sprintf(tmp, "%s.Histo.Overview", GetName());
+    TCUtils::FormatHistogram(fOverviewHisto, tmp);
     fOverviewHisto->Draw("P");
 }
 
 //______________________________________________________________________________
-void TCCalibPIDPhi::Fit(Int_t elem)
+void TCCalibPhi::Fit(Int_t elem)
 {
     // Perform the fit of the element 'elem'.
 
@@ -181,7 +187,8 @@ void TCCalibPIDPhi::Fit(Int_t elem)
     // draw histogram
     fFitHisto->SetFillColor(35);
     fCanvasFit->cd(2);
-    TCUtils::FormatHistogram(fFitHisto, "PID.Phi.Histo.Fit");
+    sprintf(tmp, "%s.Histo.Fit", GetName());
+    TCUtils::FormatHistogram(fFitHisto, tmp);
     fFitHisto->Draw("hist");
 
     // draw fitting function
@@ -200,10 +207,11 @@ void TCCalibPIDPhi::Fit(Int_t elem)
 }
 
 //______________________________________________________________________________
-void TCCalibPIDPhi::Calculate(Int_t elem)
+void TCCalibPhi::Calculate(Int_t elem)
 {
     // Calculate the new value of the element 'elem'.
 
+    Char_t tmp[256];
     Bool_t unchanged = kFALSE;
 
     // check if fit was performed
@@ -267,8 +275,8 @@ void TCCalibPIDPhi::Calculate(Int_t elem)
         fFitFunc2->SetLineColor(2);
         fFitFunc2->SetParameters(1, 1);
 
-        // fix slope: 15 deg per elem
-        fFitFunc2->FixParameter(1, 15.);
+        // fix slope: 360/nelem deg per elem
+        fFitFunc2->FixParameter(1, 360./(Double_t)fNelem);
 
         // fit histogram
         fOverviewHisto2->Fit(fFitFunc2, "RBQ0");
@@ -296,14 +304,15 @@ void TCCalibPIDPhi::Calculate(Int_t elem)
         fCanvasResult2 = new TCanvas("Fit Result", "Fit Result", 630, 0, 900, 400);
 
         // draw fitted histogram
-        TCUtils::FormatHistogram(fOverviewHisto2, "PID.Phi.Histo.Overview");
+        sprintf(tmp, "%s.Histo.Overview", GetName());
+        TCUtils::FormatHistogram(fOverviewHisto2, tmp);
         fOverviewHisto2->Draw("P");
         fFitFunc2->Draw("same");
     }
 }
 
 //______________________________________________________________________________
-TH1* TCCalibPIDPhi::GetMappedHistogram(TH1* histo)
+TH1* TCCalibPhi::GetMappedHistogram(TH1* histo)
 {
     // Returns the angle mapped ([-180,180] -> [0,360]) version of the
     // histogram 'histo'.
@@ -332,7 +341,7 @@ TH1* TCCalibPIDPhi::GetMappedHistogram(TH1* histo)
 }
 
 //______________________________________________________________________________
-void TCCalibPIDPhi::WriteValues()
+void TCCalibPhi::WriteValues()
 {
     // Overwrite this method of the parent class to save also the second
     // overview canvas.
