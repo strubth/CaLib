@@ -26,4 +26,7 @@ Type.Veto.Time,              Veto time,                          Data.Veto.T0,Da
 Type.Veto.E0,                Veto ADC pedestal,                  Data.Veto.E0
 Type.Veto.E1,                Veto ADC gain,                      Data.Veto.E1
 Type.Veto.LED,               Veto LED threshold,                 Data.Veto.LED
+Type.Pizza.Phi,              Pizza azimuthal angle,              Data.Pizza.Phi
+Type.Pizza.Time,             Pizza time,                         Data.Pizza.T0
+Type.Pizza.Energy,           Pizza energy,                       Data.Pizza.E0,Data.Pizza.E1
 

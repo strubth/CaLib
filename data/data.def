@@ -35,4 +35,8 @@ Data.Veto.T1,                Veto TDC gain,                      veto_t1,       
 Data.Veto.E0,                Veto ADC pedestal,                  veto_e0,        510
 Data.Veto.E1,                Veto ADC gain,                      veto_e1,        510
 Data.Veto.LED,               Veto LED threshold,                 veto_led,       510
+Data.Pizza.Phi,              Pizza azimuthal angle,              pizza_phi,      24
+Data.Pizza.T0,               Pizza time offset,                  pizza_t0,       24
+Data.Pizza.E0,               Pizza ADC pedestal,                 pizza_e0,       24
+Data.Pizza.E1,               Pizza ADC gain,                     pizza_e1,       24
 
