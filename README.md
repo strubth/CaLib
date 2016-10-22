@@ -42,15 +42,6 @@ root -b $CALIB/macros/Upgrade_3.C
 
 * Exports to ROOT files created with CaLib < 0.2.0 cannot be imported by Calib > 0.2.0!
 
-#### Exporting and importing
-
-When using MySQL, CaLib Databases can be exported and imported using normal MySQL dumps.
-A script is provided for converting a MySQL database dump into a SQLite file that can
-then be shared easily and accessed with CaLib directly:
-```
-$CALIB/scripts/mysql2sqlite.sh -h phys-jaguar -u calib_rw -p calib_may_2016 | sqlite3 calib_may_2016.db
-```
-
 ### Configuration
 
 All the configuration is done in config/config.cfg.  
