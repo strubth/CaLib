@@ -4,9 +4,9 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// TCCalibPIDEnergyTrad                                                 //
+// TCCalibDeltaETrad                                                    //
 //                                                                      //
-// Calibration module for the PID energy (traditional method).          //
+// Calibration module for DeltaE calibrations (traditional method).     //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
@@ -20,21 +20,21 @@
 #include "TSpectrum.h"
 #include "TMath.h"
 
-#include "TCCalibPIDEnergyTrad.h"
+#include "TCCalibDeltaETrad.h"
 #include "TCLine.h"
-#include "TCConfig.h"
 #include "TCFileManager.h"
 #include "TCUtils.h"
 #include "TCReadConfig.h"
 #include "TCMySQLManager.h"
 
-ClassImp(TCCalibPIDEnergyTrad)
+ClassImp(TCCalibDeltaETrad)
 
 //______________________________________________________________________________
-TCCalibPIDEnergyTrad::TCCalibPIDEnergyTrad()
-    : TCCalib("PID.Energy.Trad", "PID energy calibration (traditional)", "Data.PID.E1", TCConfig::kMaxPID)
+TCCalibDeltaETrad::TCCalibDeltaETrad(const Char_t* name, const Char_t* title, const Char_t* data,
+                                     Int_t nElem)
+    : TCCalib(name, title, data, nElem)
 {
-    // Empty constructor.
+    // Constructor.
 
     // init members
     fFileManager = 0;
@@ -54,7 +54,7 @@ TCCalibPIDEnergyTrad::TCCalibPIDEnergyTrad()
 }
 
 //______________________________________________________________________________
-TCCalibPIDEnergyTrad::~TCCalibPIDEnergyTrad()
+TCCalibDeltaETrad::~TCCalibDeltaETrad()
 {
     // Destructor.
 
@@ -70,9 +70,11 @@ TCCalibPIDEnergyTrad::~TCCalibPIDEnergyTrad()
 }
 
 //______________________________________________________________________________
-void TCCalibPIDEnergyTrad::Init()
+void TCCalibDeltaETrad::Init()
 {
     // Init the module.
+
+    Char_t tmp[256];
 
     // init members
     fFileManager = new TCFileManager(fData, fCalibration.Data(), fNset, fSet);
@@ -95,37 +97,43 @@ void TCCalibPIDEnergyTrad::Init()
     fLine2->SetLineWidth(3);
 
     // get histogram name
-    if (!TCReadConfig::GetReader()->GetConfig("PID.Energy.Trad.Histo.Fit.Name"))
+    sprintf(tmp, "%s.Histo.Fit.Name", GetName());
+    if (!TCReadConfig::GetReader()->GetConfig(tmp))
     {
         Error("Init", "Histogram name was not found in configuration!");
         return;
     }
-    else fHistoName = *TCReadConfig::GetReader()->GetConfig("PID.Energy.Trad.Histo.Fit.Name");
+    else fHistoName = *TCReadConfig::GetReader()->GetConfig(tmp);
 
     // get MC histogram file
     TString fileMC;
-    if (!TCReadConfig::GetReader()->GetConfig("PID.Energy.Trad.MC.File"))
+    sprintf(tmp, "%s.MC.File", GetName());
+    if (!TCReadConfig::GetReader()->GetConfig(tmp))
     {
         Error("Init", "MC file name was not found in configuration!");
         return;
     }
-    else fileMC = *TCReadConfig::GetReader()->GetConfig("PID.Energy.Trad.MC.File");
+    else fileMC = *TCReadConfig::GetReader()->GetConfig(tmp);
 
     // get MC histogram name
     TString histoMC;
-    if (!TCReadConfig::GetReader()->GetConfig("PID.Energy.Trad.Histo.MC.Name"))
+    sprintf(tmp, "%s.Histo.MC.Name", GetName());
+    if (!TCReadConfig::GetReader()->GetConfig(tmp))
     {
         Error("Init", "MC histogram name was not found in configuration!");
         return;
     }
-    else histoMC = *TCReadConfig::GetReader()->GetConfig("PID.Energy.Trad.Histo.MC.Name");
+    else histoMC = *TCReadConfig::GetReader()->GetConfig(tmp);
 
     // get projection fit display delay
-    fDelay = TCReadConfig::GetReader()->GetConfigInt("PID.Energy.Trad.Fit.Delay");
+    sprintf(tmp, "%s.Fit.Delay", GetName());
+    fDelay = TCReadConfig::GetReader()->GetConfigInt(tmp);
 
     // read old parameters (only from first set)
-    TCMySQLManager::GetManager()->ReadParameters("Data.PID.E0", fCalibration.Data(), fSet[0], fPed, fNelem);
-    TCMySQLManager::GetManager()->ReadParameters("Data.PID.E1", fCalibration.Data(), fSet[0], fGain, fNelem);
+    TString peds = fData;
+    peds.ReplaceAll("E1", "E0");
+    TCMySQLManager::GetManager()->ReadParameters(peds.Data(), fCalibration.Data(), fSet[0], fPed, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(fData.Data(), fCalibration.Data(), fSet[0], fGain, fNelem);
 
     // draw main histogram
     fCanvasFit->Divide(1, 2, 0.001, 0.001);
@@ -177,7 +185,8 @@ void TCCalibPIDEnergyTrad::Init()
     Info("Init", "Fitting MC data");
 
     // perform fitting for the MC histogram
-    TCUtils::FormatHistogram(fMCHisto, "PID.Energy.Trad.Histo.Fit");
+    sprintf(tmp, "%s.Histo.Fit", GetName());
+    TCUtils::FormatHistogram(fMCHisto, tmp);
     FitSlice(fMCHisto);
     fCanvasFit->Update();
     gSystem->Sleep(5000);
@@ -187,7 +196,7 @@ void TCCalibPIDEnergyTrad::Init()
 }
 
 //______________________________________________________________________________
-void TCCalibPIDEnergyTrad::FitSlice(TH2* h)
+void TCCalibDeltaETrad::FitSlice(TH2* h)
 {
     // Fit the energy slice of the dE vs E histogram 'h'.
 
@@ -195,7 +204,8 @@ void TCCalibPIDEnergyTrad::FitSlice(TH2* h)
 
     // get configuration
     Double_t lowLimit, highLimit;
-    TCReadConfig::GetReader()->GetConfigDoubleDouble("PID.Energy.Trad.Fit.Range", &lowLimit, &highLimit);
+    sprintf(tmp, "%s.Fit.Range", GetName());
+    TCReadConfig::GetReader()->GetConfigDoubleDouble(tmp, &lowLimit, &highLimit);
     Int_t firstBin = h->GetXaxis()->FindBin(lowLimit);
     Int_t lastBin = h->GetXaxis()->FindBin(highLimit);
 
@@ -276,7 +286,7 @@ void TCCalibPIDEnergyTrad::FitSlice(TH2* h)
 }
 
 //______________________________________________________________________________
-void TCCalibPIDEnergyTrad::Fit(Int_t elem)
+void TCCalibDeltaETrad::Fit(Int_t elem)
 {
     // Perform the fit of the element 'elem'.
 
@@ -315,7 +325,8 @@ void TCCalibPIDEnergyTrad::Fit(Int_t elem)
 
     // draw main histogram
     fCanvasFit->cd(1);
-    TCUtils::FormatHistogram(fMainHisto, "PID.Energy.Trad.Histo.Fit");
+    sprintf(tmp, "%s.Histo.Fit", GetName());
+    TCUtils::FormatHistogram(fMainHisto, tmp);
     fMainHisto->Draw("colz");
     fCanvasFit->Update();
 
@@ -335,7 +346,7 @@ void TCCalibPIDEnergyTrad::Fit(Int_t elem)
 }
 
 //______________________________________________________________________________
-void TCCalibPIDEnergyTrad::Calculate(Int_t elem)
+void TCCalibDeltaETrad::Calculate(Int_t elem)
 {
     // Calculate the new value of the element 'elem'.
 
@@ -379,7 +390,7 @@ void TCCalibPIDEnergyTrad::Calculate(Int_t elem)
 }
 
 //______________________________________________________________________________
-void TCCalibPIDEnergyTrad::PrintValues()
+void TCCalibDeltaETrad::PrintValues()
 {
     // Print out the old and new values for all elements.
 
@@ -392,15 +403,20 @@ void TCCalibPIDEnergyTrad::PrintValues()
 }
 
 //______________________________________________________________________________
-void TCCalibPIDEnergyTrad::WriteValues()
+void TCCalibDeltaETrad::WriteValues()
 {
     // Write the obtained calibration values to the database.
+
+    // name of pedestal data type
+    TString peds = fData;
+    peds.ReplaceAll("E1", "E0");
 
     // write values to database
     for (Int_t i = 0; i < fNset; i++)
     {
-        TCMySQLManager::GetManager()->WriteParameters("Data.PID.E0", fCalibration.Data(), fSet[i], fPed, fNelem);
-        TCMySQLManager::GetManager()->WriteParameters("Data.PID.E1", fCalibration.Data(), fSet[i], fGain, fNelem);
+
+        TCMySQLManager::GetManager()->WriteParameters(peds.Data(), fCalibration.Data(), fSet[i], fPed, fNelem);
+        TCMySQLManager::GetManager()->WriteParameters(fData.Data(), fCalibration.Data(), fSet[i], fGain, fNelem);
     }
 
     // save overview canvas

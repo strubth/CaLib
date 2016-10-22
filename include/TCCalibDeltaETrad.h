@@ -4,24 +4,25 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// TCCalibPIDEnergyTrad                                                 //
+// TCCalibDeltaETrad                                                    //
 //                                                                      //
-// Calibration module for the PID energy (traditional method).          //
+// Calibration module for DeltaE calibrations (traditional method).     //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef TCCALIBPIDENERGYTRAD_H
-#define TCCALIBPIDENERGYTRAD_H
+#ifndef TCCALIBDELTAETRAD_H
+#define TCCALIBDELTAETRAD_H
 
 #include "TCCalib.h"
+#include "TCConfig.h"
 
 class TCLine;
 class TH2;
 class TFile;
 class TCFileManager;
 
-class TCCalibPIDEnergyTrad : public TCCalib
+class TCCalibDeltaETrad : public TCCalib
 {
 
 private:
@@ -47,13 +48,42 @@ private:
     void FitSlice(TH2* h);
 
 public:
-    TCCalibPIDEnergyTrad();
-    virtual ~TCCalibPIDEnergyTrad();
+    TCCalibDeltaETrad() : TCCalib(), fFileManager(0), fPed(0), fGain(0),
+                          fPionMC(0), fProtonMC(0), fPionData(0), fProtonData(0),
+                          fPionPos(0), fProtonPos(0), fLine(0), fLine2(0), fDelay(0),
+                          fMCHisto(0), fMCFile(0) { }
+    TCCalibDeltaETrad(const Char_t* name, const Char_t* title, const Char_t* data,
+                      Int_t nElem);
+    virtual ~TCCalibDeltaETrad();
 
     virtual void WriteValues();
     virtual void PrintValues();
 
-    ClassDef(TCCalibPIDEnergyTrad, 0) // PID energy calibration (traditional method)
+    ClassDef(TCCalibDeltaETrad, 0) // DeltaE energy calibration (traditional method)
+};
+
+class TCCalibPIDEnergyTrad : public TCCalibDeltaETrad
+{
+
+public:
+    TCCalibPIDEnergyTrad()
+        : TCCalibDeltaETrad("PID.Energy.Trad", "PID energy calibration (traditional)",
+                            "Data.PID.E1", TCConfig::kMaxPID) { }
+    virtual ~TCCalibPIDEnergyTrad() { }
+
+    ClassDef(TCCalibPIDEnergyTrad, 0) // PID energy calibration class
+};
+
+class TCCalibPizzaEnergyTrad : public TCCalibDeltaETrad
+{
+
+public:
+    TCCalibPizzaEnergyTrad()
+        : TCCalibDeltaETrad("Pizza.Energy.Trad", "Pizza energy calibration (traditional)",
+                            "Data.Pizza.E1", TCConfig::kMaxPizza) { }
+    virtual ~TCCalibPizzaEnergyTrad() { }
+
+    ClassDef(TCCalibPizzaEnergyTrad, 0) // Pizza detector energy calibration class
 };
 
 #endif
