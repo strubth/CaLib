@@ -286,19 +286,32 @@ void TCCalibPIDEnergyTrad::Fit(Int_t elem)
     sprintf(tmp, "%s_%03d", fHistoName.Data(), elem);
 
     // get histogram
-    TH3* h3 = (TH3*) fFileManager->GetHistogram(tmp);
-    if (!h3)
+    TH1* hmain = (TH1*) fFileManager->GetHistogram(tmp);
+    if (!hmain)
     {
         Error("Init", "Main histogram does not exist!\n");
         return;
     }
 
-    // create 2D projection
+    // create 2D projection if necessary
     if (fMainHisto) delete fMainHisto;
-    sprintf(tmp, "%02d_yxe", elem);
-    fMainHisto = (TH2D*) h3->Project3D(tmp);
-    fMainHisto->SetTitle(tmp);
-    delete h3;
+    if (hmain->InheritsFrom("TH3"))
+    {
+        sprintf(tmp, "%02d_yxe", elem);
+        fMainHisto = (TH2D*) ((TH3*)hmain)->Project3D(tmp);
+        fMainHisto->SetTitle(tmp);
+        delete hmain;
+    }
+    else if (hmain->InheritsFrom("TH2"))
+    {
+        fMainHisto = hmain;
+    }
+    else
+    {
+        Error("Init", "Main histogram has to be either TH3 or TH2!\n");
+        delete hmain;
+        return;
+    }
 
     // draw main histogram
     fCanvasFit->cd(1);
