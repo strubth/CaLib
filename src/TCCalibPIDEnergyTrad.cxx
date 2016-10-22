@@ -245,6 +245,12 @@ void TCCalibPIDEnergyTrad::FitSlice(TH2* h)
     fPionData = fFitFunc->GetParameter(3);
     fProtonData = fFitFunc->GetParameter(6);
 
+    // correct weird fits
+    if (fPionData < fFitHisto->GetXaxis()->GetXmin() || fPionData > fFitHisto->GetXaxis()->GetXmax())
+        fPionData = (fFitHisto->GetXaxis()->GetXmin() + fFitHisto->GetXaxis()->GetXmax()) / 2;
+    if (fProtonData < fFitHisto->GetXaxis()->GetXmin() || fProtonData > fFitHisto->GetXaxis()->GetXmax())
+        fProtonData = (fFitHisto->GetXaxis()->GetXmin() + fFitHisto->GetXaxis()->GetXmax()) / 2;
+
     // format line
     fLine->SetPos(fPionData);
 
