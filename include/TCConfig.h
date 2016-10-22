@@ -24,7 +24,8 @@ enum ECalibDetector
     kDETECTOR_CB,
     kDETECTOR_TAPS,
     kDETECTOR_PID,
-    kDETECTOR_VETO
+    kDETECTOR_VETO,
+    kDETECTOR_PIZZA
 };
 typedef ECalibDetector CalibDetector_t;
 
@@ -37,6 +38,7 @@ namespace TCConfig
     extern const Int_t kMaxPID;
     extern const Int_t kMaxVeto;
     extern const Int_t kMaxTAGGER;
+    extern const Int_t kMaxPizza;
 
     // database format definitions
     extern const Char_t* kCalibMainTableName;

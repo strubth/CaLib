@@ -22,6 +22,7 @@ namespace TCConfig
     const Int_t kMaxPID       =  24;
     const Int_t kMaxVeto      = 510;
     const Int_t kMaxTAGGER    = 352;
+    const Int_t kMaxPizza     =  24;
 
     // name of the main table
     const Char_t* kCalibMainTableName = "run_main";
