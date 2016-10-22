@@ -226,7 +226,7 @@ Int_t TCBadElement::AddBad(Int_t nbad, const Int_t* bad)
     fBad = bad_new;
 
     // clean up
-    if (bad_tmp) delete bad_tmp;
+    if (bad_tmp) delete [] bad_tmp;
 
     return fNBad;
 }
