@@ -183,6 +183,26 @@ void TCWriteARCalib::Write(const Char_t* calibFile,
 
             break;
         }
+        case kDETECTOR_PIZZA:
+        {
+            // read phi angle
+            if (m->ReadParametersRun("Data.Pizza.Phi", calibration, run, par, nDet))
+                for (Int_t i = 0; i < nDet; i++) r->GetElement(i)->SetZ(par[i]);
+
+            // read time offset
+            if (m->ReadParametersRun("Data.Pizza.T0", calibration, run, par, nDet))
+                for (Int_t i = 0; i < nDet; i++) r->GetElement(i)->SetOffset(par[i]);
+
+            // read ADC pedestal
+            if (m->ReadParametersRun("Data.Pizza.E0", calibration, run, par, nDet))
+                for (Int_t i = 0; i < nDet; i++) r->GetElement(i)->SetPedestal(par[i]);
+
+            // read ADC gain
+            if (m->ReadParametersRun("Data.Pizza.E1", calibration, run, par, nDet))
+                for (Int_t i = 0; i < nDet; i++) r->GetElement(i)->SetADCGain(par[i]);
+
+            break;
+        }
         case kDETECTOR_NODET:
         {
             break;
