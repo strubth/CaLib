@@ -1244,6 +1244,16 @@ Bool_t TCMySQLManager::UpgradeDatabase(Int_t version)
             if (!AddNewDataTable("Data.Tagger.Pol"))
                 Error("UpgradeDatabase", "Some errors occurred while adding data table for 'Data.Tagger.Pol'!");
 
+            // add pizza detector tables
+            if (!AddNewDataTable("Data.Pizza.Phi"))
+                Error("UpgradeDatabase", "Some errors occurred while adding data table for 'Data.Pizza.Phi'!");
+            if (!AddNewDataTable("Data.Pizza.T0"))
+                Error("UpgradeDatabase", "Some errors occurred while adding data table for 'Data.Pizza.T0'!");
+            if (!AddNewDataTable("Data.Pizza.E0"))
+                Error("UpgradeDatabase", "Some errors occurred while adding data table for 'Data.Pizza.E0'!");
+            if (!AddNewDataTable("Data.Pizza.E1"))
+                Error("UpgradeDatabase", "Some errors occurred while adding data table for 'Data.Pizza.E1'!");
+
             break;
         }
         default:
@@ -2085,6 +2095,26 @@ void TCMySQLManager::AddCalibAR(CalibDetector_t det, const Char_t* calibFileAR,
             AddDataSet("Data.Veto.E1", calib, desc, first_run, last_run, e1, nDet);
             AddDataSet("Data.Veto.T0", calib, desc, first_run, last_run, t0, nDet);
             AddDataSet("Data.Veto.T1", calib, desc, first_run, last_run, t1, nDet);
+
+            break;
+        }
+        // Pizza
+        case kDETECTOR_PIZZA:
+        {
+            // create special parameter arrays
+            Double_t phi[nDet];
+
+            // read special parameters
+            for (Int_t i = 0; i < nDet; i++)
+            {
+                phi[i] = r.GetElement(i)->GetZ();
+            }
+
+            // write to database
+            AddDataSet("Data.Pizza.Phi", calib, desc, first_run, last_run, phi, nDet);
+            AddDataSet("Data.Pizza.E0", calib, desc, first_run, last_run, e0, nDet);
+            AddDataSet("Data.Pizza.E1", calib, desc, first_run, last_run, e1, nDet);
+            AddDataSet("Data.Pizza.T0", calib, desc, first_run, last_run, t0, nDet);
 
             break;
         }
