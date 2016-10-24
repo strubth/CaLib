@@ -276,7 +276,7 @@ Bool_t TCARFileLoader::IsDirectory(const Char_t* dir)
     flags = id = size = modtime = 0;
     if (gSystem->GetPathInfo(dir, &id, &size, &flags, &modtime))
         return kFALSE;
-    if (!(Int_t) (flags & 2) > 0)
+    if ((Int_t) (flags & 2) == 0)
         return kFALSE;
 
     return kTRUE;
