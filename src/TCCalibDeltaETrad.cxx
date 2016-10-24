@@ -236,6 +236,13 @@ void TCCalibDeltaETrad::FitSlice(TH2* h)
     fFitFunc = new TF1(tmp, "expo(0)+landau(2)+gaus(5)", 0.2*fPionData, fProtonData+5);
     fFitFunc->SetLineColor(2);
 
+    // apply re-fit
+    if (fIsReFit)
+    {
+        fPionData = fLine->GetPos();
+        fProtonData = fLine2->GetPos();
+    }
+
     // prepare fitting function
     fFitFunc->SetParameters(9.25568, -3.76050e-01,
                             5e+03, fPionData, 2.62472e-01,
