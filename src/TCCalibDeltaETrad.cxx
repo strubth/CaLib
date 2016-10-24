@@ -1,5 +1,5 @@
 /*************************************************************************
- * Author: Dominik Werthmueller
+ * Author: Dominik Werthmueller, Thomas Strub
  *************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
@@ -38,8 +38,10 @@ TCCalibDeltaETrad::TCCalibDeltaETrad(const Char_t* name, const Char_t* title, co
 
     // init members
     fFileManager = 0;
-    fPed = 0;
-    fGain = 0;
+    fPedOld = 0;
+    fPedNew = 0;
+    fGainOld = 0;
+    fGainNew = 0;
     fPionMC = 0;
     fProtonMC = 0;
     fPionData = 0;
@@ -59,8 +61,10 @@ TCCalibDeltaETrad::~TCCalibDeltaETrad()
     // Destructor.
 
     if (fFileManager) delete fFileManager;
-    if (fPed) delete [] fPed;
-    if (fGain) delete [] fGain;
+    if (fPedOld) delete [] fPedOld;
+    if (fPedNew) delete [] fPedNew;
+    if (fGainOld) delete [] fGainOld;
+    if (fGainNew) delete [] fGainNew;
     if (fPionPos) delete fPionPos;
     if (fProtonPos) delete fProtonPos;
     if (fLine) delete fLine;
@@ -78,8 +82,10 @@ void TCCalibDeltaETrad::Init()
 
     // init members
     fFileManager = new TCFileManager(fData, fCalibration.Data(), fNset, fSet);
-    fPed = new Double_t[fNelem];
-    fGain = new Double_t[fNelem];
+    fPedOld = new Double_t[fNelem];
+    fPedNew = new Double_t[fNelem];
+    fGainOld = new Double_t[fNelem];
+    fGainNew = new Double_t[fNelem];
     fPionMC = 0;
     fProtonMC = 0;
     fPionData = 0;
@@ -132,8 +138,12 @@ void TCCalibDeltaETrad::Init()
     // read old parameters (only from first set)
     TString peds = fData;
     peds.ReplaceAll("E1", "E0");
-    TCMySQLManager::GetManager()->ReadParameters(peds.Data(), fCalibration.Data(), fSet[0], fPed, fNelem);
-    TCMySQLManager::GetManager()->ReadParameters(fData.Data(), fCalibration.Data(), fSet[0], fGain, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(peds.Data(), fCalibration.Data(), fSet[0], fPedOld, fNelem);
+    TCMySQLManager::GetManager()->ReadParameters(fData.Data(), fCalibration.Data(), fSet[0], fGainOld, fNelem);
+
+    // copy parameters
+    memcpy(fPedNew, fPedOld, fNelem * sizeof(Double_t));
+    memcpy(fGainNew, fGainOld, fNelem * sizeof(Double_t));
 
     // draw main histogram
     fCanvasFit->Divide(1, 2, 0.001, 0.001);
@@ -359,15 +369,13 @@ void TCCalibDeltaETrad::Calculate(Int_t elem)
         if (fLine->GetPos() != fPionData) fPionData = fLine->GetPos();
         if (fLine2->GetPos() != fProtonData) fProtonData = fLine2->GetPos();
 
-        // calculate peak differences
-        Double_t diffMC = fProtonMC - fPionMC;
-        Double_t diffData = fProtonData - fPionData;
+        // calculate adc values of data fits
+        Double_t adc_pion = fPionData/fGainOld[elem] + fPedOld[elem];
+        Double_t adc_proton = fProtonData/fGainOld[elem] + fPedOld[elem];
 
-        // calculate pedestal
-        fPed[elem] = 100 * (fPionMC*fProtonData - fProtonMC*fPionData) / -diffMC;
-
-        // calculate gain
-        fGain[elem] = 0.01 * diffMC / diffData;
+        // calculate new values
+        fPedNew[elem] = (adc_pion - (fPionMC/fProtonMC)*adc_proton)/(1. - (fPionMC/fProtonMC));
+        fGainNew[elem] = fProtonMC/(adc_proton - fPedNew[elem]);
 
         // update overview histograms
         fPionPos->SetBinContent(elem+1, fPionData);
@@ -377,14 +385,14 @@ void TCCalibDeltaETrad::Calculate(Int_t elem)
     }
     else
     {
-        fPed[elem] = 0.;
-        fGain[elem] = 0.001;
         noval = kTRUE;
     }
 
     // user information
-    printf("Element: %03d    Pion: %12.8f    Proton: %12.8f    Pedestal: %12.8f    Gain: %12.8f",
-           elem, fPionData, fProtonData, fPed[elem], fGain[elem]);
+    printf("Element: %03d    Pion: %12.8f    Proton: %12.8f    Pedestal: %12.8f (%+2.1f)  Gain: %12.8f (%+2.1f)",
+           elem, fPionData, fProtonData,
+           fPedNew[elem], TCUtils::GetDiffPercent(fPedOld[elem], fPedNew[elem]),
+           fGainNew[elem], TCUtils::GetDiffPercent(fGainOld[elem], fGainNew[elem]));
     if (noval) printf("    -> no fit");
     printf("\n");
 }
@@ -398,7 +406,7 @@ void TCCalibDeltaETrad::PrintValues()
     for (Int_t i = 0; i < fNelem; i++)
     {
         printf("Element: %03d    Pedestal: %12.8f    Gain: %12.8f\n",
-               i, fPed[i], fGain[i]);
+               i, fPedNew[i], fGainNew[i]);
     }
 }
 
@@ -415,8 +423,8 @@ void TCCalibDeltaETrad::WriteValues()
     for (Int_t i = 0; i < fNset; i++)
     {
 
-        TCMySQLManager::GetManager()->WriteParameters(peds.Data(), fCalibration.Data(), fSet[i], fPed, fNelem);
-        TCMySQLManager::GetManager()->WriteParameters(fData.Data(), fCalibration.Data(), fSet[i], fGain, fNelem);
+        TCMySQLManager::GetManager()->WriteParameters(peds.Data(), fCalibration.Data(), fSet[i], fPedNew, fNelem);
+        TCMySQLManager::GetManager()->WriteParameters(fData.Data(), fCalibration.Data(), fSet[i], fGainNew, fNelem);
     }
 
     // save overview canvas

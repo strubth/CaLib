@@ -1,5 +1,5 @@
 /*************************************************************************
- * Author: Dominik Werthmueller
+ * Author: Dominik Werthmueller, Thomas Strub
  *************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
@@ -27,8 +27,10 @@ class TCCalibDeltaETrad : public TCCalib
 
 private:
     TCFileManager* fFileManager;        // file manager
-    Double_t* fPed;                     // pedestal values
-    Double_t* fGain;                    // gain values
+    Double_t* fPedOld;                  // old pedestal values
+    Double_t* fPedNew;                  // new pedestal values
+    Double_t* fGainOld;                 // old gain values
+    Double_t* fGainNew;                 // new gain values
     Double_t fPionMC;                   // pion position in simulation
     Double_t fProtonMC;                 // proton position in simulation
     Double_t fPionData;                 // pion position in data
@@ -48,7 +50,8 @@ private:
     void FitSlice(TH2* h);
 
 public:
-    TCCalibDeltaETrad() : TCCalib(), fFileManager(0), fPed(0), fGain(0),
+    TCCalibDeltaETrad() : TCCalib(), fFileManager(0),
+                          fPedOld(0), fPedNew(0), fGainOld(0), fGainNew(0),
                           fPionMC(0), fProtonMC(0), fPionData(0), fProtonData(0),
                           fPionPos(0), fProtonPos(0), fLine(0), fLine2(0), fDelay(0),
                           fMCHisto(0), fMCFile(0) { }
