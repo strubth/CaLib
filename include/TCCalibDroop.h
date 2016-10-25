@@ -4,17 +4,18 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// TCCalibPIDDroop                                                      //
+// TCCalibDroop                                                         //
 //                                                                      //
-// Calibration module for the PID droop correction.                     //
+// Calibration module for droop corrections.                            //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 
-#ifndef TCCALIBPIDDROOP_H
-#define TCCALIBPIDDROOP_H
+#ifndef TCCALIBDROOP_H
+#define TCCALIBDROOP_H
 
 #include "TCCalib.h"
+#include "TCConfig.h"
 
 class TH2;
 class TH3;
@@ -23,7 +24,7 @@ class TLine;
 class TFile;
 class TCFileManager;
 
-class TCCalibPIDDroop : public TCCalib
+class TCCalibDroop : public TCCalib
 {
 
 private:
@@ -46,13 +47,41 @@ private:
     void FitSlices(TH3* h, Int_t elem);
 
 public:
-    TCCalibPIDDroop();
-    virtual ~TCCalibPIDDroop();
+    TCCalibDroop() : TCCalib(), fOutFile(0), fFileManager(0), fProj2D(0),
+                     fLinPlot(0), fNpeak(0), fNpoint(0), fPeak(0), fTheta(0),
+                     fLine(0), fDelay(0) { }
+    TCCalibDroop(const Char_t* name, const Char_t* title, const Char_t* data,
+                 Int_t nElem);
+    virtual ~TCCalibDroop();
 
     virtual void WriteValues();
     virtual void PrintValues();
 
+    ClassDef(TCCalibDroop, 0) // droop correction
+};
+
+class TCCalibPIDDroop : public TCCalibDroop
+{
+
+public:
+    TCCalibPIDDroop()
+        : TCCalibDroop("PID.Droop", "PID droop correction",
+                       "Data.PID.E0", TCConfig::kMaxPID) { }
+    virtual ~TCCalibPIDDroop() { }
+
     ClassDef(TCCalibPIDDroop, 0) // PID droop correction
+};
+
+class TCCalibPizzaDroop : public TCCalibDroop
+{
+
+public:
+    TCCalibPizzaDroop()
+        : TCCalibDroop("Pizza.Droop", "Pizza droop correction",
+                       "Data.Pizza.E0", TCConfig::kMaxPizza) { }
+    virtual ~TCCalibPizzaDroop() { }
+
+    ClassDef(TCCalibPizzaDroop, 0) // Pizza detector droop correction
 };
 
 #endif

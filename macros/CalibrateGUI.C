@@ -491,6 +491,7 @@ void CreateModuleList()
             if (c == "TCCalibDiscrThr") continue;
             if (c == "TCCalibPhi") continue;
             if (c == "TCCalibDeltaETrad") continue;
+            if (c == "TCCalibDroop") continue;
 
             // add module to list if it is really a module
             TClass tc(c.Data());

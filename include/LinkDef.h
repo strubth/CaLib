@@ -60,6 +60,7 @@
 #pragma link C++ class TCCalibQuadEnergy+;
 #pragma link C++ class TCCalibPhi+;
 #pragma link C++ class TCCalibDeltaETrad+;
+#pragma link C++ class TCCalibDroop+;
 
 // misc calibration classes
 #pragma link C++ class TCCalibTargetPosition+;
@@ -104,6 +105,7 @@
 // Pizza detector calibration classes
 #pragma link C++ class TCCalibPizzaPhi+;
 #pragma link C++ class TCCalibPizzaEnergyTrad+;
+#pragma link C++ class TCCalibPizzaDroop+;
 #pragma link C++ class TCCalibPizzaTime+;
 
 // Run calibration classes
