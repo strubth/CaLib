@@ -279,7 +279,7 @@ void TCCalibVetoEnergy::Calculate(Int_t elem)
     Bool_t unchanged = kFALSE;
 
     // check if fit was performed
-    if (fFitHisto->GetEntries())
+    if (fMainHisto->GetEntries())
     {
         // check if line position was modified by hand
         if (fLine->GetPos() != fPeak) fPeak = fLine->GetPos();
