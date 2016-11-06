@@ -11,7 +11,6 @@
 //////////////////////////////////////////////////////////////////////////
 
 
-#include "TLine.h"
 #include "TH2.h"
 #include "TF1.h"
 #include "TSpectrum.h"
@@ -21,6 +20,7 @@
 #include "TSystem.h"
 
 #include "TCCalibVetoEnergy.h"
+#include "TCLine.h"
 #include "TCReadConfig.h"
 #include "TCFileManager.h"
 #include "TCMySQLManager.h"
@@ -64,7 +64,7 @@ void TCCalibVetoEnergy::Init()
     fFileManager = new TCFileManager(fData, fCalibration.Data(), fNset, fSet);
     fPeak = 0;
     fPeakMC = 0;
-    fLine =  new TLine();
+    fLine =  new TCLine();
     fMCHisto = 0;
     fMCFile = 0;
 
@@ -186,6 +186,9 @@ void TCCalibVetoEnergy::FitSlice(TH2* h, Int_t elem)
     else s.Search(fFitHisto, 5, "goff nobackground", 0.05);
     fPeak = TMath::MaxElement(s.GetNPeaks(), s.GetPositionX());
 
+    // apply re-fit
+    if (fIsReFit) fPeak = fLine->GetPos();
+
     // prepare fitting function
     Double_t range = 30./lowLimit+0.3;
     Double_t peak_range = 0.2;
@@ -211,10 +214,7 @@ void TCCalibVetoEnergy::FitSlice(TH2* h, Int_t elem)
     fPeak = fFitFunc->GetParameter(3);
 
     // format line
-    fLine->SetY1(0);
-    fLine->SetY2(fFitHisto->GetMaximum() + 20);
-    fLine->SetX1(fPeak);
-    fLine->SetX2(fPeak);
+    fLine->SetPos(fPeak);
 
     // save peak position
     if (h == fMCHisto) fPeakMC = fPeak;
@@ -282,7 +282,7 @@ void TCCalibVetoEnergy::Calculate(Int_t elem)
     if (fFitHisto->GetEntries())
     {
         // check if line position was modified by hand
-        if (fLine->GetX1() != fPeak) fPeak = fLine->GetX1();
+        if (fLine->GetPos() != fPeak) fPeak = fLine->GetPos();
 
         // calculate the new gain
         fNewVal[elem] = fOldVal[elem] * (fPeakMC / fPeak);

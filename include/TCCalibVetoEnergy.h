@@ -17,7 +17,7 @@
 #include "TCCalib.h"
 
 class TCFileManager;
-class TLine;
+class TCLine;
 class TFile;
 class TH2;
 
@@ -28,7 +28,7 @@ private:
     TCFileManager* fFileManager;        // file manager
     Double_t fPeak;                     // proton peak position
     Double_t fPeakMC;                   // proton MC peak position
-    TLine* fLine;                       // mean indicator line
+    TCLine* fLine;                      // mean indicator line
     TH2* fMCHisto;                      // MC histogram
     TFile* fMCFile;                     // MC ROOT file
 
