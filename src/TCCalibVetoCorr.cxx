@@ -142,20 +142,30 @@ void TCCalibVetoCorr::Calculate(Int_t elem)
         // check if veto of neighbouring element has maximum hits
         //
 
+        // init neighbour flag
         Bool_t neighbr = kFALSE;
-        TCARNeighbours* n = fARCalib->GetNeighbour(elem);
 
-        // loop over neighbours
-        for (Int_t i = 0; i < n->GetNneighbours(); i++)
+        // check for next neighbours
+        if (!fARCalib)
         {
-            // get veto of neighbour
-            Int_t veto = TCUtils::GetVetoInFrontOfElement(n->GetNeighbour(i), maxTAPS);
+            Error("Calculate", "TAPS next neighbours list was not loaded!");
+        }
+        else
+        {
+            TCARNeighbours* n = fARCalib->GetNeighbour(elem);
 
-            // check this veto
-            if (fMax == veto)
+            // loop over neighbours
+            for (Int_t i = 0; i < n->GetNneighbours(); i++)
             {
-                neighbr = kTRUE;
-                break;
+                // get veto of neighbour
+                Int_t veto = TCUtils::GetVetoInFrontOfElement(n->GetNeighbour(i), maxTAPS);
+
+                // check this veto
+                if (fMax == veto)
+                {
+                    neighbr = kTRUE;
+                    break;
+                }
             }
         }
 
@@ -203,6 +213,11 @@ void TCCalibVetoCorr::ReadNeighbours()
         Error("ReadNeighbours", "Number of neighbours statements in calibration file differs "
                                 "from number requested by this module! (%d != %d)",
                                 fARCalib->GetNelements(), fNelem);
+
+        // delete
+        delete fARCalib;
+        fARCalib = 0;
+
         return;
     }
 }
