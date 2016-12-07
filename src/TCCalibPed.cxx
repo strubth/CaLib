@@ -146,11 +146,17 @@ void TCCalibPed::Fit(Int_t elem)
     // dummy position
     fMean = 100;
 
+    // delete old function
+    if (fFitFunc) delete fFitFunc;
+    fFitFunc = 0;
+
     // check for sufficient statistics
-    if (fFitHisto->GetEntries())
+    if (!fFitHisto->GetEntries())
     {
-        // delete old function
-        if (fFitFunc) delete fFitFunc;
+        fMean = fOldVal[elem];
+    }
+    else
+    {
         sprintf(tmp, "fPed_%i", elem);
         fFitFunc = new TF1(tmp, "gaus");
         fFitFunc->SetLineColor(2);
@@ -158,11 +164,19 @@ void TCCalibPed::Fit(Int_t elem)
         // check for main histogram
         if (!fMainHisto) // old method using raw adc spectra
         {
-            // estimate peak position
-            TH1* hDeriv = TCUtils::DeriveHistogram(fFitHisto);
-            hDeriv->GetXaxis()->SetRangeUser(0, 1000);
-            fMean = hDeriv->GetBinCenter(hDeriv->GetMaximumBin());
-            delete hDeriv;
+            if (!fIsReFit)
+            {
+                // estimate peak position
+                TH1* hDeriv = TCUtils::DeriveHistogram(fFitHisto);
+                hDeriv->GetXaxis()->SetRangeUser(0, 1000);
+                fMean = hDeriv->GetBinCenter(hDeriv->GetMaximumBin());
+                delete hDeriv;
+            }
+            else
+            {
+                // use manually set position
+                fMean = fLine->GetPos();
+            }
 
             // configure fitting function
             fFitFunc->SetRange(fMean - 5, fMean + 2);
@@ -171,8 +185,11 @@ void TCCalibPed::Fit(Int_t elem)
         }
         else // new method using pedestal histos
         {
-            // estimate peak position
-            fMean = fFitHisto->GetXaxis()->GetBinCenter(fFitHisto->GetMaximumBin());
+            // get peak position
+            if (!fIsReFit)
+                fMean = fFitHisto->GetXaxis()->GetBinCenter(fFitHisto->GetMaximumBin());
+            else
+                fMean = fLine->GetPos();
 
             Double_t max = fFitHisto->GetMaximum();
 
@@ -184,15 +201,21 @@ void TCCalibPed::Fit(Int_t elem)
             fFitFunc->SetParLimits(2, 0.05, 5);
         }
 
+        // set strict peak limit in case of re-fit
+        if (fIsReFit) fFitFunc->SetParLimits(1, fMean - 1, fMean + 1);
+
         // do fit
         fFitHisto->Fit(fFitFunc, "RBQ0");
 
         // final results
         fMean = fFitFunc->GetParameter(1);
 
-        // set indicator line
-        fLine->SetPos(fMean);
+        // set y range
+        fFitHisto->GetYaxis()->SetRangeUser(0, TMath::Max(fFitHisto->GetMaximum(), fFitFunc->GetParameter(0)*1.1));
     }
+
+    // set indicator line
+    fLine->SetPos(fMean);
 
     // draw histogram
     fFitHisto->SetFillColor(35);
