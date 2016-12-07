@@ -11,7 +11,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 
-#include "TH1.h"
+#include "TH2.h"
 #include "TF1.h"
 #include "TCLine.h"
 #include "TCanvas.h"
@@ -59,7 +59,6 @@ void TCCalibPed::Init()
     // init members
     fADC = new Int_t[fNelem];
     for (Int_t i = 0; i < fNelem; i++) fADC[i] = 0;
-    fFileManager = new TCFileManager(fData, fCalibration.Data(), fNset, fSet);
     fMean = 0;
     fLine = new TCLine();
 
@@ -70,19 +69,44 @@ void TCCalibPed::Init()
     // read ADC numbers
     ReadADC();
 
+    // get histogram name
+    sprintf(tmp, "%s.Histo.Fit.Name", GetName());
+    if (!TCReadConfig::GetReader()->GetConfig(tmp))
+    {
+        Warning("Init", "Histogram name was not found in configuration!");
+    }
+    else fHistoName = *TCReadConfig::GetReader()->GetConfig(tmp);
+
     // read old parameters (only from first set)
     TCMySQLManager::GetManager()->ReadParameters(fData, fCalibration.Data(), fSet[0], fOldVal, fNelem);
 
     // copy to new parameters
     for (Int_t i = 0; i < fNelem; i++) fNewVal[i] = fOldVal[i];
 
+    // sum up all files contained in this runset
+    fFileManager = new TCFileManager(fData, fCalibration.Data(), fNset, fSet);
+
+    // get the main calibration histogram
+    if (fHistoName) fMainHisto = fFileManager->GetHistogram(fHistoName.Data());
+    if (!fMainHisto)
+    {
+        Error("Init", "Main histogram does not exist!\n");
+    }
+
     // create the overview histogram
     fOverviewHisto = new TH1F("Overview", ";Element;Pedestal position [Channel]", fNelem, 0, fNelem);
     fOverviewHisto->SetMarkerStyle(2);
     fOverviewHisto->SetMarkerColor(4);
 
-    // prepare main canvas
+    // draw main histogram
     fCanvasFit->Divide(1, 2, 0.001, 0.001);
+    if (fMainHisto)
+    {
+       fCanvasFit->cd(1)->SetLogz();
+       sprintf(tmp, "%s.Histo.Fit", GetName());
+       TCUtils::FormatHistogram(fMainHisto, tmp);
+       fMainHisto->Draw("colz");
+    }
 
     // draw the overview histogram
     fCanvasResult->cd();
@@ -98,10 +122,23 @@ void TCCalibPed::Fit(Int_t elem)
 
     Char_t tmp[256];
 
-    // load the pedestal histogram
+    // remove old fit histo
     if (fFitHisto) delete fFitHisto;
-    sprintf(tmp, "ADC%d", fADC[elem]);
-    fFitHisto = fFileManager->GetHistogram(tmp);
+
+    // check for main histo
+    if (fMainHisto)
+    {
+        // create histogram projection for this element
+        sprintf(tmp, "ProjHisto_%i", elem);
+        TH2* h2 = (TH2*) fMainHisto;
+        fFitHisto = (TH1D*) h2->ProjectionX(tmp, elem+1, elem+1, "e");
+    }
+    else
+    {
+        // load the pedestal histogram
+        sprintf(tmp, "ADC%d", fADC[elem]);
+        fFitHisto = fFileManager->GetHistogram(tmp);
+    }
 
     // skip empty channels
     if (!fFitHisto) return;
@@ -118,18 +155,37 @@ void TCCalibPed::Fit(Int_t elem)
         fFitFunc = new TF1(tmp, "gaus");
         fFitFunc->SetLineColor(2);
 
-        // estimate peak position
-        TH1* hDeriv = TCUtils::DeriveHistogram(fFitHisto);
-        hDeriv->GetXaxis()->SetRangeUser(0, 1000);
-        fMean = hDeriv->GetBinCenter(hDeriv->GetMaximumBin());
-        delete hDeriv;
+        // check for main histogram
+        if (!fMainHisto) // old method using raw adc spectra
+        {
+            // estimate peak position
+            TH1* hDeriv = TCUtils::DeriveHistogram(fFitHisto);
+            hDeriv->GetXaxis()->SetRangeUser(0, 1000);
+            fMean = hDeriv->GetBinCenter(hDeriv->GetMaximumBin());
+            delete hDeriv;
 
-        // configure fitting function
-        fFitFunc->SetRange(fMean - 5, fMean + 2);
-        fFitFunc->SetLineColor(2);
-        fFitFunc->SetParameters(1, fMean, 0.1);
-        fFitFunc->SetParLimits(2, 0.001, 5);
-        fFitHisto->Fit(fFitFunc, "RB0Q");
+            // configure fitting function
+            fFitFunc->SetRange(fMean - 5, fMean + 2);
+            fFitFunc->SetParameters(1, fMean, 0.1);
+            fFitFunc->SetParLimits(2, 0.001, 5);
+        }
+        else // new method using pedestal histos
+        {
+            // estimate peak position
+            fMean = fFitHisto->GetXaxis()->GetBinCenter(fFitHisto->GetMaximumBin());
+
+            Double_t max = fFitHisto->GetMaximum();
+
+            // configure fitting function
+            fFitFunc->SetRange(fMean - 5, fMean + 5);
+            fFitFunc->SetParameters(max, fMean, 0.5);
+            fFitFunc->SetParLimits(0, 0.8*max, 1.2*max);
+            fFitFunc->SetParLimits(1, fMean - 10, fMean + 10);
+            fFitFunc->SetParLimits(2, 0.05, 5);
+        }
+
+        // do fit
+        fFitHisto->Fit(fFitFunc, "RBQ0");
 
         // final results
         fMean = fFitFunc->GetParameter(1);
