@@ -1,5 +1,5 @@
 /*************************************************************************
- * Author: Dominik Werthmueller
+ * Author: Dominik Werthmueller, Thomas Strub
  *************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
@@ -17,7 +17,7 @@
 #include "TCCalib.h"
 #include "TCReadConfig.h"
 
-class TLine;
+class TCLine;
 class TCFileManager;
 
 class TCCalibPed : public TCCalib
@@ -27,7 +27,7 @@ private:
     Int_t* fADC;                        // array of element ADC numbers
     TCFileManager* fFileManager;        // file manager
     Double_t fMean;                     // mean position
-    TLine* fLine;                       // indicator line
+    TCLine* fLine;                      // indicator line
 
     virtual void Init();
     virtual void Fit(Int_t elem);

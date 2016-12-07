@@ -1,5 +1,5 @@
 /*************************************************************************
- * Author: Dominik Werthmueller
+ * Author: Dominik Werthmueller, Thomas Strub
  *************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
@@ -13,7 +13,7 @@
 
 #include "TH1.h"
 #include "TF1.h"
-#include "TLine.h"
+#include "TCLine.h"
 #include "TCanvas.h"
 #include "TList.h"
 
@@ -61,7 +61,7 @@ void TCCalibPed::Init()
     for (Int_t i = 0; i < fNelem; i++) fADC[i] = 0;
     fFileManager = new TCFileManager(fData, fCalibration.Data(), fNset, fSet);
     fMean = 0;
-    fLine = new TLine();
+    fLine = new TCLine();
 
     // configure line
     fLine->SetLineColor(4);
@@ -134,14 +134,8 @@ void TCCalibPed::Fit(Int_t elem)
         // final results
         fMean = fFitFunc->GetParameter(1);
 
-        // draw mean indicator line
-        fLine->SetY1(0);
-        fFitHisto->GetXaxis()->SetRange(0, fFitHisto->GetNbinsX());
-        fLine->SetY2(fFitHisto->GetMaximum() + 20);
-
         // set indicator line
-        fLine->SetX1(fMean);
-        fLine->SetX2(fMean);
+        fLine->SetPos(fMean);
     }
 
     // draw histogram
@@ -191,7 +185,7 @@ void TCCalibPed::Calculate(Int_t elem)
     if (fFitHisto->GetEntries())
     {
         // check if line position was modified by hand
-        if (fLine->GetX1() != fMean) fMean = fLine->GetX1();
+        if (fLine->GetPos() != fMean) fMean = fLine->GetPos();
 
         // save pedestal position
         fNewVal[elem] = fMean;
