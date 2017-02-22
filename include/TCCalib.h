@@ -52,6 +52,9 @@ protected:
 
     Bool_t fIsReFit;                // re-fit flag
 
+    Int_t fNIgnore;                 // number of elements to ignore
+    Int_t* fIgnore;                 // list of elements to ignore
+
     virtual void Init() = 0;
     virtual void Fit(Int_t elem) = 0;
     virtual void Calculate(Int_t elem) = 0;
@@ -70,7 +73,8 @@ public:
                 fOverviewHisto(0),
                 fCanvasFit(0), fCanvasResult(0),
                 fTimer(0), fTimerRunning(kFALSE),
-                fIsReFit(kFALSE) { }
+                fIsReFit(kFALSE),
+                fNIgnore(0), fIgnore(0) { }
     TCCalib(const Char_t* name, const Char_t* title,
             const Char_t* data, Int_t nElem)
         : TNamed(name, title),

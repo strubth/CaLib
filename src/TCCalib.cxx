@@ -43,6 +43,7 @@ TCCalib::~TCCalib()
     //if (fCanvasFit) delete fCanvasFit;            // comment this to prevent crash
     //if (fCanvasResult) delete fCanvasResult;      // comment this to prevent crash
     if (fTimer) delete fTimer;
+    if (fIgnore) delete [] fIgnore;
 }
 
 //______________________________________________________________________________
@@ -71,6 +72,10 @@ void TCCalib::Start(const Char_t* calibration, Int_t nSet, Int_t* set)
     fAvr = 0;
     fAvrDiff = 0;
     fNcalc = 0;
+    fIsReFit = kFALSE;
+
+    fNIgnore = 0;
+    fIgnore = 0;
 
     // read the convergence factor
     Char_t tmp[256];
@@ -78,6 +83,27 @@ void TCCalib::Start(const Char_t* calibration, Int_t nSet, Int_t* set)
     fConvergenceFactor = TCReadConfig::GetReader()->GetConfigDouble(tmp);
     if (fConvergenceFactor == 0) fConvergenceFactor = 1;
     Info("Start", "Using a convergence factor of %f", fConvergenceFactor);
+
+    // read the elements to ignore
+    sprintf(tmp, "%s.Elements.Ignore", GetName());
+    TString* elem_ig = TCReadConfig::GetReader()->GetConfig(tmp);
+    if (elem_ig)
+    {
+        // create array
+        fIgnore = new Int_t[fNelem];
+
+        // parse the string
+        fNIgnore = TCUtils::ReadCommaSepList(elem_ig, fIgnore);
+
+        // output parsed result
+        strcpy(tmp, "");
+        for (Int_t i = 0; i < fNIgnore; i++)
+        {
+            strcat(tmp, TString::Format("%d", fIgnore[i]).Data());
+            if (i != fNIgnore-1) strcat(tmp, ", ");
+        }
+        Info("Start", "Ignoring %d element(s): %s", fNIgnore, tmp);
+    }
 
     // create timer
     fTimer = new TTimer(100);
