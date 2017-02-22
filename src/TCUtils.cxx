@@ -13,6 +13,8 @@
 
 #include "TH2.h"
 #include "TMath.h"
+#include "TObjArray.h"
+#include "TObjString.h"
 
 #include "TCUtils.h"
 #include "TCReadConfig.h"
@@ -368,5 +370,36 @@ Double_t TCUtils::GetDiffPercent(Double_t oldValue, Double_t newValue)
     if (oldValue == 0 && newValue == 0) return 0;
     else if (oldValue == 0. && newValue != 0) return 100 * diff / newValue;
     else return 100 * diff / oldValue;
+}
+
+//______________________________________________________________________________
+Int_t TCUtils::ReadCommaSepList(const TString* s, Int_t* outList)
+{
+    // Read comma-separated integers from 's' and save them to 'outList'.
+    // Return the number of saved integers.
+
+    // clone string
+    TString sclone = *s;
+
+    // tokenize
+    TObjArray* arr = sclone.Tokenize(",");
+
+    // fill list
+    Int_t n = 0;
+    for (Int_t i = 0; i < arr->GetSize(); i++)
+    {
+        // get substring
+        TObjString* osp = (TObjString*) arr->At(i);
+        if (!osp) continue;
+
+        // trim and convert
+        osp->GetString().ReplaceAll(" ", "");
+        outList[n++] = osp->GetString().Atoi();
+    }
+
+    // clean-up
+    if (arr) delete arr;
+
+    return n;
 }
 

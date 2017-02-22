@@ -33,6 +33,7 @@ namespace TCUtils
     Int_t GetTAPSRing(Int_t id, Int_t maxTAPS);
     Bool_t IsTAPSPWO(Int_t id, Int_t maxTAPS);
     Double_t GetDiffPercent(Double_t oldValue, Double_t newValue);
+    Int_t ReadCommaSepList(const TString* s, Int_t* outList);
 }
 
 #endif
