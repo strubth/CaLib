@@ -93,6 +93,10 @@ void TCCalibVetoCorr::Fit(Int_t elem)
     if (fFitHisto) delete fFitHisto;
     fFitHisto = (TH1D*) h2->ProjectionX(tmp, elem+1, elem+1, "e");
 
+    // clear elements to be ignored
+    for (Int_t i = 0; i < fNIgnore; i++)
+        fFitHisto->SetBinContent(fIgnore[i]+1, 0);
+
     // check for sufficient statistics
     if (fFitHisto->GetEntries())
     {
