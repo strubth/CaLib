@@ -294,9 +294,15 @@ Bool_t TCARFileLoader::CheckInputFilePathPatt(const Char_t* inputfilepathpatt)
     // check for NULL pointer
     if (!inputfilepathpatt) return kFALSE;
 
+    // interpret variables
+    Char_t* f = gSystem->ExpandPathName(inputfilepathpatt);
+
     // prepare directory / patten string
-    TString loc(inputfilepathpatt);
-    TString pat(inputfilepathpatt);
+    TString loc(f);
+    TString pat(f);
+
+    // clean-up
+    delete f;
 
     // check for directory
     if (loc.Last('/') >= 0)
