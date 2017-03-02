@@ -11,6 +11,11 @@
 //////////////////////////////////////////////////////////////////////////
 
 
+#if !defined(__CINT__) || defined(__MAKECINT__)
+#include "TCMySQLManager.h"
+#include "TCCalib.h"
+#endif
+
 class ButtonWindow;
 
 // global variables
@@ -25,6 +30,7 @@ class ButtonWindow : public TGMainFrame
 
 private:
     TGTextButton* fTB_Init;
+    TGTextButton* fTB_Write;
     TGTextButton* fTB_Prev;
     TGTextButton* fTB_Next;
     TGTextButton* fTB_ReFit;
@@ -33,6 +39,7 @@ private:
     TGTextButton* fTB_PrintChanges;
     TGTextButton* fTB_Goto;
     TGTextButton* fTB_DoAll;
+    TGTextButton* fTB_Stop;
     TGTextButton* fTB_Quit;
     TGComboBox* fCBox_Calibration;
     TGComboBox* fCBox_Module;
@@ -53,7 +60,15 @@ public:
     void DoIgnore();
     void DoPrev();
     void DoAll();
+    void Stop();
+    void DoWrite();
     void DoModulSelection(Int_t);
+    void Print();
+    void PrintChanges();
+    void StartModule();
+    void Quit();
+    void EnableModuleSelection(Int_t);
+    void ReadRunsets(Int_t);
 };
 
 //______________________________________________________________________________
