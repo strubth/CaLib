@@ -87,6 +87,14 @@ if (ROOT_VERSION VERSION_LESS 6)
     )
 endif()
 
+# copy rootmaps and pcm files
+if (ROOT_VERSION VERSION_GREATER 6)
+    add_custom_command(TARGET CaLib POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/libCaLib.rootmap ${PROJECT_BINARY_DIR}/lib
+        COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/G__CaLib_rdict.pcm ${PROJECT_BINARY_DIR}/lib
+    )
+endif()
+
 # generate HTML documentation
 if (DOCS)
     add_custom_command(TARGET CaLib POST_BUILD
