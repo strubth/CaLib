@@ -97,6 +97,19 @@ public:
     ClassDef(TCCalibRunBadScR_Veto, 0) // Veto bad scaler read calibration class
 };
 
+class TCCalibRunBadScR_Pizza : public TCCalibRunBadScR
+{
+
+public:
+    TCCalibRunBadScR_Pizza()
+      : TCCalibRunBadScR("BadScR.Pizza", "Bad scaler read calibration (Pizza)", "Data.Run.BadScR.Pizza", kTRUE) { }
+    virtual ~TCCalibRunBadScR_Pizza() { }
+
+    //virtual Bool_t IsTrueCalib() const { return kTRUE; }
+
+    ClassDef(TCCalibRunBadScR_Pizza, 0) // Pizza bad scaler read calibration class
+};
+
 class TCCalibRunBadScR_Ladder : public TCCalibRunBadScR
 {
 
