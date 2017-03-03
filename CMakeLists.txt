@@ -19,11 +19,7 @@ if(APPLE)
 endif(APPLE)
 
 # load ROOT CMake modules
-if (ROOT_VERSION VERSION_GREATER 6)
-    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "$ENV{ROOTSYS}/etc/cmake/")
-else()
-    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
-endif()
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 
 # adjust some paths
