@@ -11,11 +11,6 @@
 //////////////////////////////////////////////////////////////////////////
 
 
-#if !defined(__CINT__) || defined(__MAKECINT__)
-#include "TCMySQLManager.h"
-#include "TCCalib.h"
-#endif
-
 class ButtonWindow;
 
 // global variables
