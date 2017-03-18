@@ -125,7 +125,7 @@ void TCCalibEnergy::Fit(Int_t elem)
     fFitHisto->Draw("hist");
 
     // check for sufficient statistics
-    if (fFitHisto->GetEntries() > 500)
+    if (fFitHisto->Integral() > 100)
     {
         // delete old function
         if (fFitFunc) delete fFitFunc;
@@ -149,9 +149,9 @@ void TCCalibEnergy::Fit(Int_t elem)
         if (this->InheritsFrom("TCCalibCBEnergy"))
         {
             fFitFunc->SetRange(fPi0Pos - 50, fPi0Pos + 80);
-            fFitFunc->SetParameters(fFitHisto->GetMaximum(), fPi0Pos, 8, 1, 1, 1, 0.1);
+            fFitFunc->SetParameters(fFitHisto->GetMaximum(), fPi0Pos, 11, 1, 1, 1, 0.1);
             fFitFunc->SetParLimits(1, 130, 140);
-            fFitFunc->SetParLimits(2, 3, 15);
+            fFitFunc->SetParLimits(2, 7, 18);
         }
         else if (this->InheritsFrom("TCCalibTAPSEnergyLG"))
         {
@@ -168,13 +168,14 @@ void TCCalibEnergy::Fit(Int_t elem)
 
         // fit
         for (Int_t i = 0; i < 10; i++)
-            if (!fFitHisto->Fit(fFitFunc, "RBQ0")) break;
+            if (!fFitHisto->Fit(fFitFunc, "RB0Q")) break;
 
         // final results
         fPi0Pos = fFitFunc->GetParameter(1);
 
         // check if mass is in normal range
-        if (!fIsReFit && (fPi0Pos < 80 || fPi0Pos > 200)) fPi0Pos = 135;
+        if (!fIsReFit &&
+            (fPi0Pos < fFitHisto->GetXaxis()->GetXmin() || fPi0Pos > fFitHisto->GetXaxis()->GetXmax())) fPi0Pos = 135;
 
         // set indicator line
         fLine->SetPos(fPi0Pos);
@@ -255,7 +256,7 @@ void TCCalibEnergy::Calculate(Int_t elem)
     Bool_t unchanged = kFALSE;
 
     // check if fit was performed
-    if (fFitHisto->GetEntries() > 500)
+    if (fFitHisto->Integral() > 100)
     {
         // check if line position was modified by hand
         if (fLine->GetPos() != fPi0Pos) fPi0Pos = fLine->GetPos();
