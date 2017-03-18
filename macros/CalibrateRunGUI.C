@@ -25,10 +25,12 @@ class ButtonWindow : public TGMainFrame
 
 private:
     TGTextButton* fTB_Init;
+    TGTextButton* fTB_Write;
     TGTextButton* fTB_Prev;
     TGTextButton* fTB_Next;
     TGTextButton* fTB_Skip;
     TGTextButton* fTB_Print;
+    TGTextButton* fTB_Stop;
     TGTextButton* fTB_PrintChanges;
     TGTextButton* fTB_Goto;
     TGTextButton* fTB_DoAll;
@@ -51,6 +53,14 @@ public:
     void DoSkip();
     void DoPrev();
     void DoAll();
+    void DoWrite();
+    void Print();
+    void PrintChanges();
+    void Quit();
+    void Stop();
+    void StartModule();
+    void EnableModuleSelection(Int_t);
+    void ReadRunsets(Int_t);
     void DoModulSelection(Int_t);
 };
 
@@ -292,8 +302,8 @@ void ButtonWindow::Print()
 {
     // Print the values obtained by the current module.
 
-    if (gCurrentModule)
-        ((TCCalibRun*)gCurrentModule)->PrintValues();
+    //if (gCurrentModule)
+    //    ((TCCalibRun*)gCurrentModule)->PrintValues();
 }
 
 //______________________________________________________________________________
@@ -301,8 +311,8 @@ void ButtonWindow::PrintChanges()
 {
     // Print the changed values obtained by the current module.
 
-    if (gCurrentModule)
-        ((TCCalibRun*)gCurrentModule)->PrintValuesChanged();
+    //if (gCurrentModule)
+    //    ((TCCalibRun*)gCurrentModule)->PrintValuesChanged();
 }
 
 //______________________________________________________________________________
