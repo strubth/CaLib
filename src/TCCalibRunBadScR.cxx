@@ -232,6 +232,7 @@ Bool_t TCCalibRunBadScR::Init()
     gStyle->SetPadLeftMargin(0.05);
     gStyle->SetLabelSize(0.06, "X");
     gStyle->SetLabelSize(0.06, "Y");
+    gStyle->SetTickLength(0, "Y");
 
     // force style for loaded histograms too
     gROOT->ForceStyle();
