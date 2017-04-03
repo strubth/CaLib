@@ -43,7 +43,7 @@ TCCalib::~TCCalib()
     //if (fCanvasFit) delete fCanvasFit;            // comment this to prevent crash
     //if (fCanvasResult) delete fCanvasResult;      // comment this to prevent crash
     if (fTimer) delete fTimer;
-    if (fIgnore) delete [] fIgnore;
+    //if (fIgnore) delete [] fIgnore;
 }
 
 //______________________________________________________________________________
