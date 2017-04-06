@@ -4,7 +4,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// Display.C                                                            //
+// DisplayValues.C                                                      //
 //                                                                      //
 // Display calibration data.                                            //
 //                                                                      //
@@ -12,7 +12,7 @@
 
 
 //______________________________________________________________________________
-void Display()
+void DisplayValues()
 {
     // load CaLib
     gSystem->Load("libCaLib.so");
@@ -23,7 +23,7 @@ void Display()
     const Char_t data[] = "Data.TAPS.T1";
     //const Int_t nPar = 384;
     //const Char_t data[] = "Data.Veto.T1";
-    const Char_t calibration[] = "LH2_Jul_14";
+    const Char_t calibration[] = "LD2_Mar_13";
 
     // data array
     Double_t par[nSet][nPar];
@@ -41,6 +41,10 @@ void Display()
         {
             //printf("%10.3lf  ", par[j][i]);
             printf("%lf;", par[j][i]);
+            //if (TCUtils::GetTAPSRing(i, 438) <= 2)
+            //    printf("%lf;", 0.);
+            //else
+            //  printf("%lf;", par[j][i]);
         }
         printf("\n");
     }
