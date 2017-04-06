@@ -13,6 +13,11 @@
 //////////////////////////////////////////////////////////////////////////
 
 
+#if !defined(__CINT__) || defined(__MAKECINT__)
+#include "TCUtils.h"
+#endif
+
+
 //______________________________________________________________________________
 void WriteTDCGainsTAPS()
 {
@@ -20,20 +25,20 @@ void WriteTDCGainsTAPS()
     gSystem->Load("libCaLib.so");
 
     // configuration
-    const Char_t* inputFile   = "/home/werthm/loc/calibration/Jul_14/TAPS/TDC_28.07.2014/tdc_baf2.dat";
+    const Char_t* inputFile   = "tdc.dat";
     const Char_t* data        = "Data.TAPS.T1";
     const Int_t nElem         = 438;
     //const Char_t* inputFile   = "/home/werthm/loc/calibration/Jul_14/TAPS/TDC_28.07.2014/tdc_veto.dat";
     //const Char_t* data        = "Data.Veto.T1";
     //const Int_t nElem         = 384;
-    const Char_t* calibration = "LH2_Jul_14";
+    const Char_t* calibration = "LD2_Mar_13";
     const Int_t set           = 0;
 
     // read file via TGraph
     TGraph* dg = new TGraph(inputFile);
 
     // remove ring 1 and 2 elements
-    for (Int_t i = dg->GetN(); i >=0; i--)
+    for (Int_t i = dg->GetN(); i >= 0; i--)
     {
         if (TCUtils::GetTAPSRing(i, 384) <= 2)
             dg->RemovePoint(i);
