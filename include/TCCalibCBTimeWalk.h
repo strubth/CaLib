@@ -17,7 +17,7 @@
 #include "TCCalib.h"
 
 class TH1;
-class TLine;
+class TCLine;
 class TCFileManager;
 
 class TCCalibCBTimeWalk : public TCCalib
@@ -31,7 +31,7 @@ private:
     Double_t* fPar3;                    // time walk parameter 3
     TH1* fEnergyProj;                   // energy projection histogram
     TH1* fTimeProj;                     // time projection histogram
-    TLine* fLine;                       // mean indicator line
+    TCLine* fLine;                      // mean indicator line
     Int_t fDelay;                       // projection fit display delay
 
     virtual void Init();

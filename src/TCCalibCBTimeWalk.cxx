@@ -14,7 +14,7 @@
 #include "TH1.h"
 #include "TH2.h"
 #include "TF1.h"
-#include "TLine.h"
+#include "TCLine.h"
 #include "TCanvas.h"
 #include "TMath.h"
 #include "TSystem.h"
@@ -74,7 +74,7 @@ void TCCalibCBTimeWalk::Init()
     fPar3 = new Double_t[fNelem];
     fEnergyProj = 0;
     fTimeProj = 0;
-    fLine =  new TLine();
+    fLine =  new TCLine();
     fDelay = 0;
 
     // configure line
@@ -237,10 +237,7 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
                 Double_t error = fFitFunc->GetParError(2);
 
                 // format line
-                fLine->SetY1(0);
-                fLine->SetY2(fTimeProj->GetMaximum() + 20);
-                fLine->SetX1(mean);
-                fLine->SetX2(mean);
+                fLine->SetPos(mean);
 
                 // check fit error
                 if (error < 1.)
