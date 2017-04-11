@@ -13,6 +13,7 @@
 
 #include "TH1.h"
 #include "TH2.h"
+#include "TGraphErrors.h"
 #include "TF1.h"
 #include "TCLine.h"
 #include "TCanvas.h"
@@ -40,7 +41,7 @@ TCCalibCBTimeWalk::TCCalibCBTimeWalk()
     fPar1 = 0;
     fPar2 = 0;
     fPar3 = 0;
-    fEnergyProj = 0;
+    fGFitPoints = 0;
     fTimeProj = 0;
     fLine = 0;
     fDelay = 0;
@@ -56,7 +57,7 @@ TCCalibCBTimeWalk::~TCCalibCBTimeWalk()
     if (fPar1) delete [] fPar1;
     if (fPar2) delete [] fPar2;
     if (fPar3) delete [] fPar3;
-    if (fEnergyProj) delete fEnergyProj;
+    if (fGFitPoints) delete fGFitPoints;
     if (fTimeProj) delete fTimeProj;
     if (fLine) delete fLine;
 }
@@ -72,7 +73,7 @@ void TCCalibCBTimeWalk::Init()
     fPar1 = new Double_t[fNelem];
     fPar2 = new Double_t[fNelem];
     fPar3 = new Double_t[fNelem];
-    fEnergyProj = 0;
+    fGFitPoints = 0;
     fTimeProj = 0;
     fLine =  new TCLine();
     fDelay = 0;
@@ -127,7 +128,7 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
     fMainHisto = fFileManager->GetHistogram(tmp);
     if (!fMainHisto)
     {
-        Error("Init", "Main histogram does not exist!\n");
+        Error("Fit", "Main histogram does not exist!\n");
         return;
     }
 
@@ -139,178 +140,159 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
     fCanvasFit->Update();
 
     // check for sufficient statistics
-    if (fMainHisto->GetEntries() > 1000)
+    if (fMainHisto->GetEntries() < 1000)
     {
-        // create energy projection
-        sprintf(tmp, "ProjEnergy_%d", elem);
-        TH2* h2 = (TH2*) fMainHisto;
-        if (fEnergyProj) delete fEnergyProj;
-        fEnergyProj = new TH1F(tmp, tmp, 4000, 0, 1000);
+        Error("Fit", "Not enough statistics!\n");
+        return;
+    }
 
-        // prepare stuff for adding
-        Int_t added = 0;
-        Double_t added_e[300];
+    // create new graph (fit data)
+    if (fGFitPoints) delete fGFitPoints;
+    fGFitPoints = new TGraphErrors();
+    fGFitPoints->SetMarkerStyle(20);
+    fGFitPoints->SetMarkerColor(4);
 
-        // get bins for fitting range
-        Int_t startBin = h2->GetXaxis()->FindBin(lowLimit);
-        Int_t endBin = h2->GetXaxis()->FindBin(highLimit);
+    // prepare stuff for adding
+    Int_t added = 0;
+    Double_t added_e = 0;
 
-        // loop over energy bins
-        for (Int_t i = startBin; i <= endBin; i++)
+    // get bins for fitting range
+    Int_t startBin = fMainHisto->GetXaxis()->FindBin(lowLimit);
+    Int_t endBin = fMainHisto->GetXaxis()->FindBin(highLimit);
+
+    // loop over energy bins
+    for (Int_t i = startBin; i <= endBin; i++)
+    {
+        // create time projection
+        sprintf(tmp, "ProjTime_%d_%d", elem, i);
+        TH1* proj = (TH1D*) ((TH2*) fMainHisto)->ProjectionY(tmp, i, i, "e");
+
+        // first loop
+        if (added == 0)
         {
-            // create time projection
-            sprintf(tmp, "ProjTime_%d_%d", elem, i);
-            TH1* proj = (TH1D*) h2->ProjectionY(tmp, i, i, "e");
+            if (fTimeProj) delete fTimeProj;
+            fTimeProj = (TH1*) proj->Clone("TimeProjection");
+        }
+        else
+        {
+            fTimeProj->Add(proj);
+        }
 
-            // check if in adding mode
-            if (added)
-            {
-                // add projection
-                fTimeProj->Add(proj);
-                delete proj;
+        delete proj;
 
-                // save bin contribution
-                added_e[added++] = h2->GetXaxis()->GetBinCenter(i);
-            }
-            else
-            {
-                if (fTimeProj) delete fTimeProj;
-                fTimeProj = proj;
-            }
+        // add up bin contribution
+        added_e += fMainHisto->GetXaxis()->GetBinCenter(i);
+        added++;
 
-            // check if projection has enough entries
-            if (fTimeProj->GetEntries() < 100 && i < endBin)
-            {
-                // start adding mode
-                if (!added)
-                {
-                    // enter adding mode
-                    added_e[added++] = h2->GetXaxis()->GetBinCenter(i);
-                }
+        // check if projection has enough entries
+        if (fTimeProj->GetEntries() < 100 && i < endBin)
+            continue;
 
-                // go to next bin
-                continue;
-            }
-            else
-            {
-                Double_t energy = 0;
-
-                // finish adding mode
-                if (added)
-                {
-                    // calculate energy
-                    for (Int_t j = 0; j < added; j++) energy += added_e[j];
-                    energy /= (Double_t)added;
-
-                    added = 0;
-                }
-                else
-                {
-                    energy = h2->GetXaxis()->GetBinCenter(i);
-                }
-
-                //
-                // fit time projection
-                //
-
-                // create fitting function
-                if (fFitFunc) delete fFitFunc;
-                sprintf(tmp, "fWalkProfile_%i", elem);
-                fFitFunc = new TF1(tmp, "pol0(0)+gaus(1)");
-                fFitFunc->SetLineColor(2);
-
-                // prepare fitting function
-                Int_t maxbin = fTimeProj->GetMaximumBin();
-                Double_t peak = fTimeProj->GetBinCenter(maxbin);
-                fFitFunc->SetRange(peak - 6, peak + 6);
-                fFitFunc->SetParameters(1., fTimeProj->GetMaximum(), peak, 1.);
-                fFitFunc->SetParLimits(0, 0, 10000); // offset
-                fFitFunc->SetParLimits(1, 0, 10000); // peak
-                fFitFunc->SetParLimits(2, -1000, 1000); // peak position
-                fFitFunc->SetParLimits(3, 0.1, 20.0); // sigma
-
-                // perform fit
-                fTimeProj->Fit(fFitFunc, "RBQ0");
-
-                // get parameters
-                Double_t mean = fFitFunc->GetParameter(2);
-                Double_t error = fFitFunc->GetParError(2);
-
-                // format line
-                fLine->SetPos(mean);
-
-                // check fit error
-                if (error < 1.)
-                {
-                    Int_t bin = fEnergyProj->GetXaxis()->FindBin(energy);
-                    fEnergyProj->SetBinContent(bin, mean);
-                    fEnergyProj->SetBinError(bin, error);
-                }
-
-                // plot projection fit
-                if (fDelay > 0)
-                {
-                    fCanvasFit->cd(2);
-                    fTimeProj->GetXaxis()->SetRangeUser(mean - 30, mean + 30);
-                    fTimeProj->Draw("hist");
-                    fFitFunc->Draw("same");
-                    fLine->Draw();
-                    fCanvasFit->Update();
-                    gSystem->Sleep(fDelay);
-                }
-
-            } // if: projection has sufficient statistics
-
-        } // for: loop over energy bins
+        // calculate mean energy
+        Double_t energy = added_e/added;
 
         //
-        // fit profile
+        // fit time projection
         //
 
         // create fitting function
-        sprintf(tmp, "fTWalk_%d", elem);
         if (fFitFunc) delete fFitFunc;
-        fFitFunc = new TF1(tmp, this, &TCCalibCBTimeWalk::TWFunc,
-                           lowLimit, highLimit, 4,
-                           "TCCalibCBTimeWalk", "TWFunc");
+        sprintf(tmp, "fWalkProfile_%i", elem);
+        fFitFunc = new TF1(tmp, "pol0(0)+gaus(1)");
+        fFitFunc->SetLineColor(kBlue);
 
         // prepare fitting function
-        fFitFunc->SetLineColor(2);
-        fFitFunc->SetParameters(3.55e+01, 6.77e+01, 2.43e-01, 1.66e-01);
-        //fFitFunc->SetParLimits(0, 30, 80);
-        fFitFunc->SetParLimits(1, 30, 320);
-        fFitFunc->SetParLimits(2, 1e-5, 10);
-        fFitFunc->SetParLimits(3, 0, 1);
+        Int_t maxbin = fTimeProj->GetMaximumBin();
+        Double_t peak = fTimeProj->GetBinCenter(maxbin);
+        fFitFunc->SetRange(peak - 6, peak + 6);
+        fFitFunc->SetParameters(1., fTimeProj->GetMaximum(), peak, 1.);
+        fFitFunc->SetParLimits(0, 0, 10000); // offset
+        fFitFunc->SetParLimits(1, 0, 10000); // peak
+        fFitFunc->SetParLimits(2, -1000, 1000); // peak position
+        fFitFunc->SetParLimits(3, 0.1, 20.0); // sigma
 
         // perform fit
-        for (Int_t i = 0; i < 10; i++)
-            if (!fEnergyProj->Fit(fFitFunc, "RB0Q")) break;
+        fTimeProj->Fit(fFitFunc, "RBQ0");
 
-        // read parameters
-        fPar0[elem] = fFitFunc->GetParameter(0);
-        fPar1[elem] = fFitFunc->GetParameter(1);
-        fPar2[elem] = fFitFunc->GetParameter(2);
-        fPar3[elem] = fFitFunc->GetParameter(3);
+        // get parameters
+        Double_t mean = fFitFunc->GetParameter(2);
+        Double_t error = fFitFunc->GetParError(2);
 
-        // draw energy projection and fit
-        fCanvasResult->cd();
-        fEnergyProj->SetMarkerStyle(20);
-        fEnergyProj->SetMarkerColor(4);
-        fEnergyProj->GetXaxis()->SetRangeUser(lowLimit, highLimit);
-        fEnergyProj->GetYaxis()->SetRangeUser(TCUtils::GetHistogramMinimum(fEnergyProj) - 5, fEnergyProj->GetMaximum() + 5);
-        fEnergyProj->Draw("E1");
-        fFitFunc->Draw("same");
-        fCanvasResult->Update();
+        // format line
+        fLine->SetPos(mean);
 
-    } // if: sufficient statistics
-}
+        // check fit error
+        if (error < 1.)
+        {
+            Int_t n = fGFitPoints->GetN();
+            fGFitPoints->SetPoint(n, energy, mean);
+            fGFitPoints->SetPointError(n, 0., error);
+        }
 
-//______________________________________________________________________________
-Double_t TCCalibCBTimeWalk::TWFunc(Double_t* x, Double_t* par)
-{
-    // Time walk fitting function.
+        // plot projection fit
+        if (fDelay > 0)
+        {
+            fCanvasFit->cd(2);
+            fTimeProj->GetXaxis()->SetRangeUser(mean - 30, mean + 30);
+            fTimeProj->Draw("hist");
+            fFitFunc->Draw("same");
+            fLine->Draw();
+            fCanvasFit->Update();
+            gSystem->Sleep(fDelay);
+        }
 
-    return par[0] + par[1] / TMath::Power(x[0] + par[2], par[3]);
+        // reset values
+        added = 0;
+        added_e = 0;
+
+    } // for: loop over energy bins
+
+    //
+    // fit profile
+    //
+
+    // check for enough points
+    if (fGFitPoints->GetN() < 3)
+    {
+        Error("Fit", "Not enough fit points!");
+        return;
+    }
+
+    // create fitting function
+    sprintf(tmp, "fTWalk_%d", elem);
+    if (fFitFunc) delete fFitFunc;
+    fFitFunc = new TF1(tmp, "[0] + [1] / TMath::Power(x + [2], [3])", lowLimit, highLimit);
+    fFitFunc->SetLineColor(kBlue);
+    fFitFunc->SetNpx(2000);
+
+    // prepare fitting function
+    fFitFunc->SetParameters(3.55e+01, 6.77e+01, 2.43e-01, 1.66e-01);
+    //fFitFunc->SetParLimits(0, 30, 80);
+    fFitFunc->SetParLimits(1, 30, 320);
+    fFitFunc->SetParLimits(2, 1e-5, 10);
+    fFitFunc->SetParLimits(3, 0, 1);
+
+    // perform fit
+    for (Int_t i = 0; i < 10; i++)
+        if (!fGFitPoints->Fit(fFitFunc, "RB0Q")) break;
+
+    // read parameters
+    fPar0[elem] = fFitFunc->GetParameter(0);
+    fPar1[elem] = fFitFunc->GetParameter(1);
+    fPar2[elem] = fFitFunc->GetParameter(2);
+    fPar3[elem] = fFitFunc->GetParameter(3);
+
+    // draw energy projection and fit
+    fCanvasResult->cd();
+    fGFitPoints->Draw("ap");
+    fGFitPoints->GetXaxis()->SetLimits(lowLimit, highLimit);
+    fFitFunc->Draw("same");
+    fGFitPoints->Draw("psame");
+    fCanvasResult->Update();
+
+    fCanvasFit->cd(1);
+    fFitFunc->Draw("same");
+    fCanvasFit->Update();
 }
 
 //______________________________________________________________________________

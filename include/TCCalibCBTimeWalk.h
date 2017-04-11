@@ -17,6 +17,7 @@
 #include "TCCalib.h"
 
 class TH1;
+class TGraphErrors;
 class TCLine;
 class TCFileManager;
 
@@ -29,7 +30,8 @@ private:
     Double_t* fPar1;                    // time walk parameter 1
     Double_t* fPar2;                    // time walk parameter 2
     Double_t* fPar3;                    // time walk parameter 3
-    TH1* fEnergyProj;                   // energy projection histogram
+
+    TGraphErrors* fGFitPoints;          // energy progection fit points
     TH1* fTimeProj;                     // time projection histogram
     TCLine* fLine;                      // mean indicator line
     Int_t fDelay;                       // projection fit display delay
@@ -44,8 +46,6 @@ public:
 
     virtual void WriteValues();
     virtual void PrintValues();
-
-    Double_t TWFunc(Double_t* x, Double_t* par);
 
     ClassDef(TCCalibCBTimeWalk, 0) // CB time walk calibration
 };
