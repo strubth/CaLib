@@ -189,6 +189,7 @@ void TCCalibTime::Fit(Int_t elem)
         }
         if (this->InheritsFrom("TCCalibTAPSTime"))
         {
+            fFitFunc->SetParameter(4, 0.5);
             fFitFunc->SetParLimits(4, 0.001, 1);
             range = 3;
             factor = 1.5;
