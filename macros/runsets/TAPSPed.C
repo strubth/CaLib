@@ -1,5 +1,3 @@
-// SVN Info: $Id: TAPSPed.C 912 2011-05-18 22:09:17Z werthm $
-
 /*************************************************************************
  * Author: Dominik Werthmueller
  *************************************************************************/
@@ -9,10 +7,6 @@
 // TAPSPed.C                                                            //
 //                                                                      //
 // Make run sets depending on the stability in time of a calibration.   //
-//                                                                      //
-// root ped.root                                                        //
-// TGraph* g = (TGraph*) _file0->Get("Overview_000_30001")               //
-//for(Int_t i = 0; i<g->GetN(); i++){if(TMath::Abs((g->GetY()[i]-g->GetY()[i-1]))>5. && g->GetY()[i]>0. && g->GetY()[i-1]>0) cout << "-"<< g->GetX()[i-1] << endl << g->GetX()[i];}//
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
@@ -35,7 +29,7 @@ TCReadARCalib* gReadAR;
 TList* gFiles;
 
 //______________________________________________________________________________
-void CheckPedestals(const Char_t* loc)
+void CheckPedestals(const Char_t* loc, const Char_t* filePre)
 {
     // Some old pedestal checking method.
 
@@ -72,7 +66,7 @@ void CheckPedestals(const Char_t* loc)
 
         // extract run number
         Int_t runNumber;
-        sprintf(t, "%s/ARHistograms_CBTaggTAPS_%%d.root", loc);
+        sprintf(t, "%s/%s_%%d.root", loc, filePre);
         sscanf(f->GetName(), t, &runNumber);
         runNumbersD[i] = (Double_t)runNumber;
 
@@ -88,6 +82,7 @@ void CheckPedestals(const Char_t* loc)
             fROOTout->cd(t);
             sprintf(t, "ADC%s", gReadAR->GetElement(j)->GetADC());
             TH1D* h = (TH1D*) f->Get(t);
+            if (!h) continue;
 
             // fit gaussian to pedestal
             h->GetXaxis()->SetRange(90, 107);
@@ -173,14 +168,17 @@ void CheckPedestals(const Char_t* loc)
         sprintf(t, "Overview_%03d_%s", j, gReadAR->GetElement(j)->GetADC());
         g->SetName(t);
         g->SetTitle(t);
-        g->Write(g->GetName(), TObject::kOverwrite);
-        for(Int_t i = 0; i<g->GetN(); i++)
-        {
-            if(TMath::Abs((g->GetY()[i]-g->GetY()[i-1]))>5. && g->GetY()[i]>0. && g->GetY()[i-1]>0 && i>0)
-                printf("-%i \n %i", g->GetX()[i-1],g->GetX()[i]);
-                //cout << "-"<< g->GetX()[i-1] << endl << g->GetX()[i];
-        }
-        printf("\n");
+        g->GetYaxis()->SetRangeUser(80, 120);
+        g->Write(g->GetName());
+        //TString nn(g->GetName());
+        //if (nn.Contains("_29")) g->Write(g->GetName(), TObject::kOverwrite);
+        //for(Int_t i = 0; i<g->GetN(); i++)
+        //{
+        //    if(TMath::Abs((g->GetY()[i]-g->GetY()[i-1]))>5. && g->GetY()[i]>0. && g->GetY()[i-1]>0 && i>0)
+        //        printf("-%i \n %i", g->GetX()[i-1],g->GetX()[i]);
+        //        //cout << "-"<< g->GetX()[i-1] << endl << g->GetX()[i];
+        //}
+        //printf("\n");
 
         delete g;
     }
@@ -207,15 +205,17 @@ void TAPSPed()
 
     // general configuration
     Bool_t watch = kFALSE;
+    //const Char_t* data = "Data.TAPS.SG.E0";
     const Char_t* data = "Data.Veto.E0";
     const Char_t* elemDesc = "Element:";
     //const Char_t* elemDesc = "TAPSSG:";
     Double_t yMin = 110;
     Double_t yMax = 160;
-
-    const Char_t calibration[] = "2014-07_EPT_Prod_Neiser_OldCluster";
-    const Char_t* fLoc = "/w/work14/werthm/A2/Jul_14/presort/data/";
-    const Char_t* fAR = "/home/werthm/src/ROOT/acqu/acqu_user/data/Jul_14/TAPS/Veto.dat";
+    const Char_t calibration[] = "LD2_Mar_13";
+    const Char_t* fLoc = "/home/werthm/loc/presort/data/Mar_13";
+    //const Char_t* fAR = "/home/werthm/src/ROOT/acqu/acqu_user/data/Mar_13/TAPS/BaF2_PWO.dat";
+    const Char_t* fAR = "/home/werthm/src/ROOT/acqu/acqu_user/data/Mar_13/TAPS/Veto.dat";
+    const Char_t* filePre = "ARHistograms_CB";
 
     // read the calibration file with the correct element identifier
     gReadAR = new TCReadARCalib(fAR, kFALSE, elemDesc);
@@ -241,7 +241,7 @@ void TAPSPed()
         for (Int_t j = 0; j < nRuns; j++)
         {
             // load ROOT file
-            sprintf(tmp, "%s/ARHistograms_CBTaggTAPS_%d.root", fLoc, runs[j]);
+            sprintf(tmp, "%s/%s_%d.root", fLoc, filePre, runs[j]);
             TFile* f = new TFile(tmp);
 
             // check file
@@ -257,7 +257,7 @@ void TAPSPed()
     }
 
     // check pedestals
-    CheckPedestals(fLoc);
+    CheckPedestals(fLoc, filePre);
 
     printf("%d runs analyzed.\n", gFiles->GetSize());
 
