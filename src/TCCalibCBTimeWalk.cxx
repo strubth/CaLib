@@ -45,6 +45,7 @@ TCCalibCBTimeWalk::TCCalibCBTimeWalk()
     fTimeProj = 0;
     fLine = 0;
     fDelay = 0;
+    fUseEnergyWeight = kTRUE;
 }
 
 //______________________________________________________________________________
@@ -92,6 +93,9 @@ void TCCalibCBTimeWalk::Init()
 
     // get projection fit display delay
     fDelay = TCReadConfig::GetReader()->GetConfigInt("CB.TimeWalk.Fit.Delay");
+
+    // init weigths
+    fUseEnergyWeight = kTRUE;
 
     // read old parameters (only from first set)
     TCMySQLManager::GetManager()->ReadParameters("Data.CB.Walk.Par0", fCalibration.Data(), fSet[0], fPar0, fNelem);
@@ -155,6 +159,7 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
     // prepare stuff for adding
     Int_t added = 0;
     Double_t added_e = 0;
+    Double_t added_w = 0;
 
     // get bins for fitting range
     Int_t startBin = fMainHisto->GetXaxis()->FindBin(lowLimit);
@@ -167,29 +172,35 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
         sprintf(tmp, "ProjTime_%d_%d", elem, i);
         TH1* proj = (TH1D*) ((TH2*) fMainHisto)->ProjectionY(tmp, i, i, "e");
 
-        // first loop
+        // first loop (after fit)
         if (added == 0)
         {
             if (fTimeProj) delete fTimeProj;
             fTimeProj = (TH1*) proj->Clone("TimeProjection");
+
+            // reset values
+            added_e = 0;
+            added_w = 0;
         }
         else
         {
             fTimeProj->Add(proj);
         }
 
-        delete proj;
-
         // add up bin contribution
-        added_e += fMainHisto->GetXaxis()->GetBinCenter(i);
+        Double_t weight = fUseEnergyWeight ? proj->GetEntries() : 1.;
+        added_w += weight;
+        added_e += fMainHisto->GetXaxis()->GetBinCenter(i) * weight;
         added++;
+
+        delete proj;
 
         // check if projection has enough entries
         if (fTimeProj->GetEntries() < 100 && i < endBin)
             continue;
 
         // calculate mean energy
-        Double_t energy = added_e/added;
+        Double_t energy = added_e/added_w;
 
         //
         // fit time projection
@@ -241,9 +252,8 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
             gSystem->Sleep(fDelay);
         }
 
-        // reset values
+        // reset value
         added = 0;
-        added_e = 0;
 
     } // for: loop over energy bins
 

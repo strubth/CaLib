@@ -35,6 +35,7 @@ private:
     TH1* fTimeProj;                     // time projection histogram
     TCLine* fLine;                      // mean indicator line
     Int_t fDelay;                       // projection fit display delay
+    Bool_t fUseEnergyWeight;            // flag for energy weight
 
     virtual void Init();
     virtual void Fit(Int_t elem);
