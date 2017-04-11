@@ -376,3 +376,15 @@ void TCCalib::SaveCanvas(TCanvas* c, const Char_t* name)
     }
 }
 
+//______________________________________________________________________________
+Bool_t TCCalib::IsIgnored(Int_t elem)
+{
+    // Return kTRUE if the element 'elem' is found in the list of ignored elements.
+
+    // loop over ignored element list
+    for (Int_t i = 0; i < fNIgnore; i++)
+        if (fIgnore[i] == elem) return kTRUE;
+
+    return kFALSE;
+}
+

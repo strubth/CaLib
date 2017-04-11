@@ -59,6 +59,7 @@ protected:
     virtual void Fit(Int_t elem) = 0;
     virtual void Calculate(Int_t elem) = 0;
     void SaveCanvas(TCanvas* c, const Char_t* name);
+    Bool_t IsIgnored(Int_t elem);
 
 public:
     TCCalib() : TNamed(),
