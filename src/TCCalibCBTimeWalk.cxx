@@ -139,7 +139,7 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
 
     if (!fMainHisto)
     {
-        Error("Fit", "Main histogram does not exist!\n");
+        Error("Fit", "Main histogram does not exist!");
         return;
     }
 
@@ -154,9 +154,9 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
     }
 
     // check for sufficient statistics
-    if (fMainHisto->GetEntries() < 1000)
+    if (fMainHisto->GetEntries() < 1000 && !TCUtils::IsCBHole(elem))
     {
-        Error("Fit", "Not enough statistics!\n");
+        Error("Fit", "Not enough statistics!");
         return;
     }
 
@@ -168,7 +168,7 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
     if (fGFitPoints) delete fGFitPoints;
     fGFitPoints = new TGraphErrors();
     fGFitPoints->SetMarkerStyle(20);
-    fGFitPoints->SetMarkerColor(4);
+    fGFitPoints->SetMarkerColor(kBlack);
 
     // prepare stuff for adding
     Double_t low_e = 0;
@@ -386,7 +386,6 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
     fGFitPoints->Draw("ap");
     fGFitPoints->GetXaxis()->SetLimits(lowLimit, highLimit);
     fFitFunc->Draw("same");
-    fGFitPoints->Draw("psame");
     fCanvasResult->Update();
 
     fCanvasFit->cd(1);
