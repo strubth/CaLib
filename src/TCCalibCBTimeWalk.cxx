@@ -198,25 +198,25 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
         // create fitting function
         if (fFitFunc) delete fFitFunc;
         sprintf(tmp, "fWalkProfile_%i", elem);
-        fFitFunc = new TF1(tmp, "pol0(0)+gaus(1)");
+        fFitFunc = new TF1(tmp, "gaus(0)");
         fFitFunc->SetLineColor(kBlue);
 
         // prepare fitting function
         Int_t maxbin = fTimeProj->GetMaximumBin();
         Double_t peak = fTimeProj->GetBinCenter(maxbin);
-        fFitFunc->SetRange(peak - 6, peak + 6);
-        fFitFunc->SetParameters(1., fTimeProj->GetMaximum(), peak, 1.);
-        fFitFunc->SetParLimits(0, 0, 10000); // offset
-        fFitFunc->SetParLimits(1, 0, 10000); // peak
-        fFitFunc->SetParLimits(2, -1000, 1000); // peak position
-        fFitFunc->SetParLimits(3, 0.1, 20.0); // sigma
+        Double_t max = fTimeProj->GetMaximum();
+        fFitFunc->SetRange(peak - 10, peak + 10);
+        fFitFunc->SetParameters(max, peak, 1.);
+        fFitFunc->SetParLimits(0, max*0.5, max*1.5); // peak height
+        fFitFunc->SetParLimits(1, peak - 100, peak + 100); // peak position
+        fFitFunc->SetParLimits(2, 0.5, 20.0); // sigma
 
         // perform fit
         fTimeProj->Fit(fFitFunc, "RBQ0");
 
         // get parameters
-        Double_t mean = fFitFunc->GetParameter(2);
-        Double_t error = fFitFunc->GetParError(2);
+        Double_t mean = fFitFunc->GetParameter(1);
+        Double_t error = fFitFunc->GetParError(1);
 
         // format line
         fLine->SetPos(mean);
@@ -266,10 +266,10 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
     fFitFunc->SetNpx(2000);
 
     // prepare fitting function
-    fFitFunc->SetParameters(3.55e+01, 6.77e+01, 2.43e-01, 1.66e-01);
+    fFitFunc->SetParameters(-50, 60, 0.2, 0.3);
     //fFitFunc->SetParLimits(0, 30, 80);
-    fFitFunc->SetParLimits(1, 30, 320);
-    fFitFunc->SetParLimits(2, 1e-5, 10);
+    fFitFunc->SetParLimits(1, -5000, 5000);
+    fFitFunc->SetParLimits(2, -1, 10);
     fFitFunc->SetParLimits(3, 0, 1);
 
     // perform fit
