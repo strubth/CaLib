@@ -46,6 +46,7 @@ TCCalibCBTimeWalk::TCCalibCBTimeWalk()
     fLine = 0;
     fDelay = 0;
     fUseEnergyWeight = kTRUE;
+    fUsePointDensityWeight = kTRUE;
 }
 
 //______________________________________________________________________________
@@ -96,6 +97,7 @@ void TCCalibCBTimeWalk::Init()
 
     // init weigths
     fUseEnergyWeight = kTRUE;
+    fUsePointDensityWeight = kTRUE;
 
     // read old parameters (only from first set)
     TCMySQLManager::GetManager()->ReadParameters("Data.CB.Walk.Par0", fCalibration.Data(), fSet[0], fPar0, fNelem);
@@ -274,6 +276,42 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
     fFitFunc = new TF1(tmp, "[0] + [1] / TMath::Power(x + [2], [3])", lowLimit, highLimit);
     fFitFunc->SetLineColor(kBlue);
     fFitFunc->SetNpx(2000);
+
+    // weight point errors by point density
+    if (fUsePointDensityWeight)
+    {
+        for (Int_t i = 0; i < fGFitPoints->GetN(); i++)
+        {
+            Double_t* x = fGFitPoints->GetX();
+            //Double_t* y = fGFitPoints->GetY();
+
+            Double_t diff = 0.;
+
+            // get distance to previous point (use only x-coord)
+            if (i > 0)
+            {
+                Double_t xdiff = x[i]-x[i-1];
+                Double_t ydiff = 0;//y[i]-y[i-1];
+                diff  += TMath::Sqrt(xdiff*xdiff + ydiff*ydiff);
+            }
+
+            // get distance to next point
+            if (i < fGFitPoints->GetN()-1)
+            {
+                Double_t xdiff = x[i+1]-x[i];
+                Double_t ydiff = 0;//y[i+1]-y[i];
+                diff  += TMath::Sqrt(xdiff*xdiff + ydiff*ydiff);
+            }
+
+            // get mean distance
+            if (i > 0 && i < fGFitPoints->GetN()-1)
+                diff /= 2.;
+
+            // set new error = old error / sqrt(dist)
+            fGFitPoints->SetPointError(i, fGFitPoints->GetEX()[i], 1./TMath::Sqrt(diff) * fGFitPoints->GetEY()[i]);
+        }
+    }
+
 
     // prepare fitting function
     fFitFunc->SetParameters(-50, 60, 0.2, 0.3);

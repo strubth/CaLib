@@ -36,6 +36,7 @@ private:
     TCLine* fLine;                      // mean indicator line
     Int_t fDelay;                       // projection fit display delay
     Bool_t fUseEnergyWeight;            // flag for energy weight
+    Bool_t fUsePointDensityWeight;      // flag for energy weight
 
     virtual void Init();
     virtual void Fit(Int_t elem);
