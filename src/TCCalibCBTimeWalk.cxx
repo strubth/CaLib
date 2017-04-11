@@ -1,5 +1,5 @@
 /*************************************************************************
- * Author: Irakli Keshelashvili, Dominik Werthmueller
+ * Author: Irakli Keshelashvili, Dominik Werthmueller, Thomas Strub
  *************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
@@ -127,11 +127,16 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
     // create histogram name
     sprintf(tmp, "%s_%03d", fHistoName.Data(), elem);
 
-    // delete old histogram
-    if (fMainHisto) delete fMainHisto;
-
     // get histogram
-    fMainHisto = fFileManager->GetHistogram(tmp);
+    if (!fIsReFit)
+    {
+        // delete old histogram
+        if (fMainHisto) delete fMainHisto;
+
+         // get new
+        fMainHisto = fFileManager->GetHistogram(tmp);
+    }
+
     if (!fMainHisto)
     {
         Error("Fit", "Main histogram does not exist!\n");
@@ -139,11 +144,14 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
     }
 
     // draw main histogram
-    if (fMainHisto->GetEntries() > 0) fCanvasFit->cd(1)->SetLogz(1);
-    else fCanvasFit->cd(1)->SetLogz(0);
-    TCUtils::FormatHistogram(fMainHisto, "CB.TimeWalk.Histo.Fit");
-    fMainHisto->Draw("colz");
-    fCanvasFit->Update();
+    if (!fIsReFit)
+    {
+        if (fMainHisto->GetEntries() > 0) fCanvasFit->cd(1)->SetLogz(1);
+        else fCanvasFit->cd(1)->SetLogz(0);
+        TCUtils::FormatHistogram(fMainHisto, "CB.TimeWalk.Histo.Fit");
+        fMainHisto->Draw("colz");
+        fCanvasFit->Update();
+    }
 
     // check for sufficient statistics
     if (fMainHisto->GetEntries() < 1000)
@@ -152,6 +160,10 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
         return;
     }
 
+    // copy old points
+    TGraphErrors oldp;
+    if (fIsReFit && fGFitPoints) oldp = TGraphErrors(*fGFitPoints);
+
     // create new graph (fit data)
     if (fGFitPoints) delete fGFitPoints;
     fGFitPoints = new TGraphErrors();
@@ -159,6 +171,7 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
     fGFitPoints->SetMarkerColor(4);
 
     // prepare stuff for adding
+    Double_t low_e = 0;
     Int_t added = 0;
     Double_t added_e = 0;
     Double_t added_w = 0;
@@ -177,6 +190,7 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
         // first loop (after fit)
         if (added == 0)
         {
+            low_e = fMainHisto->GetXaxis()->GetBinLowEdge(i);
             if (fTimeProj) delete fTimeProj;
             fTimeProj = (TH1*) proj->Clone("TimeProjection");
 
@@ -195,7 +209,14 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
         added_e += fMainHisto->GetXaxis()->GetBinCenter(i) * weight;
         added++;
 
+        // delete projection
         delete proj;
+
+        // calc energy interval
+        Double_t e_int = fMainHisto->GetXaxis()->GetBinUpEdge(i) - low_e;
+
+        // minimum energy interval
+        if (e_int < 0.5) continue;
 
         // check if projection has enough entries
         if (fTimeProj->GetEntries() < 100 && i < endBin)
@@ -218,6 +239,35 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
         Int_t maxbin = fTimeProj->GetMaximumBin();
         Double_t peak = fTimeProj->GetBinCenter(maxbin);
         Double_t max = fTimeProj->GetMaximum();
+
+        // find old (changed) peak pos
+        Bool_t skip = kFALSE;
+        if (fIsReFit)
+        {
+            // init
+            skip = kTRUE;
+
+            // loop over old points
+            for (Int_t j = 0; j < oldp.GetN(); j++)
+            {
+                // find point
+                if (low_e < oldp.GetX()[j] && oldp.GetX()[j] < low_e+e_int)
+                {
+                    skip = kFALSE;
+                    peak = oldp.GetY()[j];
+                    break;
+                }
+            }
+        }
+
+        // skip if no old (deleted) point found
+        if (skip)
+        {
+            added = 0;
+            continue;
+        }
+
+        // prepare fit
         fFitFunc->SetRange(peak - 20, peak + 20);
         fFitFunc->SetParameters(max, peak, 1.);
         fFitFunc->SetParLimits(0, max*0.5, max*1.5); // peak height
@@ -331,6 +381,7 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
     fPar3[elem] = fFitFunc->GetParameter(3);
 
     // draw energy projection and fit
+    fFitFunc->SetRange(-fFitFunc->GetParameter(2), 1000);
     fCanvasResult->cd();
     fGFitPoints->Draw("ap");
     fGFitPoints->GetXaxis()->SetLimits(lowLimit, highLimit);
