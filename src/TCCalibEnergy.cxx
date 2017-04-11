@@ -155,9 +155,9 @@ void TCCalibEnergy::Fit(Int_t elem)
         }
         else if (this->InheritsFrom("TCCalibTAPSEnergyLG"))
         {
-            fFitFunc->SetRange(80, 200);
+            fFitFunc->SetRange(60, 200);
             fFitFunc->SetParameters(fFitHisto->GetMaximum(), fPi0Pos, 10, 1, 1, 1, 0.1);
-            fFitFunc->SetParLimits(0, 1, 2000);
+            fFitFunc->SetParLimits(0, 1, fFitHisto->GetMaximum()*1.5);
             fFitFunc->SetParLimits(1, 115, 140);
             fFitFunc->SetParLimits(2, 5, 15);
             fFitFunc->FixParameter(6, 0);
