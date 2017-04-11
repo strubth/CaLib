@@ -156,7 +156,7 @@ void TCCalibTime::Fit(Int_t elem)
     fFitHisto->Draw("hist");
 
     // check for sufficient statistics
-    if (fFitHisto->GetEntries())
+    if (fFitHisto->GetEntries() && !IsIgnored(elem))
     {
         // delete old function
         if (fFitFunc) delete fFitFunc;
@@ -213,10 +213,18 @@ void TCCalibTime::Fit(Int_t elem)
             fFitFunc->SetParLimits(4, 0.01, 2);
         }
 
-        // first iteration
-        fFitFunc->SetRange(fMean - range, fMean + range);
-        fFitHisto->Fit(fFitFunc, "RBQ0");
-        fMean = fFitFunc->GetParameter(3);
+        // check for refit
+        if (fIsReFit)
+        {
+            fMean = fLine->GetPos();
+        }
+        else
+        {
+            // first iteration
+            fFitFunc->SetRange(fMean - range, fMean + range);
+            fFitHisto->Fit(fFitFunc, "RBQ0");
+            fMean = fFitFunc->GetParameter(3);
+        }
 
         // second iteration
         Double_t sigma = fFitFunc->GetParameter(4);
@@ -258,7 +266,7 @@ void TCCalibTime::Calculate(Int_t elem)
     Bool_t unchanged = kFALSE;
 
     // check if fit was performed
-    if (fFitHisto->GetEntries())
+    if (fFitHisto->GetEntries() && !IsIgnored(elem))
     {
         // check if line position was modified by hand
         if (fLine->GetPos() != fMean) fMean = fLine->GetPos();
