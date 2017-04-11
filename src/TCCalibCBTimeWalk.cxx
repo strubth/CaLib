@@ -205,10 +205,10 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
         Int_t maxbin = fTimeProj->GetMaximumBin();
         Double_t peak = fTimeProj->GetBinCenter(maxbin);
         Double_t max = fTimeProj->GetMaximum();
-        fFitFunc->SetRange(peak - 10, peak + 10);
+        fFitFunc->SetRange(peak - 20, peak + 20);
         fFitFunc->SetParameters(max, peak, 1.);
         fFitFunc->SetParLimits(0, max*0.5, max*1.5); // peak height
-        fFitFunc->SetParLimits(1, peak - 100, peak + 100); // peak position
+        fFitFunc->SetParLimits(1, peak - 5, peak + 5); // peak position
         fFitFunc->SetParLimits(2, 0.5, 20.0); // sigma
 
         // perform fit
