@@ -125,7 +125,7 @@ void TCCalibEnergy::Fit(Int_t elem)
     fFitHisto->Draw("hist");
 
     // check for sufficient statistics
-    if (fFitHisto->Integral() > 100)
+    if (fFitHisto->Integral() > 100 && !IsIgnored(elem))
     {
         // delete old function
         if (fFitFunc) delete fFitFunc;
@@ -256,7 +256,7 @@ void TCCalibEnergy::Calculate(Int_t elem)
     Bool_t unchanged = kFALSE;
 
     // check if fit was performed
-    if (fFitHisto->Integral() > 100)
+    if (fFitHisto->Integral() > 100 && !IsIgnored(elem))
     {
         // check if line position was modified by hand
         if (fLine->GetPos() != fPi0Pos) fPi0Pos = fLine->GetPos();
