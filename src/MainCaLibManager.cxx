@@ -56,6 +56,7 @@ void SelectCalibration(const Char_t* mMsg = 0);
 void SelectCalibrationData();
 void SelectCalibrationType();
 void Administration();
+void WriteTableEntry(WINDOW* win, const Char_t* str, Int_t colLength, Int_t att);
 
 //______________________________________________________________________________
 void Finish(Int_t sig)
@@ -134,16 +135,36 @@ Int_t ShowMenu(const Char_t* title, const Char_t* message,
     // draw message
     mvprintw(6, 2, "%s:", message);
 
+    // calculate the entries window width
+    Int_t e_window_w = 0;
+    for (Int_t i = 0; i < nEntries; i++)
+        e_window_w = TMath::Max(e_window_w, (Int_t)strlen(entries[i]));
+
+    // create the entries window
+    WINDOW* entries_window = newpad(nEntries, e_window_w);
+
     // draw entries
     for (Int_t i = 0; i < nEntries; i++)
     {
-        if (i == active) attron(A_REVERSE);
-        mvprintw(8+i, 2, "%s", entries[i]);
-        if (i == active) attroff(A_REVERSE);
+        // move cursor
+        wmove(entries_window, i, 0);
+
+        // print entry
+        if (i == active) wattron(entries_window, A_REVERSE);
+        wprintw(entries_window, "%s", entries[i]);
+        if (i == active) wattroff(entries_window, A_REVERSE);
     }
 
     // user information
     PrintStatusMessage("Use UP and DOWN keys to select - hit ENTER or RIGHT key to confirm");
+
+    // calculate mininum pad row
+    Int_t minp = active+1 > gNrow-3-8 ? active - (gNrow-3-8) : 0;
+
+    // refresh window
+    refresh();
+    prefresh(entries_window, minp, 0, 8, 2, gNrow-3, gNcol-3);
+    move(gNrow-1, gNcol-1);
 
     // wait for input
     for (;;)
@@ -2176,10 +2197,9 @@ Int_t main(Int_t argc, Char_t* argv[])
     }
 
     // check dimensions
-    Int_t minRows = TCMySQLManager::GetManager()->GetDataTable()->GetSize() + 10;
-    if (gNrow < minRows || gNcol < 120)
+    if (gNrow < 40 || gNcol < 120)
     {
-        sprintf(gFinishMessage, "Cannot run in a terminal smaller than %d rows and 120 columns!", minRows);
+        sprintf(gFinishMessage, "Cannot run in a terminal smaller than 40 rows and 120 columns!");
         Finish(-1);
     }
 
