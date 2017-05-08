@@ -24,6 +24,13 @@ class TCFileManager;
 class TCCalibCBTimeWalk : public TCCalib
 {
 
+public:
+    enum EWalkCorrType {
+        kDefault,
+        kStrub
+    };
+    typedef EWalkCorrType WalkCorrType_t;
+
 private:
     TCFileManager* fFileManager;        // file manager
     Double_t* fPar0;                    // time walk parameter 0
@@ -37,6 +44,7 @@ private:
     Int_t fDelay;                       // projection fit display delay
     Bool_t fUseEnergyWeight;            // flag for energy weight
     Bool_t fUsePointDensityWeight;      // flag for energy weight
+    WalkCorrType_t fWalkType;           // correction type
 
     virtual void Init();
     virtual void Fit(Int_t elem);

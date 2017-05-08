@@ -47,6 +47,7 @@ TCCalibCBTimeWalk::TCCalibCBTimeWalk()
     fDelay = 0;
     fUseEnergyWeight = kTRUE;
     fUsePointDensityWeight = kTRUE;
+    fWalkType = kDefault;
 }
 
 //______________________________________________________________________________
@@ -98,6 +99,34 @@ void TCCalibCBTimeWalk::Init()
     // init weigths
     fUseEnergyWeight = kTRUE;
     fUsePointDensityWeight = kTRUE;
+
+    // get correction type
+    TString* type = TCReadConfig::GetReader()->GetConfig("CB.TimeWalk.Type");
+    if (!type)
+    {
+        fWalkType = kDefault;
+        Info("Init", "Using default walk correction");
+    }
+    else
+    {
+        TString t(*type);
+        t.ToLower();
+        if (t == "default")
+        {
+            fWalkType = kDefault;
+            Info("Init", "Using default walk correction");
+        }
+        else if (t == "strub")
+        {
+            fWalkType = kStrub;
+            Info("Init", "Using Strub walk correction");
+        }
+        else
+        {
+            fWalkType = kDefault;
+            Info("Init", "Using default walk correction");
+        }
+    }
 
     // read old parameters (only from first set)
     TCMySQLManager::GetManager()->ReadParameters("Data.CB.Walk.Par0", fCalibration.Data(), fSet[0], fPar0, fNelem);
@@ -330,7 +359,10 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
     // create fitting function
     sprintf(tmp, "fTWalk_%d", elem);
     if (fFitFunc) delete fFitFunc;
-    fFitFunc = new TF1(tmp, "[0] + [1] / TMath::Power(x + [2], [3])", lowLimit, highLimit);
+    if (fWalkType == kDefault)
+        fFitFunc = new TF1(tmp, "[0] + [1] / TMath::Power(x + [2], [3])", lowLimit, highLimit);
+    else if (fWalkType == kStrub)
+        fFitFunc = new TF1(tmp, "[0] + [1] / TMath::Power(x - 1, [3]) + x*[2]", lowLimit, highLimit);
     fFitFunc->SetLineColor(kBlue);
     fFitFunc->SetNpx(2000);
 
@@ -372,9 +404,9 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
 
     // prepare fitting function
     fFitFunc->SetParameters(-50, 60, 0.2, 0.3);
-    //fFitFunc->SetParLimits(0, 30, 80);
     fFitFunc->SetParLimits(1, -5000, 5000);
-    fFitFunc->SetParLimits(2, -1, 10);
+    if (fWalkType == kDefault)
+        fFitFunc->SetParLimits(2, -1, 10);
     fFitFunc->SetParLimits(3, 0, 1);
 
     // perform fit
