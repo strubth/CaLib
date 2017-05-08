@@ -276,7 +276,7 @@ void TCCalibQuadEnergy::Fit(Int_t elem)
     fFitHisto3->Draw("hist");
 
     // check for sufficient statistics
-    if (fFitHisto->GetEntries())
+    if (fFitHisto->GetEntries() && !IsIgnored(elem))
     {
         // delete old functions
         if (fFitFunc) delete fFitFunc;
@@ -543,7 +543,7 @@ void TCCalibQuadEnergy::Calculate(Int_t elem)
     Bool_t no_corr = kFALSE;
 
     // check if fit was performed
-    if (fFitHisto->GetEntries())
+    if (fFitHisto->GetEntries() && !IsIgnored(elem))
     {
         // check if pi0 line position was modified by hand
         if (fLinePi0->GetPos() != fPi0Pos) fPi0Pos = fLinePi0->GetPos();
