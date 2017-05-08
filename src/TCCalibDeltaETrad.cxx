@@ -225,10 +225,18 @@ void TCCalibDeltaETrad::FitSlice(TH2* h)
     fFitHisto = (TH1D*) h->ProjectionY(tmp, firstBin, lastBin, "e");
 
     // look for peaks
-    TSpectrum s;
-    s.Search(fFitHisto, 10, "goff nobackground", 0.05);
-    fPionData = TMath::MinElement(s.GetNPeaks(), s.GetPositionX());
-    fProtonData = TMath::MaxElement(s.GetNPeaks(), s.GetPositionX());
+    if (this->InheritsFrom("TCCalibPizzaEnergyTrad") && h != fMCHisto)
+    {
+        fPionData = fPionMC;
+        fProtonData = fProtonMC;
+    }
+    else
+    {
+        TSpectrum s;
+        s.Search(fFitHisto, 10, "goff nobackground", 0.05);
+        fPionData = TMath::MinElement(s.GetNPeaks(), s.GetPositionX());
+        fProtonData = TMath::MaxElement(s.GetNPeaks(), s.GetPositionX());
+    }
 
     // create fitting function
     if (fFitFunc) delete fFitFunc;
@@ -259,14 +267,17 @@ void TCCalibDeltaETrad::FitSlice(TH2* h)
         if (!fFitHisto->Fit(fFitFunc, "RB0Q")) break;
 
     // reset range for second fit
-    Double_t start;
-    if (h == fMCHisto) start = 0.05;
-    else start = fFitFunc->GetParameter(3) - 2.5*fFitFunc->GetParameter(4);
-    fFitFunc->SetRange(start, fFitFunc->GetParameter(6) + 4*fFitFunc->GetParameter(7));
+    if (h != fMCHisto)
+    {
+        Double_t start;
+        if (h == fMCHisto) start = 0.05;
+        else start = fFitFunc->GetParameter(3) - 2.5*fFitFunc->GetParameter(4);
+        fFitFunc->SetRange(start, fFitFunc->GetParameter(6) + 4*fFitFunc->GetParameter(7));
 
-    // second fit
-    for (Int_t i = 0; i < 10; i++)
-        if (!fFitHisto->Fit(fFitFunc, "RB0Q")) break;
+        // second fit
+        for (Int_t i = 0; i < 10; i++)
+            if (!fFitHisto->Fit(fFitFunc, "RB0Q")) break;
+    }
 
     // get positions
     fPionData = fFitFunc->GetParameter(3);
