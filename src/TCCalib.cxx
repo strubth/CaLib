@@ -95,14 +95,17 @@ void TCCalib::Start(const Char_t* calibration, Int_t nSet, Int_t* set)
         // parse the string
         fNIgnore = TCUtils::ReadCommaSepList(elem_ig, fIgnore);
 
+        // sort for faster look-up
+        std::sort(fIgnore, fIgnore+fNIgnore);
+
         // output parsed result
-        strcpy(tmp, "");
+        TString tmp2;
         for (Int_t i = 0; i < fNIgnore; i++)
         {
-            strcat(tmp, TString::Format("%d", fIgnore[i]).Data());
-            if (i != fNIgnore-1) strcat(tmp, ", ");
+            tmp2 += TString::Format("%d", fIgnore[i]);
+            if (i != fNIgnore-1) tmp2 += ", ";
         }
-        Info("Start", "Ignoring %d element(s): %s", fNIgnore, tmp);
+        Info("Start", "Ignoring %d element(s): %s", fNIgnore, tmp2.Data());
     }
 
     // create timer
@@ -381,10 +384,8 @@ Bool_t TCCalib::IsIgnored(Int_t elem)
 {
     // Return kTRUE if the element 'elem' is found in the list of ignored elements.
 
-    // loop over ignored element list
-    for (Int_t i = 0; i < fNIgnore; i++)
-        if (fIgnore[i] == elem) return kTRUE;
-
-    return kFALSE;
+    return std::binary_search(fIgnore,
+                              fIgnore + fNIgnore,
+                              elem);
 }
 
