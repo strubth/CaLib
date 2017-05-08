@@ -187,6 +187,13 @@ void TCCalibCBTimeWalk::Fit(Int_t elem)
         sprintf(tmp, "ProjTime_%d_%d", elem, i);
         TH1* proj = (TH1D*) ((TH2*) fMainHisto)->ProjectionY(tmp, i, i, "e");
 
+        // skip empty projections
+        if (proj->GetEntries() == 0)
+        {
+            delete proj;
+            continue;
+        }
+
         // first loop (after fit)
         if (added == 0)
         {
