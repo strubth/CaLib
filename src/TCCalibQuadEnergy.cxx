@@ -471,17 +471,21 @@ void TCCalibQuadEnergy::CalculateNewPar(Double_t& par0, Double_t& par1,
     Double_t par0new = (eta_im_ratio - mean_E_ratio*pion_im_ratio) / (1. - mean_E_ratio);
     Double_t par1new = (pion_im_ratio - par0new) / e0pi0;
 
-    // calculate product correction factor
-    Double_t f0 = par0new / par0;
-    Double_t f1 = par1new / par1;
+    // check for convergence factor and non-zero old parameters
+    if (conv_factor != 1.0 && par0 != 0 && par1 != 0)
+    {
+        // calculate product correction factor
+        Double_t f0 = par0new / par0;
+        Double_t f1 = par1new / par1;
 
-    // calculate update correction factor
-    Double_t b0 = f0 - 1;
-    Double_t b1 = f1 - 1;
+        // calculate update correction factor
+        Double_t b0 = f0 - 1;
+        Double_t b1 = f1 - 1;
 
-    // calculate new parameters including convergence factor
-    par0new = par0 + par0*b0*conv_factor;
-    par1new = par1 + par1*b1*conv_factor;
+        // calculate new parameters including convergence factor
+        par0new = par0 + par0*b0*conv_factor;
+        par1new = par1 + par1*b1*conv_factor;
+    }
 
     // return variables
     par0 = par0new;
@@ -605,6 +609,7 @@ void TCCalibQuadEnergy::Calculate(Int_t elem)
         // check values
         if (TMath::IsNaN(fPar0New[elem]) || TMath::IsNaN(fPar1New[elem]))
         {
+            Warning("Calculate", "One newly calculated parameter is NaN!");
             fPar0New[elem] = fPar0Old[elem];
             fPar1New[elem] = fPar1Old[elem];
             no_corr = kTRUE;
