@@ -399,7 +399,8 @@ void TCCalibQuadEnergy::CalculateNewPar(Double_t& par0, Double_t& par1,
                                         Double_t pi0Pos, Double_t pi0_mean_e,
                                         Double_t etaPos, Double_t eta_mean_e,
                                         Double_t pi0_factor /*= 1.*/,
-                                        Double_t eta_factor /*= 1.*/)
+                                        Double_t eta_factor /*= 1.*/,
+                                        Double_t conv_factor /*= 1.*/)
 {
     // Calculates new parameters from old ones and returns them via the first
     // two arguments.
@@ -470,6 +471,18 @@ void TCCalibQuadEnergy::CalculateNewPar(Double_t& par0, Double_t& par1,
     Double_t par0new = (eta_im_ratio - mean_E_ratio*pion_im_ratio) / (1. - mean_E_ratio);
     Double_t par1new = (pion_im_ratio - par0new) / e0pi0;
 
+    // calculate product correction factor
+    Double_t f0 = par0new / par0;
+    Double_t f1 = par1new / par1;
+
+    // calculate update correction factor
+    Double_t b0 = f0 - 1;
+    Double_t b1 = f1 - 1;
+
+    // calculate new parameters including convergence factor
+    par0new = par0 + par0*b0*conv_factor;
+    par1new = par1 + par1*b1*conv_factor;
+
     // return variables
     par0 = par0new;
     par1 = par1new;
@@ -527,7 +540,7 @@ void TCCalibQuadEnergy::ReCalculateAll()
         Double_t eta_factor = (eta_aver * fNelem - fEtaPosHisto->GetBinContent(i+1)) / (fNelem - 1) / TCConfig::kEtaMass;
 
         // re-calculate element
-        CalculateNewPar(par0, par1, pi0pos, pi0mean_e, etapos, etamean_e, pi0_factor, eta_factor);
+        CalculateNewPar(par0, par1, pi0pos, pi0mean_e, etapos, etamean_e, pi0_factor, eta_factor, fConvergenceFactor);
 
         // set result
         fPar0New[i] = par0;
@@ -577,12 +590,12 @@ void TCCalibQuadEnergy::Calculate(Int_t elem)
         if (this->InheritsFrom("TCCalibCBQuadEnergy"))
         {
             // standard calculation for an IM mass from two CB photons (first iteration)
-            CalculateNewPar(par0, par1, fPi0Pos, fPi0MeanE, fEtaPos, fEtaMeanE, fPi0Pos/TCConfig::kPi0Mass, fEtaPos/TCConfig::kEtaMass);
+            CalculateNewPar(par0, par1, fPi0Pos, fPi0MeanE, fEtaPos, fEtaMeanE, fPi0Pos/TCConfig::kPi0Mass, fEtaPos/TCConfig::kEtaMass, fConvergenceFactor);
         }
         if (this->InheritsFrom("TCCalibTAPSQuadEnergy"))
         {
             // standard calculation for an IM mass from one CB photon and one TAPS photon (CB already calibrated)
-            CalculateNewPar(par0, par1, fPi0Pos, fPi0MeanE, fEtaPos, fEtaMeanE);
+            CalculateNewPar(par0, par1, fPi0Pos, fPi0MeanE, fEtaPos, fEtaMeanE, 1, 1, fConvergenceFactor);
         }
 
         // set result

@@ -70,7 +70,8 @@ public:
                                 Double_t pi0Pos, Double_t pi0_mean_e,
                                 Double_t etaPos, Double_t eta_mean_e,
                                 Double_t pi0_factor = 1.,
-                                Double_t eta_factor = 1.);
+                                Double_t eta_factor = 1.,
+                                Double_t conv_factor = 1.);
 
     virtual void WriteValues();
     virtual void PrintValues();
