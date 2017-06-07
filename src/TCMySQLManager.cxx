@@ -489,21 +489,20 @@ Bool_t TCMySQLManager::SearchTable(const Char_t* data, Char_t* outTableName)
 }
 
 //______________________________________________________________________________
-Bool_t TCMySQLManager::SearchRunEntry(Int_t run, const Char_t* name, Char_t* outInfo)
+Bool_t TCMySQLManager::SearchRunEntry(Int_t run, const Char_t* name, TString& outInfo)
 {
     // Search the information 'name' for the run 'run' and write it to 'outInfo'.
     // Return kTRUE when the information was found, otherwise kFALSE.
 
-    Char_t query[256];
+    TString query;
 
     // create the query
-    sprintf(query,
-            "SELECT %s FROM %s "
-            "WHERE run = %d",
-            name, TCConfig::kCalibMainTableName, run);
+    query.Form("SELECT %s FROM %s "
+               "WHERE run = %d",
+               name, TCConfig::kCalibMainTableName, run);
 
     // read from database
-    TSQLResult* res = SendQuery(query);
+    TSQLResult* res = SendQuery(query.Data());
 
     // check result
     if (!res)
@@ -527,8 +526,8 @@ Bool_t TCMySQLManager::SearchRunEntry(Int_t run, const Char_t* name, Char_t* out
 
     // write the information
     const Char_t* field = row->GetField(0);
-    if (!field) strcpy(outInfo, "");
-    else strcpy(outInfo, field);
+    if (!field) outInfo = "";
+    outInfo = field;
 
     // clean-up
     delete row;
@@ -545,7 +544,7 @@ Bool_t TCMySQLManager::SearchSetEntry(const Char_t* data, const Char_t* calibrat
     // the calibration data 'data' for the set number 'set' and write it to 'outInfo'.
     // Return kTRUE when the information was found, otherwise kFALSE.
 
-    Char_t query[256];
+    TString query;
     Char_t table[256];
 
     // get the data table
@@ -557,14 +556,13 @@ Bool_t TCMySQLManager::SearchSetEntry(const Char_t* data, const Char_t* calibrat
     }
 
     // create the query
-    sprintf(query,
-            "SELECT %s FROM %s WHERE "
-            "calibration = '%s' "
-            "ORDER BY first_run ASC LIMIT 1 OFFSET %d",
-            name, table, calibration, set);
+    query.Form("SELECT %s FROM %s WHERE "
+               "calibration = '%s' "
+               "ORDER BY first_run ASC LIMIT 1 OFFSET %d",
+               name, table, calibration, set);
 
     // read from database
-    TSQLResult* res = SendQuery(query);
+    TSQLResult* res = SendQuery(query.Data());
 
     // check result
     if (!res)
@@ -603,7 +601,7 @@ Bool_t TCMySQLManager::ChangeRunEntries(Int_t first_run, Int_t last_run,
 {
     // Change the run entry 'name' for the runs 'first_run' to 'last_run' to 'value'.
 
-    Char_t query[256];
+    TString query;
 
     // check if first run is smaller than last run
     if (first_run > last_run)
@@ -613,14 +611,13 @@ Bool_t TCMySQLManager::ChangeRunEntries(Int_t first_run, Int_t last_run,
     }
 
     // create the query
-    sprintf(query,
-            "UPDATE %s SET %s = '%s' "
-            "WHERE run >= %d AND"
-            "      run <= %d",
-            TCConfig::kCalibMainTableName, name, value, first_run, last_run);
+    query.Form("UPDATE %s SET %s = '%s' "
+               "WHERE run >= %d AND"
+               "      run <= %d",
+               TCConfig::kCalibMainTableName, name, value, first_run, last_run);
 
     // read from database
-    Bool_t res = SendExec(query);
+    Bool_t res = SendExec(query.Data());
 
     // check result
     if (!res)
@@ -640,7 +637,7 @@ Bool_t TCMySQLManager::ChangeSetEntry(const Char_t* data, const Char_t* calibrat
     // Change the information 'name' of the 'set'-th set of the calibration 'calibration'
     // for the calibration data 'data' to 'value'.
 
-    Char_t query[256];
+    TString query;
     Char_t table[256];
 
     // get the data table
@@ -654,14 +651,13 @@ Bool_t TCMySQLManager::ChangeSetEntry(const Char_t* data, const Char_t* calibrat
     Int_t first_run = GetFirstRunOfSet(data, calibration, set);
 
     // create the query
-    sprintf(query,
-            "UPDATE %s SET %s = '%s' "
-            "WHERE calibration = '%s' AND "
-            "first_run = %d",
-            table, name, value, calibration, first_run);
+    query.Form("UPDATE %s SET %s = '%s' "
+               "WHERE calibration = '%s' AND "
+               "first_run = %d",
+               table, name, value, calibration, first_run);
 
     // read from database
-    Bool_t res = SendExec(query);
+    Bool_t res = SendExec(query.Data());
 
     // check result
     if (!res)
@@ -680,7 +676,7 @@ Int_t TCMySQLManager::GetNsets(const Char_t* data, const Char_t* calibration)
     // Get the number of runsets for the calibration identifier 'calibration'
     // and the calibration data 'data'.
 
-    Char_t query[256];
+    TString query;
     Char_t table[256];
 
     // get the data table
@@ -691,14 +687,13 @@ Int_t TCMySQLManager::GetNsets(const Char_t* data, const Char_t* calibration)
     }
 
     // create the query
-    sprintf(query,
-            "SELECT first_run FROM %s WHERE "
-            "calibration = '%s' "
-            "ORDER BY first_run ASC",
-            table, calibration);
+    query.Form("SELECT first_run FROM %s WHERE "
+               "calibration = '%s' "
+               "ORDER BY first_run ASC",
+               table, calibration);
 
     // read from database
-    TSQLResult* res = SendQuery(query);
+    TSQLResult* res = SendQuery(query.Data());
 
     // check result
     if (!res)
@@ -859,7 +854,7 @@ Int_t* TCMySQLManager::GetRunsOfSet(const Char_t* data, const Char_t* calibratio
     // If 'outNruns' is not zero the number of runs will be written to this variable.
     // NOTE: the run array must be destroyed by the caller.
 
-    Char_t query[256];
+    TString query;
 
     // get first and last run
     Int_t first_run = GetFirstRunOfSet(data, calibration, set);
@@ -877,15 +872,14 @@ Int_t* TCMySQLManager::GetRunsOfSet(const Char_t* data, const Char_t* calibratio
     //
 
     // create the query
-    sprintf(query,
-            "SELECT run FROM %s "
-            "WHERE run >= %d "
-            "AND run <= %d "
-            "ORDER by run,time",
-            TCConfig::kCalibMainTableName, first_run, last_run);
+    query.Form("SELECT run FROM %s "
+               "WHERE run >= %d "
+               "AND run <= %d "
+               "ORDER by run,time",
+               TCConfig::kCalibMainTableName, first_run, last_run);
 
     // read from database
-    TSQLResult* res = SendQuery(query);
+    TSQLResult* res = SendQuery(query.Data());
 
     // create list for run numbers
     TList run_numbers;
@@ -937,7 +931,7 @@ Int_t TCMySQLManager::GetSetForRun(const Char_t* data, const Char_t* calibration
     if (!nSet) return -1;
 
     // check if run exists
-    Char_t tmp[256];
+    TString tmp;
     if (!SearchRunEntry(run, "run", tmp))
     {
         if (!fSilence) Error("GetSetForRun", "Run has no valid run number!");
@@ -990,7 +984,7 @@ Bool_t TCMySQLManager::ReadParameters(const Char_t* data, const Char_t* calibrat
     // for the calibration identifier 'calibration' from the database to the value array 'par'.
     // Return kFALSE if an error occurred, otherwise kTRUE.
 
-    Char_t query[256];
+    TString query;
     Char_t table[256];
 
     // get the data table
@@ -1012,14 +1006,13 @@ Bool_t TCMySQLManager::ReadParameters(const Char_t* data, const Char_t* calibrat
     }
 
     // create the query
-    sprintf(query,
-            "SELECT * FROM %s WHERE "
-            "calibration = '%s' AND "
-            "first_run = %d",
-            table, calibration, first_run);
+    query.Form("SELECT * FROM %s WHERE "
+               "calibration = '%s' AND "
+               "first_run = %d",
+               table, calibration, first_run);
 
     // read from database
-    TSQLResult* res = SendQuery(query);
+    TSQLResult* res = SendQuery(query.Data());
 
     // check result
     if (!res)
@@ -1576,7 +1569,7 @@ Int_t TCMySQLManager::GetRunNScR(const Int_t run)
    // the read number of scaler read on success, or -2;
 
    // create string
-   Char_t tmp[16];
+   TString tmp;
 
    // get number of scaler reads
    if (!SearchRunEntry(run, "scr_n", tmp))
@@ -1587,7 +1580,7 @@ Int_t TCMySQLManager::GetRunNScR(const Int_t run)
    else
    {
        //
-       return atoi(tmp);
+       return atoi(tmp.Data());
    }
 }
 
@@ -1695,7 +1688,7 @@ Bool_t TCMySQLManager::ChangeCalibrationName(const Char_t* calibration, const Ch
     // Change the calibration identifer 'calibration' in all calibration sets
     // to 'newCalibration'.
 
-    Char_t query[256];
+    TString query;
 
     // check if calibration was not found
     if (!ContainsCalibration(calibration))
@@ -1712,13 +1705,12 @@ Bool_t TCMySQLManager::ChangeCalibrationName(const Char_t* calibration, const Ch
     while ((d = (TCCalibData*)next()))
     {
         // create the query
-        sprintf(query,
-                "UPDATE %s SET calibration = '%s' "
-                "WHERE calibration = '%s'",
-                d->GetTableName(), newCalibration, calibration);
+        query.Form("UPDATE %s SET calibration = '%s' "
+                   "WHERE calibration = '%s'",
+                   d->GetTableName(), newCalibration, calibration);
 
         // read from database
-        Bool_t res = SendExec(query);
+        Bool_t res = SendExec(query.Data());
 
         // check result
         if (!res)
@@ -1746,7 +1738,7 @@ Bool_t TCMySQLManager::ChangeCalibrationDescription(const Char_t* calibration, c
     // Change the calibration description of the 'calibration' in all calibration sets
     // to 'newDesc'.
 
-    Char_t query[256];
+    TString query;
 
     // check if calibration was not found
     if (!ContainsCalibration(calibration))
@@ -1763,13 +1755,12 @@ Bool_t TCMySQLManager::ChangeCalibrationDescription(const Char_t* calibration, c
     while ((d = (TCCalibData*)next()))
     {
         // create the query
-        sprintf(query,
-                "UPDATE %s SET description = '%s' "
-                "WHERE calibration = '%s'",
-                d->GetTableName(), newDesc, calibration);
+        query.Form("UPDATE %s SET description = '%s' "
+                   "WHERE calibration = '%s'",
+                   d->GetTableName(), newDesc, calibration);
 
         // read from database
-        Bool_t res = SendExec(query);
+        Bool_t res = SendExec(query.Data());
 
         // check result
         if (!res)
@@ -1799,8 +1790,8 @@ Bool_t TCMySQLManager::ChangeCalibrationRunRange(const Char_t* calibration, cons
     // and to end at 'lastRun'. The runs must be present in the run database.
     // If 'firstRun'/'lastRun' is zero, the current start/stop run are kept.
 
-    Char_t query[256];
-    Char_t tmp[256];
+    TString query;
+    TString tmp;
 
     // check if calibration was not found
     if (!ContainsCalibration(calibration))
@@ -1857,9 +1848,9 @@ Bool_t TCMySQLManager::ChangeCalibrationRunRange(const Char_t* calibration, cons
             Int_t oldFirstRun = GetFirstRunOfSet(d->GetName(), calibration, 0);
 
             // execute the query
-            sprintf(query, "UPDATE %s SET first_run = %d WHERE calibration = '%s' and first_run = %d",
-                           d->GetTableName(), firstRun, calibration, oldFirstRun);
-            Bool_t res = SendExec(query);
+            query.Form("UPDATE %s SET first_run = %d WHERE calibration = '%s' and first_run = %d",
+                       d->GetTableName(), firstRun, calibration, oldFirstRun);
+            Bool_t res = SendExec(query.Data());
 
             // check result
             if (!res)
@@ -1880,9 +1871,9 @@ Bool_t TCMySQLManager::ChangeCalibrationRunRange(const Char_t* calibration, cons
             Int_t oldLastRun = GetLastRunOfSet(d->GetName(), calibration, GetNsets(d->GetName(), calibration)-1);
 
             // execute the query
-            sprintf(query, "UPDATE %s SET last_run = %d WHERE calibration = '%s' and last_run = %d",
-                           d->GetTableName(), lastRun, calibration, oldLastRun);
-            Bool_t res = SendExec(query);
+            query.Form("UPDATE %s SET last_run = %d WHERE calibration = '%s' and last_run = %d",
+                       d->GetTableName(), lastRun, calibration, oldLastRun);
+            Bool_t res = SendExec(query.Data());
 
             // check result
             if (!res)
@@ -1910,7 +1901,7 @@ Bool_t TCMySQLManager::RemoveCalibration(const Char_t* calibration, const Char_t
 {
     // Remove the calibration data 'data' of the calibration 'calibration'.
 
-    Char_t query[256];
+    TString query;
 
     // check if calibration was not found
     if (!ContainsCalibration(calibration))
@@ -1921,13 +1912,12 @@ Bool_t TCMySQLManager::RemoveCalibration(const Char_t* calibration, const Char_t
     }
 
     // create the query
-    sprintf(query,
-            "DELETE from %s "
-            "WHERE calibration = '%s'",
-            ((TCCalibData*) fData->FindObject(data))->GetTableName(), calibration);
+    query.Form("DELETE from %s "
+               "WHERE calibration = '%s'",
+               ((TCCalibData*) fData->FindObject(data))->GetTableName(), calibration);
 
     // read from database
-    Bool_t res = SendExec(query);
+    Bool_t res = SendExec(query.Data());
 
     // check result
     if (!res)
@@ -2243,11 +2233,11 @@ TList* TCMySQLManager::SearchDistinctEntries(const Char_t* data, const Char_t* t
     // If nothing is found 0 is returned.
     // NOTE: The list must be destroyed by the caller.
 
-    Char_t query[256];
+    TString query;
 
     // get all entries
-    sprintf(query, "SELECT DISTINCT %s from %s", data, table);
-    TSQLResult* res = SendQuery(query);
+    query.Form("SELECT DISTINCT %s from %s", data, table);
+    TSQLResult* res = SendQuery(query.Data());
 
     // create list for rows
     TList rows;
@@ -2325,7 +2315,7 @@ Bool_t TCMySQLManager::AddDataSet(const Char_t* data, const Char_t* calibration,
     // Check run numbers if 'skipChecks' is kFALSE (default) and abort on errors.
     // Return kFALSE when an error occurred, otherwise kTRUE.
 
-    Char_t table[256];
+    TString table;
 
     // do some checks concerning the run numbers
     if (!skipChecks)
@@ -2398,7 +2388,8 @@ Bool_t TCMySQLManager::AddDataSet(const Char_t* data, const Char_t* calibration,
     //
 
     // get the data table
-    if (!SearchTable(data, table))
+    Char_t ctable[256];
+    if (!SearchTable(data, ctable))
     {
         if (!fSilence) Error("AddDataSet", "No data table found!");
         return kFALSE;
@@ -2406,7 +2397,7 @@ Bool_t TCMySQLManager::AddDataSet(const Char_t* data, const Char_t* calibration,
 
     // prepare the insert query
     TString ins_query_1 = TString::Format("INSERT INTO %s (calibration, description, first_run, last_run",
-                                          table);
+                                          ctable);
     TString ins_query_2 = TString::Format(" VALUES ( '%s', '%s', %d, %d",
                                           calibration, desc, first_run, last_run);
 
@@ -2504,7 +2495,7 @@ Bool_t TCMySQLManager::RemoveDataSet(const Char_t* data, const Char_t* calibrati
     // Remove the set 'set' from the calibration 'calibration' of the calibration data
     // 'data'.
 
-    Char_t query[256];
+    TString query;
     Char_t table[256];
 
     // get the data table
@@ -2526,14 +2517,13 @@ Bool_t TCMySQLManager::RemoveDataSet(const Char_t* data, const Char_t* calibrati
     }
 
     // create the query
-    sprintf(query,
-            "DELETE FROM %s WHERE "
-            "calibration = '%s' AND "
-            "first_run = %d",
-            table, calibration, first_run);
+    query.Form("DELETE FROM %s WHERE "
+               "calibration = '%s' AND "
+               "first_run = %d",
+               table, calibration, first_run);
 
     // read from database
-    Bool_t res = SendExec(query);
+    Bool_t res = SendExec(query.Data());
 
     // check result
     if (!res)
@@ -2583,8 +2573,8 @@ Bool_t TCMySQLManager::SplitDataSet(const Char_t* data, const Char_t* calibratio
     // 'calibration' into two sets. 'lastRunFirstSet' will be the last run of the first
     // set. The first run of the second set will be the next found run in the database.
 
-    Char_t query[256];
-    Char_t tmp[256];
+    TString query;
+    TString tmp;
 
     // check if splitting run exists
     if (!SearchRunEntry(lastRunFirstSet, "run", tmp))
@@ -2607,14 +2597,13 @@ Bool_t TCMySQLManager::SplitDataSet(const Char_t* data, const Char_t* calibratio
     //
 
     // create the query
-    sprintf(query,
-            "SELECT run FROM %s "
-            "WHERE run > %d "
-            "ORDER by run LIMIT 1",
-            TCConfig::kCalibMainTableName, lastRunFirstSet);
+    query.Form("SELECT run FROM %s "
+               "WHERE run > %d "
+               "ORDER by run LIMIT 1",
+               TCConfig::kCalibMainTableName, lastRunFirstSet);
 
     // read from database
-    TSQLResult* res = SendQuery(query);
+    TSQLResult* res = SendQuery(query.Data());
     if (!res)
     {
         if (!fSilence) Error("SplitDataSet", "Cannot find first run of second set!");
@@ -2678,8 +2667,8 @@ Bool_t TCMySQLManager::SplitDataSet(const Char_t* data, const Char_t* calibratio
     //
 
     // change the last run of the first set
-    sprintf(tmp, "%d", lastRunFirstSet);
-    if (!ChangeSetEntry(data, calibration, set, "last_run", tmp))
+    tmp.Form("%d", lastRunFirstSet);
+    if (!ChangeSetEntry(data, calibration, set, "last_run", tmp.Data()))
     {
         if (!fSilence) Error("SplitDataSet", "Cannot change last run of set %d in '%s' of calibration '%s'",
                           set, ((TCCalibData*) fData->FindObject(data))->GetTitle(), calibration);
@@ -3020,7 +3009,7 @@ Bool_t TCMySQLManager::ReadAllBadScR(Int_t run, TCBadScRElement**& badscr_data, 
     badscr_data = 0;
 
     // init query return string
-    Char_t tmp[1024*64];
+    TString tmp;
 
     // get run entry
     if (!SearchRunEntry(run, "scr_bad", tmp)) return kFALSE;
@@ -3029,7 +3018,7 @@ Bool_t TCMySQLManager::ReadAllBadScR(Int_t run, TCBadScRElement**& badscr_data, 
     Char_t** data = 0;
 
     // get token for first data (e.g., "NaI:1,2,5-9\0")
-    Char_t* datatok = strtok(tmp, ";");
+    Char_t* datatok = strtok((Char_t*)tmp.Data(), ";");
 
     // loop over data tokens
     while (datatok)
@@ -3144,29 +3133,27 @@ Int_t TCMySQLManager::DumpRuns(TCContainer* container, Int_t first_run, Int_t la
     // If first_run and last_run is zero all available runs will be dumped.
     // Return the number of dumped runs.
 
-    Char_t query[256];
-    Char_t tmp[65536];
+    TString query;
+    TString tmp;
 
     // create the query
     if (!first_run && !last_run)
     {
-        sprintf(query,
-                "SELECT run FROM %s "
-                "ORDER by run",
-                TCConfig::kCalibMainTableName);
+        query.Form("SELECT run FROM %s "
+                   "ORDER by run",
+                   TCConfig::kCalibMainTableName);
     }
     else
     {
-        sprintf(query,
-                "SELECT run FROM %s "
-                "WHERE run >= %d "
-                "AND run <= %d "
-                "ORDER by run",
-                TCConfig::kCalibMainTableName, first_run, last_run);
+        query.Form("SELECT run FROM %s "
+                   "WHERE run >= %d "
+                   "AND run <= %d "
+                   "ORDER by run",
+                   TCConfig::kCalibMainTableName, first_run, last_run);
     }
 
     // read from database
-    TSQLResult* res = SendQuery(query);
+    TSQLResult* res = SendQuery(query.Data());
 
     // create list for run numbers
     TList run_numbers;
@@ -3197,48 +3184,48 @@ Int_t TCMySQLManager::DumpRuns(TCContainer* container, Int_t first_run, Int_t la
         TCRun* run = container->AddRun(run_number);
 
         // set path
-        if (SearchRunEntry(run_number, "path", tmp)) run->SetPath(tmp);
+        if (SearchRunEntry(run_number, "path", tmp)) run->SetPath(tmp.Data());
 
         // set filename
-        if (SearchRunEntry(run_number, "filename", tmp)) run->SetFileName(tmp);
+        if (SearchRunEntry(run_number, "filename", tmp)) run->SetFileName(tmp.Data());
 
         // set time
-        if (SearchRunEntry(run_number, "time", tmp)) run->SetTime(tmp);
+        if (SearchRunEntry(run_number, "time", tmp)) run->SetTime(tmp.Data());
 
         // set description
-        if (SearchRunEntry(run_number, "description", tmp)) run->SetDescription(tmp);
+        if (SearchRunEntry(run_number, "description", tmp)) run->SetDescription(tmp.Data());
 
         // set run_note
-        if (SearchRunEntry(run_number, "run_note", tmp)) run->SetRunNote(tmp);
+        if (SearchRunEntry(run_number, "run_note", tmp)) run->SetRunNote(tmp.Data());
 
         // set size
         if (SearchRunEntry(run_number, "size", tmp))
         {
             Long64_t size;
-            sscanf(tmp, "%lld", &size);
+            sscanf(tmp.Data(), "%lld", &size);
             run->SetSize(size);
         }
 
         // set scaler reads
-        if (SearchRunEntry(run_number, "scr_n", tmp)) run->SetNScalerReads(atoi(tmp));
+        if (SearchRunEntry(run_number, "scr_n", tmp)) run->SetNScalerReads(atoi(tmp.Data()));
 
         // set bad scaler reads
-        if (SearchRunEntry(run_number, "scr_bad", tmp)) run->SetBadScalerReads(tmp);
+        if (SearchRunEntry(run_number, "scr_bad", tmp)) run->SetBadScalerReads(tmp.Data());
 
         // set target
-        if (SearchRunEntry(run_number, "target", tmp)) run->SetTarget(tmp);
+        if (SearchRunEntry(run_number, "target", tmp)) run->SetTarget(tmp.Data());
 
         // set target polarization
-        if (SearchRunEntry(run_number, "target_pol", tmp)) run->SetTargetPol(tmp);
+        if (SearchRunEntry(run_number, "target_pol", tmp)) run->SetTargetPol(tmp.Data());
 
         // set target polarization degree
-        if (SearchRunEntry(run_number, "target_pol_deg", tmp)) run->SetTargetPolDeg(atof(tmp));
+        if (SearchRunEntry(run_number, "target_pol_deg", tmp)) run->SetTargetPolDeg(atof(tmp.Data()));
 
         // set beam polarization
-        if (SearchRunEntry(run_number, "beam_pol", tmp)) run->SetBeamPol(tmp);
+        if (SearchRunEntry(run_number, "beam_pol", tmp)) run->SetBeamPol(tmp.Data());
 
         // set beam polarization degree
-        if (SearchRunEntry(run_number, "beam_pol_deg", tmp)) run->SetBeamPolDeg(atof(tmp));
+        if (SearchRunEntry(run_number, "beam_pol_deg", tmp)) run->SetBeamPolDeg(atof(tmp.Data()));
 
         // user information
         if (!fSilence) Info("DumpRuns", "Dumped run %d", run_number);

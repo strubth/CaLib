@@ -48,7 +48,7 @@ private:
     Bool_t SendExec(const Char_t* sql);
 
     Bool_t SearchTable(const Char_t* data, Char_t* outTableName);
-    Bool_t SearchRunEntry(Int_t run, const Char_t* name, Char_t* outInfo);
+    Bool_t SearchRunEntry(Int_t run, const Char_t* name, TString& outInfo);
     Bool_t SearchSetEntry(const Char_t* data, const Char_t* calibration, Int_t set,
                           const Char_t* name, Char_t* outInfo);
     TList* SearchDistinctEntries(const Char_t* data, const Char_t* table);
