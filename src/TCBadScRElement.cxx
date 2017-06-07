@@ -24,8 +24,8 @@ TCBadScRElement::TCBadScRElement(const TCBadScRElement &elem)
     // Copy constructor
 
     // copy members
-    strcpy(fCalibData, elem.fCalibData);
-    fRunNumber = elem.GetRunNumber();
+    fCalibData = elem.fCalibData;
+    fRunNumber = elem.fRunNumber;
 }
 
 //______________________________________________________________________________

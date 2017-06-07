@@ -16,13 +16,15 @@
 #ifndef TCBADSCRELEMENT_H
 #define TCBADSCRELEMENT_H
 
+#include "TString.h"
+
 #include "TCBadElement.h"
 
 class TCBadScRElement : public TCBadElement
 {
 
 protected:
-    Char_t fCalibData[256];             // calibration data type
+    TString fCalibData;                 // calibration data type
     Int_t fRunNumber;                   // run number
 
 public:
@@ -43,8 +45,8 @@ public:
 
     Int_t Set(Int_t runno, Int_t nbad, const Int_t* bad, Int_t nscr = -1);
 
-    void SetCalibData(const Char_t* name) { strcpy(fCalibData, name); };
-    const Char_t* GetCalibData() const { return fCalibData; };
+    void SetCalibData(const Char_t* name) { fCalibData = name; };
+    const Char_t* GetCalibData() const { return fCalibData.Data(); };
 
     Int_t GetRunNumber() const { return fRunNumber; };
     Int_t SetRunNumber(Int_t runno) { return fRunNumber = runno; };
