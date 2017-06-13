@@ -145,6 +145,13 @@ void TCCalibRun::ProcessAuto(Bool_t start /*= kTRUE*/, Int_t msecDelay /*= -1*/)
 {
     // Process elements using 'msecDelay' milliseconds delay.
 
+    // check whether already started
+    if (!fIsStarted)
+    {
+        Error("ProcessAuto", "Not yet started!");
+        return;
+    }
+
     // set up timer
     static TTimer fTimer(100);
 
