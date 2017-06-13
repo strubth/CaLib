@@ -131,7 +131,7 @@ void TCCalibEnergy::Fit(Int_t elem)
         // delete old function
         if (fFitFunc) delete fFitFunc;
         sprintf(tmp, "fEnergy_%i", elem);
-        fFitFunc = new TF1(tmp, "gaus(0)+pol3(3)");
+        fFitFunc = new TF1("fIMFit", TCUtils::GaussLowExpTailPol3, 50, 220, 8);
         fFitFunc->SetLineColor(2);
 
         // set peak position
@@ -149,19 +149,22 @@ void TCCalibEnergy::Fit(Int_t elem)
         // configure fitting function
         if (this->InheritsFrom("TCCalibCBEnergy"))
         {
-            fFitFunc->SetRange(fPi0Pos - 50, fPi0Pos + 80);
-            fFitFunc->SetParameters(fFitHisto->GetMaximum(), fPi0Pos, 11, 1, 1, 1, 0.1);
-            fFitFunc->SetParLimits(1, 130, 140);
-            fFitFunc->SetParLimits(2, 7, 18);
+            fFitFunc->SetRange(fPi0Pos - 60, fPi0Pos + 80);
+            fFitFunc->SetParameters(fFitHisto->GetMaximum(), fPi0Pos, 10, 1, 1, 0.1, 0.01, 0.001);
+            fFitFunc->SetParLimits(0, fFitHisto->GetMaximum()*0.1, fFitHisto->GetMaximum()*1.5);
+            fFitFunc->SetParLimits(1, fPi0Pos-10, fPi0Pos+10);
+            fFitFunc->SetParLimits(2, 5, 15);
+            fFitFunc->SetParLimits(3, 0.1, 2);
         }
         else if (this->InheritsFrom("TCCalibTAPSEnergyLG"))
         {
-            fFitFunc->SetRange(60, 200);
-            fFitFunc->SetParameters(fFitHisto->GetMaximum(), fPi0Pos, 10, 1, 1, 1, 0.1);
-            fFitFunc->SetParLimits(0, 1, fFitHisto->GetMaximum()*1.5);
-            fFitFunc->SetParLimits(1, 115, 140);
+            fFitFunc->SetRange(fPi0Pos - 60, fPi0Pos + 80);
+            fFitFunc->SetParameters(fFitHisto->GetMaximum(), fPi0Pos, 10, 1, 1, 0.1, 0.01, 0.001);
+            fFitFunc->SetParLimits(0, fFitHisto->GetMaximum()*0.1, fFitHisto->GetMaximum()*1.5);
+            fFitFunc->SetParLimits(1, fPi0Pos-10, fPi0Pos+10);
             fFitFunc->SetParLimits(2, 5, 15);
-            fFitFunc->FixParameter(6, 0);
+            fFitFunc->SetParLimits(3, 0.1, 2);
+            fFitFunc->FixParameter(7, 0);
         }
 
         // set +/- 3% peak position limits
