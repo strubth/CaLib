@@ -89,7 +89,8 @@ public:
           fOverviewHisto(0),
           fCanvasFit(0), fCanvasResult(0),
           fTimer(0), fTimerRunning(kFALSE),
-          fIsReFit(kFALSE) { }
+          fIsReFit(kFALSE),
+          fNIgnore(0), fIgnore(0) { }
     virtual ~TCCalib();
 
     virtual void WriteValues();
