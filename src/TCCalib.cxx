@@ -25,6 +25,8 @@
 #include "TCUtils.h"
 #include "TCMySQLManager.h"
 #include "TCReadConfig.h"
+#include <algorithm>
+
 
 ClassImp(TCCalib)
 
