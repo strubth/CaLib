@@ -26,13 +26,17 @@
 #pragma link C++ enum ECalibDetector;
 #pragma link C++ enum ERawFileType;
 #pragma link C++ enum ERawFileFormat;
-#pragma link C++ enum EWalkCorrType;
+#if ROOT_VERSION_CODE >= ROOT_VERSION(6,0,0)
+  #pragma link C++ enum EWalkCorrType;
+#endif
 
 // typedefs
 #pragma link C++ typedef CalibDetector_t;
 #pragma link C++ typedef RawFileType_t;
 #pragma link C++ typedef RawFileFormat_t;
-#pragma link C++ typedef WalkCorrType_t;
+#if ROOT_VERSION_CODE >= ROOT_VERSION(6,0,0)
+  #pragma link C++ typedef WalkCorrType_t;
+#endif
 
 // common classes
 #pragma link C++ namespace TCConfig;
