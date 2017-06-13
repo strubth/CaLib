@@ -28,12 +28,13 @@ private:
     TGTextButton* fTB_Write;
     TGTextButton* fTB_Prev;
     TGTextButton* fTB_Next;
+    TGTextButton* fTB_Again;
     TGTextButton* fTB_Skip;
     TGTextButton* fTB_Print;
-    TGTextButton* fTB_Stop;
     TGTextButton* fTB_PrintChanges;
     TGTextButton* fTB_Goto;
     TGTextButton* fTB_DoAll;
+    TGTextButton* fTB_Stop;
     TGTextButton* fTB_Quit;
     TGComboBox* fCBox_Calibration;
     TGComboBox* fCBox_Module;
@@ -50,18 +51,19 @@ public:
     void ResizeFrame(TGFrame* f);
     void Goto();
     void DoNext();
+    void DoAgain();
     void DoSkip();
     void DoPrev();
     void DoAll();
+    void Stop();
     void DoWrite();
+    void DoModulSelection(Int_t);
     void Print();
     void PrintChanges();
-    void Quit();
-    void Stop();
     void StartModule();
+    void Quit();
     void EnableModuleSelection(Int_t);
     void ReadRunsets(Int_t);
-    void DoModulSelection(Int_t);
 };
 
 //______________________________________________________________________________
@@ -182,6 +184,12 @@ ButtonWindow::ButtonWindow()
     fTB_Skip->Connect("Clicked()", "ButtonWindow", this, "DoSkip()");
     nav_man_frame->AddFrame(fTB_Skip, new TGLayoutHints(kLHintsLeft, 0, 20, 10, 0));
 
+    fTB_Again = new TGTextButton(nav_man_frame, "   Again   ");
+    ResizeFrame(fTB_Again);
+    fTB_Again->SetToolTipText("Process current run again", 200);
+    fTB_Again->Connect("Clicked()", "ButtonWindow", this, "DoAgain()");
+    nav_man_frame->AddFrame(fTB_Again, new TGLayoutHints(kLHintsLeft, 0, 0, 10, 0));
+
     fTB_Goto = new TGTextButton(nav_man_frame, "Go to");
     ResizeFrame(fTB_Goto);
     fTB_Goto->SetToolTipText("Go to specified run", 200);
@@ -277,6 +285,15 @@ void ButtonWindow::DoNext()
 
     if (gCurrentModule)
         ((TCCalibRun*)gCurrentModule)->Next();
+}
+
+//______________________________________________________________________________
+void ButtonWindow::DoAgain()
+{
+    // Go to the next element in the current module.
+
+    if (gCurrentModule)
+        ((TCCalibRun*)gCurrentModule)->ReProcess();
 }
 
 //______________________________________________________________________________
