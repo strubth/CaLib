@@ -41,6 +41,7 @@
 // common classes
 #pragma link C++ namespace TCConfig;
 #pragma link C++ namespace TCUtils;
+#pragma link C++ namespace TCFitUtils;
 #pragma link C++ class TCFileManager+;
 #pragma link C++ class TCReadConfig+;
 #pragma link C++ class TCConfigElement+;
