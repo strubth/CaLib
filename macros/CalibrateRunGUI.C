@@ -213,14 +213,12 @@ ButtonWindow::ButtonWindow()
     nav_auto_frame->AddFrame(fNE_Delay, new TGLayoutHints(kLHintsLeft, 0, 5, 10, 0));
 
     fTB_DoAll = new TGTextButton(nav_auto_frame, "Start");
-    fTB_DoAll->SetEnabled(kFALSE);
     ResizeFrame(fTB_DoAll);
     fTB_DoAll->SetToolTipText("Process automatically", 200);
     fTB_DoAll->Connect("Clicked()", "ButtonWindow", this, "DoAll()");
     nav_auto_frame->AddFrame(fTB_DoAll, new TGLayoutHints(kLHintsLeft, 0, 0, 10, 0));
 
     fTB_Stop = new TGTextButton(nav_auto_frame, "Stop");
-    fTB_Stop->SetEnabled(kFALSE);
     ResizeFrame(fTB_Stop);
     fTB_Stop->SetToolTipText("Stop processing", 200);
     fTB_Stop->Connect("Clicked()", "ButtonWindow", this, "Stop()");
@@ -349,10 +347,10 @@ void ButtonWindow::DoAll()
 {
     // Process all elements automatically.
 
-    //Float_t delay = fNE_Delay->GetNumber();
+    Float_t delay = fNE_Delay->GetNumber();
 
-    //if (gCurrentModule)
-    //    ((TCCalibRun*)gCurrentModule)->ProcessAll(1000*delay);
+    if (gCurrentModule)
+        ((TCCalibRun*) gCurrentModule)->ProcessAuto(kTRUE, 1000*delay);
 }
 
 //______________________________________________________________________________
@@ -360,8 +358,8 @@ void ButtonWindow::Stop()
 {
     // Stop automatic processing of the current module.
 
-    //if (gCurrentModule)
-    //    ((TCCalibRun*)gCurrentModule)->StopProcessing();
+    if (gCurrentModule)
+        ((TCCalibRun*) gCurrentModule)->ProcessAuto(kFALSE, 0);
 }
 
 //______________________________________________________________________________
