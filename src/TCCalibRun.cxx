@@ -182,7 +182,7 @@ void TCCalibRun::Previous()
     // check whether already started
     if (!fIsStarted)
     {
-        Error("Process", "Not yet started!");
+        Error("Previous", "Not yet started!");
         return;
     }
 
@@ -195,9 +195,10 @@ void TCCalibRun::Next()
 {
     // Saves calibration values for current run and processes the next run.
 
+    // check whether already started
     if (!fIsStarted)
     {
-        Error("Process", "Not yet started!");
+        Error("Next", "Not yet started!");
         return;
     }
 
@@ -213,6 +214,13 @@ void TCCalibRun::ReProcess()
 {
     // Reprocess the fit of the run with index 'fIndex', but with the
     // 'fIsReProcess' flag set.
+
+    // check whether already started
+    if (!fIsStarted)
+    {
+        Error("ReProcess", "Not yet started!");
+        return;
+    }
 
     // set re-process flag
     fIsReProcess = kTRUE;
@@ -232,9 +240,10 @@ void TCCalibRun::Skip()
 {
     // Processes next run w/o saving the calibration values for the current.
 
+    // check whether already started
     if (!fIsStarted)
     {
-        Error("Process", "Not yet started!");
+        Error("Skip", "Not yet started!");
         return;
     }
 
