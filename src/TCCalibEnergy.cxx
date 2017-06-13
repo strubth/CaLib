@@ -20,6 +20,7 @@
 #include "TCMySQLManager.h"
 #include "TCFileManager.h"
 #include "TCUtils.h"
+#include "TCFitUtils.h"
 #include "TCLine.h"
 
 ClassImp(TCCalibEnergy)
@@ -167,8 +168,7 @@ void TCCalibEnergy::Fit(Int_t elem)
         if (fIsReFit) fFitFunc->SetParLimits(1, (1. - 0.03)*fPi0Pos, (1. + 0.03)*fPi0Pos);
 
         // fit
-        for (Int_t i = 0; i < 10; i++)
-            if (!fFitHisto->Fit(fFitFunc, "RB0Q")) break;
+        TCFitUtils::ReFit(fFitHisto, fFitFunc, "RBQ0", 10);
 
         // final results
         fPi0Pos = fFitFunc->GetParameter(1);
