@@ -1,5 +1,5 @@
 /*************************************************************************
- * Author: Dominik Werthmueller
+ * Author: Dominik Werthmueller, Thomas Strub
  *************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
@@ -25,6 +25,7 @@ namespace TCUtils
     TH1* DeriveHistogram(TH1* inH);
     void ZeroBins(TH1* inH, Double_t th = 0);
     Double_t Pi0Func(Double_t* x, Double_t* par);
+    Double_t GaussLowExpTailPol3(Double_t* x, Double_t* par);
     Double_t GetHistogramMinimum(TH1* h);
     Double_t GetHistogramMinimumPosition(TH1* h);
     void FormatHistogram(TH1* h, const Char_t* ident);

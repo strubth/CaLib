@@ -1,5 +1,5 @@
 /*************************************************************************
- * Author: Dominik Werthmueller
+ * Author: Dominik Werthmueller, Thomas Strub
  *************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
@@ -115,6 +115,25 @@ Double_t TCUtils::Pi0Func(Double_t* x, Double_t* par)
 
     if (x[0] >= par[1]) return out + par[0] * G;                                  // above peak position
     else return out + par[0] * (G + TMath::Exp(eDiff / par[3]) * (1. - G));       // below peak position -> tail
+}
+
+//______________________________________________________________________________
+Double_t TCUtils::GaussLowExpTailPol3(Double_t* x, Double_t* par)
+{
+    // Fitting function having a signal peak of the form of a gauss with a low
+    // value exponential tail and a polynomial background of degree 3.
+
+    // signal gauss with low value exp tail
+    Double_t sig;
+    if (par[1]-x[0] > par[3]*par[2])
+        sig = par[0]*TMath::Exp(par[3]*par[3]/2. + par[3]*(x[0]-par[1])/par[2]);
+    else
+        sig = par[0]*TMath::Gaus(x[0], par[1], par[2]);
+
+    // background pol3
+    Double_t pol = par[4] + par[5]*x[0] + par[6]*x[0]*x[0] + par[7]*x[0]*x[0]*x[0];
+
+    return sig + pol;
 }
 
 //______________________________________________________________________________
