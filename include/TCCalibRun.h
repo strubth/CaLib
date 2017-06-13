@@ -74,6 +74,7 @@ public:
     Bool_t IsStarted() { return fIsStarted; }
 
     // navigation functions
+    virtual void ProcessAuto(Bool_t start = kTRUE, Int_t msecDelay = -1);
     virtual void Process(Int_t index);
     virtual void Previous();
     virtual void Next();

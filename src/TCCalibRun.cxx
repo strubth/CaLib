@@ -15,6 +15,7 @@
 
 #include "KeySymbols.h"
 #include "Buttons.h"
+#include "TTimer.h"
 
 #include "TCCalibRun.h"
 #include "TCMySQLManager.h"
@@ -137,6 +138,35 @@ Bool_t TCCalibRun::Start(const Char_t* calibration)
     Process(0);
 
     return kTRUE;
+}
+
+//______________________________________________________________________________
+void TCCalibRun::ProcessAuto(Bool_t start /*= kTRUE*/, Int_t msecDelay /*= -1*/)
+{
+    // Process elements using 'msecDelay' milliseconds delay.
+
+    // set up timer
+    static TTimer fTimer(100);
+
+    // stop timer
+    fTimer.Stop();
+
+    // check stop signal
+    if (start == kFALSE)
+        return;
+
+    // check range
+    if (fIndex+1 >= fNRuns)
+        return;
+
+    // perform next run
+    Next();
+
+    // re-connect timer
+    fTimer.Connect("Timeout()", "TCCalibRun", this, "ProcessAuto()");
+
+    // start timer
+    fTimer.Start(msecDelay, kFALSE);
 }
 
 //______________________________________________________________________________
