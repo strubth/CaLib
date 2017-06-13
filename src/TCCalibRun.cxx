@@ -209,6 +209,25 @@ void TCCalibRun::Next()
 }
 
 //______________________________________________________________________________
+void TCCalibRun::ReProcess()
+{
+    // Reprocess the fit of the run with index 'fIndex', but with the
+    // 'fIsReProcess' flag set.
+
+    // set re-process flag
+    fIsReProcess = kTRUE;
+
+    // process current run
+    ProcessCurr();
+
+    // update canvas
+    UpdateCanvas();
+
+    // unset re-process flag
+    fIsReProcess = kFALSE;
+}
+
+//______________________________________________________________________________
 void TCCalibRun::Skip()
 {
     // Processes next run w/o saving the calibration values for the current.
