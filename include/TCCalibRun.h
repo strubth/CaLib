@@ -35,7 +35,7 @@ protected:
     Int_t fIndex;                   //! // index of current item performed
 
     static Bool_t fIsStarted;           // is started flag
-
+    Bool_t fIsReProcess;                // re-process flag
 
     //---------------------------- member methods ------------------------------
 
@@ -50,33 +50,37 @@ protected:
     virtual void CleanUpCurr() = 0;
 
     // graphic functions
-    virtual void UpdateCanvas() { };
+    virtual void UpdateCanvas() { }
 
 public:
     TCCalibRun()
         : TNamed(),
           fCalibration(0), fCalibData(0), fIsTrueCalib(kFALSE),
-          fNRuns(0), fRuns(0), fIndex(0) { };
+          fNRuns(0), fRuns(0), fIndex(0),
+          fIsReProcess(kFALSE) { }
     TCCalibRun(const Char_t* name, const Char_t* title, const Char_t* data, Bool_t istruecalib = kFALSE)
         : TNamed(name, title),
           fCalibration(0), fCalibData(new TString(data)), fIsTrueCalib(istruecalib),
-          fNRuns(0), fRuns(0), fIndex(0) { };
+          fNRuns(0), fRuns(0), fIndex(0),
+          fIsReProcess(kFALSE) { }
     virtual ~TCCalibRun();
 
-    void SetIsTrueCalib(Bool_t istruecalib = kTRUE) { fIsTrueCalib = istruecalib; };
-    virtual Bool_t IsTrueCalib() const { return fIsTrueCalib; };
+    void SetIsTrueCalib(Bool_t istruecalib = kTRUE) { fIsTrueCalib = istruecalib; }
+    virtual Bool_t IsTrueCalib() const { return fIsTrueCalib; }
 
     // start functions
     Bool_t Start(Int_t nruns, const Int_t* runs);
     Bool_t Start(const Char_t* calibration);
-    Bool_t IsStarted() { return fIsStarted; };
+    Bool_t IsStarted() { return fIsStarted; }
 
     // navigation functions
+    virtual void ProcessAuto(Bool_t start = kTRUE, Int_t msecDelay = -1);
     virtual void Process(Int_t index);
     virtual void Previous();
     virtual void Next();
+    virtual void ReProcess();
     virtual void Skip();
-    virtual void Finish() { };
+    virtual void Finish() { }
     virtual Bool_t Write() = 0;
 
     // event handler

@@ -15,6 +15,7 @@
 
 #include "KeySymbols.h"
 #include "Buttons.h"
+#include "TTimer.h"
 
 #include "TCCalibRun.h"
 #include "TCMySQLManager.h"
@@ -140,6 +141,42 @@ Bool_t TCCalibRun::Start(const Char_t* calibration)
 }
 
 //______________________________________________________________________________
+void TCCalibRun::ProcessAuto(Bool_t start /*= kTRUE*/, Int_t msecDelay /*= -1*/)
+{
+    // Process elements using 'msecDelay' milliseconds delay.
+
+    // check whether already started
+    if (!fIsStarted)
+    {
+        Error("ProcessAuto", "Not yet started!");
+        return;
+    }
+
+    // set up timer
+    static TTimer fTimer(100);
+
+    // stop timer
+    fTimer.Stop();
+
+    // check stop signal
+    if (start == kFALSE)
+        return;
+
+    // check range
+    if (fIndex+1 >= fNRuns)
+        return;
+
+    // perform next run
+    Next();
+
+    // re-connect timer
+    fTimer.Connect("Timeout()", "TCCalibRun", this, "ProcessAuto()");
+
+    // start timer
+    fTimer.Start(msecDelay, kFALSE);
+}
+
+//______________________________________________________________________________
 void TCCalibRun::Process(Int_t index)
 {
     // Processes run with index 'index'.
@@ -182,7 +219,7 @@ void TCCalibRun::Previous()
     // check whether already started
     if (!fIsStarted)
     {
-        Error("Process", "Not yet started!");
+        Error("Previous", "Not yet started!");
         return;
     }
 
@@ -195,9 +232,10 @@ void TCCalibRun::Next()
 {
     // Saves calibration values for current run and processes the next run.
 
+    // check whether already started
     if (!fIsStarted)
     {
-        Error("Process", "Not yet started!");
+        Error("Next", "Not yet started!");
         return;
     }
 
@@ -209,13 +247,40 @@ void TCCalibRun::Next()
 }
 
 //______________________________________________________________________________
+void TCCalibRun::ReProcess()
+{
+    // Reprocess the fit of the run with index 'fIndex', but with the
+    // 'fIsReProcess' flag set.
+
+    // check whether already started
+    if (!fIsStarted)
+    {
+        Error("ReProcess", "Not yet started!");
+        return;
+    }
+
+    // set re-process flag
+    fIsReProcess = kTRUE;
+
+    // process current run
+    ProcessCurr();
+
+    // update canvas
+    UpdateCanvas();
+
+    // unset re-process flag
+    fIsReProcess = kFALSE;
+}
+
+//______________________________________________________________________________
 void TCCalibRun::Skip()
 {
     // Processes next run w/o saving the calibration values for the current.
 
+    // check whether already started
     if (!fIsStarted)
     {
-        Error("Process", "Not yet started!");
+        Error("Skip", "Not yet started!");
         return;
     }
 

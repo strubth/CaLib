@@ -55,7 +55,7 @@ public:
     TString* GetConfig(TString configKey);
     Int_t GetConfigInt(TString configKey);
     Double_t GetConfigDouble(TString configKey);
-    void GetConfigDoubleDouble(TString configKey, Double_t* out1, Double_t* out2);
+    Bool_t GetConfigDoubleDouble(TString configKey, Double_t* out1, Double_t* out2);
 
     static TCReadConfig* GetReader()
     {

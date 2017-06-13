@@ -28,12 +28,13 @@ private:
     TGTextButton* fTB_Write;
     TGTextButton* fTB_Prev;
     TGTextButton* fTB_Next;
+    TGTextButton* fTB_Again;
     TGTextButton* fTB_Skip;
     TGTextButton* fTB_Print;
-    TGTextButton* fTB_Stop;
     TGTextButton* fTB_PrintChanges;
     TGTextButton* fTB_Goto;
     TGTextButton* fTB_DoAll;
+    TGTextButton* fTB_Stop;
     TGTextButton* fTB_Quit;
     TGComboBox* fCBox_Calibration;
     TGComboBox* fCBox_Module;
@@ -50,18 +51,19 @@ public:
     void ResizeFrame(TGFrame* f);
     void Goto();
     void DoNext();
+    void DoAgain();
     void DoSkip();
     void DoPrev();
     void DoAll();
+    void Stop();
     void DoWrite();
+    void DoModulSelection(Int_t);
     void Print();
     void PrintChanges();
-    void Quit();
-    void Stop();
     void StartModule();
+    void Quit();
     void EnableModuleSelection(Int_t);
     void ReadRunsets(Int_t);
-    void DoModulSelection(Int_t);
 };
 
 //______________________________________________________________________________
@@ -182,6 +184,12 @@ ButtonWindow::ButtonWindow()
     fTB_Skip->Connect("Clicked()", "ButtonWindow", this, "DoSkip()");
     nav_man_frame->AddFrame(fTB_Skip, new TGLayoutHints(kLHintsLeft, 0, 20, 10, 0));
 
+    fTB_Again = new TGTextButton(nav_man_frame, "   Again   ");
+    ResizeFrame(fTB_Again);
+    fTB_Again->SetToolTipText("Process current run again", 200);
+    fTB_Again->Connect("Clicked()", "ButtonWindow", this, "DoAgain()");
+    nav_man_frame->AddFrame(fTB_Again, new TGLayoutHints(kLHintsLeft, 0, 0, 10, 0));
+
     fTB_Goto = new TGTextButton(nav_man_frame, "Go to");
     ResizeFrame(fTB_Goto);
     fTB_Goto->SetToolTipText("Go to specified run", 200);
@@ -205,14 +213,12 @@ ButtonWindow::ButtonWindow()
     nav_auto_frame->AddFrame(fNE_Delay, new TGLayoutHints(kLHintsLeft, 0, 5, 10, 0));
 
     fTB_DoAll = new TGTextButton(nav_auto_frame, "Start");
-    fTB_DoAll->SetEnabled(kFALSE);
     ResizeFrame(fTB_DoAll);
     fTB_DoAll->SetToolTipText("Process automatically", 200);
     fTB_DoAll->Connect("Clicked()", "ButtonWindow", this, "DoAll()");
     nav_auto_frame->AddFrame(fTB_DoAll, new TGLayoutHints(kLHintsLeft, 0, 0, 10, 0));
 
     fTB_Stop = new TGTextButton(nav_auto_frame, "Stop");
-    fTB_Stop->SetEnabled(kFALSE);
     ResizeFrame(fTB_Stop);
     fTB_Stop->SetToolTipText("Stop processing", 200);
     fTB_Stop->Connect("Clicked()", "ButtonWindow", this, "Stop()");
@@ -280,6 +286,15 @@ void ButtonWindow::DoNext()
 }
 
 //______________________________________________________________________________
+void ButtonWindow::DoAgain()
+{
+    // Go to the next element in the current module.
+
+    if (gCurrentModule)
+        ((TCCalibRun*)gCurrentModule)->ReProcess();
+}
+
+//______________________________________________________________________________
 void ButtonWindow::DoSkip()
 {
     // Go to the next element in the current module and ignore current one.
@@ -332,10 +347,10 @@ void ButtonWindow::DoAll()
 {
     // Process all elements automatically.
 
-    //Float_t delay = fNE_Delay->GetNumber();
+    Float_t delay = fNE_Delay->GetNumber();
 
-    //if (gCurrentModule)
-    //    ((TCCalibRun*)gCurrentModule)->ProcessAll(1000*delay);
+    if (gCurrentModule)
+        ((TCCalibRun*) gCurrentModule)->ProcessAuto(kTRUE, 1000*delay);
 }
 
 //______________________________________________________________________________
@@ -343,8 +358,8 @@ void ButtonWindow::Stop()
 {
     // Stop automatic processing of the current module.
 
-    //if (gCurrentModule)
-    //    ((TCCalibRun*)gCurrentModule)->StopProcessing();
+    if (gCurrentModule)
+        ((TCCalibRun*) gCurrentModule)->ProcessAuto(kFALSE, 0);
 }
 
 //______________________________________________________________________________
