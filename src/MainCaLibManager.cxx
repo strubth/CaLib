@@ -1,5 +1,5 @@
 /*************************************************************************
- * Author: Dominik Werthmueller
+ * Author: Dominik Werthmueller, Thomas Strub
  *************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
@@ -52,11 +52,13 @@ void MainMenu();
 void RunEditor();
 void CalibEditor();
 void PrintStatusMessage(const Char_t* message);
-void SelectCalibration(const Char_t* mMsg = 0);
-void SelectCalibrationData();
-void SelectCalibrationType();
+Int_t SelectCalibration(const Char_t* mMsg = 0, Int_t active = 0);
+Int_t SelectCalibrationData();
+Int_t SelectCalibrationType();
 void Administration();
 void WriteTableEntry(WINDOW* win, const Char_t* str, Int_t colLength, Int_t att);
+Int_t ShowMenu(const Char_t* title, const Char_t* message,
+               Int_t nEntries, Char_t* entries[], Int_t active = 0);
 
 //______________________________________________________________________________
 void Finish(Int_t sig)
@@ -116,10 +118,10 @@ void DrawHeader(const Char_t* title = "CaLib Manager")
 }
 
 //______________________________________________________________________________
-Int_t ShowMenu(const Char_t* title, const Char_t* message,
+void DrawMenu(const Char_t* title, const Char_t* message,
                Int_t nEntries, Char_t* entries[], Int_t active)
 {
-    // Show the main menu.
+    // Draw the main menu.
 
     // clear the screen
     clear();
@@ -156,7 +158,7 @@ Int_t ShowMenu(const Char_t* title, const Char_t* message,
     }
 
     // user information
-    PrintStatusMessage("Use UP and DOWN keys to select - hit ENTER or RIGHT key to confirm");
+    PrintStatusMessage("Use UP and DOWN keys to select - hit ENTER or RIGHT key to confirm - use LEFT key to go back");
 
     // calculate mininum pad row
     Int_t minp = active+1 > gNrow-3-8 ? active - (gNrow-3-8) : 0;
@@ -165,6 +167,17 @@ Int_t ShowMenu(const Char_t* title, const Char_t* message,
     refresh();
     prefresh(entries_window, minp, 0, 8, 2, gNrow-3, gNcol-3);
     move(gNrow-1, gNcol-1);
+
+}
+
+//______________________________________________________________________________
+Int_t ShowMenu(const Char_t* title, const Char_t* message,
+               Int_t nEntries, Char_t* entries[], Int_t active)
+{
+    // Navigate the main menu.
+
+    // draw
+    DrawMenu(title, message, nEntries, entries, active);
 
     // wait for input
     for (;;)
@@ -176,12 +189,17 @@ Int_t ShowMenu(const Char_t* title, const Char_t* message,
         // decide what to do
         //
 
+        // go to previous menue
+        if (c == KEY_LEFT)
+        {
+            return -1;
+        }
         // go to previous entry
         if (c == KEY_UP)
         {
             if (active > 0)
             {
-                return ShowMenu(title, message, nEntries, entries, active-1);
+                DrawMenu(title, message, nEntries, entries, --active);
             }
         }
         // go to next entry
@@ -189,7 +207,7 @@ Int_t ShowMenu(const Char_t* title, const Char_t* message,
         {
             if (active < nEntries-1)
             {
-                return ShowMenu(title, message, nEntries, entries, active+1);
+                DrawMenu(title, message, nEntries, entries, ++active);
             }
         }
         // choose entry
@@ -582,8 +600,8 @@ void SplitSet()
     // don't echo input
     noecho();
 
-    // go back to the calibration editor
-    CalibEditor();
+    // go back (to the calibration editor)
+    return;
 }
 
 //______________________________________________________________________________
@@ -644,8 +662,8 @@ void MergeSets()
     // don't echo input
     noecho();
 
-    // go back to the calibration editor
-    CalibEditor();
+    // go back (to the calibration editor)
+    return;
 }
 
 //______________________________________________________________________________
@@ -750,8 +768,8 @@ void RunBrowser()
     delwin(table);
     delwin(header);
 
-    // go back to run editor
-    RunEditor();
+    // go back (to run editor)
+    return;
 }
 
 //______________________________________________________________________________
@@ -761,12 +779,24 @@ void CalibBrowser(Bool_t browseTypes)
     // Browse calibration types if 'browseTypes' is kTRUE, otherwise browser
     // calibration data.
 
-    // select a calibration
-    SelectCalibration();
+    // init choice
+    Int_t choice = 0;
 
-    // select calibration data or type
-    if (browseTypes) SelectCalibrationType();
-    else SelectCalibrationData();
+    while (kTRUE)
+    {
+        // select a calibration
+        if ((choice = SelectCalibration(0, choice)) == -1) return;
+
+        // select calibration data or type
+        if (browseTypes)
+        {
+            if (SelectCalibrationType() >= 0) break;
+        }
+        else
+        {
+            if (SelectCalibrationData() >= 0) break;
+        }
+    }
 
     // create a CaLib container
     TCContainer c("container");
@@ -897,8 +927,8 @@ void CalibBrowser(Bool_t browseTypes)
     delwin(table);
     delwin(header);
 
-    // go back to calibration editor
-    CalibEditor();
+    // go back (to calibration editor)
+    return;
 }
 
 //______________________________________________________________________________
@@ -991,12 +1021,12 @@ void ChangeRunEntry(const Char_t* title, const Char_t* name, RunEntry_t entry)
     // don't echo input
     noecho();
 
-    // go back to run editor
-    RunEditor();
+    // go back (to run editor)
+    return;
 }
 
 //______________________________________________________________________________
-void SelectCalibration(const Char_t* mMsg)
+Int_t SelectCalibration(const Char_t* mMsg, Int_t active)
 {
     // Show the calibration selection.
 
@@ -1032,18 +1062,22 @@ void SelectCalibration(const Char_t* mMsg)
 
     // show menu
     Int_t choice = 0;
-    if (mMsg) choice = ShowMenu(mTitle, mMsg, mN, (Char_t**)mEntries, 0);
-    else choice = ShowMenu(mTitle, mMsgStd, mN, (Char_t**)mEntries, 0);
+    if (mMsg) choice = ShowMenu(mTitle, mMsg, mN, (Char_t**)mEntries, active);
+    else choice = ShowMenu(mTitle, mMsgStd, mN, (Char_t**)mEntries, active);
 
     // save selected calibration
-    strcpy(gCalibration, mEntries[choice]);
+    if (choice >= 0 )
+        strcpy(gCalibration, mEntries[choice]);
 
     // clean-up
     for (Int_t i = 0; i < mN; i++) delete [] mEntries[i];
+
+    // return
+    return choice;
 }
 
 //______________________________________________________________________________
-void SelectCalibrationType()
+Int_t SelectCalibrationType()
 {
     // Show the calibration type selection.
 
@@ -1080,11 +1114,14 @@ void SelectCalibrationType()
     delete [] mEntries;
 
     // save selected calibration type
-    gCalibrationType = list[choice];
+    if (choice >= 0)
+        gCalibrationType = list[choice];
+
+    return choice;
 }
 
 //______________________________________________________________________________
-void SelectCalibrationData()
+Int_t SelectCalibrationData()
 {
     // Show the calibration data selection.
 
@@ -1121,7 +1158,10 @@ void SelectCalibrationData()
     delete [] mEntries;
 
     // save selected calibration type
-    gCalibrationData = list[choice];
+    if (choice >= 0)
+        gCalibrationData = list[choice];
+
+    return choice;
 }
 
 //______________________________________________________________________________
@@ -1204,8 +1244,8 @@ void ExportRuns()
     // don't echo input
     noecho();
 
-    // go back
-    Administration();
+    // go back (to admin menue)
+    return;
 }
 
 //______________________________________________________________________________
@@ -1217,7 +1257,7 @@ void ExportCalibration()
     Char_t answer[16];
 
     // select a calibration
-    SelectCalibration();
+    if (SelectCalibration() == -1) return;
 
     // clear the screen
     clear();
@@ -1283,8 +1323,8 @@ void ExportCalibration()
     // don't echo input
     noecho();
 
-    // go back
-    Administration();
+    // go back (to admin menue)
+    return;
 }
 
 //______________________________________________________________________________
@@ -1363,8 +1403,8 @@ void ImportRuns()
     // don't echo input
     noecho();
 
-    // go back
-    Administration();
+    // go back (to admin menue)
+    return;
 }
 
 //______________________________________________________________________________
@@ -1394,17 +1434,19 @@ void ImportCalibration()
     // decide what do to
     switch (choice)
     {
+        case -1:
+            return;
         case 0:
             importAll = kTRUE;
             break;
         case 1:
-            SelectCalibrationType();
+            if (SelectCalibrationType() == -1) return;
             sprintf(tmp, "Select the calibration the imported '%s' is added to",
                     gCalibrationType->GetTitle());
-            SelectCalibration(tmp);
+            if (SelectCalibration(tmp) == -1) return;
             break;
         case 2:
-            Administration();
+            return;
     }
 
     // clear the screen
@@ -1536,8 +1578,8 @@ void ImportCalibration()
     // don't echo input
     noecho();
 
-    // go back
-    Administration();
+    // go back (to admin menue)
+    return;
 }
 
 //______________________________________________________________________________
@@ -1551,7 +1593,7 @@ void CloneCalibration()
     Int_t firstRun, lastRun;
 
     // select a calibration
-    SelectCalibration();
+    if (SelectCalibration() == -1) return;
 
     // clear the screen
     clear();
@@ -1616,8 +1658,8 @@ void CloneCalibration()
     // don't echo input
     noecho();
 
-    // go back
-    Administration();
+    // go back (to admin menue)
+    return;
 }
 
 //______________________________________________________________________________
@@ -1679,8 +1721,8 @@ void ExportDatabase()
     // don't echo input
     noecho();
 
-    // go back
-    Administration();
+    // go back (to admin menue)
+    return;
 }
 
 //______________________________________________________________________________
@@ -1692,7 +1734,7 @@ void RenameCalibration()
     Char_t answer[16];
 
     // select a calibration
-    SelectCalibration();
+    if (SelectCalibration() == -1) return;
 
     // clear the screen
     clear();
@@ -1753,8 +1795,8 @@ void RenameCalibration()
     // don't echo input
     noecho();
 
-    // go back
-    CalibEditor();
+    // go back (to calib editor)
+    return;
 }
 
 //______________________________________________________________________________
@@ -1767,7 +1809,7 @@ void ChangeRunRange()
     Int_t newLastRun;
 
     // select a calibration
-    SelectCalibration();
+    if (SelectCalibration() == -1) return;
 
     // clear the screen
     clear();
@@ -1829,8 +1871,8 @@ void ChangeRunRange()
     // don't echo input
     noecho();
 
-    // go back
-    CalibEditor();
+    // go back (to calib editor)
+    return;
 }
 
 //______________________________________________________________________________
@@ -1842,7 +1884,7 @@ void ChangeDescription()
     Char_t answer[16];
 
     // select a calibration
-    SelectCalibration();
+    if (SelectCalibration() == -1) return;
 
     // clear the screen
     clear();
@@ -1903,8 +1945,8 @@ void ChangeDescription()
     // don't echo input
     noecho();
 
-    // go back
-    CalibEditor();
+    // go back (to calib editor)
+    return;
 }
 
 //______________________________________________________________________________
@@ -1915,7 +1957,7 @@ void DeleteCalibration()
     Char_t answer[16];
 
     // select a calibration
-    SelectCalibration();
+    if (SelectCalibration() == -1) return;
 
     // clear the screen
     clear();
@@ -1967,8 +2009,8 @@ void DeleteCalibration()
     // don't echo input
     noecho();
 
-    // go back
-    CalibEditor();
+    // go back (to calib editor)
+    return;
 }
 
 //______________________________________________________________________________
@@ -1988,29 +2030,40 @@ void RunEditor()
                                  "Change beam polarization",
                                  "Change degree of beam polarization",
                                  "Go back" };
+    // menue index
+    Int_t choice = 0;
 
-    // show menu
-    Int_t choice = ShowMenu(mTitle, mMsg, mN, (Char_t**)mEntries, 0);
-
-    // decide what do to
-    switch (choice)
+    // menue loop
+    while (kTRUE)
     {
-        case 0: RunBrowser();
-        case 1: ChangeRunEntry("CHANGE PATH", "path", kPATH);
-        case 2: ChangeRunEntry("CHANGE TARGET", "target", kTARGET);
-        case 3: ChangeRunEntry("CHANGE TARGET POLARIZATION",
-                               "target polarization", kTARGET_POL);
-        case 4: ChangeRunEntry("CHANGE DEGREE OF TARGET POLARIZATION",
-                               "degree of target polarization", kTARGET_POL_DEG);
-        case 5: ChangeRunEntry("CHANGE BEAM POLARIZATION",
-                               "beam polarization", kBEAM_POL);
-        case 6: ChangeRunEntry("CHANGE DEGREE OF BEAM POLARIZATION",
-                               "degree of beam polarization", kBEAM_POL_DEG);
-        case 7: MainMenu();
-    }
+        // show menu
+        choice = ShowMenu(mTitle, mMsg, mN, (Char_t**)mEntries, choice);
 
-    // go back to main menu
-    MainMenu();
+        // decide what do to
+        switch (choice)
+        {
+            case -1: return;
+            case  0: RunBrowser();
+                     break;
+            case  1: ChangeRunEntry("CHANGE PATH", "path", kPATH);
+                     break;
+            case  2: ChangeRunEntry("CHANGE TARGET", "target", kTARGET);
+                     break;
+            case  3: ChangeRunEntry("CHANGE TARGET POLARIZATION",
+                                    "target polarization", kTARGET_POL);
+                     break;
+            case  4: ChangeRunEntry("CHANGE DEGREE OF TARGET POLARIZATION",
+                                    "degree of target polarization", kTARGET_POL_DEG);
+                     break;
+            case  5: ChangeRunEntry("CHANGE BEAM POLARIZATION",
+                                    "beam polarization", kBEAM_POL);
+                     break;
+            case  6: ChangeRunEntry("CHANGE DEGREE OF BEAM POLARIZATION",
+                                    "degree of beam polarization", kBEAM_POL_DEG);
+                     break;
+            case  7: return;
+        }
+    }
 }
 
 //______________________________________________________________________________
@@ -2030,19 +2083,33 @@ void CalibEditor()
                                  "Delete calibration",
                                  "Go back" };
 
-    // show menu
-    Int_t choice = ShowMenu(mTitle, mMsg, mN, (Char_t**)mEntries, 0);
+    // menue index
+    Int_t choice = 0;
 
-    // decide what do to
-    switch (choice)
+    // menue loop
+    while (kTRUE)
     {
-        case 0: CalibBrowser(kFALSE);
-        case 1: CalibBrowser(kTRUE);
-        case 2: ChangeRunRange();
-        case 3: ChangeDescription();
-        case 4: RenameCalibration();
-        case 5: DeleteCalibration();
-        case 6: MainMenu();
+        // show menu
+        choice = ShowMenu(mTitle, mMsg, mN, (Char_t**)mEntries, choice);
+
+        // decide what do to
+        switch (choice)
+        {
+            case -1: return;
+            case  0: CalibBrowser(kFALSE);
+                     break;
+            case  1: CalibBrowser(kTRUE);
+                     break;
+            case  2: ChangeRunRange();
+                     break;
+            case  3: ChangeDescription();
+                     break;
+            case  4: RenameCalibration();
+                     break;
+            case  5: DeleteCalibration();
+                     break;
+            case  6: return;
+        }
     }
 }
 
@@ -2063,19 +2130,33 @@ void Administration()
                                  "Export complete database",
                                  "Go back" };
 
-    // show menu
-    Int_t choice = ShowMenu(mTitle, mMsg, mN, (Char_t**)mEntries, 0);
+    // menue index
+    Int_t choice = 0;
 
-    // decide what do to
-    switch (choice)
+    // menue loop
+    while (kTRUE)
     {
-        case 0: ExportRuns();
-        case 1: ExportCalibration();
-        case 2: ImportRuns();
-        case 3: ImportCalibration();
-        case 4: CloneCalibration();
-        case 5: ExportDatabase();
-        case 6: MainMenu();
+        // show menu
+        choice = ShowMenu(mTitle, mMsg, mN, (Char_t**)mEntries, choice);
+
+        // decide what do to
+        switch (choice)
+        {
+            case -1: return;
+            case  0: ExportRuns();
+                     break;
+            case  1: ExportCalibration();
+                     break;
+            case  2: ImportRuns();
+                     break;
+            case  3: ImportCalibration();
+                     break;
+            case  4: CloneCalibration();
+                     break;
+            case  5: ExportDatabase();
+                     break;
+            case  6: return;
+        }
     }
 }
 
@@ -2119,8 +2200,8 @@ void About()
         if (c == KEY_ESC || c == 'q') break;
     }
 
-    // go back to the main menu
-    MainMenu();
+    // go back (to the main menu)
+    return;
 }
 
 //______________________________________________________________________________
@@ -2138,17 +2219,30 @@ void MainMenu()
                                  "About",
                                  "Exit" };
 
-    // show menu
-    Int_t choice = ShowMenu(mTitle, mMsg, mN, (Char_t**)mEntries, 0);
+    // menue index
+    Int_t choice = 0;
 
-    // decide what do to
-    switch (choice)
+    // main menue loop
+    while (kTRUE)
     {
-        case 0: RunEditor();
-        case 1: CalibEditor();
-        case 2: Administration();
-        case 3: About();
-        case 4: Finish(0);
+        // show menu
+        choice = ShowMenu(mTitle, mMsg, mN, (Char_t**)mEntries, choice);
+
+        // decide what do to
+        switch (choice)
+        {
+            case -1: choice = 0;
+                     break;
+            case  0: RunEditor();
+                     break;
+            case  1: CalibEditor();
+                     break;
+            case  2: Administration();
+                     break;
+            case  3: About();
+                     break;
+            case  4: return;
+        }
     }
 }
 
