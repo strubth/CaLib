@@ -798,134 +798,142 @@ void CalibBrowser(Bool_t browseTypes)
         }
     }
 
-    // create a CaLib container
-    TCContainer c("container");
-
-    // dump calibrations
-    if (browseTypes)
-        TCMySQLManager::GetManager()->DumpCalibrations(&c, gCalibration, gCalibrationType->GetData(0)->GetName());
-    else
-        TCMySQLManager::GetManager()->DumpCalibrations(&c, gCalibration, gCalibrationData->GetName());
-
-    // get number of calibrations
-    Int_t nCalib = c.GetNCalibrations();
-
-    // clear the screen
-    clear();
-
-    // draw header
-    DrawHeader();
-
-    // draw title
-    attron(A_UNDERLINE);
-    mvprintw(4, 2, "CALIBRATION BROWSER");
-    attroff(A_UNDERLINE);
-
-    // draw calibration data or type
-    if (browseTypes) mvprintw(6, 2, "Calibration type: %s", gCalibrationType->GetTitle());
-    else mvprintw(6, 2, "Calibration data: %s", gCalibrationData->GetTitle());
-
-    // build the windows
-    Int_t colLengthTot;
-    WINDOW* header = 0;
-    WINDOW* table;
-    if (browseTypes) table = FormatCalibTable(c, &colLengthTot, &header, kFALSE);
-    else table = FormatCalibTable(c, &colLengthTot, &header, kTRUE);
-
-    // user information
-    Char_t tmp[256];
-    sprintf(tmp, "%d sets found. Use UP/DOWN keys to scroll "
-                 "(PAGE-UP or 'p' / PAGE-DOWN or 'n' for fast mode) - hit ESC or 'q' to exit", nCalib);
-    PrintStatusMessage(tmp);
-
-    // user interface geometry
-    Int_t rOffset;
-    if (browseTypes) rOffset = 15;
-    else rOffset = 3;
-    Int_t first_row = 0;
-    Int_t first_col = 0;
-    Int_t winHeight = gNrow-rOffset-9;
-    Int_t winWidth = gNcol;
-
-    // set operations
-    if (browseTypes)
+    Bool_t redo = kTRUE;
+    while (redo)
     {
-        mvprintw(gNrow-13, 2, "Set operations:");
-        mvprintw(gNrow-12, 2, "[s] split set    [m] merge sets");
+        // create a CaLib container
+        TCContainer c("container");
+
+        // dump calibrations
+        if (browseTypes)
+            TCMySQLManager::GetManager()->DumpCalibrations(&c, gCalibration, gCalibrationType->GetData(0)->GetName());
+        else
+            TCMySQLManager::GetManager()->DumpCalibrations(&c, gCalibration, gCalibrationData->GetName());
+
+        // get number of calibrations
+        Int_t nCalib = c.GetNCalibrations();
+
+        // clear the screen
+        clear();
+
+        // draw header
+        DrawHeader();
+
+        // draw title
+        attron(A_UNDERLINE);
+        mvprintw(4, 2, "CALIBRATION BROWSER");
+        attroff(A_UNDERLINE);
+
+        // draw calibration data or type
+        if (browseTypes) mvprintw(6, 2, "Calibration type: %s", gCalibrationType->GetTitle());
+        else mvprintw(6, 2, "Calibration data: %s", gCalibrationData->GetTitle());
+
+        // build the windows
+        Int_t colLengthTot;
+        WINDOW* header = 0;
+        WINDOW* table;
+        if (browseTypes) table = FormatCalibTable(c, &colLengthTot, &header, kFALSE);
+        else table = FormatCalibTable(c, &colLengthTot, &header, kTRUE);
+
+        // user information
+        Char_t tmp[256];
+        sprintf(tmp, "%d sets found. Use UP/DOWN keys to scroll "
+                     "(PAGE-UP or 'p' / PAGE-DOWN or 'n' for fast mode) - hit ESC or 'q' to exit", nCalib);
+        PrintStatusMessage(tmp);
+
+        // user interface geometry
+        Int_t rOffset;
+        if (browseTypes) rOffset = 15;
+        else rOffset = 3;
+        Int_t first_row = 0;
+        Int_t first_col = 0;
+        Int_t winHeight = gNrow-rOffset-9;
+        Int_t winWidth = gNcol;
+
+        // set operations
+        if (browseTypes)
+        {
+            mvprintw(gNrow-13, 2, "Set operations:");
+            mvprintw(gNrow-12, 2, "[s] split set    [m] merge sets");
+        }
+
+        // refresh windows
+        refresh();
+        prefresh(header, 0, 0, 8, 2, 9, gNcol-3);
+        prefresh(table, 0, 0, 9, 2, gNrow-rOffset, gNcol-3);
+
+        // wait for input
+        for (;;)
+        {
+            // get key
+            Int_t c = getch();
+
+            //
+            // decide what to do
+            //
+
+            // go up one entry
+            if (c == KEY_UP)
+            {
+                if (first_row > 0) first_row--;
+            }
+            // go down one entry
+            else if (c == KEY_DOWN)
+            {
+                if (first_row < nCalib-winHeight-1) first_row++;
+            }
+            // go up one page
+            else if (c == KEY_PPAGE || c == 'p')
+            {
+                if (first_row > winHeight-1) first_row -= winHeight+1;
+                else first_row = 0;
+            }
+            // go down one page
+            else if (c == KEY_NPAGE || c == 'n')
+            {
+                if (first_row < nCalib-winHeight-winHeight) first_row += winHeight+1;
+                else first_row = nCalib-winHeight-1;
+            }
+            // go right
+            else if (c == KEY_RIGHT)
+            {
+                if (first_col < colLengthTot-winWidth) first_col += winWidth/2;
+                else first_col = colLengthTot-winWidth;
+            }
+            // go left
+            else if (c == KEY_LEFT)
+            {
+                if (first_col > 0) first_col -= (winWidth/2);
+                else continue;
+            }
+            // split set
+            else if (browseTypes && c == 's')
+            {
+                SplitSet();
+                break;
+            }
+            // merge set
+            else if (browseTypes && c == 'm')
+            {
+                MergeSets();
+                break;
+            }
+            // exit
+            else if (c == KEY_ESC || c == 'q')
+            {
+                redo = kFALSE;
+                break;
+            }
+
+            // update window
+            prefresh(header, 0, first_col, 8, 2, 9, gNcol-3);
+            prefresh(table, first_row, first_col, 9, 2, gNrow-rOffset, gNcol-3);
+        }
+
+        // clean-up
+        delwin(table);
+        delwin(header);
     }
-
-    // refresh windows
-    refresh();
-    prefresh(header, 0, 0, 8, 2, 9, gNcol-3);
-    prefresh(table, 0, 0, 9, 2, gNrow-rOffset, gNcol-3);
-
-    // wait for input
-    for (;;)
-    {
-        // get key
-        Int_t c = getch();
-
-        //
-        // decide what to do
-        //
-
-        // go up one entry
-        if (c == KEY_UP)
-        {
-            if (first_row > 0) first_row--;
-        }
-        // go down one entry
-        else if (c == KEY_DOWN)
-        {
-            if (first_row < nCalib-winHeight-1) first_row++;
-        }
-        // go up one page
-        else if (c == KEY_PPAGE || c == 'p')
-        {
-            if (first_row > winHeight-1) first_row -= winHeight+1;
-            else first_row = 0;
-        }
-        // go down one page
-        else if (c == KEY_NPAGE || c == 'n')
-        {
-            if (first_row < nCalib-winHeight-winHeight) first_row += winHeight+1;
-            else first_row = nCalib-winHeight-1;
-        }
-        // go right
-        else if (c == KEY_RIGHT)
-        {
-            if (first_col < colLengthTot-winWidth) first_col += winWidth/2;
-            else first_col = colLengthTot-winWidth;
-        }
-        // go left
-        else if (c == KEY_LEFT)
-        {
-            if (first_col > 0) first_col -= (winWidth/2);
-            else continue;
-        }
-        // split set
-        else if (browseTypes && c == 's')
-        {
-            SplitSet();
-            break;
-        }
-        // merge set
-        else if (browseTypes && c == 'm')
-        {
-            MergeSets();
-            break;
-        }
-        // exit
-        else if (c == KEY_ESC || c == 'q') break;
-
-        // update window
-        prefresh(header, 0, first_col, 8, 2, 9, gNcol-3);
-        prefresh(table, first_row, first_col, 9, 2, gNrow-rOffset, gNcol-3);
-    }
-
-    // clean-up
-    delwin(table);
-    delwin(header);
 
     // go back (to calibration editor)
     return;
