@@ -3572,9 +3572,12 @@ Int_t TCMySQLManager::ImportCalibrations(TCContainer* container, const Char_t* n
 Bool_t TCMySQLManager::CloneCalibration(const Char_t* calibration, const Char_t* newCalibrationName,
                                         const Char_t* newDesc, Int_t new_first_run, Int_t new_last_run)
 {
-    // Create a clone of the calibration 'calibration' using 'newCalibrationName' as
-    // the new calibration name and 'newDesc' as the calibration description.
-    // For each calibration data one set from 'new_first_run' to 'new_last_run'
+    // Create a clone of the calibration 'calibration' using 'newCalibrationName'
+    // as the new calibration name and 'newDesc' as the calibration description.
+    // If 'new_first_run' and 'new_last_run' are both equal to zero for each
+    // calibration data all sets are copied.
+    // Otherwise, if 'new_first_run' and 'new_last_run' are not equal to zero,
+    // for each calibration data one set from 'new_first_run' to 'new_last_run'
     // is created with the values of the last set of the original calibration.
     // Return kFALSE if an error occurred, otherwise kTRUE.
 
@@ -3585,6 +3588,9 @@ Bool_t TCMySQLManager::CloneCalibration(const Char_t* calibration, const Char_t*
         return kFALSE;
     }
 
+    // set "true clone" flag
+    Bool_t true_clone = (new_first_run == 0 && new_last_run == 0) ? kTRUE : kFALSE;
+
     // loop over calibration data
     TIter next(fData);
     TCCalibData* d;
@@ -3594,21 +3600,52 @@ Bool_t TCMySQLManager::CloneCalibration(const Char_t* calibration, const Char_t*
         // get number of original sets
         Int_t nSets = GetNsets(d->GetName(), calibration);
 
-        // read parameters
-        Double_t par[d->GetSize()];
-        if (ReadParameters(d->GetName(), calibration, nSets-1, par, d->GetSize()))
+        // check for true clone
+        if (true_clone)
         {
-            // add new set
-            if (!AddDataSet(d->GetName(), newCalibrationName, newDesc, new_first_run, new_last_run, par, d->GetSize()))
+            // loop over sets
+            for (Int_t i = 0; i < nSets; i++)
             {
-                if (!fSilence) Error("CloneCalibration", "Could not clone calibration data '%s'!", d->GetName());
-                error = kTRUE;
+                // get run range of set
+                Int_t first_run = GetFirstRunOfSet(d->GetName(), calibration, i);
+                Int_t last_run = GetLastRunOfSet(d->GetName(), calibration, i);
+
+                // read parameters
+                Double_t par[d->GetSize()];
+                if (ReadParameters(d->GetName(), calibration, i, par, d->GetSize()))
+                {
+                    // add new set
+                    if (!AddDataSet(d->GetName(), newCalibrationName, newDesc, first_run, last_run, par, d->GetSize()))
+                    {
+                        if (!fSilence) Error("CloneCalibration", "Could not clone calibration data '%s'!", d->GetName());
+                        error = kTRUE;
+                    }
+                }
+                else
+                {
+                    if (!fSilence) Error("CloneCalibration", "Could not read original data '%s'!", d->GetName());
+                    error = kTRUE;
+                }
             }
         }
         else
         {
-            if (!fSilence) Error("CloneCalibration", "Could not read original data '%s'!", d->GetName());
-            error = kTRUE;
+            // read parameters
+            Double_t par[d->GetSize()];
+            if (ReadParameters(d->GetName(), calibration, nSets-1, par, d->GetSize()))
+            {
+                // add new set
+                if (!AddDataSet(d->GetName(), newCalibrationName, newDesc, new_first_run, new_last_run, par, d->GetSize()))
+                {
+                    if (!fSilence) Error("CloneCalibration", "Could not clone calibration data '%s'!", d->GetName());
+                    error = kTRUE;
+                }
+            }
+            else
+            {
+                if (!fSilence) Error("CloneCalibration", "Could not read original data '%s'!", d->GetName());
+                error = kTRUE;
+            }
         }
     }
 
