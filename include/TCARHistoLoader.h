@@ -67,7 +67,7 @@ public:
                                  Int_t fbin2 = 1, Int_t lbin2 = kLastBin,
                                  Option_t* option = "", const Char_t* houtnamepatt = 0);
 
-    TH2D* CreateHistoOfProj(const Char_t* hname, const Char_t projaxis = 'X',
+    TH2D* CreateHistoOfProj(const Char_t* hname, const Char_t projaxis = 'X', const Char_t runaxis = 'Y',
                             Int_t fbin1 = 1, Int_t lbin1 = kLastBin,
                             Int_t fbin2 = 1, Int_t lbin2 = kLastBin,
                             Option_t* option = "");

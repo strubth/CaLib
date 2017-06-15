@@ -32,19 +32,22 @@
 //        Now, hs is an array of length n of histograms having the names matching
 //        the pattern, i.e., 'MyHistogram_' followed by a number.
 //
-//   2)   Load summed up histograms, e.g.,
+//   2)   Create summed up histograms, e.g.,
 //          TH1* h = hl.CreateHistoSum("MyHistogram");
 //
-//   3.1) Load array of histograms, e.g.,
+//   3.1) Create array of histograms, e.g.,
 //          TH1** hs = hl.CreateHistoArray("MyHistogram");
 //        Now, hs an array of length hl.GetNRuns(), where the i-th element is the
 //        histogram of the i-th file with the run with runnumber hl.GetRuns()[i].
 //
-//   3.2) Load array of projection of histos.
-//          TH1** hsp1 hl.CreateHistoArrayOfProj("MyHistogram");
-//          TH1** hsp2 hl.CreateHistoArrayOfProj("MyHistogram", 'Y', 23, kLastBin);
+//   3.2) Create array of projection of histos.
+//          TH1** hsp1 = hl.CreateHistoArrayOfProj("MyHistogram");
+//          TH1** hsp2 = hl.CreateHistoArrayOfProj("MyHistogram", 'Y', 23, kLastBin);
 //
-//   4) ...
+//   4)   Create a single histo of projections
+//          TH1* h = hl.CreateHistoOfProj("MyHistogram", 'X', 'Y');
+//        Now, h is a 2-dim histogram, where the y-slice of its i-th y-bin is the
+//        x-projection of the histogram 'MyHistogram' of the i-th file.
 //
 //
 // C) Naming histograms:
@@ -117,7 +120,6 @@ void TCARHistoLoader::SetHistoName(TH1* h, const Char_t* hnamepatt, Int_t index)
     h->SetName(hname);
 }
 
-
 //______________________________________________________________________________
 TH1* TCARHistoLoader::GetHisto(const TFile* f, const Char_t* hname, Bool_t detach /*= kTRUE*/)
 {
@@ -162,7 +164,6 @@ TH1* TCARHistoLoader::GetHisto(const TFile* f, const Char_t* hname, Bool_t detac
 
     return hOut;
 }
-
 
 //______________________________________________________________________________
 TH1** TCARHistoLoader::GetHistos(const TFile* f, const Char_t* hpatt, Int_t& nhistos, Bool_t detach /*= kTRUE*/)
@@ -233,7 +234,6 @@ TH1** TCARHistoLoader::GetHistos(const TFile* f, const Char_t* hpatt, Int_t& nhi
     return hOut;
 }
 
-
 //______________________________________________________________________________
 TH1* TCARHistoLoader::GetHistoForRun(const Char_t* hname, Int_t runnumber, const Char_t* houtnamepatt /* = 0*/)
 {
@@ -254,7 +254,6 @@ TH1* TCARHistoLoader::GetHistoForRun(const Char_t* hname, Int_t runnumber, const
     // return histo
     return GetHistoForIndex(hname, index, houtnamepatt);
 }
-
 
 //______________________________________________________________________________
 TH1* TCARHistoLoader::GetHistoForIndex(const Char_t* hname, Int_t index, const Char_t* houtnamepatt /*= 0*/)
@@ -312,7 +311,6 @@ TH1* TCARHistoLoader::GetHistoForIndex(const Char_t* hname, Int_t index, const C
     return h;
 }
 
-
 //______________________________________________________________________________
 TH1** TCARHistoLoader::GetHistosForRun(const Char_t* hpatt, Int_t runnumber, Int_t& nhistos, const Char_t* houtnamepatt /*= 0*/)
 {
@@ -332,7 +330,6 @@ TH1** TCARHistoLoader::GetHistosForRun(const Char_t* hpatt, Int_t runnumber, Int
     // return histo
     return GetHistosForIndex(hpatt, index, nhistos, houtnamepatt);
 }
-
 
 //______________________________________________________________________________
 TH1** TCARHistoLoader::GetHistosForIndex(const Char_t* hpatt, Int_t index, Int_t& nhistos, const Char_t* houtnamepatt /*= 0*/)
@@ -379,7 +376,6 @@ TH1** TCARHistoLoader::GetHistosForIndex(const Char_t* hpatt, Int_t index, Int_t
 
     return hOut;
 }
-
 
 //______________________________________________________________________________
 TH1* TCARHistoLoader::CreateHistoSum(const Char_t* hname, const Char_t* houtnamepatt /*= 0*/)
@@ -435,7 +431,6 @@ TH1* TCARHistoLoader::CreateHistoSum(const Char_t* hname, const Char_t* houtname
 
     return hSum;
 }
-
 
 //______________________________________________________________________________
 TH1** TCARHistoLoader::CreateHistoSumArray(const Char_t* hpatt, Int_t& nhistos, const Char_t* houtnamepatt /*= 0*/)
@@ -493,7 +488,6 @@ TH1** TCARHistoLoader::CreateHistoSumArray(const Char_t* hpatt, Int_t& nhistos, 
     return hSum;
 }
 
-
 //______________________________________________________________________________
 TH1** TCARHistoLoader::CreateHistoArray(const Char_t* hname, const Char_t* houtnamepatt /*= 0*/)
 {
@@ -544,7 +538,6 @@ TH1** TCARHistoLoader::CreateHistoArray(const Char_t* hname, const Char_t* houtn
 
     return hOut;
 }
-
 
 //______________________________________________________________________________
 TH1** TCARHistoLoader::CreateHistoArrayOfProj(const Char_t* hname, const Char_t projaxis /*= 'X'*/,
@@ -702,9 +695,8 @@ TH1** TCARHistoLoader::CreateHistoArrayOfProj(const Char_t* hname, const Char_t 
     return hOut;
 }
 
-
 //______________________________________________________________________________
-TH2D* TCARHistoLoader::CreateHistoOfProj(const Char_t* hname, const Char_t projaxis /*= 'X'*/,
+TH2D* TCARHistoLoader::CreateHistoOfProj(const Char_t* hname, const Char_t projaxis /*= 'X'*/, const Char_t runaxis /* = 'X'*/,
                                          Int_t fbin1 /*= 1*/, Int_t lbin1 /*= kLastBin*/,
                                          Int_t fbin2 /*= 1*/, Int_t lbin2 /*= kLastBin*/,
                                          Option_t* option /*= ""*/)
@@ -715,10 +707,22 @@ TH2D* TCARHistoLoader::CreateHistoOfProj(const Char_t* hname, const Char_t proja
     // 'fRuns[i]').
     // NOTE: the histogram has to be destroyed by the caller.
 
+    // init run index axis
+    Bool_t runsOnX = kTRUE;
+
     // init projection axis flags
     Bool_t isX = kFALSE;
     Bool_t isY = kFALSE;
     Bool_t isZ = kFALSE;
+
+    // process run axis argument
+    if      (runaxis == 'X' || runaxis == 'x') runsOnX = kTRUE;
+    else if (runaxis == 'Y' || runaxis == 'y') runsOnX = kFALSE;
+    else
+    {
+        Error("CreateHistoOfProj", "'%c' is not a valid axis!", runaxis);
+        return 0;
+    }
 
     // process projection axis arument
     if      (projaxis == 'x' || projaxis == 'X') isX = kTRUE;
@@ -748,7 +752,7 @@ TH2D* TCARHistoLoader::CreateHistoOfProj(const Char_t* hname, const Char_t proja
         // get histogram detached
         Bool_t status = TH1::AddDirectoryStatus();
         TH1::AddDirectory(kFALSE);
-        TH1* h = GetHistoForIndex(hname, i);
+        TH1* h = GetHistoForIndex(hname, i, "#NAME");
         TH1::AddDirectory(status);
 
         // check for histogram
@@ -817,14 +821,14 @@ TH2D* TCARHistoLoader::CreateHistoOfProj(const Char_t* hname, const Char_t proja
         }
         else if (h->GetDimension() == 2)
         {
-            if (isX) hp = (TH1D*) ((TH2*) h)->ProjectionX("pproj", 1, -1, "e");
-            if (isY) hp = (TH1D*) ((TH2*) h)->ProjectionY("pproj", 1, -1, "e");
+            if (isX) hp = (TH1D*) ((TH2*) h)->ProjectionX("pproj", fbin1, lbin1, option);
+            if (isY) hp = (TH1D*) ((TH2*) h)->ProjectionY("pproj", fbin1, lbin1, option);
         }
         else if (h->GetDimension() == 3)
         {
-            if (isX) hp = (TH1D*) ((TH3*) h)->ProjectionX("pproj", 1, -1, 1, -1, "e");
-            if (isY) hp = (TH1D*) ((TH3*) h)->ProjectionY("pproj", 1, -1, 1, -1, "e");
-            if (isZ) hp = (TH1D*) ((TH3*) h)->ProjectionZ("pproj", 1, -1, 1, -1, "e");
+            if (isX) hp = (TH1D*) ((TH3*) h)->ProjectionX("pproj", fbin1, lbin1, fbin2, lbin2, option);
+            if (isY) hp = (TH1D*) ((TH3*) h)->ProjectionY("pproj", fbin1, lbin1, fbin2, lbin2, option);
+            if (isZ) hp = (TH1D*) ((TH3*) h)->ProjectionZ("pproj", fbin1, lbin1, fbin2, lbin2, option);
         }
 
         // create output histogram (if not created yet)
@@ -834,25 +838,42 @@ TH2D* TCARHistoLoader::CreateHistoOfProj(const Char_t* hname, const Char_t proja
 
             // get name
             Char_t name[256];
-            sprintf(name, "%s", h->GetName());
+            sprintf(name, "%s_p%c", h->GetName(), projaxis);
 
             // get projection axis title
-            Char_t axistitle[256];
-            if (isX) strcpy(axistitle, h->GetXaxis()->GetTitle());
-            if (isY) strcpy(axistitle, h->GetYaxis()->GetTitle());
-            if (isZ) strcpy(axistitle, h->GetZaxis()->GetTitle());
+            const Char_t* axistitle = 0;
+            if (isX) axistitle = h->GetXaxis()->GetTitle();
+            if (isY) axistitle = h->GetYaxis()->GetTitle();
+            if (isZ) axistitle = h->GetZaxis()->GetTitle();
 
             Char_t newtitle[256];
-            sprintf(newtitle, "%s;%s;Run index", h->GetTitle(), axistitle);
-            hOut = new TH2D(name, newtitle, hp->GetNbinsX(), hp->GetBinLowEdge(1), hp->GetBinLowEdge(hp->GetNbinsX() + 1), fNRuns, 0, fNRuns);
+            if (runsOnX)
+            {
+                sprintf(newtitle, "%s;Run index;%s", name, axistitle);
+                hOut = new TH2D(name, newtitle, fNRuns, 0, fNRuns, hp->GetNbinsX(), hp->GetBinLowEdge(1), hp->GetBinLowEdge(hp->GetNbinsX() + 1));
+            }
+            else
+            {
+                sprintf(newtitle, "%s;%s;Run index", name, axistitle);
+                hOut = new TH2D(name, newtitle, hp->GetNbinsX(), hp->GetBinLowEdge(1), hp->GetBinLowEdge(hp->GetNbinsX() + 1), fNRuns, 0, fNRuns);
+            }
         }
 
         // loop over bins
-        for (Int_t j = 0; j < hOut->GetNbinsX(); j++)
+        Int_t nbins = runsOnX ? hOut->GetNbinsY() : hOut->GetNbinsX();
+        for (Int_t j = 0; j < nbins; j++)
         {
             // add bin content and bin error
-            hOut->SetBinContent(j+1, i+1, hp->GetBinContent(j+1));
-            hOut->SetBinError(j+1, i+1, hp->GetBinError(j+1));
+            if (runsOnX)
+            {
+                hOut->SetBinContent(i+1, j+1, hp->GetBinContent(j+1));
+                hOut->SetBinError(i+1, j+1, hp->GetBinError(j+1));
+            }
+            else
+            {
+                hOut->SetBinContent(j+1, i+1, hp->GetBinContent(j+1));
+                hOut->SetBinError(j+1, i+1, hp->GetBinError(j+1));
+            }
         }
 
         // clean up
