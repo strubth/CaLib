@@ -555,6 +555,18 @@ TH1** TCARHistoLoader::CreateHistoArrayOfProj(const Char_t* hname, const Char_t 
     // pointer is returned for the output histogram array.
     // NOTE: the array (incl. histograms) has to be destroyed by the caller.
 
+    // relative weight flag
+    Bool_t relW = kFALSE;
+
+    TString opt  = option;
+    opt.ToLower();
+    Int_t idx = opt.Index("w");
+    if (idx >= 0)
+    {
+        relW = kTRUE;
+        opt.Remove(idx, 9);
+    }
+
     // init projection axis flags
     Bool_t isX = kFALSE;
     Bool_t isY = kFALSE;
@@ -639,8 +651,21 @@ TH1** TCARHistoLoader::CreateHistoArrayOfProj(const Char_t* hname, const Char_t 
                 if (isX) lastbin1 = ((TH2*) h)->GetNbinsY();
                 if (isY) lastbin1 = ((TH2*) h)->GetNbinsX();
             }
-            if      (isX) hp = (TH1D*) ((TH2*) h)->ProjectionX(hpname, fbin1, lastbin1, option);
-            else if (isY) hp = (TH1D*) ((TH2*) h)->ProjectionY(hpname, fbin1, lastbin1, option);
+
+            // project
+            if (isX || isY)
+            {
+                if (relW)
+                {
+                    hp = CreateProjection_RelWeight(projaxis, h);
+                    hp->SetName(hpname);
+                }
+                else
+                {
+                    if      (isX) hp = (TH1D*) ((TH2*) h)->ProjectionX(hpname, fbin1, lastbin1, opt.Data());
+                    else if (isY) hp = (TH1D*) ((TH2*) h)->ProjectionY(hpname, fbin1, lastbin1, opt.Data());
+                }
+            }
             else
                 Error("CreateHistoArrayOfProj", "Cannot project 2D histogram to z-axis.");
         }
@@ -655,7 +680,7 @@ TH1** TCARHistoLoader::CreateHistoArrayOfProj(const Char_t* hname, const Char_t 
                 if (isZ) lastbin1 = ((TH2*) h)->GetNbinsX();
             }
 
-            // set last bin1
+            // set last bin2
             Int_t lastbin2 = lbin2;
             if (lbin2 == kLastBin)
             {
@@ -664,9 +689,18 @@ TH1** TCARHistoLoader::CreateHistoArrayOfProj(const Char_t* hname, const Char_t 
                 if (isZ) lastbin2 = ((TH2*) h)->GetNbinsY();
             }
 
-            if (isX) hp = (TH1D*) ((TH3*) h)->ProjectionX(hpname, fbin1, lastbin1, fbin2, lastbin2, option);
-            if (isY) hp = (TH1D*) ((TH3*) h)->ProjectionY(hpname, fbin1, lastbin1, fbin2, lastbin2, option);
-            if (isZ) hp = (TH1D*) ((TH3*) h)->ProjectionZ(hpname, fbin1, lastbin1, fbin2, lastbin2, option);
+            // project
+            if (relW)
+            {
+                hp = CreateProjection_RelWeight(projaxis, h);
+                hp->SetName(hpname);
+            }
+            else
+            {
+                if (isX) hp = (TH1D*) ((TH3*) h)->ProjectionX(hpname, fbin1, lastbin1, fbin2, lastbin2, opt.Data());
+                if (isY) hp = (TH1D*) ((TH3*) h)->ProjectionY(hpname, fbin1, lastbin1, fbin2, lastbin2, opt.Data());
+                if (isZ) hp = (TH1D*) ((TH3*) h)->ProjectionZ(hpname, fbin1, lastbin1, fbin2, lastbin2, opt.Data());
+            }
         } // end if dimension 1,2 or 3
 
         TH1::AddDirectory(status);
@@ -707,6 +741,18 @@ TH2D* TCARHistoLoader::CreateHistoOfProj(const Char_t* hname, const Char_t proja
     // from the file 'fFiles[i]' (i.e., the AR file of the run with run number
     // 'fRuns[i]').
     // NOTE: the histogram has to be destroyed by the caller.
+
+    // relative weight flag
+    Bool_t relW = kFALSE;
+
+    TString opt  = option;
+    opt.ToLower();
+    Int_t idx = opt.Index("w");
+    if (idx >= 0)
+    {
+        relW = kTRUE;
+        opt.Remove(idx, 9);
+    }
 
     // init run index axis
     Bool_t runsOnX = kTRUE;
@@ -814,7 +860,9 @@ TH2D* TCARHistoLoader::CreateHistoOfProj(const Char_t* hname, const Char_t proja
         // declare projection histogram
         TH1* hp = 0;
 
-        // project histogram
+        // project histogram (detached)
+        TH1::AddDirectory(kFALSE);
+
         if (h->GetDimension() == 1)
         {
             // no projection needed
@@ -822,15 +870,27 @@ TH2D* TCARHistoLoader::CreateHistoOfProj(const Char_t* hname, const Char_t proja
         }
         else if (h->GetDimension() == 2)
         {
-            if (isX) hp = (TH1D*) ((TH2*) h)->ProjectionX("pproj", fbin1, lbin1, option);
-            if (isY) hp = (TH1D*) ((TH2*) h)->ProjectionY("pproj", fbin1, lbin1, option);
+            if (relW)
+                hp = CreateProjection_RelWeight(projaxis, h);
+            else
+            {
+                if (isX) hp = (TH1D*) ((TH2*) h)->ProjectionX("p", fbin1, lbin1, opt.Data());
+                if (isY) hp = (TH1D*) ((TH2*) h)->ProjectionY("p", fbin1, lbin1, opt.Data());
+            }
         }
         else if (h->GetDimension() == 3)
         {
-            if (isX) hp = (TH1D*) ((TH3*) h)->ProjectionX("pproj", fbin1, lbin1, fbin2, lbin2, option);
-            if (isY) hp = (TH1D*) ((TH3*) h)->ProjectionY("pproj", fbin1, lbin1, fbin2, lbin2, option);
-            if (isZ) hp = (TH1D*) ((TH3*) h)->ProjectionZ("pproj", fbin1, lbin1, fbin2, lbin2, option);
+            if (relW)
+                hp = CreateProjection_RelWeight(projaxis, h);
+            else
+            {
+                if (isX) hp = (TH1D*) ((TH3*) h)->ProjectionX("p", fbin1, lbin1, fbin2, lbin2, opt.Data());
+                if (isY) hp = (TH1D*) ((TH3*) h)->ProjectionY("p", fbin1, lbin1, fbin2, lbin2, opt.Data());
+                if (isZ) hp = (TH1D*) ((TH3*) h)->ProjectionZ("p", fbin1, lbin1, fbin2, lbin2, opt.Data());
+            }
         }
+
+        TH1::AddDirectory(status);
 
         // create output histogram (if not created yet)
         if (!hOut)
