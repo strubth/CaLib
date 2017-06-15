@@ -24,6 +24,7 @@ namespace TCUtils
                         Double_t* outPar0, Double_t* outPar1);
     TH1* DeriveHistogram(TH1* inH);
     void ZeroBins(TH1* inH, Double_t th = 0);
+    void SetEmptyBinError(TH1* inH, Double_t err /*= 1.*/);
     Double_t Pi0Func(Double_t* x, Double_t* par);
     Double_t GaussLowExpTailPol3(Double_t* x, Double_t* par);
     Double_t GetHistogramMinimum(TH1* h);

@@ -95,6 +95,36 @@ void TCUtils::ZeroBins(TH1* inH, Double_t th)
 }
 
 //______________________________________________________________________________
+void TCUtils::SetEmptyBinError(TH1* inH, Double_t err /*= 1.*/)
+{
+    // Set errors of empty bins, i.e., bins where content == error == 0, to 'err'
+
+    // get number of bins
+    Int_t nbinsX = inH->GetNbinsX();
+    Int_t nbinsY = inH->GetNbinsY();
+    Int_t nbinsZ = inH->GetNbinsZ();
+
+    // loop over bins
+    // z bins
+    for (Int_t i = 0; i <= nbinsZ+1; i++)
+    {
+        // y bins
+        for (Int_t j = 0; j <= nbinsY+1; j++)
+        {
+            // x bins
+            for (Int_t k = 0; k <= nbinsX+1; k++)
+            {
+                if (inH->GetBinContent(k, j, i) == 0. &&
+                    inH->GetBinError(k, j, i) == 0.)
+                {
+                    inH->SetBinError(k, j, i, err);
+                }
+            }
+        }
+    }
+}
+
+//______________________________________________________________________________
 Double_t TCUtils::Pi0Func(Double_t* x, Double_t* par)
 {
     // Fitting function for the Pi0 peak in the invariant mass histogram.
