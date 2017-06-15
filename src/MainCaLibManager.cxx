@@ -667,6 +667,80 @@ void MergeSets()
 }
 
 //______________________________________________________________________________
+void EditValues()
+{
+    // Edit values
+    // (gCalibration and gCalibrationType have to be set)
+
+    Char_t answer[16];
+    Int_t set;
+    Int_t par_no;
+    Double_t new_value;
+
+    // echo input
+    echo();
+
+    // ask set
+    mvprintw(gNrow-11, 2, "Enter number of set (-1 for all)    : ");
+    scanw((Char_t*)"%d", &set);
+
+    // ask parameter number
+    mvprintw(gNrow-10, 2, "Enter parameter number (-1 for all) : ");
+    scanw((Char_t*)"%d", &par_no);
+
+    // ask new value
+    mvprintw(gNrow-9, 2,  "Enter new value                     : ");
+    scanw((Char_t*)"%lf", &new_value);
+
+    // ask confirmation
+    if (set == -1 && par_no == -1)
+        mvprintw(gNrow-7, 2, "Changing values all parameters of all sets to %lf", new_value);
+    else if (set == -1)
+        mvprintw(gNrow-7, 2, "Changing values of parameter %d of all sets to %lf", par_no, new_value);
+    else if (par_no == -1)
+        mvprintw(gNrow-7, 2, "Changing values of all parameters of set %d to %lf", set, new_value);
+    else
+        mvprintw(gNrow-7, 2, "Changing value of parameter %d of set %d to %lf", par_no, set, new_value);
+    mvprintw(gNrow-5, 6, "Are you sure to continue? (yes/no) : ");
+    scanw((Char_t*)"%s", answer);
+    if (strcmp(answer, "yes"))
+    {
+        mvprintw(gNrow-3, 2, "Aborted.");
+    }
+    else
+    {
+         // edit
+         Bool_t ret = TCMySQLManager::GetManager()->WriteSingleParameter(gCalibrationData->GetName(), gCalibration, set,
+                                                                         par_no, new_value);
+
+         // check return value
+         if (ret)
+             mvprintw(gNrow-3, 2, "Changed parameters successfully");
+         else
+             mvprintw(gNrow-3, 2, "There was an error!");
+    }
+
+    // user information
+    PrintStatusMessage("Hit ESC or 'q' to exit");
+
+    // wait for input
+    for (;;)
+    {
+        // get key
+        Int_t c = getch();
+
+        // leave loop
+        if (c == KEY_ESC || c == 'q') break;
+    }
+
+    // don't echo input
+    noecho();
+
+    // go back (to the calibration editor)
+    return;
+}
+
+//______________________________________________________________________________
 void RunBrowser()
 {
     // Show the run browser.
@@ -773,11 +847,23 @@ void RunBrowser()
 }
 
 //______________________________________________________________________________
-void CalibBrowser(Bool_t browseTypes)
+void CalibBrowser(const Char_t* mode = "")
 {
-    // Show the calibration browser.
-    // Browse calibration types if 'browseTypes' is kTRUE, otherwise browser
-    // calibration data.
+    // Show the calibration browser using the mode 'mode' (see below).
+
+    // init flags
+    Bool_t browseTypes = kFALSE;
+    Bool_t editSets = kFALSE;
+    Bool_t editValues = kFALSE;
+
+    // set flags according to mode
+    if (!strcmp(mode, "edit_values"))
+        editValues = kTRUE;
+    if (!strcmp(mode, "edit_sets"))
+    {
+        browseTypes = kTRUE;
+        editSets = kTRUE;
+    }
 
     // init choice
     Int_t choice = 0;
@@ -851,10 +937,15 @@ void CalibBrowser(Bool_t browseTypes)
         Int_t winWidth = gNcol;
 
         // set operations
-        if (browseTypes)
+        if (editSets)
         {
             mvprintw(gNrow-13, 2, "Set operations:");
             mvprintw(gNrow-12, 2, "[s] split set    [m] merge sets");
+        }
+        else if (editValues)
+        {
+            mvprintw(gNrow-13, 2, "Edit operations:");
+            mvprintw(gNrow-12, 2, "[e] edit parameters");
         }
 
         // refresh windows
@@ -907,15 +998,21 @@ void CalibBrowser(Bool_t browseTypes)
                 else continue;
             }
             // split set
-            else if (browseTypes && c == 's')
+            else if (editSets && c == 's')
             {
                 SplitSet();
                 break;
             }
             // merge set
-            else if (browseTypes && c == 'm')
+            else if (editSets && c == 'm')
             {
                 MergeSets();
+                break;
+            }
+            // edit values
+            else if (editValues && c == 'e')
+            {
+                EditValues();
                 break;
             }
             // exit
@@ -2082,9 +2179,10 @@ void CalibEditor()
     // menu configuration
     const Char_t mTitle[] = "CALIBRATION EDITOR";
     const Char_t mMsg[] = "Select a calibration operation";
-    const Int_t mN = 7;
+    const Int_t mN = 8;
     const Char_t* mEntries[] = { "Browse calibration data",
                                  "Manipulate calibration sets",
+                                 "Manipulate calibration values",
                                  "Change run range",
                                  "Change description",
                                  "Rename calibration",
@@ -2104,19 +2202,21 @@ void CalibEditor()
         switch (choice)
         {
             case -1: return;
-            case  0: CalibBrowser(kFALSE);
+            case  0: CalibBrowser();
                      break;
-            case  1: CalibBrowser(kTRUE);
+            case  1: CalibBrowser("edit_sets");
                      break;
-            case  2: ChangeRunRange();
+            case  2: CalibBrowser("edit_values");
                      break;
-            case  3: ChangeDescription();
+            case  3: ChangeRunRange();
                      break;
-            case  4: RenameCalibration();
+            case  4: ChangeDescription();
                      break;
-            case  5: DeleteCalibration();
+            case  5: RenameCalibration();
                      break;
-            case  6: return;
+            case  6: DeleteCalibration();
+                     break;
+            case  7: return;
         }
     }
 }
