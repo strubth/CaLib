@@ -22,6 +22,8 @@ class THashList;
 class TList;
 class TCBadScRElement;
 class TCContainer;
+class TCCalibType;
+class TCCalibData;
 
 enum EServerType {
     kNoType,
@@ -51,7 +53,7 @@ private:
     Bool_t SearchRunEntry(Int_t run, const Char_t* name, TString& outInfo);
     Bool_t SearchSetEntry(const Char_t* data, const Char_t* calibration, Int_t set,
                           const Char_t* name, Char_t* outInfo);
-    TList* SearchDistinctEntries(const Char_t* data, const Char_t* table);
+    TList* SearchDistinctEntries(const Char_t* field, const Char_t* table);
 
     Bool_t ChangeRunEntries(Int_t first_run, Int_t last_run,
                             const Char_t* name, const Char_t* value);
@@ -84,6 +86,8 @@ public:
     ServerType_t GetDBType() const  { return fDBType; }
     THashList* GetDataTable() const { return fData; }
     THashList* GetTypeTable() const { return fTypes; }
+    TCCalibType* GetCalibType(const Char_t* type) const;
+    TCCalibData* GetCalibData(const Char_t* data) const;
 
     void CreateMainTable();
     Bool_t CreateDataTable(const Char_t* data, Int_t nElem);

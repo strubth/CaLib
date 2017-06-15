@@ -349,7 +349,7 @@ Bool_t TCMySQLManager::ReadCaLibTypes()
                         if (!type) type = new TCCalibType(name, title);
 
                         // get calibration data
-                        TCCalibData* d = (TCCalibData*) fData->FindObject(str.Data());
+                        TCCalibData* d = GetCalibData(str.Data());
 
                         // add calibration data
                         if (d) type->AddData(d);
@@ -423,6 +423,40 @@ const Char_t* TCMySQLManager::GetDBHost() const
 }
 
 //______________________________________________________________________________
+TCCalibType* TCMySQLManager::GetCalibType(const Char_t* type) const
+{
+    // Returns a pointer to the calibration type 'type'.
+    // If no calibration type named 'type' is found 0 is returned.
+
+    // get calibration type
+    TCCalibType* t = (TCCalibType*) fTypes->FindObject(type);
+    if (!t)
+    {
+        if (!fSilence) Error("GetCalibType", "Calibration type named '%s' is not defined!", type);
+            return 0;
+    }
+
+    return t;
+}
+
+//______________________________________________________________________________
+TCCalibData* TCMySQLManager::GetCalibData(const Char_t* data) const
+{
+    // Returns a pointer to the calibration data 'data'.
+    // If no calibration data named 'data' is found 0 is returned.
+
+    // get calibration data
+    TCCalibData* d = (TCCalibData*) fData->FindObject(data);
+    if (!d)
+    {
+        if (!fSilence) Error("GetCalibData", "Calibration data named '%s' is not defined!", data);
+            return 0;
+    }
+
+    return d;
+}
+
+//______________________________________________________________________________
 TCMySQLManager* TCMySQLManager::GetManager()
 {
     // Return a pointer to the static instance of this class.
@@ -476,7 +510,7 @@ Bool_t TCMySQLManager::SearchTable(const Char_t* data, Char_t* outTableName)
     // Return kTRUE when a true table was found, otherwise kFALSE.
 
     // get CaLib data
-    TCCalibData* d = (TCCalibData*) fData->FindObject(data);
+    TCCalibData* d = GetCalibData(data);
 
     // check data
     if (d)
@@ -546,6 +580,9 @@ Bool_t TCMySQLManager::SearchSetEntry(const Char_t* data, const Char_t* calibrat
 
     TString query;
     Char_t table[256];
+
+    // check for data
+    if (!GetCalibData(data)) return kFALSE;
 
     // get the data table
     if (!SearchTable(data, table))
@@ -640,6 +677,10 @@ Bool_t TCMySQLManager::ChangeSetEntry(const Char_t* data, const Char_t* calibrat
     TString query;
     Char_t table[256];
 
+    // get data
+    TCCalibData* d = GetCalibData(data);
+    if (!d) return kFALSE;
+
     // get the data table
     if (!SearchTable(data, table))
     {
@@ -663,7 +704,7 @@ Bool_t TCMySQLManager::ChangeSetEntry(const Char_t* data, const Char_t* calibrat
     if (!res)
     {
         if (!fSilence) Error("ChangeSetEntry", "Could not set the information '%s' for set %d of '%s' to '%s'!",
-                                               name, set, ((TCCalibData*) fData->FindObject(data))->GetTitle(), value);
+                             name, set, d->GetTitle(), value);
         return kFALSE;
     }
 
@@ -678,6 +719,9 @@ Int_t TCMySQLManager::GetNsets(const Char_t* data, const Char_t* calibration)
 
     TString query;
     Char_t table[256];
+
+    // check for data
+    if (!GetCalibData(data)) return 0;
 
     // get the data table
     if (!SearchTable(data, table))
@@ -724,6 +768,9 @@ Int_t TCMySQLManager::GetFirstRunOfSet(const Char_t* data, const Char_t* calibra
 
     Char_t tmp[256];
 
+    // check for data
+    if (!GetCalibData(data)) return 0;
+
     // get the data
     if (SearchSetEntry(data, calibration, set, "first_run", tmp)) return atoi(tmp);
     else
@@ -740,6 +787,9 @@ Int_t TCMySQLManager::GetLastRunOfSet(const Char_t* data, const Char_t* calibrat
     // 'calibration' and the calibration data 'data'.
 
     Char_t tmp[256];
+
+    // check for data
+    if (!GetCalibData(data)) return 0;
 
     // get the data
     if (SearchSetEntry(data, calibration, set, "last_run", tmp)) return atoi(tmp);
@@ -759,6 +809,9 @@ void TCMySQLManager::GetDescriptionOfSet(const Char_t* data, const Char_t* calib
 
     Char_t tmp[256];
 
+    // check for data
+    if (!GetCalibData(data)) return;
+
     // get the data
     if (SearchSetEntry(data, calibration, set, "description", tmp)) strcpy(outDesc, tmp);
     else
@@ -775,6 +828,9 @@ void TCMySQLManager::GetChangeTimeOfSet(const Char_t* data, const Char_t* calibr
     // 'calibration' and the calibration data 'data'.
 
     Char_t tmp[256];
+
+    // check for data
+    if (!GetCalibData(data)) return;
 
     // get the data
     if (SearchSetEntry(data, calibration, set, "changed", tmp)) strcpy(outTime, tmp);
@@ -855,6 +911,8 @@ Int_t* TCMySQLManager::GetRunsOfSet(const Char_t* data, const Char_t* calibratio
     // NOTE: the run array must be destroyed by the caller.
 
     TString query;
+    // check for data
+    if (!GetCalibData(data)) return 0;
 
     // get first and last run
     Int_t first_run = GetFirstRunOfSet(data, calibration, set);
@@ -926,6 +984,9 @@ Int_t TCMySQLManager::GetSetForRun(const Char_t* data, const Char_t* calibration
     // identifier 'calibration' the run 'run' belongs to.
     // Return -1 if there is no such set.
 
+    // check for data
+    if (!GetCalibData(data)) return -1;
+
     // get number of sets
     Int_t nSet = GetNsets(data, calibration);
     if (!nSet) return -1;
@@ -961,6 +1022,10 @@ Bool_t TCMySQLManager::ReadParametersRun(const Char_t* data, const Char_t* calib
     // 'calibration' valid for the run 'run' from the database to the value array 'par'.
     // Return kFALSE if an error occurred, otherwise kTRUE.
 
+    // get data
+    TCCalibData* d = GetCalibData(data);
+    if (!d) return kFALSE;
+
     // get set
     Int_t set = GetSetForRun(data, calibration, run);
 
@@ -968,7 +1033,7 @@ Bool_t TCMySQLManager::ReadParametersRun(const Char_t* data, const Char_t* calib
     if (set == -1)
     {
         if (!fSilence) Error("ReadParametersRun", "No set of '%s' found for run %d",
-                             ((TCCalibData*) fData->FindObject(data))->GetTitle(), run);
+                             d->GetTitle(), run);
         return kFALSE;
     }
 
@@ -987,6 +1052,10 @@ Bool_t TCMySQLManager::ReadParameters(const Char_t* data, const Char_t* calibrat
     TString query;
     Char_t table[256];
 
+    // get data
+    TCCalibData* d = GetCalibData(data);
+    if (!d) return kFALSE;
+
     // get the data table
     if (!SearchTable(data, table))
     {
@@ -1001,7 +1070,7 @@ Bool_t TCMySQLManager::ReadParameters(const Char_t* data, const Char_t* calibrat
     if (!first_run)
     {
         if (!fSilence) Error("ReadParameters", "No calibration found for set %d of '%s'!",
-                             set, ((TCCalibData*) fData->FindObject(data))->GetTitle());
+                             set, d->GetTitle());
         return kFALSE;
     }
 
@@ -1018,7 +1087,7 @@ Bool_t TCMySQLManager::ReadParameters(const Char_t* data, const Char_t* calibrat
     if (!res)
     {
         if (!fSilence) Error("ReadParameters", "No calibration found for set %d of '%s'!",
-                             set, ((TCCalibData*) fData->FindObject(data))->GetTitle());
+                             set, d->GetTitle());
         return kFALSE;
     }
 
@@ -1029,7 +1098,7 @@ Bool_t TCMySQLManager::ReadParameters(const Char_t* data, const Char_t* calibrat
     if (!row)
     {
         if (!fSilence) Error("ReadParameters", "No calibration found for set %d of '%s'!",
-                             set, ((TCCalibData*) fData->FindObject(data))->GetTitle());
+                             set, d->GetTitle());
         delete res;
         return kFALSE;
     }
@@ -1042,7 +1111,7 @@ Bool_t TCMySQLManager::ReadParameters(const Char_t* data, const Char_t* calibrat
 
     // user information
     if (!fSilence) Info("ReadParameters", "Read %d parameters of '%s' from the database",
-                        length, ((TCCalibData*) fData->FindObject(data))->GetTitle());
+                        length, d->GetTitle());
 
     return kTRUE;
 }
@@ -1056,6 +1125,10 @@ Bool_t TCMySQLManager::WriteParameters(const Char_t* data, const Char_t* calibra
     // Return kFALSE if an error occurred, otherwise kTRUE.
 
     Char_t table[256];
+
+    // get data
+    TCCalibData* d = GetCalibData(data);
+    if (!d) return kFALSE;
 
     // get the data table
     if (!SearchTable(data, table))
@@ -1071,7 +1144,7 @@ Bool_t TCMySQLManager::WriteParameters(const Char_t* data, const Char_t* calibra
     if (!first_run)
     {
         if (!fSilence) Error("WriteParameters", "Could not write parameters of '%s'!",
-                                                ((TCCalibData*) fData->FindObject(data))->GetTitle());
+                             d->GetTitle());
         return kFALSE;
     }
 
@@ -1097,13 +1170,13 @@ Bool_t TCMySQLManager::WriteParameters(const Char_t* data, const Char_t* calibra
     if (!res)
     {
         if (!fSilence) Error("WriteParameters", "Could not write parameters of '%s'!",
-                             ((TCCalibData*) fData->FindObject(data))->GetTitle());
+                             d->GetTitle());
         return kFALSE;
     }
     else
     {
         if (!fSilence) Info("WriteParameters", "Wrote %d parameters of '%s' to the database",
-                                               length, ((TCCalibData*) fData->FindObject(data))->GetTitle());
+                            length, d->GetTitle());
         return kTRUE;
     }
 }
@@ -1293,8 +1366,9 @@ Bool_t TCMySQLManager::AddNewDataTable(const Char_t* data)
 
     Char_t tmp[256];
 
-    // get calibration data
-    TCCalibData* d = (TCCalibData*)fData->FindObject(data);
+    // get data
+    TCCalibData* d = GetCalibData(data);
+    if (!d) return kFALSE;
 
     // check if table exists already
     if (SendExec(TString::Format("SELECT 1 from %s LIMIT 1", d->GetTableName())))
@@ -1903,18 +1977,22 @@ Bool_t TCMySQLManager::RemoveCalibration(const Char_t* calibration, const Char_t
 
     TString query;
 
+    // get data
+    TCCalibData* d = GetCalibData(data);
+    if (!d) return kFALSE;
+
     // check if calibration was not found
     if (!ContainsCalibration(calibration))
     {
         if (!fSilence) Error("RemoveCalibration", "Calibration '%s' of calibration '%s' was not found in database!",
-                             ((TCCalibData*) fData->FindObject(data))->GetTitle(), calibration);
+                             d->GetTitle(), calibration);
         return kFALSE;
     }
 
     // create the query
     query.Form("DELETE from %s "
                "WHERE calibration = '%s'",
-               ((TCCalibData*) fData->FindObject(data))->GetTableName(), calibration);
+               d->GetTableName(), calibration);
 
     // read from database
     Bool_t res = SendExec(query.Data());
@@ -1923,12 +2001,12 @@ Bool_t TCMySQLManager::RemoveCalibration(const Char_t* calibration, const Char_t
     if (!res)
     {
         if (!fSilence) Error("RemoveCalibration", "Could not remove calibration '%s' of calibration '%s'!",
-                             ((TCCalibData*) fData->FindObject(data))->GetTitle(), calibration);
+                             d->GetTitle(), calibration);
         return kFALSE;
     }
 
     if (!fSilence) Info("RemoveCalibration", "Removed calibration '%s' of calibration '%s'",
-                        ((TCCalibData*) fData->FindObject(data))->GetTitle(), calibration);
+                        d->GetTitle(), calibration);
 
     return kTRUE;
 }
@@ -2164,6 +2242,9 @@ Bool_t TCMySQLManager::CreateDataTable(const Char_t* data, Int_t nElem)
 
     Char_t table[256];
 
+    // check for data
+    if (!GetCalibData(data)) return kFALSE;
+
     // get the table name
     if (!SearchTable(data, table))
     {
@@ -2226,7 +2307,7 @@ Bool_t TCMySQLManager::CreateDataTable(const Char_t* data, Int_t nElem)
 }
 
 //______________________________________________________________________________
-TList* TCMySQLManager::SearchDistinctEntries(const Char_t* data, const Char_t* table)
+TList* TCMySQLManager::SearchDistinctEntries(const Char_t* field, const Char_t* table)
 {
     // Return a list of TStrings containing all distinct entries of the type
     // 'data' in the table 'table' of the CaLib database.
@@ -2236,8 +2317,16 @@ TList* TCMySQLManager::SearchDistinctEntries(const Char_t* data, const Char_t* t
     TString query;
 
     // get all entries
-    query.Form("SELECT DISTINCT %s from %s", data, table);
+    query.Form("SELECT DISTINCT %s from %s", field, table);
     TSQLResult* res = SendQuery(query.Data());
+
+    // check result
+    if (!res)
+    {
+        if (!fSilence) Error("SearchDistinctEntries", "Could find field '%s' in table '%s'!",
+                             field, table);
+        return kFALSE;
+    }
 
     // create list for rows
     TList rows;
@@ -2301,7 +2390,11 @@ TList* TCMySQLManager::GetAllCalibrations(const Char_t* data)
     // If no calibrations were found 0 is returned.
     // NOTE: The list must be destroyed by the caller.
 
-    return SearchDistinctEntries("calibration", ((TCCalibData*) fData->FindObject(data))->GetTableName());
+    // get data
+    TCCalibData* d = GetCalibData(data);
+    if (!d) return 0;
+
+    return SearchDistinctEntries("calibration", d->GetTableName());
 }
 
 //______________________________________________________________________________
@@ -2316,6 +2409,10 @@ Bool_t TCMySQLManager::AddDataSet(const Char_t* data, const Char_t* calibration,
     // Return kFALSE when an error occurred, otherwise kTRUE.
 
     TString table;
+
+    // get data
+    TCCalibData* d = GetCalibData(data);
+    if (!d) return kFALSE;
 
     // do some checks concerning the run numbers
     if (!skipChecks)
@@ -2421,13 +2518,13 @@ Bool_t TCMySQLManager::AddDataSet(const Char_t* data, const Char_t* calibration,
     if (!res)
     {
         if (!fSilence) Error("AddDataSet", "Could not add the set of '%s' for runs %d to %d!",
-                        ((TCCalibData*) fData->FindObject(data))->GetTitle(), first_run, last_run);
+                             d->GetTitle(), first_run, last_run);
         return kFALSE;
     }
     else
     {
         if (!fSilence) Info("AddDataSet", "Added set of '%s' for runs %d to %d",
-                                      ((TCCalibData*) fData->FindObject(data))->GetTitle(), first_run, last_run);
+                            d->GetTitle(), first_run, last_run);
         return kTRUE;
     }
 }
@@ -2441,8 +2538,12 @@ Bool_t TCMySQLManager::AddDataSet(const Char_t* data, const Char_t* calibration,
     // description. Set all parameters to the value 'par'.
     // Return kFALSE when an error occurred, otherwise kTRUE.
 
+    // get data
+    TCCalibData* d = GetCalibData(data);
+    if (!d) return kFALSE;
+
     // get maximum number of parameters
-    Int_t length = ((TCCalibData*) fData->FindObject(data))->GetSize();
+    Int_t length = d->GetSize();
 
     // create and fill parameter array
     Double_t par_array[length];
@@ -2467,16 +2568,14 @@ Bool_t TCMySQLManager::AddSet(const Char_t* type, const Char_t* calibration, con
     Double_t par_array[TCConfig::kMaxCrystal];
     for (Int_t i = 0; i < TCConfig::kMaxCrystal; i++) par_array[i] = par;
 
-    // get calibration type and data list
-    TCCalibType* t = (TCCalibType*) fTypes->FindObject(type);
-    if (!t)
-    {
-        if (!fSilence) Error("AddSet", "No calibration data found for calibration type '%s'!", type);
-        return kFALSE;
-    }
+    // get calibration type
+    TCCalibType* t = GetCalibType(type);
+    if (!t) return kFALSE;
+
+    // get data list
+    TList* data = t->GetData();
 
     // loop over calibration data of this calibration type
-    TList* data = t->GetData();
     TIter next(data);
     TCCalibData* d;
     while ((d = (TCCalibData*)next()))
@@ -2498,6 +2597,10 @@ Bool_t TCMySQLManager::RemoveDataSet(const Char_t* data, const Char_t* calibrati
     TString query;
     Char_t table[256];
 
+    // get data
+    TCCalibData* d = GetCalibData(data);
+    if (!d) return kFALSE;
+
     // get the data table
     if (!SearchTable(data, table))
     {
@@ -2512,7 +2615,7 @@ Bool_t TCMySQLManager::RemoveDataSet(const Char_t* data, const Char_t* calibrati
     if (!first_run)
     {
         if (!fSilence) Error("RemoveDataSet", "Could not delete set %d in '%s' of calibration '%s'!",
-                             set, ((TCCalibData*) fData->FindObject(data))->GetTitle(), calibration);
+                             set, d->GetTitle(), calibration);
         return kFALSE;
     }
 
@@ -2529,13 +2632,13 @@ Bool_t TCMySQLManager::RemoveDataSet(const Char_t* data, const Char_t* calibrati
     if (!res)
     {
         if (!fSilence) Error("RemoveDataSet", "Could not delete set %d in '%s' of calibration '%s'!",
-                           set, ((TCCalibData*) fData->FindObject(data))->GetTitle(), calibration);
+                             set, d->GetTitle(), calibration);
         return kFALSE;
     }
     else
     {
         if (!fSilence) Info("RemoveDataSet", "Deleted set %d in '%s' of calibration '%s'",
-                                         set, ((TCCalibData*) fData->FindObject(data))->GetTitle(), calibration);
+                            set, d->GetTitle(), calibration);
         return kTRUE;
     }
 }
@@ -2548,8 +2651,11 @@ Bool_t TCMySQLManager::RemoveSet(const Char_t* type, const Char_t* calibration, 
 
     Bool_t ret = kTRUE;
 
-    // get calibration type and data list
-    TCCalibType* t = (TCCalibType*) fTypes->FindObject(type);
+    // get calibration type
+    TCCalibType* t = GetCalibType(type);
+    if (!t) return kFALSE;
+
+    // get data list
     TList* data = t->GetData();
 
     // loop over calibration data of this calibration type
@@ -2575,6 +2681,10 @@ Bool_t TCMySQLManager::SplitDataSet(const Char_t* data, const Char_t* calibratio
 
     TString query;
     TString tmp;
+
+    // get data
+    TCCalibData* d = GetCalibData(data);
+    if (!d) return kFALSE;
 
     // check if splitting run exists
     if (!SearchRunEntry(lastRunFirstSet, "run", tmp))
@@ -2647,19 +2757,19 @@ Bool_t TCMySQLManager::SplitDataSet(const Char_t* data, const Char_t* calibratio
     if (!SearchSetEntry(data, calibration, set, "description", desc))
     {
         if (!fSilence) Error("SplitDataSet", "Cannot read description of set %d in '%s' of calibration '%s'",
-                          set, ((TCCalibData*) fData->FindObject(data))->GetTitle(), calibration);
+                             set, d->GetTitle(), calibration);
         return kFALSE;
     }
 
     // get number of parameters
-    Int_t nPar = ((TCCalibData*) fData->FindObject(data))->GetSize();
+    Int_t nPar = d->GetSize();
 
     // backup parameters
     Double_t par[nPar];
     if (!ReadParameters(data, calibration, set, par, nPar))
     {
         if (!fSilence) Error("SplitDataSet", "Cannot backup parameters of set %d in '%s' of calibration '%s'",
-                          set, ((TCCalibData*) fData->FindObject(data))->GetTitle(), calibration);
+                             set, d->GetTitle(), calibration);
     }
 
     //
@@ -2671,13 +2781,13 @@ Bool_t TCMySQLManager::SplitDataSet(const Char_t* data, const Char_t* calibratio
     if (!ChangeSetEntry(data, calibration, set, "last_run", tmp.Data()))
     {
         if (!fSilence) Error("SplitDataSet", "Cannot change last run of set %d in '%s' of calibration '%s'",
-                          set, ((TCCalibData*) fData->FindObject(data))->GetTitle(), calibration);
+                             set, d->GetTitle(), calibration);
         return kFALSE;
     }
     else
     {
         if (!fSilence) Info("SplitDataSet", "Changed last run of set %d in '%s' of calibration '%s' to %d",
-                                        set, ((TCCalibData*) fData->FindObject(data))->GetTitle(), calibration, lastRunFirstSet);
+                            set, d->GetTitle(), calibration, lastRunFirstSet);
     }
 
     //
@@ -2687,7 +2797,7 @@ Bool_t TCMySQLManager::SplitDataSet(const Char_t* data, const Char_t* calibratio
     if (!AddDataSet(data, calibration, desc, firstRunSecondSet, lastRunSecondSet, par, nPar))
     {
         if (!fSilence) Error("SplitDataSet", "Cannot split set %d in '%s' of calibration '%s'",
-                             set, ((TCCalibData*) fData->FindObject(data))->GetTitle(), calibration);
+                             set, d->GetTitle(), calibration);
         return kFALSE;
     }
 
@@ -2704,8 +2814,11 @@ Bool_t TCMySQLManager::SplitSet(const Char_t* type, const Char_t* calibration, I
 
     Bool_t ret = kTRUE;
 
-    // get calibration type and data list
-    TCCalibType* t = (TCCalibType*) fTypes->FindObject(type);
+    // get calibration type
+    TCCalibType* t = GetCalibType(type);
+    if (!t) return kFALSE;
+
+    // get data list
     TList* data = t->GetData();
 
     // loop over calibration data of this calibration type
@@ -2732,6 +2845,10 @@ Bool_t TCMySQLManager::MergeDataSets(const Char_t* data, const Char_t* calibrati
 
     Char_t tmp[256];
 
+    // get data
+    TCCalibData* d = GetCalibData(data);
+    if (!d) return kFALSE;
+
     // check if the two sets are adjacent
     if (TMath::Abs(set2 - set1) != 1)
     {
@@ -2751,7 +2868,7 @@ Bool_t TCMySQLManager::MergeDataSets(const Char_t* data, const Char_t* calibrati
     if (!firstSet1 || !lastSet1)
     {
         if (!fSilence) Error("MergeDataSets", "Could not find set %d in '%s' of calibration '%s'!",
-                             set1, ((TCCalibData*) fData->FindObject(data))->GetTitle(), calibration);
+                             set1, d->GetTitle(), calibration);
         return kFALSE;
     }
 
@@ -2759,7 +2876,7 @@ Bool_t TCMySQLManager::MergeDataSets(const Char_t* data, const Char_t* calibrati
     if (!firstSet2 || !lastSet2)
     {
         if (!fSilence) Error("MergeDataSets", "Could not find set %d in '%s' of calibration '%s'!",
-                             set2, ((TCCalibData*) fData->FindObject(data))->GetTitle(), calibration);
+                             set2, d->GetTitle(), calibration);
         return kFALSE;
     }
 
@@ -3108,8 +3225,11 @@ Bool_t TCMySQLManager::MergeSets(const Char_t* type, const Char_t* calibration,
 
     Bool_t ret = kTRUE;
 
-    // get calibration type and data list
-    TCCalibType* t = (TCCalibType*) fTypes->FindObject(type);
+    // get calibration type
+    TCCalibType* t = GetCalibType(type);
+    if (!t) return kFALSE;
+
+    // get data list
     TList* data = t->GetData();
 
     // loop over calibration data of this calibration type
@@ -3247,8 +3367,12 @@ Int_t TCMySQLManager::DumpCalibrations(TCContainer* container, const Char_t* cal
 
     Char_t tmp[256];
 
+    // get data
+    TCCalibData* d = GetCalibData(data);
+    if (!d) return 0;
+
     // get number of parameters
-    Int_t nPar = ((TCCalibData*) fData->FindObject(data))->GetSize();
+    Int_t nPar = d->GetSize();
 
     // create the parameter array
     Double_t par[nPar];
@@ -3260,7 +3384,7 @@ Int_t TCMySQLManager::DumpCalibrations(TCContainer* container, const Char_t* cal
     if (!nSet)
     {
         if (!fSilence) Error("DumpCalibrations", "No sets of '%s' of the calibration '%s' found!",
-                             ((TCCalibData*) fData->FindObject(data))->GetTitle(), calibration);
+                             d->GetTitle(), calibration);
         return 0;
     }
 
@@ -3294,7 +3418,7 @@ Int_t TCMySQLManager::DumpCalibrations(TCContainer* container, const Char_t* cal
 
     // user information
     if (!fSilence) Info("DumpCalibrations", "Dumped %d sets of '%s' of the calibration '%s'",
-                        nSet, ((TCCalibData*) fData->FindObject(data))->GetTitle(), calibration);
+                        nSet, d->GetTitle(), calibration);
 
     return nSet;
 }
@@ -3399,6 +3523,9 @@ Int_t TCMySQLManager::ImportCalibrations(TCContainer* container, const Char_t* n
     // If 'data' is not 0 import only calibrations of the data 'data'.
     // Return the number of imported calibrations.
 
+    // check data
+    if (data && !GetCalibData(data)) return 0;
+
     // get number of calibrations
     Int_t nCalib = container->GetNCalibrations();
 
@@ -3417,18 +3544,21 @@ Int_t TCMySQLManager::ImportCalibrations(TCContainer* container, const Char_t* n
         if (newCalibName) calibration = newCalibName;
         else calibration = c->GetCalibration();
 
+        TCCalibData* d = GetCalibData(c->GetCalibData());
+        if (!d) continue;
+
         // add the set
         if (AddDataSet(c->GetCalibData(), calibration, c->GetDescription(),
                        c->GetFirstRun(), c->GetLastRun(), c->GetParameters(), c->GetNParameters(), kTRUE))
         {
             if (!fSilence) Info("ImportCalibrations", "Added calibration '%s' of '%s' to the database",
-                                calibration, ((TCCalibData*) fData->FindObject(c->GetCalibData()))->GetTitle());
+                                calibration, d->GetTitle());
             nCalibAdded++;
         }
         else
         {
             if (!fSilence) Error("ImportCalibrations", "Calibration '%s' of '%s' could not be added to the database!",
-                                 calibration, ((TCCalibData*) fData->FindObject(c->GetCalibData()))->GetTitle());
+                                 calibration, d->GetTitle());
         }
     }
 
@@ -3442,9 +3572,12 @@ Int_t TCMySQLManager::ImportCalibrations(TCContainer* container, const Char_t* n
 Bool_t TCMySQLManager::CloneCalibration(const Char_t* calibration, const Char_t* newCalibrationName,
                                         const Char_t* newDesc, Int_t new_first_run, Int_t new_last_run)
 {
-    // Create a clone of the calibration 'calibration' using 'newCalibrationName' as
-    // the new calibration name and 'newDesc' as the calibration description.
-    // For each calibration data one set from 'new_first_run' to 'new_last_run'
+    // Create a clone of the calibration 'calibration' using 'newCalibrationName'
+    // as the new calibration name and 'newDesc' as the calibration description.
+    // If 'new_first_run' and 'new_last_run' are both equal to zero for each
+    // calibration data all sets are copied.
+    // Otherwise, if 'new_first_run' and 'new_last_run' are not equal to zero,
+    // for each calibration data one set from 'new_first_run' to 'new_last_run'
     // is created with the values of the last set of the original calibration.
     // Return kFALSE if an error occurred, otherwise kTRUE.
 
@@ -3455,6 +3588,9 @@ Bool_t TCMySQLManager::CloneCalibration(const Char_t* calibration, const Char_t*
         return kFALSE;
     }
 
+    // set "true clone" flag
+    Bool_t true_clone = (new_first_run == 0 && new_last_run == 0) ? kTRUE : kFALSE;
+
     // loop over calibration data
     TIter next(fData);
     TCCalibData* d;
@@ -3464,21 +3600,52 @@ Bool_t TCMySQLManager::CloneCalibration(const Char_t* calibration, const Char_t*
         // get number of original sets
         Int_t nSets = GetNsets(d->GetName(), calibration);
 
-        // read parameters
-        Double_t par[d->GetSize()];
-        if (ReadParameters(d->GetName(), calibration, nSets-1, par, d->GetSize()))
+        // check for true clone
+        if (true_clone)
         {
-            // add new set
-            if (!AddDataSet(d->GetName(), newCalibrationName, newDesc, new_first_run, new_last_run, par, d->GetSize()))
+            // loop over sets
+            for (Int_t i = 0; i < nSets; i++)
             {
-                if (!fSilence) Error("CloneCalibration", "Could not clone calibration data '%s'!", d->GetName());
-                error = kTRUE;
+                // get run range of set
+                Int_t first_run = GetFirstRunOfSet(d->GetName(), calibration, i);
+                Int_t last_run = GetLastRunOfSet(d->GetName(), calibration, i);
+
+                // read parameters
+                Double_t par[d->GetSize()];
+                if (ReadParameters(d->GetName(), calibration, i, par, d->GetSize()))
+                {
+                    // add new set
+                    if (!AddDataSet(d->GetName(), newCalibrationName, newDesc, first_run, last_run, par, d->GetSize()))
+                    {
+                        if (!fSilence) Error("CloneCalibration", "Could not clone calibration data '%s'!", d->GetName());
+                        error = kTRUE;
+                    }
+                }
+                else
+                {
+                    if (!fSilence) Error("CloneCalibration", "Could not read original data '%s'!", d->GetName());
+                    error = kTRUE;
+                }
             }
         }
         else
         {
-            if (!fSilence) Error("CloneCalibration", "Could not read original data '%s'!", d->GetName());
-            error = kTRUE;
+            // read parameters
+            Double_t par[d->GetSize()];
+            if (ReadParameters(d->GetName(), calibration, nSets-1, par, d->GetSize()))
+            {
+                // add new set
+                if (!AddDataSet(d->GetName(), newCalibrationName, newDesc, new_first_run, new_last_run, par, d->GetSize()))
+                {
+                    if (!fSilence) Error("CloneCalibration", "Could not clone calibration data '%s'!", d->GetName());
+                    error = kTRUE;
+                }
+            }
+            else
+            {
+                if (!fSilence) Error("CloneCalibration", "Could not read original data '%s'!", d->GetName());
+                error = kTRUE;
+            }
         }
     }
 
