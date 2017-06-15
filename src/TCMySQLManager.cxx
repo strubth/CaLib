@@ -1182,6 +1182,98 @@ Bool_t TCMySQLManager::WriteParameters(const Char_t* data, const Char_t* calibra
 }
 
 //______________________________________________________________________________
+Bool_t TCMySQLManager::WriteSingleParameter(const Char_t* data, const Char_t* calibration, Int_t set,
+                                            Int_t par_number, Double_t par_value)
+{
+    // Writes the value 'par_value' to the 'par_number'-th parameter of the
+    // 'set'-th set of the calibration data 'data' for the calibration
+    // identifier 'calibration' to the database.
+    // If 'set' equals -1 the it writes to all sets.
+    // If 'par_number' equals -1 it writes to all parameters.
+    // Returns kFALSE if an error occurred, otherwise kTRUE.
+
+    // helper
+    Char_t table[256];
+
+    // get data
+    TCCalibData* d = GetCalibData(data);
+    if (!d) return kFALSE;
+
+    // get the data table
+    if (!SearchTable(data, table))
+    {
+        if (!fSilence) Error("WriteSingleParameter", "No data table found!");
+        return kFALSE;
+    }
+
+    // prepare set range
+    Int_t sets_first = set;
+    Int_t sets_last = set+1;
+    if (set == -1)
+    {
+        sets_first = 0;
+        sets_last = GetNsets(data, calibration);
+    }
+
+    // prepare set range
+    Int_t par_first = par_number;
+    Int_t par_last = par_number+1;
+    if (par_number == -1)
+    {
+        par_first = 0;
+        par_last = d->GetSize();
+    }
+
+    // loop over sets
+    for (Int_t i = sets_first; i < sets_last; i++)
+    {
+
+        // get the first run of the set
+        Int_t first_run = GetFirstRunOfSet(data, calibration, i);
+
+        // check first run
+        if (!first_run)
+        {
+            if (!fSilence) Error("WriteSingleParameter", "Could not write parameter(s) of '%s' for set '%d'!",
+                                 d->GetTitle(), i);
+            return kFALSE;
+        }
+
+        // prepare the insert query
+        TString query = TString::Format("UPDATE %s SET ", table);
+
+        // read all parameters and write them to new query
+        for (Int_t j = par_first; j < par_last; j++)
+        {
+            // append parameter to query
+            query.Append(TString::Format("par_%03d = %.17g", j, par_value));
+            if (j != par_last - 1) query.Append(",");
+        }
+
+        // finish query
+        query.Append(TString::Format(" WHERE calibration = '%s' AND first_run = %d",
+                                     calibration, first_run));
+
+        // write data to database
+        Bool_t res = SendExec(query.Data());
+
+        // check result
+        if (!res)
+        {
+            if (!fSilence) Error("WriteSingleParameter", "Could not write parameter(s) of '%s' for set '%d'!",
+                                 d->GetTitle(), i);
+            return kFALSE;
+        }
+        else
+        {
+            if (!fSilence) Info("WriteSingleParameter", "Wrote parameter(s) of '%s' to the database for  set '%d'.",
+                                 d->GetTitle(), i);
+        }
+    }
+    return kTRUE;
+}
+
+//______________________________________________________________________________
 Bool_t TCMySQLManager::InitDatabase(Bool_t interact)
 {
     // Init a new CaLib database on a MySQL server in interactive mode when

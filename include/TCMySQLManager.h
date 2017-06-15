@@ -115,6 +115,8 @@ public:
                              Double_t* par, Int_t length);
     Bool_t WriteParameters(const Char_t* data, const Char_t* calibration, Int_t set,
                            Double_t* par, Int_t length);
+    Bool_t WriteSingleParameter(const Char_t* data, const Char_t* calibration, Int_t set,
+                                Int_t par_number, Double_t par_value);
 
     Bool_t ChangeRunPath(Int_t first_run, Int_t last_run, const Char_t* path);
     Bool_t ChangeRunTarget(Int_t first_run, Int_t last_run, const Char_t* target);
