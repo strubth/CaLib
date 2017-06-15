@@ -83,6 +83,7 @@
 #include "TROOT.h"
 #include "TClass.h"
 #include "TKey.h"
+#include "TMath.h"
 #include "TH2.h"
 #include "TH3.h"
 #include "TFile.h"
@@ -897,6 +898,152 @@ TH2D* TCARHistoLoader::CreateHistoOfProj(const Char_t* hname, const Char_t proja
         hOut->SetDirectory(fHistoDirectory);
 
     return hOut;
+}
+
+//______________________________________________________________________________
+TH1* TCARHistoLoader::CreateProjection_RelWeight(Char_t projaxis, const TH1* h)
+{
+    // WARNING: This function is still under development. Behaviour and
+    //          signature might change in future!
+    //
+    // Creates a weighted projection of the histogramm 'h' on the axis 'projaxis'.
+    // The inverse weight of the bin (i, j, k) projected to the K-axis is
+    //   i_w[i][j] = sum_k BC(i,j,k)/mean
+    // where BC ist the bin content and
+    //   mean = sum_i,j BC(i,j,k) / (nbins_I*nbinx_K)
+
+    // check histo
+    if (!h) return 0;
+
+    // init projection axis flags
+    Bool_t onX = kFALSE;
+    Bool_t onY = kFALSE;
+    Bool_t onZ = kFALSE;
+
+    // check projection axis arument
+    if      (projaxis == 'x' || projaxis == 'X') onX = kTRUE;
+    else if (projaxis == 'y' || projaxis == 'Y') onY = kTRUE;
+    else if (projaxis == 'z' || projaxis == 'Z') onZ = kTRUE;
+    else
+    {
+        Error("CreateProjection_RelWeight", "'%c' is not a valid axis!", projaxis);
+        return 0;
+    }
+
+    // get number of bins & axis range
+    Int_t nbinsI, nbinsJ, nbinsO;
+    Double_t pxmin, pxmax;
+    if (onX)
+    {
+        nbinsO = h->GetNbinsX();
+        nbinsI = h->GetNbinsY();
+        nbinsJ = h->GetNbinsZ();
+        pxmin = h->GetXaxis()->GetBinLowEdge(1);
+        pxmax = h->GetXaxis()->GetBinUpEdge(nbinsO);
+    }
+    else if (onY)
+    {
+        nbinsI = h->GetNbinsX();
+        nbinsO = h->GetNbinsY();
+        nbinsJ = h->GetNbinsZ();
+        pxmin = h->GetYaxis()->GetBinLowEdge(1);
+        pxmax = h->GetYaxis()->GetBinUpEdge(nbinsO);
+    }
+    else
+    {
+        nbinsI = h->GetNbinsX();
+        nbinsJ = h->GetNbinsY();
+        nbinsO = h->GetNbinsZ();
+        pxmin = h->GetZaxis()->GetBinLowEdge(1);
+        pxmax = h->GetZaxis()->GetBinUpEdge(nbinsO);
+    }
+
+    // create histo
+    Char_t name[256];
+    sprintf(name, "%s_p%c", h->GetName(), projaxis);
+    Char_t title[256];
+    if (onX) sprintf(title, "%s;%s", name, h->GetXaxis()->GetTitle());
+    if (onY) sprintf(title, "%s;%s", name, h->GetYaxis()->GetTitle());
+    if (onZ) sprintf(title, "%s;%s", name, h->GetZaxis()->GetTitle());
+    TH1* hout = new TH1D(name, title, nbinsO, pxmin, pxmax);
+    hout->Sumw2();
+
+    // calculate inverse weights (include under/overflow)
+    Double_t w[nbinsI+2][nbinsJ+2];
+    for (Int_t i = 0; i <= nbinsI+1; i++)
+    {
+        for (Int_t j = 0; j <= nbinsJ+1; j++)
+        {
+            w[i][j] = 0;
+
+            for (Int_t o = 0; o <= nbinsO+1; o++)
+            {
+                Int_t bin;
+                if      (onX) bin = h->GetBin(o,i,j);
+                else if (onY) bin = h->GetBin(i,o,j);
+                else          bin = h->GetBin(i,j,o);
+                w[i][j] += h->GetBinContent(bin);
+            }
+        }
+    }
+
+    // calculate mean value (exclude under/overflow)
+    Double_t mean = 0;
+    for (Int_t i = 1; i <= nbinsI; i++)
+    {
+        for (Int_t j = 1; j <= nbinsJ; j++)
+        {
+            mean += w[i][j];
+        }
+    }
+    mean /= nbinsI*nbinsJ;
+
+    // calculate inverse weights (include under/overflow)
+    for (Int_t i = 0; i <= nbinsI+1; i++)
+    {
+        for (Int_t j = 0; j <= nbinsJ+1; j++)
+        {
+            w[i][j] = w[i][j]/mean;
+        }
+    }
+
+    // loop over proj axis
+    for (Int_t o = 0; o <= nbinsO+1; o++)
+    {
+        // init bin content and error
+        Double_t cont = 0;
+        Double_t err2 = 0;
+
+        // loop over first axis
+        for (Int_t i = 0; i <= nbinsI+1; i++)
+        {
+            // loop over second axis
+            for (Int_t j = 0; j <= nbinsJ+1; j++)
+            {
+                // get global bin
+                Int_t bin;
+                if      (onX) bin = h->GetBin(o,i,j);
+                else if (onY) bin = h->GetBin(i,o,j);
+                else          bin = h->GetBin(i,j,o);
+
+                // helper
+                Double_t inv_weight = w[i][j];
+
+                // get bin content and error
+                if (inv_weight)
+                {
+                    cont += h->GetBinContent(bin) / inv_weight;
+                    Double_t err = h->GetBinError(bin) / inv_weight;
+                    err2 += err*err;
+                }
+            }
+        }
+        hout->SetBinContent(o, cont);
+        hout->SetBinError(o, TMath::Sqrt(err2));
+    }
+
+    // return
+    return hout;
 }
 
 // finito

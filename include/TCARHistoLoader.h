@@ -72,6 +72,8 @@ public:
                             Int_t fbin2 = 1, Int_t lbin2 = kLastBin,
                             Option_t* option = "");
 
+    static TH1* CreateProjection_RelWeight(Char_t projaxis, const TH1* h);
+
     ClassDef(TCARHistoLoader, 0) // AR histogram loading class
 };
 
