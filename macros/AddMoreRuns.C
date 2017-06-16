@@ -28,6 +28,7 @@ void AddMoreRuns()
     // add more raw files to the database
     TCMySQLManager::GetManager()->AddRunFiles(rawfilePath, target, "CBTaggTAPS");
     TCMySQLManager::GetManager()->AddRunFiles(rawfilePath, target, "CBTaggTAPSPed");
+    TCMySQLManager::GetManager()->AddRunFiles(rawfilePath, target, "TaggEff");
 
     // set new run range
     TCMySQLManager::GetManager()->ChangeCalibrationRunRange(calibName, newFirstRun, newLastRun);
