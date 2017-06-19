@@ -48,6 +48,8 @@ public:
         fNOpenFiles(0) { };
     TCARFileLoader(const Char_t* inputfilepathpatt);
     TCARFileLoader(Int_t nruns, const Int_t* runs, const Char_t* inputfilepathpatt = 0);
+    TCARFileLoader(const Char_t* data, const Char_t* calibration,
+                  Int_t n_sets, Int_t* sets, const Char_t* inputfilepathpatt);
     virtual ~TCARFileLoader();
 
     static Bool_t IsRegularFile(const Char_t* file);

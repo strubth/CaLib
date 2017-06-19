@@ -117,6 +117,57 @@ TCARFileLoader::TCARFileLoader(Int_t nruns, const Int_t* runs, const Char_t* inp
     }
 }
 
+//______________________________________________________________________________
+TCARFileLoader::TCARFileLoader(const Char_t* data, const Char_t* calibration,
+                               Int_t n_sets, Int_t* sets, const Char_t* inputfilepathpatt)
+{
+    // Constructor using the calibration data 'data', the calibration identifier
+    // 'calibration' and the 'nSet' sets in the array 'set'.
+    // If filePat is non-zero use this file pattern instead of the one written
+    // in the configuration file.
+
+    // init members
+    fInputFilePathPatt = 0;
+
+    fNRuns = 0;
+    fRuns = 0;
+
+    fNFiles = 0;
+    fFiles = 0;
+
+    fNOpenFiles = 0;
+
+    // create the run list
+    fRuns = TCMySQLManager::GetManager()->GetRunsOfSets(data, calibration, n_sets, sets, &fNRuns);
+
+    // read input file pattern
+    if (inputfilepathpatt)
+    {
+        // check if pattern is a directory
+        if (IsDirectory(inputfilepathpatt))
+        {
+            // try to find pattern
+            Char_t* outpat;
+            CreateAutoDetectInputFilePathPatt(inputfilepathpatt, outpat);
+            if (outpat)
+            {
+                fInputFilePathPatt = new TString(outpat);
+                delete outpat;
+            }
+            else
+            {
+                Warning("TCARFileLoader", "Unable to find pattern.");
+            }
+        }
+        else
+        {
+            if (CheckInputFilePathPatt(inputfilepathpatt))
+                fInputFilePathPatt = new TString(inputfilepathpatt);
+            else
+                Warning("TCARFileLoader", "Error in pattern.");
+        }
+    }
+}
 
 //______________________________________________________________________________
 TCARFileLoader::~TCARFileLoader()

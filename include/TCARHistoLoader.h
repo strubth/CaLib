@@ -43,6 +43,10 @@ public:
     TCARHistoLoader(Int_t nruns, const Int_t* runs, const Char_t* inputfilepathpatt = 0)
       : TCARFileLoader(nruns, runs, inputfilepathpatt),
         fHistoDirectory(0) { }
+    TCARHistoLoader(const Char_t* data, const Char_t* calibration,
+                  Int_t n_sets, Int_t* sets, const Char_t* inputfilepathpatt)
+      : TCARFileLoader(data, calibration, n_sets, sets, inputfilepathpatt),
+        fHistoDirectory(0) { }
     virtual ~TCARHistoLoader() { }
 
     static TH1* GetHisto(const TFile* f, const Char_t* hname, Bool_t detach = kTRUE);
