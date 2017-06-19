@@ -105,6 +105,8 @@ public:
     void GetChangeTimeOfSet(const Char_t* data, const Char_t* calibration,
                             Int_t set, Char_t* outTime);
     Int_t* GetRunsOfCalibration(const Char_t* calibration, Int_t* outNruns = 0);
+    Int_t* GetRunsOfSets(const Char_t* data, const Char_t* calibration,
+                         Int_t nsets, Int_t* sets, Int_t* outNruns);
     Int_t* GetRunsOfSet(const Char_t* data, const Char_t* calibration,
                         Int_t set, Int_t* outNruns);
     Int_t GetSetForRun(const Char_t* data, const Char_t* calibration, Int_t run);

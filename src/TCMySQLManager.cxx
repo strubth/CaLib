@@ -850,12 +850,33 @@ Int_t* TCMySQLManager::GetRunsOfCalibration(const Char_t* calibration, Int_t* ou
     // default data
     const Char_t* default_data = "Data.Tagger.T0";
 
+    // get no. of sets
+    Int_t nsets = GetNsets(default_data, calibration);
+
+    //  create set array
+    Int_t sets[nsets];
+    for (Int_t i = 0; i < nsets; i++)
+        sets[i] = i;
+
+    // return result
+    return GetRunsOfSets(default_data, calibration, nsets, sets, outNruns);
+}
+
+//______________________________________________________________________________
+Int_t* TCMySQLManager::GetRunsOfSets(const Char_t* data, const Char_t* calibration,
+                                    Int_t nsets, Int_t* sets, Int_t* outNruns)
+{
+    // Return the list of runs that are in the 'nsets' sets 'sets' of the
+    // calibration data 'data' for the calibration identifier 'calibration'.
+    // If 'outNruns' is not zero the number of runs will be written to this variable.
+    // NOTE: the run array must be destroyed by the caller.
+
+     // make check
+    if (!sets) return 0;
+
     // init result variables
     Int_t nruns = 0;
     Int_t* runs = 0;
-
-    // get no. of sets
-    Int_t nsets = GetNsets(default_data, calibration);
 
     // init helpers for sets
     Int_t* nruns_set = new Int_t[nsets];
@@ -865,7 +886,7 @@ Int_t* TCMySQLManager::GetRunsOfCalibration(const Char_t* calibration, Int_t* ou
     for (Int_t i = 0; i < nsets; i++)
     {
         // get list of runs for set
-        runs_set[i] = GetRunsOfSet(default_data, calibration, i, &nruns_set[i]);
+        runs_set[i] = GetRunsOfSet(data, calibration, sets[i], &nruns_set[i]);
 
         // update total number of runs
         nruns += nruns_set[i];
